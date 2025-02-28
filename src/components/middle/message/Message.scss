@@ -701,6 +701,12 @@
   .message-action-button {
     color: white;
   }
+  
+  &:hover{
+    .message-ai-tool-bar{
+      display: block;
+    }
+  }
 
   &:hover,
   &[data-is-document-group-hover] {

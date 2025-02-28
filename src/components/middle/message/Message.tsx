@@ -151,6 +151,7 @@ import PremiumIcon from '../../common/PremiumIcon';
 import ReactionStaticEmoji from '../../common/ReactionStaticEmoji';
 import TopicChip from '../../common/TopicChip';
 import Button from '../../ui/Button';
+import MessageAIToolBar from '../chatgpt/MessageAIToolBar';
 import Album from './Album';
 import AnimatedCustomEmoji from './AnimatedCustomEmoji';
 import AnimatedEmoji from './AnimatedEmoji';
@@ -1477,6 +1478,7 @@ const Message: FC<OwnProps & StateProps> = ({
             tags={tags}
           />
         )}
+        {hasText && !isOwn && <MessageAIToolBar message={textMessage} />}
       </div>
       {contextMenuPosition && (
         <ContextMenuContainer

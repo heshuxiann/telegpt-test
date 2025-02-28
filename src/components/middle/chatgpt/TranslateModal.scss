@@ -1,0 +1,101 @@
+.translate-modal {
+  .modal-dialog {
+    width: 452px !important;
+  }
+  .summarize-origin-text {
+    border: 1px solid #e2e2e2;
+    border-radius: 12px;
+    height: 36px;
+    line-height: 36px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #666666;
+    font-size: 12px;
+    padding: 0 10px;
+  }
+  .summarize-result-text {
+    font-weight: 500;
+    font-size: 14px;
+    margin-top: 15px;
+    color: #000000;
+    max-height: 200px;
+    overflow-y: scroll;
+  }
+  .summarize-footer {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin-top: 12px;
+    .summarize-footer-btn {
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f4f4f4;
+      cursor: pointer;
+    }
+  }
+  
+  // translate modal
+  
+  .translate-modal-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    .translate-modal-title-text {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .translate-modal-title-close{
+        margin-left: auto;
+        width: 30px;
+        height: 30px;
+    }
+  }
+  
+  .translate-language-select {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 28px;
+    background-color: #f4f4f4;
+    border-radius: 14px;
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 500;
+    width: 144px;
+    position: relative;
+    .translate-language-select-container {
+      position: absolute;
+      width: 100%;
+      padding: 4px;
+      border-radius: 12px;
+      top: 36px;
+      left: 0;
+      height: auto;
+      max-height: 200px;
+      overflow-y: scroll;
+      background-color: #f4f4f4;
+      z-index: 2;
+      .translate-language-select-item {
+        height: 24px;
+        line-height: 24px;
+        border-radius: 12px;
+        padding: 0 4px;
+        font-size: 12px;
+        &:active {
+          background-color: #f1f1f1;
+        }
+        &:hover {
+          background-color: #f1f1f1;
+        }
+      }
+    }
+  }
+  
+}

@@ -1,0 +1,32 @@
+.message-ai-tool-bar {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  background-color: #ffffff;
+  z-index: 2147483647;
+  position: absolute;
+  right: -32px;
+  top: 0;
+  display: none;
+  .chat-ai-logo-button {
+    width: 24px;
+    height: 24px;
+    img {
+        width: 18px;
+        height: 18px;
+      }
+  }
+  .ai-tool-menu-item {
+    border-radius: 6px;
+    height: 32px;
+    padding: 0 8px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+}

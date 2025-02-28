@@ -1,0 +1,31 @@
+.skeleton-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 300px;
+  margin: 10px 0;
+}
+
+.skeleton-text {
+  background-color: #e0e0e0;
+  height: 20px;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.skeleton-line {
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* 动画效果 */
+@keyframes pulse {
+  0% {
+    background-color: #e0e0e0;
+  }
+  50% {
+    background-color: #f0f0f0;
+  }
+  100% {
+    background-color: #e0e0e0;
+  }
+}

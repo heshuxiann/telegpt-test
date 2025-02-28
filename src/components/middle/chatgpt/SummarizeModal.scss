@@ -1,0 +1,48 @@
+.summarize-modal {
+    .modal-dialog {
+      width: 452px !important;
+    }
+    .modal-header{
+        flex-direction: row-reverse;
+        padding-top: 10px;
+        .modal-title{
+            margin: 0;
+        }
+    }
+    .summarize-origin-text {
+      border: 1px solid #e2e2e2;
+      border-radius: 12px;
+      height: 36px;
+      line-height: 36px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #666666;
+      font-size: 12px;
+      padding: 0 10px;
+    }
+    .summarize-result-text {
+      font-weight: 500;
+      font-size: 14px;
+      margin-top: 15px;
+      color: #000000;
+      max-height: 200px;
+      overflow-y: scroll;
+    }
+    .summarize-footer {
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      margin-top: 12px;
+      .summarize-footer-btn {
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f4f4f4;
+        cursor: pointer;
+      }
+    }
+  }
+  
