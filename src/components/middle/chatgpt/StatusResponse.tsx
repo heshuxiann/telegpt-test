@@ -42,36 +42,36 @@ const RenderChatContent = ({ content }: { content: string }) => {
   );
 };
 const StatusResponse = (response: IResponseProps) => {
-  const { content, showThinking = true } = response;
-  let thoughtChain: string | undefined = content;
-  let msgToRender = '';
-  // If the message is a perfect thought chain, we can render it directly
-  // Complete == open and close tags match perfectly.
-  if (content.match(THOUGHT_REGEX_COMPLETE)) {
-    thoughtChain = content.match(THOUGHT_REGEX_COMPLETE)?.[0];
-    msgToRender = content.replace(THOUGHT_REGEX_COMPLETE, '');
-  }
+  const { content } = response;
+  // let thoughtChain: string | undefined = content;
+  // let msgToRender = '';
+  // // If the message is a perfect thought chain, we can render it directly
+  // // Complete == open and close tags match perfectly.
+  // if (content.match(THOUGHT_REGEX_COMPLETE)) {
+  //   thoughtChain = content.match(THOUGHT_REGEX_COMPLETE)?.[0];
+  //   msgToRender = content.replace(THOUGHT_REGEX_COMPLETE, '');
+  // }
 
-  // If the message is a thought chain but not a complete thought chain (matching opening tags but not closing tags),
-  // we can render it as a thought chain if we can at least find a closing tag
-  // This can occur when the assistant starts with <thinking> and then <response>'s later.
-  if (
-    content.match(THOUGHT_REGEX_OPEN)
-        && content.match(THOUGHT_REGEX_CLOSE)
-  ) {
-    const closingTag = content.match(THOUGHT_REGEX_CLOSE)?.[0];
-    if (closingTag) {
-      const splitMessage = content.split(closingTag);
-      thoughtChain = splitMessage[0] + closingTag;
-      msgToRender = splitMessage[1];
-    }
-  }
+  // // If the message is a thought chain but not a complete thought chain (matching opening tags but not closing tags),
+  // // we can render it as a thought chain if we can at least find a closing tag
+  // // This can occur when the assistant starts with <thinking> and then <response>'s later.
+  // if (
+  //   content.match(THOUGHT_REGEX_OPEN)
+  //       && content.match(THOUGHT_REGEX_CLOSE)
+  // ) {
+  //   const closingTag = content.match(THOUGHT_REGEX_CLOSE)?.[0];
+  //   if (closingTag) {
+  //     const splitMessage = content.split(closingTag);
+  //     thoughtChain = splitMessage[0] + closingTag;
+  //     msgToRender = splitMessage[1];
+  //   }
+  // }
   return (
     <div className="response-container">
-      {thoughtChain && showThinking && (
+      {/* {thoughtChain && showThinking && (
         <ThoughtChainComponent content={thoughtChain} />
-      )}
-      <RenderChatContent content={msgToRender} />
+      )} */}
+      <RenderChatContent content={content} />
     </div>
   );
 };

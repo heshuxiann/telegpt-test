@@ -7,7 +7,8 @@ import useLang from '../../../hooks/useLang';
 
 import Button from '../../ui/Button';
 import Modal from '../../ui/Modal';
-import aiSdkService from './ChatApiService';
+import generateChatgpt from './ChatApiGenerate';
+// import aiSdkService from './ChatApiService';
 import CopyIcon from './Icon/CopyIcon';
 import DropDownIcon from './Icon/DropDownIcon';
 import RefreshIcon from './Icon/RefreshIcon';
@@ -90,7 +91,7 @@ const TranslateModal = (props: TranslateModalProps) => {
 
   const handleChat = () => {
     setIsLoading(true);
-    aiSdkService.useChat({
+    generateChatgpt({
       data: {
         messages: [
           {
@@ -112,7 +113,7 @@ const TranslateModal = (props: TranslateModalProps) => {
       },
       onResponse: (message) => {
         setIsLoading(false);
-        setTranslateResult(message.content);
+        setTranslateResult(message);
       },
       onFinish: () => {
         console.log('Finish');

@@ -133,6 +133,7 @@ import useMentionTooltip from '../middle/composer/hooks/useMentionTooltip';
 import useStickerTooltip from '../middle/composer/hooks/useStickerTooltip';
 import useVoiceRecording from '../middle/composer/hooks/useVoiceRecording';
 
+import eventEmitter from '../middle/chatgpt/EventEmitter';
 import InputAIMenu from '../middle/chatgpt/InputAIMenu';
 import AttachmentModal from '../middle/composer/AttachmentModal.async';
 import AttachMenu from '../middle/composer/AttachMenu';
@@ -406,6 +407,7 @@ const Composer: FC<OwnProps & StateProps> = ({
   const sendMessageAction = useSendMessageAction(chatId, threadId);
   const [isInputHasFocus, markInputHasFocus, unmarkInputHasFocus] = useFlag();
   const [isAttachMenuOpen, onAttachMenuOpen, onAttachMenuClose] = useFlag();
+  const [isInlineAILoading, setIsInlineAILoading] = useState(false);
 
   const canMediaBeReplaced = editingMessage && hasReplaceableMedia(editingMessage);
 
@@ -579,12 +581,28 @@ const Composer: FC<OwnProps & StateProps> = ({
   }, [activeVoiceRecording, isForCurrentMessageList, isInStoryViewer, sendMessageAction]);
 
   const isEditingRef = useStateRef(Boolean(editingMessage));
+  const updateInlineAILoading = useLastCallback((value:boolean) => {
+    setIsInlineAILoading(value);
+  });
+  const updataAIResponse = useLastCallback((text:string) => {
+    setIsInlineAILoading(false);
+    setHtml(text);
+  });
   useEffect(() => {
     if (!isForCurrentMessageList || isInStoryViewer) return;
     if (getHtml() && !isEditingRef.current) {
       sendMessageAction({ type: 'typing' });
     }
   }, [getHtml, isEditingRef, isForCurrentMessageList, isInStoryViewer, sendMessageAction]);
+
+  useEffect(() => {
+    eventEmitter.on('update-input-text', updataAIResponse);
+    eventEmitter.on('update-input-spiner', updateInlineAILoading);
+    return () => {
+      eventEmitter.off('update-input-text', updataAIResponse);
+      eventEmitter.off('update-input-spiner', updateInlineAILoading);
+    };
+  }, []);
 
   const isAdmin = chat && isChatAdmin(chat);
 
@@ -1333,7 +1351,7 @@ const Composer: FC<OwnProps & StateProps> = ({
   const isComposerHasFocus = isBotKeyboardOpen || isSymbolMenuOpen || isEmojiTooltipOpen || isSendAsMenuOpen
     || isMentionTooltipOpen || isInlineBotTooltipOpen || isDeleteModalOpen || isBotCommandMenuOpen || isAttachMenuOpen
     || isStickerTooltipOpen || isChatCommandTooltipOpen || isCustomEmojiTooltipOpen || isBotMenuButtonOpen
-  || isCustomSendMenuOpen || Boolean(activeVoiceRecording) || attachments.length > 0 || isInputHasFocus;
+    || isCustomSendMenuOpen || Boolean(activeVoiceRecording) || attachments.length > 0 || isInputHasFocus;
   const isReactionSelectorOpen = isComposerHasFocus && !isReactionPickerOpen && isInStoryViewer && !isAttachMenuOpen
     && !isSymbolMenuOpen;
   const placeholderForForumAsMessages = chat?.isForum && chat?.isForumAsMessages && threadId === MAIN_THREAD_ID
@@ -1761,7 +1779,7 @@ const Composer: FC<OwnProps & StateProps> = ({
           />
           {isInMessageList && (
             <>
-              {isInlineBotLoading && Boolean(inlineBotId) && (
+              {((isInlineBotLoading && Boolean(inlineBotId)) || isInlineAILoading) && (
                 <Spinner color="gray" />
               )}
               {withScheduledButton && (
@@ -1794,7 +1812,7 @@ const Composer: FC<OwnProps & StateProps> = ({
               {formatVoiceRecordDuration(currentRecordTime - startRecordTimeRef.current!)}
             </span>
           )}
-          <InputAIMenu />
+          <InputAIMenu getHtml={getHtml} />
           <AttachMenu
             chatId={chatId}
             threadId={threadId}

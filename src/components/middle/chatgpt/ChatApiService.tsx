@@ -89,7 +89,6 @@ class AiSdkService {
         if (chunk.startsWith('0:')) {
         //   console.log(chunk.substring(2), '--------chunk');
           message.content += AiSdkService.filterContent(chunk);
-          message.content = message.content.replaceAll('\n', '');
         }
         props.onResponse(message);
         // Continue reading the next chunk
@@ -104,7 +103,9 @@ class AiSdkService {
   }
 }
 
-const aiSdkService = new AiSdkService('http://10.1.4.136:3000/chat');
+// const aiSdkService = new AiSdkService('http://10.1.4.136:3000/chat');
+// const aiSdkService = new AiSdkService('https://ai-api-sdm.vercel.app/chat');
+const aiSdkService = new AiSdkService('https://ai-api-sdm.vercel.app/generate');
 // const aiSdkService = new AiSdkService('https://429d-35-221-126-189.ngrok-free.app/chat');
 
 export default aiSdkService;

@@ -13,7 +13,8 @@ import useFlag from '../../../hooks/useFlag';
 
 import Menu from '../../ui/Menu';
 import MenuItem from '../../ui/MenuItem';
-import aiSdkService from './ChatApiService';
+import generateChatgpt from './ChatApiGenerate';
+// import aiSdkService from './ChatApiService';
 import eventEmitter from './EventEmitter';
 import SmartReply from './Icon/SmartReply';
 import Summarize from './Icon/Summarize';
@@ -53,7 +54,8 @@ const MessageAIToolBar: FC = ({ message }: { message: ApiMessage }) => {
     openSummarizeModal();
   }, [openSummarizeModal]);
   const handleContextSmartReply = useCallback(() => {
-    aiSdkService.useChat({
+    eventEmitter.emit('update-input-spiner', true);
+    generateChatgpt({
       data: {
         messages: [
           {
@@ -69,7 +71,9 @@ const MessageAIToolBar: FC = ({ message }: { message: ApiMessage }) => {
         ],
       },
       onResponse: (message) => {
-        eventEmitter.emit('update-input-text', { text: message.content });
+        // const content = message.content.replace(/\\n/g, '\n');
+        // eventEmitter.emit('update-input-text', content);
+        eventEmitter.emit('update-input-text', message);
       },
       onFinish: () => {
         console.log('Finish');
