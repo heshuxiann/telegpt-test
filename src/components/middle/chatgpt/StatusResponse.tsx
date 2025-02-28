@@ -3,7 +3,7 @@ import React from '../../../lib/teact/teact';
 
 import './StatusResponse.scss';
 
-import chatAILogoPath from '../../../assets/cgat-ai-logo.png';
+// import chatAILogoPath from '../../../assets/cgat-ai-logo.png';
 
 const THOUGHT_KEYWORDS = ['thought', 'thinking', 'think', 'thought_chain'];
 const CLOSING_TAGS = [...THOUGHT_KEYWORDS, 'response', 'answer'];
@@ -23,16 +23,16 @@ interface IResponseProps {
   showThinking?: boolean;
 }
 
-const ThoughtChainComponent = ({ content }: { content: string }) => {
-  return (
-    <div className="thought-chain-container">
-      <img src={chatAILogoPath} alt="" />
-      <span>
-        {content.replace(THOUGHT_REGEX_OPEN, '').replace(THOUGHT_REGEX_CLOSE, '').replace(/\\n/g, '')}
-      </span>
-    </div>
-  );
-};
+// const ThoughtChainComponent = ({ content }: { content: string }) => {
+//   return (
+//     <div className="thought-chain-container">
+//       <img src={chatAILogoPath} alt="" />
+//       <span>
+//         {content.replace(THOUGHT_REGEX_OPEN, '').replace(THOUGHT_REGEX_CLOSE, '').replace(/\\n/g, '')}
+//       </span>
+//     </div>
+//   );
+// };
 const RenderChatContent = ({ content }: { content: string }) => {
   content = content.replace(/\\n/g, '');
   return (
