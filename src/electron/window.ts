@@ -146,19 +146,20 @@ export function createWindow(url?: string) {
 }
 
 function loadWindowUrl(window: BrowserWindow, url?: string, hash?: string): void {
-  if (url && checkIsWebContentsUrlAllowed(url)) {
-    window.loadURL(url);
-  } else if (!app.isPackaged) {
-    window.loadURL(`http://localhost:1234${hash}`);
-    window.webContents.openDevTools();
-  } else if (getIsAutoUpdateEnabled()) {
-    window.loadURL(`${process.env.BASE_URL}${hash}`);
-  } else if (getIsAutoUpdateEnabled() === undefined && IS_FIRST_RUN) {
-    store.set(AUTO_UPDATE_SETTING_KEY, true);
-    window.loadURL(`${process.env.BASE_URL}${hash}`);
-  } else {
-    window.loadURL(`file://${__dirname}/index.html${hash}`);
-  }
+  window.loadURL(`file://${__dirname}/index.html${hash}`);
+  // if (url && checkIsWebContentsUrlAllowed(url)) {
+  //   window.loadURL(url);
+  // } else if (!app.isPackaged) {
+  //   window.loadURL(`http://localhost:1234${hash}`);
+  //   window.webContents.openDevTools();
+  // } else if (getIsAutoUpdateEnabled()) {
+  //   window.loadURL(`${process.env.BASE_URL}${hash}`);
+  // } else if (getIsAutoUpdateEnabled() === undefined && IS_FIRST_RUN) {
+  //   store.set(AUTO_UPDATE_SETTING_KEY, true);
+  //   window.loadURL(`${process.env.BASE_URL}${hash}`);
+  // } else {
+  //   window.loadURL(`file://${__dirname}/index.html${hash}`);
+  // }
 }
 
 export function setupElectronActionHandlers() {
