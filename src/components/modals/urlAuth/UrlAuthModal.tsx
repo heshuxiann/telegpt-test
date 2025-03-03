@@ -13,12 +13,10 @@ import { ensureProtocol } from '../../../util/ensureProtocol';
 import renderText from '../../common/helpers/renderText';
 
 import useCurrentOrPrev from '../../../hooks/useCurrentOrPrev';
-import useLang from '../../../hooks/useLang';
+import useOldLang from '../../../hooks/useOldLang';
 
 import Checkbox from '../../ui/Checkbox';
 import ConfirmDialog from '../../ui/ConfirmDialog';
-
-import styles from './UrlAuthModal.module.scss';
 
 export type OwnProps = {
   modal?: TabState['urlAuth'];
@@ -38,7 +36,7 @@ const UrlAuthModal: FC<OwnProps & StateProps> = ({
   const { domain, botId, shouldRequestWriteAccess } = currentAuth?.request || {};
   const bot = botId ? getGlobal().users.byId[botId] : undefined;
 
-  const lang = useLang();
+  const lang = useOldLang();
 
   const handleOpen = useCallback(() => {
     if (modal?.url && isLoginChecked) {
@@ -82,6 +80,7 @@ const UrlAuthModal: FC<OwnProps & StateProps> = ({
       {renderText(lang('OpenUrlAlert2', currentAuth?.url), ['links'])}
       {domain && (
         <Checkbox
+          className="dialog-checkbox"
           checked={isLoginChecked}
           label={(
             <>
@@ -92,11 +91,11 @@ const UrlAuthModal: FC<OwnProps & StateProps> = ({
             </>
           )}
           onCheck={handleLoginChecked}
-          className={styles.checkbox}
         />
       )}
       {shouldRequestWriteAccess && (
         <Checkbox
+          className="dialog-checkbox"
           checked={isWriteAccessChecked}
           label={(
             <>
@@ -108,7 +107,6 @@ const UrlAuthModal: FC<OwnProps & StateProps> = ({
           )}
           onCheck={setWriteAccessChecked}
           disabled={!isLoginChecked}
-          className={styles.checkbox}
         />
       )}
     </ConfirmDialog>

@@ -9,9 +9,10 @@ import { SettingsScreens } from '../../../types';
 import { selectAnimatedEmoji, selectChatFolder } from '../../../global/selectors';
 
 import useAppLayout from '../../../hooks/useAppLayout';
-import useLang from '../../../hooks/useLang';
+import useOldLang from '../../../hooks/useOldLang';
 
 import AnimatedIconFromSticker from '../../common/AnimatedIconFromSticker';
+import Icon from '../../common/icons/Icon';
 import Button from '../../ui/Button';
 
 import styles from './EmptyFolder.module.scss';
@@ -33,7 +34,7 @@ const ICON_SIZE = 96;
 const EmptyFolder: FC<OwnProps & StateProps> = ({
   chatFolder, animatedEmoji, foldersDispatch, onSettingsScreenSelect,
 }) => {
-  const lang = useLang();
+  const lang = useOldLang();
   const { isMobile } = useAppLayout();
 
   const handleEditFolder = useCallback(() => {
@@ -59,7 +60,7 @@ const EmptyFolder: FC<OwnProps & StateProps> = ({
           size="smaller"
           isRtl={lang.isRtl}
         >
-          <i className="icon icon-settings" />
+          <Icon name="settings" />
           <div className={styles.buttonText}>
             {lang('ChatList.EmptyChatListEditFilter')}
           </div>

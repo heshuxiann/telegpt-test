@@ -13,7 +13,7 @@ import renderText from '../../../common/helpers/renderText';
 import useAppLayout from '../../../../hooks/useAppLayout';
 import useFlag from '../../../../hooks/useFlag';
 import useHistoryBack from '../../../../hooks/useHistoryBack';
-import useLang from '../../../../hooks/useLang';
+import useOldLang from '../../../../hooks/useOldLang';
 
 import AnimatedIconFromSticker from '../../../common/AnimatedIconFromSticker';
 import Button from '../../../ui/Button';
@@ -94,7 +94,7 @@ const SettingsTwoFaSkippableForm: FC<OwnProps & StateProps> = ({
     onSubmit();
   }, [onSubmit, unmarkIsConfirmShown]);
 
-  const lang = useLang();
+  const lang = useOldLang();
 
   useHistoryBack({
     isActive,
@@ -105,9 +105,12 @@ const SettingsTwoFaSkippableForm: FC<OwnProps & StateProps> = ({
     <div className="settings-content two-fa custom-scroll">
       <div className="settings-content-header no-border">
         <AnimatedIconFromSticker sticker={animatedEmoji} size={ICON_SIZE} className="settings-content-icon" />
+        <p className="settings-item-description mb-3" dir="auto">
+          {lang('RecoveryEmailSubtitle')}
+        </p>
       </div>
 
-      <div className="settings-item pt-0">
+      <div className="settings-item pt-2">
         <form action="" onSubmit={handleSubmit}>
           <InputText
             ref={inputRef}

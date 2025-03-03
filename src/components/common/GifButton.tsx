@@ -5,8 +5,8 @@ import React, {
 
 import type { ApiVideo } from '../../api/types';
 import type { ObserveFn } from '../../hooks/useIntersectionObserver';
-import { ApiMediaFormat } from '../../api/types';
 
+import { getVideoMediaHash, getVideoPreviewMediaHash } from '../../global/helpers';
 import buildClassName from '../../util/buildClassName';
 import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
 import { preventMessageInputBlurWithBubbling } from '../middle/helpers/preventMessageInputBlur';
@@ -15,16 +15,16 @@ import useBuffering from '../../hooks/useBuffering';
 import useCanvasBlur from '../../hooks/useCanvasBlur';
 import useContextMenuHandlers from '../../hooks/useContextMenuHandlers';
 import { useIsIntersecting } from '../../hooks/useIntersectionObserver';
-import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useMedia from '../../hooks/useMedia';
-import useMenuPosition from '../../hooks/useMenuPosition';
+import useOldLang from '../../hooks/useOldLang';
 
 import Button from '../ui/Button';
 import Menu from '../ui/Menu';
 import MenuItem from '../ui/MenuItem';
 import OptimizedVideo from '../ui/OptimizedVideo';
 import Spinner from '../ui/Spinner';
+import Icon from './icons/Icon';
 
 import './GifButton.scss';
 
@@ -50,22 +50,26 @@ const GifButton: FC<OwnProps> = ({
   // eslint-disable-next-line no-null/no-null
   const ref = useRef<HTMLDivElement>(null);
 
-  const lang = useLang();
+  const lang = useOldLang();
 
-  const localMediaHash = `gif${gif.id}`;
   const isIntersecting = useIsIntersecting(ref, observeIntersection);
   const loadAndPlay = isIntersecting && !isDisabled;
-  const previewBlobUrl = useMedia(`${localMediaHash}?size=m`, !loadAndPlay, ApiMediaFormat.BlobUrl);
+  const previewHash = !gif.hasVideoPreview && gif.thumbnail && getVideoMediaHash(gif, 'pictogram');
+  const previewBlobUrl = useMedia(previewHash, !loadAndPlay);
+
   const [withThumb] = useState(gif.thumbnail?.dataUri && !previewBlobUrl);
   const thumbRef = useCanvasBlur(gif.thumbnail?.dataUri, !withThumb);
-  const videoData = useMedia(localMediaHash, !loadAndPlay, ApiMediaFormat.BlobUrl);
+
+  const videoHash = getVideoPreviewMediaHash(gif) || getVideoMediaHash(gif, 'full');
+  const videoData = useMedia(videoHash, !loadAndPlay);
+
   const shouldRenderVideo = Boolean(loadAndPlay && videoData);
   const { isBuffered, bufferingHandlers } = useBuffering(true);
   const shouldRenderSpinner = loadAndPlay && !isBuffered;
   const isVideoReady = loadAndPlay && isBuffered;
 
   const {
-    isContextMenuOpen, contextMenuPosition,
+    isContextMenuOpen, contextMenuAnchor,
     handleBeforeContextMenu, handleContextMenu,
     handleContextMenuClose, handleContextMenuHide,
   } = useContextMenuHandlers(ref);
@@ -73,15 +77,6 @@ const GifButton: FC<OwnProps> = ({
   const getTriggerElement = useLastCallback(() => ref.current);
   const getRootElement = useLastCallback(() => ref.current!.closest('.custom-scroll, .no-scrollbar'));
   const getMenuElement = useLastCallback(() => ref.current!.querySelector('.gif-context-menu .bubble'));
-
-  const {
-    positionX, positionY, transformOriginX, transformOriginY, style: menuStyle,
-  } = useMenuPosition(
-    contextMenuPosition,
-    getTriggerElement,
-    getRootElement,
-    getMenuElement,
-  );
 
   const handleClick = useLastCallback(() => {
     if (isContextMenuOpen || !onClick) return;
@@ -128,7 +123,6 @@ const GifButton: FC<OwnProps> = ({
     'GifButton',
     gif.width && gif.height && gif.width < gif.height ? 'vertical' : 'horizontal',
     onClick && 'interactive',
-    localMediaHash,
     className,
   );
 
@@ -148,15 +142,13 @@ const GifButton: FC<OwnProps> = ({
           noFastClick
           onClick={handleUnsaveClick}
         >
-          <i className="icon icon-close gif-unsave-button-icon" />
+          <Icon name="close" className="gif-unsave-button-icon" />
         </Button>
       )}
       {withThumb && (
         <canvas
           ref={thumbRef}
           className="thumbnail"
-          // We need to always render to avoid blur re-calculation
-          style={isVideoReady ? 'display: none;' : undefined}
         />
       )}
       {previewBlobUrl && !isVideoReady && (
@@ -184,14 +176,13 @@ const GifButton: FC<OwnProps> = ({
       {shouldRenderSpinner && (
         <Spinner color={previewBlobUrl || withThumb ? 'white' : 'black'} />
       )}
-      {onClick && contextMenuPosition !== undefined && (
+      {onClick && contextMenuAnchor !== undefined && (
         <Menu
           isOpen={isContextMenuOpen}
-          transformOriginX={transformOriginX}
-          transformOriginY={transformOriginY}
-          positionX={positionX}
-          positionY={positionY}
-          style={menuStyle}
+          anchor={contextMenuAnchor}
+          getTriggerElement={getTriggerElement}
+          getRootElement={getRootElement}
+          getMenuElement={getMenuElement}
           className="gif-context-menu"
           autoClose
           onClose={handleContextMenuClose}

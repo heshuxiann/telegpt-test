@@ -120,7 +120,7 @@ const CountryCodeInput: FC<OwnProps & StateProps> = ({
           onInput={handleCodeInput}
           onKeyDown={handleInputKeyDown}
         />
-        <label>{lang('Login.SelectCountry.Title')}</label>
+        <label>{lang('LoginSelectCountryTitle')}</label>
         {isLoading ? (
           <Spinner color="black" />
         ) : (
@@ -154,7 +154,7 @@ const CountryCodeInput: FC<OwnProps & StateProps> = ({
           className="no-results"
           disabled
         >
-          <span>{lang('lng_country_none')}</span>
+          <span>{lang('CountryNone')}</span>
         </MenuItem>
       )}
     </DropdownMenu>

@@ -6,7 +6,7 @@ import type { TextPart } from '../../types';
 import buildClassName from '../../util/buildClassName';
 
 import useKeyboardListNavigation from '../../hooks/useKeyboardListNavigation';
-import useLang from '../../hooks/useLang';
+import useOldLang from '../../hooks/useOldLang';
 
 import Button from './Button';
 import Modal from './Modal';
@@ -14,10 +14,11 @@ import Modal from './Modal';
 type OwnProps = {
   isOpen: boolean;
   title?: string;
+  noDefaultTitle?: boolean;
   header?: TeactNode;
   textParts?: TextPart;
   text?: string;
-  confirmLabel?: string;
+  confirmLabel?: TeactNode;
   confirmIsDestructive?: boolean;
   isConfirmDisabled?: boolean;
   isOnlyConfirm?: boolean;
@@ -32,6 +33,7 @@ type OwnProps = {
 const ConfirmDialog: FC<OwnProps> = ({
   isOpen,
   title,
+  noDefaultTitle,
   header,
   text,
   textParts,
@@ -46,7 +48,7 @@ const ConfirmDialog: FC<OwnProps> = ({
   onClose,
   onCloseAnimationEnd,
 }) => {
-  const lang = useLang();
+  const lang = useOldLang();
 
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
@@ -60,7 +62,7 @@ const ConfirmDialog: FC<OwnProps> = ({
   return (
     <Modal
       className={buildClassName('confirm', className)}
-      title={title || lang('Telegram')}
+      title={(title || (!noDefaultTitle ? lang('Telegram') : undefined))}
       header={header}
       isOpen={isOpen}
       onClose={onClose}

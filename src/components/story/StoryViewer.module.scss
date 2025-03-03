@@ -67,6 +67,7 @@
   right: 1rem;
   top: 1rem;
   z-index: 3;
+
   @media (max-width: 600px) {
     display: none;
   }
@@ -161,6 +162,7 @@
   @for $i from -4 through 4 {
     $slideWidth: 10.875rem;
     $basis: 4.25rem;
+
     @if $i < 0 {
       $basis: -12.625rem;
     }
@@ -299,7 +301,7 @@
   margin-top: 0.25rem;
   color: var(--color-white);
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -325,6 +327,7 @@
 }
 
 // Shared styles for the header that are also used in ghost animation
+
 @mixin story-header {
   position: absolute;
   width: 100%;
@@ -396,7 +399,7 @@
 
 .senderName {
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
@@ -436,6 +439,7 @@
 
 .closeButton {
   display: none;
+
   @media (max-width: 600px) {
     display: flex;
   }
@@ -448,6 +452,7 @@
 
   :global(.Button) {
     color: white;
+
     @media (max-width: 600px) {
       display: flex;
       &:active,
@@ -599,7 +604,7 @@
   bottom: -0.25rem;
   right: 0.5rem;
   color: var(--color-white);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   cursor: var(--custom-cursor, pointer);
 }
 

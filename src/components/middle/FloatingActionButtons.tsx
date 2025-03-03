@@ -2,10 +2,10 @@ import type { FC } from '../../lib/teact/teact';
 import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { MessageListType } from '../../global/types';
+import type { MessageListType } from '../../types';
 import { MAIN_THREAD_ID } from '../../api/types';
 
-import { selectChat, selectCurrentMessageList } from '../../global/selectors';
+import { selectChat, selectCurrentMessageList, selectCurrentMiddleSearch } from '../../global/selectors';
 import animateScroll from '../../util/animateScroll';
 import buildClassName from '../../util/buildClassName';
 
@@ -25,6 +25,8 @@ type StateProps = {
   chatId?: string;
   messageListType?: MessageListType;
   unreadCount?: number;
+  unreadReactions?: number[];
+  unreadMentions?: number[];
   reactionsCount?: number;
   mentionsCount?: number;
 };
@@ -37,6 +39,8 @@ const FloatingActionButtons: FC<OwnProps & StateProps> = ({
   messageListType,
   chatId,
   unreadCount,
+  unreadReactions,
+  unreadMentions,
   reactionsCount,
   mentionsCount,
   withExtraShift,
@@ -53,10 +57,22 @@ const FloatingActionButtons: FC<OwnProps & StateProps> = ({
   const hasUnreadMentions = Boolean(mentionsCount);
 
   useEffect(() => {
+    if (hasUnreadReactions && chatId && !unreadReactions?.length) {
+      fetchUnreadReactions({ chatId });
+    }
+  }, [chatId, fetchUnreadReactions, hasUnreadReactions, unreadReactions?.length]);
+
+  useEffect(() => {
     if (hasUnreadReactions && chatId) {
       fetchUnreadReactions({ chatId });
     }
   }, [chatId, fetchUnreadReactions, hasUnreadReactions]);
+
+  useEffect(() => {
+    if (hasUnreadMentions && chatId && !unreadMentions?.length) {
+      fetchUnreadMentions({ chatId });
+    }
+  }, [chatId, fetchUnreadMentions, hasUnreadMentions, unreadMentions?.length]);
 
   useEffect(() => {
     if (hasUnreadMentions && chatId) {
@@ -81,7 +97,12 @@ const FloatingActionButtons: FC<OwnProps & StateProps> = ({
         return;
       }
 
-      animateScroll(messagesContainer, lastMessageElement, 'end', FOCUS_MARGIN);
+      animateScroll({
+        container: messagesContainer,
+        element: lastMessageElement,
+        position: 'end',
+        margin: FOCUS_MARGIN,
+      });
     }
   });
 
@@ -137,13 +158,17 @@ export default memo(withGlobal<OwnProps>(
 
     const { chatId, threadId, type: messageListType } = currentMessageList;
     const chat = selectChat(global, chatId);
+    const hasActiveMiddleSearch = Boolean(selectCurrentMiddleSearch(global));
 
-    const shouldShowCount = chat && threadId === MAIN_THREAD_ID && messageListType === 'thread';
+    const shouldShowCount = chat && threadId === MAIN_THREAD_ID && messageListType === 'thread'
+      && !hasActiveMiddleSearch;
 
     return {
       messageListType,
       chatId,
       reactionsCount: shouldShowCount ? chat.unreadReactionsCount : undefined,
+      unreadReactions: shouldShowCount ? chat.unreadReactions : undefined,
+      unreadMentions: shouldShowCount ? chat.unreadMentions : undefined,
       mentionsCount: shouldShowCount ? chat.unreadMentionsCount : undefined,
       unreadCount: shouldShowCount ? chat.unreadCount : undefined,
     };

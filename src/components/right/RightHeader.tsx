@@ -1,10 +1,13 @@
 import type { FC } from '../../lib/teact/teact';
-import React, { useEffect, useRef, useState } from '../../lib/teact/teact';
+import React, {
+  useEffect, useMemo, useRef, useState,
+} from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiExportedInvite } from '../../api/types';
+import type { GiftProfileFilterOptions, ThreadId } from '../../types';
 import { MAIN_THREAD_ID } from '../../api/types';
-import { ManagementScreens, ProfileState, type ThreadId } from '../../types';
+import { ManagementScreens, ProfileState } from '../../types';
 
 import { ANIMATION_END_DELAY, SAVED_FOLDER_ID } from '../../config';
 import {
@@ -12,18 +15,18 @@ import {
 } from '../../global/helpers';
 import {
   selectCanManage,
+  selectCanUseGiftProfileAdminFilter,
+  selectCanUseGiftProfileFilter,
   selectChat,
   selectChatFullInfo,
   selectCurrentGifSearch,
   selectCurrentStickerSearch,
-  selectCurrentTextSearch,
   selectIsChatWithSelf,
   selectTabState,
+  selectTopic,
   selectUser,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { getDayStartAt } from '../../util/date/dateFormat';
-import { debounce } from '../../util/schedulers';
 
 import useAppLayout from '../../hooks/useAppLayout';
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
@@ -32,10 +35,14 @@ import useFlag from '../../hooks/useFlag';
 import { useFolderManagerForChatsCount } from '../../hooks/useFolderManager';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
+import useOldLang from '../../hooks/useOldLang';
 
-import Icon from '../common/Icon';
+import Icon from '../common/icons/Icon';
 import Button from '../ui/Button';
 import ConfirmDialog from '../ui/ConfirmDialog';
+import DropdownMenu from '../ui/DropdownMenu';
+import MenuItem from '../ui/MenuItem';
+import MenuSeparator from '../ui/MenuSeparator';
 import SearchInput from '../ui/SearchInput';
 import Transition from '../ui/Transition';
 
@@ -46,11 +53,11 @@ type OwnProps = {
   threadId?: ThreadId;
   isColumnOpen?: boolean;
   isProfile?: boolean;
-  isSearch?: boolean;
   isManagement?: boolean;
   isStatistics?: boolean;
   isBoostStatistics?: boolean;
   isMessageStatistics?: boolean;
+  isMonetizationStatistics?: boolean;
   isStoryStatistics?: boolean;
   isStickerSearch?: boolean;
   isGifSearch?: boolean;
@@ -71,7 +78,6 @@ type StateProps = {
   isChannel?: boolean;
   userId?: string;
   isSelf?: boolean;
-  messageSearchQuery?: string;
   stickerSearchQuery?: string;
   gifSearchQuery?: string;
   isEditingInvite?: boolean;
@@ -79,17 +85,20 @@ type StateProps = {
   shouldSkipHistoryAnimations?: boolean;
   isBot?: boolean;
   canEditBot?: boolean;
+  giftProfileFilter: GiftProfileFilterOptions;
+  canUseGiftFilter?: boolean;
+  canUseGiftAdminFilter?:boolean;
   isInsideTopic?: boolean;
   canEditTopic?: boolean;
   isSavedMessages?: boolean;
 };
 
 const COLUMN_ANIMATION_DURATION = 450 + ANIMATION_END_DELAY;
-const runDebouncedForSearch = debounce((cb) => cb(), 200, false);
 
 enum HeaderContent {
   Profile,
   MemberList,
+  GiftList,
   SharedMedia,
   StoryList,
   Search,
@@ -97,6 +106,7 @@ enum HeaderContent {
   MessageStatistics,
   StoryStatistics,
   BoostStatistics,
+  MonetizationStatistics,
   Management,
   ManageInitial,
   ManageChannelSubscribers,
@@ -132,11 +142,11 @@ const RightHeader: FC<OwnProps & StateProps> = ({
   threadId,
   isColumnOpen,
   isProfile,
-  isSearch,
   isManagement,
   isStatistics,
   isMessageStatistics,
   isStoryStatistics,
+  isMonetizationStatistics,
   isBoostStatistics,
   isStickerSearch,
   isGifSearch,
@@ -151,7 +161,6 @@ const RightHeader: FC<OwnProps & StateProps> = ({
   isSelf,
   canManage,
   isChannel,
-  messageSearchQuery,
   stickerSearchQuery,
   gifSearchQuery,
   isEditingInvite,
@@ -165,23 +174,33 @@ const RightHeader: FC<OwnProps & StateProps> = ({
   onClose,
   onScreenSelect,
   canEditBot,
+  giftProfileFilter,
+  canUseGiftFilter,
+  canUseGiftAdminFilter,
 }) => {
   const {
-    setLocalTextSearchQuery,
     setStickerSearchQuery,
     setGifSearchQuery,
-    searchTextMessagesLocal,
     toggleManagement,
-    openHistoryCalendar,
     openAddContactDialog,
     toggleStatistics,
     setEditingExportedInvite,
     deleteExportedChatInvite,
     openEditTopicPanel,
+    updateGiftProfileFilter,
   } = getActions();
 
   const [isDeleteDialogOpen, openDeleteDialog, closeDeleteDialog] = useFlag();
   const { isMobile } = useAppLayout();
+
+  const {
+    sortType: giftsSortType,
+    shouldIncludeUnlimited: shouldIncludeUnlimitedGifts,
+    shouldIncludeLimited: shouldIncludeLimitedGifts,
+    shouldIncludeUnique: shouldIncludeUniqueGifts,
+    shouldIncludeDisplayed: shouldIncludeDisplayedGifts,
+    shouldIncludeHidden: shouldIncludeHiddenGifts,
+  } = giftProfileFilter;
 
   const foldersChatCount = useFolderManagerForChatsCount();
 
@@ -194,14 +213,6 @@ const RightHeader: FC<OwnProps & StateProps> = ({
     deleteExportedChatInvite({ chatId: chatId!, link: currentInviteInfo!.link });
     onScreenSelect(ManagementScreens.Invites);
     closeDeleteDialog();
-  });
-
-  const handleMessageSearchQueryChange = useLastCallback((query: string) => {
-    setLocalTextSearchQuery({ query });
-
-    if (query.length) {
-      runDebouncedForSearch(searchTextMessagesLocal);
-    }
   });
 
   const handleStickerSearchQueryChange = useLastCallback((query: string) => {
@@ -241,6 +252,7 @@ const RightHeader: FC<OwnProps & StateProps> = ({
     }, COLUMN_ANIMATION_DURATION);
   }, [isColumnOpen]);
 
+  const oldLang = useOldLang();
   const lang = useLang();
   const contentKey = isProfile ? (
     profileState === ProfileState.Profile ? (
@@ -249,13 +261,13 @@ const RightHeader: FC<OwnProps & StateProps> = ({
       HeaderContent.SharedMedia
     ) : profileState === ProfileState.MemberList ? (
       HeaderContent.MemberList
+    ) : profileState === ProfileState.GiftList ? (
+      HeaderContent.GiftList
     ) : profileState === ProfileState.StoryList ? (
       HeaderContent.StoryList
     ) : profileState === ProfileState.SavedDialogs ? (
       HeaderContent.SavedDialogs
     ) : -1 // Never reached
-  ) : isSearch ? (
-    HeaderContent.Search
   ) : isPollResults ? (
     HeaderContent.PollResults
   ) : isStickerSearch ? (
@@ -318,29 +330,47 @@ const RightHeader: FC<OwnProps & StateProps> = ({
     HeaderContent.CreateTopic
   ) : isEditingTopic ? (
     HeaderContent.EditTopic
+  ) : isMonetizationStatistics ? (
+    HeaderContent.MonetizationStatistics
   ) : undefined; // When column is closed
 
   const renderingContentKey = useCurrentOrPrev(contentKey, true) ?? -1;
 
   function getHeaderTitle() {
     if (isSavedMessages) {
-      return lang('SavedMessages');
+      return oldLang('SavedMessages');
     }
 
     if (isInsideTopic) {
-      return lang('AccDescrTopic');
+      return oldLang('AccDescrTopic');
     }
 
     if (isChannel) {
-      return lang('Channel.TitleInfo');
+      return oldLang('Channel.TitleInfo');
     }
 
     if (userId) {
-      return lang(isBot ? 'lng_info_bot_title' : 'lng_info_user_title');
+      return oldLang(isBot ? 'lng_info_bot_title' : 'lng_info_user_title');
     }
 
-    return lang('GroupInfo.Title');
+    return oldLang('GroupInfo.Title');
   }
+
+  const PrimaryLinkMenuButton: FC<{ onTrigger: () => void; isOpen?: boolean }> = useMemo(() => {
+    return ({ onTrigger, isOpen }) => (
+      <Button
+        round
+        ripple={!isMobile}
+        size="smaller"
+        color="translucent"
+        className={isOpen ? 'active' : ''}
+        onClick={onTrigger}
+        ariaLabel={lang('AccDescrOpenMenu2')}
+      >
+        <Icon name="more" />
+      </Button>
+    );
+  }, [isMobile, lang]);
 
   function renderHeaderContent() {
     if (renderingContentKey === -1) {
@@ -349,71 +379,51 @@ const RightHeader: FC<OwnProps & StateProps> = ({
 
     switch (renderingContentKey) {
       case HeaderContent.PollResults:
-        return <h3 className="title">{lang('PollResults')}</h3>;
-      case HeaderContent.Search:
-        return (
-          <>
-            <SearchInput
-              parentContainerClassName="RightSearch"
-              value={messageSearchQuery}
-              onChange={handleMessageSearchQueryChange}
-            />
-            <Button
-              round
-              size="smaller"
-              color="translucent"
-              // eslint-disable-next-line react/jsx-no-bind
-              onClick={() => openHistoryCalendar({ selectedAt: getDayStartAt(Date.now()) })}
-              ariaLabel="Search messages by date"
-            >
-              <i className="icon icon-calendar" />
-            </Button>
-          </>
-        );
+        return <h3 className="title">{oldLang('PollResults')}</h3>;
       case HeaderContent.AddingMembers:
-        return <h3 className="title">{lang(isChannel ? 'ChannelAddSubscribers' : 'GroupAddMembers')}</h3>;
+        return <h3 className="title">{oldLang(isChannel ? 'ChannelAddSubscribers' : 'GroupAddMembers')}</h3>;
       case HeaderContent.ManageInitial:
-        return <h3 className="title">{lang('Edit')}</h3>;
+        return <h3 className="title">{oldLang('Edit')}</h3>;
       case HeaderContent.ManageChatPrivacyType:
-        return <h3 className="title">{lang(isChannel ? 'ChannelTypeHeader' : 'GroupTypeHeader')}</h3>;
+        return <h3 className="title">{oldLang(isChannel ? 'ChannelTypeHeader' : 'GroupTypeHeader')}</h3>;
       case HeaderContent.ManageDiscussion:
-        return <h3 className="title">{lang('Discussion')}</h3>;
+        return <h3 className="title">{oldLang('Discussion')}</h3>;
       case HeaderContent.ManageChatAdministrators:
-        return <h3 className="title">{lang('ChannelAdministrators')}</h3>;
+        return <h3 className="title">{oldLang('ChannelAdministrators')}</h3>;
       case HeaderContent.ManageGroupRecentActions:
-        return <h3 className="title">{lang('Group.Info.AdminLog')}</h3>;
+        return <h3 className="title">{oldLang('Group.Info.AdminLog')}</h3>;
       case HeaderContent.ManageGroupAdminRights:
-        return <h3 className="title">{lang('EditAdminRights')}</h3>;
+        return <h3 className="title">{oldLang('EditAdminRights')}</h3>;
       case HeaderContent.ManageGroupNewAdminRights:
-        return <h3 className="title">{lang('SetAsAdmin')}</h3>;
+        return <h3 className="title">{oldLang('SetAsAdmin')}</h3>;
       case HeaderContent.ManageGroupPermissions:
-        return <h3 className="title">{lang('ChannelPermissions')}</h3>;
+        return <h3 className="title">{oldLang('ChannelPermissions')}</h3>;
       case HeaderContent.ManageGroupRemovedUsers:
-        return <h3 className="title">{lang('BlockedUsers')}</h3>;
+        return <h3 className="title">{oldLang('BlockedUsers')}</h3>;
       case HeaderContent.ManageChannelRemovedUsers:
-        return <h3 className="title">{lang('ChannelBlockedUsers')}</h3>;
+        return <h3 className="title">{oldLang('ChannelBlockedUsers')}</h3>;
       case HeaderContent.ManageGroupUserPermissionsCreate:
-        return <h3 className="title">{lang('ChannelAddException')}</h3>;
+        return <h3 className="title">{oldLang('ChannelAddException')}</h3>;
       case HeaderContent.ManageGroupUserPermissions:
-        return <h3 className="title">{lang('UserRestrictions')}</h3>;
+        return <h3 className="title">{oldLang('UserRestrictions')}</h3>;
       case HeaderContent.ManageInvites:
-        return <h3 className="title">{lang('lng_group_invite_title')}</h3>;
+        return <h3 className="title">{oldLang('lng_group_invite_title')}</h3>;
       case HeaderContent.ManageEditInvite:
-        return <h3 className="title">{isEditingInvite ? lang('EditLink') : lang('NewLink')}</h3>;
+        return <h3 className="title">{isEditingInvite ? oldLang('EditLink') : oldLang('NewLink')}</h3>;
       case HeaderContent.ManageInviteInfo:
         return (
           <>
-            <h3 className="title">{lang('InviteLink')}</h3>
+            <h3 className="title">{oldLang('InviteLink')}</h3>
             <section className="tools">
               {currentInviteInfo && !currentInviteInfo.isRevoked && (
                 <Button
                   round
                   color="translucent"
                   size="smaller"
-                  ariaLabel={lang('Edit')}
+                  ariaLabel={oldLang('Edit')}
                   onClick={handleEditInviteClick}
                 >
-                  <i className="icon icon-edit" />
+                  <Icon name="edit" />
                 </Button>
               )}
               {currentInviteInfo && currentInviteInfo.isRevoked && (
@@ -422,18 +432,18 @@ const RightHeader: FC<OwnProps & StateProps> = ({
                     round
                     color="danger"
                     size="smaller"
-                    ariaLabel={lang('Delete')}
+                    ariaLabel={oldLang('Delete')}
                     onClick={openDeleteDialog}
                   >
-                    <i className="icon icon-delete" />
+                    <Icon name="delete" />
                   </Button>
                   <ConfirmDialog
                     isOpen={isDeleteDialogOpen}
                     onClose={closeDeleteDialog}
-                    title={lang('DeleteLink')}
-                    text={lang('DeleteLinkHelp')}
+                    title={oldLang('DeleteLink')}
+                    text={oldLang('DeleteLinkHelp')}
                     confirmIsDestructive
-                    confirmLabel={lang('Delete')}
+                    confirmLabel={oldLang('Delete')}
                     confirmHandler={handleDeleteInviteClick}
                   />
                 </>
@@ -442,14 +452,14 @@ const RightHeader: FC<OwnProps & StateProps> = ({
           </>
         );
       case HeaderContent.ManageJoinRequests:
-        return <h3 className="title">{isChannel ? lang('SubscribeRequests') : lang('MemberRequests')}</h3>;
+        return <h3 className="title">{isChannel ? oldLang('SubscribeRequests') : oldLang('MemberRequests')}</h3>;
       case HeaderContent.ManageGroupAddAdmins:
-        return <h3 className="title">{lang('Channel.Management.AddModerator')}</h3>;
+        return <h3 className="title">{oldLang('Channel.Management.AddModerator')}</h3>;
       case HeaderContent.StickerSearch:
         return (
           <SearchInput
             value={stickerSearchQuery}
-            placeholder={lang('SearchStickersHint')}
+            placeholder={oldLang('SearchStickersHint')}
             autoFocusSearch
             onChange={handleStickerSearchQueryChange}
           />
@@ -458,41 +468,125 @@ const RightHeader: FC<OwnProps & StateProps> = ({
         return (
           <SearchInput
             value={gifSearchQuery}
-            placeholder={lang('SearchGifsTitle')}
+            placeholder={oldLang('SearchGifsTitle')}
             autoFocusSearch
             onChange={handleGifSearchQueryChange}
           />
         );
       case HeaderContent.Statistics:
-        return <h3 className="title">{lang(isChannel ? 'ChannelStats.Title' : 'GroupStats.Title')}</h3>;
+        return <h3 className="title">{oldLang(isChannel ? 'ChannelStats.Title' : 'GroupStats.Title')}</h3>;
       case HeaderContent.MessageStatistics:
-        return <h3 className="title">{lang('Stats.MessageTitle')}</h3>;
+        return <h3 className="title">{oldLang('Stats.MessageTitle')}</h3>;
       case HeaderContent.StoryStatistics:
-        return <h3 className="title">{lang('Stats.StoryTitle')}</h3>;
+        return <h3 className="title">{oldLang('Stats.StoryTitle')}</h3>;
       case HeaderContent.BoostStatistics:
-        return <h3 className="title">{lang('Boosts')}</h3>;
+        return <h3 className="title">{oldLang('Boosts')}</h3>;
+      case HeaderContent.MonetizationStatistics:
+        return <h3 className="title">{oldLang('lng_channel_earn_title')}</h3>;
       case HeaderContent.SharedMedia:
-        return <h3 className="title">{lang('SharedMedia')}</h3>;
+        return <h3 className="title">{oldLang('SharedMedia')}</h3>;
       case HeaderContent.ManageChannelSubscribers:
-        return <h3 className="title">{lang('ChannelSubscribers')}</h3>;
+        return <h3 className="title">{oldLang('ChannelSubscribers')}</h3>;
       case HeaderContent.MemberList:
       case HeaderContent.ManageGroupMembers:
-        return <h3 className="title">{lang('GroupMembers')}</h3>;
+        return <h3 className="title">{oldLang('GroupMembers')}</h3>;
       case HeaderContent.StoryList:
-        return <h3 className="title">{lang(isSelf ? 'Settings.MyStories' : 'PeerInfo.PaneStories')}</h3>;
+        return <h3 className="title">{oldLang(isSelf ? 'Settings.MyStories' : 'PeerInfo.PaneStories')}</h3>;
       case HeaderContent.SavedDialogs:
         return (
           <div className="header">
-            <h3 className="title">{lang('SavedMessagesTab')}</h3>
-            <div className="subtitle">{lang('Chats', foldersChatCount[SAVED_FOLDER_ID])}</div>
+            <h3 className="title">{oldLang('SavedMessagesTab')}</h3>
+            <div className="subtitle">{oldLang('Chats', foldersChatCount[SAVED_FOLDER_ID])}</div>
           </div>
         );
       case HeaderContent.ManageReactions:
-        return <h3 className="title">{lang('Reactions')}</h3>;
+        return <h3 className="title">{oldLang('Reactions')}</h3>;
       case HeaderContent.CreateTopic:
-        return <h3 className="title">{lang('NewTopic')}</h3>;
+        return <h3 className="title">{oldLang('NewTopic')}</h3>;
       case HeaderContent.EditTopic:
-        return <h3 className="title">{lang('EditTopic')}</h3>;
+        return <h3 className="title">{oldLang('EditTopic')}</h3>;
+      case HeaderContent.GiftList:
+        return (
+          <>
+            <h3 className="title">{lang('ProfileTabGifts')}</h3>
+            {canUseGiftFilter && chatId && (
+              <section className="tools">
+                <DropdownMenu
+                  trigger={PrimaryLinkMenuButton}
+                  positionX="right"
+                  autoClose={false}
+                >
+                  <MenuItem
+                    icon={giftsSortType === 'byDate' ? 'calendar-filter' : 'cash-circle'}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onClick={() => updateGiftProfileFilter(
+                      { peerId: chatId, filter: { sortType: giftsSortType === 'byDate' ? 'byValue' : 'byDate' } },
+                    )}
+                  >
+                    {lang(giftsSortType === 'byDate' ? 'GiftSortByValue' : 'GiftSortByDate')}
+                  </MenuItem>
+
+                  <MenuSeparator />
+
+                  <MenuItem
+                    icon={shouldIncludeUnlimitedGifts ? 'check' : 'placeholder'}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onClick={() => updateGiftProfileFilter(
+                      { peerId: chatId, filter: { shouldIncludeUnlimited: !shouldIncludeUnlimitedGifts } },
+                    )}
+                  >
+                    {lang('GiftFilterUnlimited')}
+                  </MenuItem>
+
+                  <MenuItem
+                    icon={shouldIncludeLimitedGifts ? 'check' : 'placeholder'}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onClick={() => updateGiftProfileFilter(
+                      { peerId: chatId, filter: { shouldIncludeLimited: !shouldIncludeLimitedGifts } },
+                    )}
+                  >
+                    {lang('GiftFilterLimited')}
+                  </MenuItem>
+
+                  <MenuItem
+                    icon={shouldIncludeUniqueGifts ? 'check' : 'placeholder'}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onClick={() => updateGiftProfileFilter(
+                      { peerId: chatId, filter: { shouldIncludeUnique: !shouldIncludeUniqueGifts } },
+                    )}
+                  >
+                    {lang('GiftFilterUnique')}
+                  </MenuItem>
+
+                  {canUseGiftAdminFilter && (
+                    <>
+                      <MenuSeparator />
+                      <MenuItem
+                        icon={shouldIncludeDisplayedGifts ? 'check' : 'placeholder'}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onClick={() => updateGiftProfileFilter(
+                          { peerId: chatId, filter: { shouldIncludeDisplayed: !shouldIncludeDisplayedGifts } },
+                        )}
+                      >
+                        {lang('GiftFilterDisplayed')}
+                      </MenuItem>
+
+                      <MenuItem
+                        icon={shouldIncludeHiddenGifts ? 'check' : 'placeholder'}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onClick={() => updateGiftProfileFilter(
+                          { peerId: chatId, filter: { shouldIncludeHidden: !shouldIncludeHiddenGifts } },
+                        )}
+                      >
+                        {lang('GiftFilterHidden')}
+                      </MenuItem>
+                    </>
+                  )}
+                </DropdownMenu>
+              </section>
+            )}
+          </>
+        );
       default:
         return (
           <>
@@ -505,10 +599,10 @@ const RightHeader: FC<OwnProps & StateProps> = ({
                   round
                   color="translucent"
                   size="smaller"
-                  ariaLabel={lang('AddContact')}
+                  ariaLabel={oldLang('AddContact')}
                   onClick={handleAddContact}
                 >
-                  <i className="icon icon-add-user" aria-hidden />
+                  <Icon name="add-user" />
                 </Button>
               )}
               {canManage && !isInsideTopic && (
@@ -516,10 +610,10 @@ const RightHeader: FC<OwnProps & StateProps> = ({
                   round
                   color="translucent"
                   size="smaller"
-                  ariaLabel={lang('Edit')}
+                  ariaLabel={oldLang('Edit')}
                   onClick={handleToggleManagement}
                 >
-                  <i className="icon icon-edit" />
+                  <Icon name="edit" />
                 </Button>
               )}
               {canEditBot && (
@@ -527,7 +621,7 @@ const RightHeader: FC<OwnProps & StateProps> = ({
                   round
                   color="translucent"
                   size="smaller"
-                  ariaLabel={lang('Edit')}
+                  ariaLabel={oldLang('Edit')}
                   onClick={handleToggleManagement}
                 >
                   <Icon name="edit" />
@@ -538,10 +632,10 @@ const RightHeader: FC<OwnProps & StateProps> = ({
                   round
                   color="translucent"
                   size="smaller"
-                  ariaLabel={lang('EditTopic')}
+                  ariaLabel={oldLang('EditTopic')}
                   onClick={toggleEditTopic}
                 >
-                  <i className="icon icon-edit" />
+                  <Icon name="edit" />
                 </Button>
               )}
               {canViewStatistics && (
@@ -549,10 +643,10 @@ const RightHeader: FC<OwnProps & StateProps> = ({
                   round
                   color="translucent"
                   size="smaller"
-                  ariaLabel={lang('Statistics')}
+                  ariaLabel={oldLang('Statistics')}
                   onClick={handleToggleStatistics}
                 >
-                  <i className="icon icon-stats" />
+                  <Icon name="stats" />
                 </Button>
               )}
             </section>
@@ -564,6 +658,7 @@ const RightHeader: FC<OwnProps & StateProps> = ({
   const isBackButton = isMobile || (
     !isSavedMessages && (
       contentKey === HeaderContent.SharedMedia
+      || contentKey === HeaderContent.GiftList
       || contentKey === HeaderContent.MemberList
       || contentKey === HeaderContent.StoryList
       || contentKey === HeaderContent.AddingMembers
@@ -591,7 +686,7 @@ const RightHeader: FC<OwnProps & StateProps> = ({
         color="translucent"
         size="smaller"
         onClick={handleClose}
-        ariaLabel={isBackButton ? lang('Common.Back') : lang('Common.Close')}
+        ariaLabel={isBackButton ? oldLang('Common.Back') : oldLang('Common.Close')}
       >
         <div className={buttonClassName} />
       </Button>
@@ -610,14 +705,13 @@ export default withGlobal<OwnProps>(
     chatId, isProfile, isManagement, threadId,
   }): StateProps => {
     const tabState = selectTabState(global);
-    const { query: messageSearchQuery } = selectCurrentTextSearch(global) || {};
     const { query: stickerSearchQuery } = selectCurrentStickerSearch(global) || {};
     const { query: gifSearchQuery } = selectCurrentGifSearch(global) || {};
     const chat = chatId ? selectChat(global, chatId) : undefined;
     const user = isProfile && chatId && isUserId(chatId) ? selectUser(global, chatId) : undefined;
     const isChannel = chat && isChatChannel(chat);
     const isInsideTopic = chat?.isForum && Boolean(threadId && threadId !== MAIN_THREAD_ID);
-    const topic = isInsideTopic ? chat.topics?.[threadId!] : undefined;
+    const topic = isInsideTopic ? selectTopic(global, chatId!, threadId!) : undefined;
     const canEditTopic = isInsideTopic && topic && getCanManageTopic(chat, topic);
     const isBot = user && isUserBot(user);
     const isSavedMessages = chatId ? selectIsChatWithSelf(global, chatId) : undefined;
@@ -633,6 +727,10 @@ export default withGlobal<OwnProps>(
     const currentInviteInfo = chatId
       ? tabState.management.byChatId[chatId]?.inviteInfo?.invite : undefined;
 
+    const giftProfileFilter = tabState.savedGifts.filter;
+    const canUseGiftFilter = chatId ? selectCanUseGiftProfileFilter(global, chatId) : false;
+    const canUseGiftAdminFilter = chatId ? selectCanUseGiftProfileAdminFilter(global, chatId) : false;
+
     return {
       canManage,
       canAddContact,
@@ -643,7 +741,6 @@ export default withGlobal<OwnProps>(
       canEditTopic,
       userId: user?.id,
       isSelf: user?.isSelf,
-      messageSearchQuery,
       stickerSearchQuery,
       gifSearchQuery,
       isEditingInvite,
@@ -651,6 +748,9 @@ export default withGlobal<OwnProps>(
       isSavedMessages,
       shouldSkipHistoryAnimations: tabState.shouldSkipHistoryAnimations,
       canEditBot,
+      giftProfileFilter,
+      canUseGiftFilter,
+      canUseGiftAdminFilter,
     };
   },
 )(RightHeader);

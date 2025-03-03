@@ -1,16 +1,14 @@
 import { useMemo } from '../lib/teact/teact';
 import { getGlobal } from '../global';
 
-import type { ApiMessage, ApiSticker } from '../api/types';
+import type { ApiThumbnail, MediaContainer } from '../api/types';
 
 import { getMessageMediaThumbDataUri } from '../global/helpers';
 import { selectTheme } from '../global/selectors';
 
-type MediaContainer = Pick<ApiMessage, 'content'>;
-
-export default function useThumbnail(media?: MediaContainer | ApiSticker) {
+export default function useThumbnail(media?: MediaContainer | ApiThumbnail) {
   const isMediaContainer = media && 'content' in media;
-  const thumbDataUri = isMediaContainer ? getMessageMediaThumbDataUri(media) : media?.thumbnail?.dataUri;
+  const thumbDataUri = isMediaContainer ? getMessageMediaThumbDataUri(media) : media?.dataUri;
 
   // TODO Find a way to update thumbnail on theme change
   const theme = selectTheme(getGlobal());

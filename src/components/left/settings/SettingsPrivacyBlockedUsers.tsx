@@ -11,10 +11,11 @@ import { formatPhoneNumberWithCode } from '../../../util/phoneNumber';
 
 import useFlag from '../../../hooks/useFlag';
 import useHistoryBack from '../../../hooks/useHistoryBack';
-import useLang from '../../../hooks/useLang';
+import useOldLang from '../../../hooks/useOldLang';
 
 import Avatar from '../../common/Avatar';
 import FullNameTitle from '../../common/FullNameTitle';
+import Icon from '../../common/icons/Icon';
 import FloatingActionButton from '../../ui/FloatingActionButton';
 import ListItem from '../../ui/ListItem';
 import Loading from '../../ui/Loading';
@@ -42,7 +43,7 @@ const SettingsPrivacyBlockedUsers: FC<OwnProps & StateProps> = ({
 }) => {
   const { unblockUser } = getActions();
 
-  const lang = useLang();
+  const lang = useOldLang();
   const [isBlockUserModalOpen, openBlockUserModal, closeBlockUserModal] = useFlag();
   const handleUnblockClick = useCallback((userId: string) => {
     unblockUser({ userId });
@@ -138,7 +139,7 @@ const SettingsPrivacyBlockedUsers: FC<OwnProps & StateProps> = ({
         onClick={openBlockUserModal}
         ariaLabel={lang('BlockContact')}
       >
-        <i className="icon icon-add" />
+        <Icon name="add" />
       </FloatingActionButton>
       <BlockUserModal
         isOpen={isBlockUserModalOpen}

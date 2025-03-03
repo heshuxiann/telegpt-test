@@ -3,26 +3,33 @@ import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import type {
-  ApiChat, ApiPeer, ApiUser,
+  ApiPeer,
 } from '../../api/types';
 import type { ObserveFn } from '../../hooks/useIntersectionObserver';
 import type { CustomPeer } from '../../types';
 
 import { EMOJI_STATUS_LOOP_LIMIT } from '../../config';
 import {
-  getChatTitle, getUserFullName, isAnonymousForwardsChat, isChatWithRepliesBot, isUserId,
+  getChatTitle,
+  getUserFullName,
+  isAnonymousForwardsChat,
+  isChatWithRepliesBot,
+  isChatWithVerificationCodesBot,
+  isPeerUser,
 } from '../../global/helpers';
 import buildClassName from '../../util/buildClassName';
+import buildStyle from '../../util/buildStyle';
 import { copyTextToClipboard } from '../../util/clipboard';
 import stopEvent from '../../util/stopEvent';
 import renderText from './helpers/renderText';
 
-import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
+import useOldLang from '../../hooks/useOldLang';
 
+import Transition from '../ui/Transition';
 import CustomEmoji from './CustomEmoji';
 import FakeIcon from './FakeIcon';
-import PremiumIcon from './PremiumIcon';
+import StarIcon from './icons/StarIcon';
 import VerifiedIcon from './VerifiedIcon';
 
 import styles from './FullNameTitle.module.scss';
@@ -38,9 +45,10 @@ type OwnProps = {
   isSavedDialog?: boolean;
   noLoopLimit?: boolean;
   canCopyTitle?: boolean;
+  iconElement?: React.ReactNode;
   onEmojiStatusClick?: NoneToVoidFunction;
   observeIntersection?: ObserveFn;
-  iconElement?: React.ReactNode;
+  statusSparklesColor?: string;
 };
 
 const FullNameTitle: FC<OwnProps> = ({
@@ -54,17 +62,20 @@ const FullNameTitle: FC<OwnProps> = ({
   isSavedDialog,
   noLoopLimit,
   canCopyTitle,
+  iconElement,
   onEmojiStatusClick,
   observeIntersection,
-  iconElement,
+  statusSparklesColor,
 }) => {
-  const lang = useLang();
+  const lang = useOldLang();
   const { showNotification } = getActions();
   const realPeer = 'id' in peer ? peer : undefined;
   const customPeer = 'isCustomPeer' in peer ? peer : undefined;
-  const isUser = realPeer && isUserId(realPeer.id);
-  const title = realPeer && (isUser ? getUserFullName(realPeer as ApiUser) : getChatTitle(lang, realPeer as ApiChat));
-  const isPremium = isUser && (peer as ApiUser).isPremium;
+  const isUser = realPeer && isPeerUser(realPeer);
+  const title = realPeer && (isUser ? getUserFullName(realPeer) : getChatTitle(lang, realPeer));
+  const isPremium = isUser && realPeer.isPremium;
+  const canShowEmojiStatus = withEmojiStatus && !isSavedMessages && realPeer;
+  const emojiStatus = realPeer?.emojiStatus;
 
   const handleTitleClick = useLastCallback((e) => {
     if (!title || !canCopyTitle) {
@@ -78,7 +89,7 @@ const FullNameTitle: FC<OwnProps> = ({
 
   const specialTitle = useMemo(() => {
     if (customPeer) {
-      return lang(customPeer.titleKey);
+      return customPeer.title || lang(customPeer.titleKey!);
     }
 
     if (isSavedMessages) {
@@ -93,41 +104,62 @@ const FullNameTitle: FC<OwnProps> = ({
       return lang('RepliesTitle');
     }
 
+    if (isChatWithVerificationCodesBot(realPeer!.id)) {
+      return lang('VerifyCodesNotifications');
+    }
+
     return undefined;
   }, [customPeer, isSavedDialog, isSavedMessages, lang, realPeer]);
-
-  if (specialTitle) {
-    return (
-      <div className={buildClassName('title', styles.root, className)}>
-        <h3>{specialTitle}</h3>
-      </div>
-    );
-  }
+  const botVerificationIconId = realPeer?.botVerificationIconId;
 
   return (
     <div className={buildClassName('title', styles.root, className)}>
+      {botVerificationIconId && (
+        <CustomEmoji
+          documentId={botVerificationIconId}
+          size={emojiStatusSize}
+          loopLimit={!noLoopLimit ? EMOJI_STATUS_LOOP_LIMIT : undefined}
+          observeIntersectionForLoading={observeIntersection}
+        />
+      )}
       <h3
         dir="auto"
         role="button"
-        className={buildClassName('fullName', styles.fullName, canCopyTitle && styles.canCopy)}
+        className={buildClassName(
+          'fullName',
+          styles.fullName,
+          canCopyTitle && styles.canCopy,
+        )}
         onClick={handleTitleClick}
       >
-        {renderText(title || '')}
+        {specialTitle || renderText(title || '')}
       </h3>
       {!iconElement && peer && (
         <>
-          {!noVerified && realPeer?.isVerified && <VerifiedIcon />}
-          {!noFake && realPeer?.fakeType && <FakeIcon fakeType={realPeer.fakeType} />}
-          {withEmojiStatus && realPeer?.emojiStatus && (
-            <CustomEmoji
-              documentId={realPeer.emojiStatus.documentId}
-              size={emojiStatusSize}
-              loopLimit={!noLoopLimit ? EMOJI_STATUS_LOOP_LIMIT : undefined}
-              observeIntersectionForLoading={observeIntersection}
-              onClick={onEmojiStatusClick}
-            />
+          {!noVerified && peer?.isVerified && <VerifiedIcon />}
+          {!noFake && peer?.fakeType && <FakeIcon fakeType={peer.fakeType} />}
+          {canShowEmojiStatus && emojiStatus && (
+            <Transition
+              className={styles.transition}
+              activeKey={Number(emojiStatus.documentId)}
+              name="fade"
+              shouldCleanup
+              shouldRestoreHeight
+            >
+              <CustomEmoji
+                forceAlways
+                withSparkles={emojiStatus.type === 'collectible'}
+                sparklesClassName="statusSparkles"
+                sparklesStyle={buildStyle(statusSparklesColor && `color: ${statusSparklesColor}`)}
+                documentId={emojiStatus.documentId}
+                size={emojiStatusSize}
+                loopLimit={!noLoopLimit ? EMOJI_STATUS_LOOP_LIMIT : undefined}
+                observeIntersectionForLoading={observeIntersection}
+                onClick={onEmojiStatusClick}
+              />
+            </Transition>
           )}
-          {withEmojiStatus && !realPeer?.emojiStatus && isPremium && <PremiumIcon />}
+          {canShowEmojiStatus && !emojiStatus && isPremium && <StarIcon />}
         </>
       )}
       {iconElement}

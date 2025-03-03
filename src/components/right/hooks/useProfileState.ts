@@ -21,22 +21,31 @@ export default function useProfileState(
   profileState: ProfileState,
   onProfileStateChange: (state: ProfileState) => void,
   forceScrollProfileTab = false,
+  allowAutoScrollToTabs = false,
+  handleStopAutoScrollToTabs: () => void,
 ) {
   // Scroll to tabs if needed
   useEffectWithPrevDeps(([prevTabType]) => {
-    if ((prevTabType && prevTabType !== tabType) || (tabType && forceScrollProfileTab)) {
+    if ((prevTabType && prevTabType !== tabType && allowAutoScrollToTabs) || (tabType && forceScrollProfileTab)) {
       const container = containerRef.current!;
       const tabsEl = container.querySelector<HTMLDivElement>('.TabList')!;
+      handleStopAutoScrollToTabs();
       if (container.scrollTop < tabsEl.offsetTop) {
         onProfileStateChange(getStateFromTabType(tabType));
         isScrollingProgrammatically = true;
-        animateScroll(container, tabsEl, 'start', undefined, undefined, undefined, TRANSITION_DURATION);
+        animateScroll({
+          container,
+          element: tabsEl,
+          position: 'start',
+          forceDuration: TRANSITION_DURATION,
+        });
         setTimeout(() => {
           isScrollingProgrammatically = false;
         }, PROGRAMMATIC_SCROLL_TIMEOUT_MS);
       }
     }
-  }, [tabType, onProfileStateChange, containerRef, forceScrollProfileTab]);
+  }, [tabType, onProfileStateChange, containerRef, forceScrollProfileTab,
+    allowAutoScrollToTabs, handleStopAutoScrollToTabs]);
 
   // Scroll to top
   useEffectWithPrevDeps(([prevProfileState]) => {
@@ -55,13 +64,13 @@ export default function useProfileState(
     }
 
     isScrollingProgrammatically = true;
-    animateScroll(
+
+    animateScroll({
       container,
-      container.firstElementChild as HTMLElement,
-      'start',
-      undefined,
-      container.offsetHeight * 2,
-    );
+      element: container.firstElementChild as HTMLElement,
+      position: 'start',
+      maxDistance: container.offsetHeight * 2,
+    });
 
     setTimeout(() => {
       isScrollingProgrammatically = false;
@@ -80,7 +89,7 @@ export default function useProfileState(
     }
 
     let state: ProfileState = ProfileState.Profile;
-    if (container.scrollTop >= tabListEl.offsetTop) {
+    if (Math.ceil(container.scrollTop) >= tabListEl.offsetTop) {
       state = getStateFromTabType(tabType);
     }
 
@@ -112,6 +121,8 @@ function getStateFromTabType(tabType: ProfileTabType) {
   switch (tabType) {
     case 'members':
       return ProfileState.MemberList;
+    case 'gifts':
+      return ProfileState.GiftList;
     case 'stories':
       return ProfileState.StoryList;
     case 'dialogs':

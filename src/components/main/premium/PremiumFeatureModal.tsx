@@ -4,8 +4,13 @@ import React, {
 } from '../../../lib/teact/teact';
 import { toggleExtraClass } from '../../../lib/teact/teact-dom';
 
-import type { ApiPremiumPromo, ApiPremiumSubscriptionOption } from '../../../api/types';
-import type { ApiLimitTypeForPromo, ApiPremiumSection, GlobalState } from '../../../global/types';
+import type {
+  ApiLimitTypeForPromo,
+  ApiPremiumPromo,
+  ApiPremiumSection,
+  ApiPremiumSubscriptionOption,
+} from '../../../api/types';
+import type { GlobalState } from '../../../global/types';
 
 import { PREMIUM_BOTTOM_VIDEOS, PREMIUM_FEATURE_SECTIONS, PREMIUM_LIMITS_ORDER } from '../../../config';
 import { requestMutation } from '../../../lib/fasterdom/fasterdom';
@@ -17,8 +22,10 @@ import renderText from '../../common/helpers/renderText';
 import useFlag from '../../../hooks/useFlag';
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
-import usePrevious from '../../../hooks/usePrevious';
+import useOldLang from '../../../hooks/useOldLang';
+import usePreviousDeprecated from '../../../hooks/usePreviousDeprecated';
 
+import Icon from '../../common/icons/Icon';
 import SliderDots from '../../common/SliderDots';
 import Button from '../../ui/Button';
 import PremiumLimitPreview from './common/PremiumLimitPreview';
@@ -46,6 +53,7 @@ export const PREMIUM_FEATURE_TITLES: Record<ApiPremiumSection, string> = {
   saved_tags: 'PremiumPreviewTags2',
   last_seen: 'PremiumPreviewLastSeen',
   message_privacy: 'PremiumPreviewMessagePrivacy',
+  effects: 'Premium.MessageEffects',
 };
 
 export const PREMIUM_FEATURE_DESCRIPTIONS: Record<ApiPremiumSection, string> = {
@@ -66,6 +74,7 @@ export const PREMIUM_FEATURE_DESCRIPTIONS: Record<ApiPremiumSection, string> = {
   saved_tags: 'PremiumPreviewTagsDescription2',
   last_seen: 'PremiumPreviewLastSeenDescription',
   message_privacy: 'PremiumPreviewMessagePrivacyDescription',
+  effects: 'Premium.MessageEffectsInfo',
 };
 
 const LIMITS_TITLES: Record<ApiLimitTypeForPromo, string> = {
@@ -117,6 +126,7 @@ const PremiumFeatureModal: FC<OwnProps> = ({
   onBack,
   onClickSubscribe,
 }) => {
+  const oldLang = useOldLang();
   const lang = useLang();
   // eslint-disable-next-line no-null/no-null
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -127,7 +137,7 @@ const PremiumFeatureModal: FC<OwnProps> = ({
   const [isScrolledToTop, setIsScrolledToTop] = useState(true);
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
 
-  const prevInitialSection = usePrevious(initialSection);
+  const prevInitialSection = usePreviousDeprecated(initialSection);
 
   const filteredSections = useMemo(() => {
     if (!premiumPromoOrder) return PREMIUM_FEATURE_SECTIONS;
@@ -140,7 +150,9 @@ const PremiumFeatureModal: FC<OwnProps> = ({
     const { amount, months, currency } = subscriptionOption;
     const perMonthPrice = Math.floor(amount / months);
 
-    return isPremium ? lang('OK') : lang('SubscribeToPremium', formatCurrency(perMonthPrice, currency, lang.code));
+    return isPremium
+      ? lang('OK')
+      : lang('SubscribeToPremium', { price: formatCurrency(lang, perMonthPrice, currency) }, { withNodes: true });
   }, [isPremium, lang, subscriptionOption]);
 
   const handleClick = useLastCallback(() => {
@@ -212,9 +224,9 @@ const PremiumFeatureModal: FC<OwnProps> = ({
         className={buildClassName(styles.backButton, currentSlideIndex !== 0 && styles.whiteBackButton)}
         color={currentSlideIndex === 0 ? 'translucent' : 'translucent-white'}
         onClick={onBack}
-        ariaLabel={lang('Back')}
+        ariaLabel={oldLang('Back')}
       >
-        <i className="icon icon-arrow-left" />
+        <Icon name="arrow-left" />
       </Button>
 
       <div className={styles.preview} />
@@ -226,7 +238,7 @@ const PremiumFeatureModal: FC<OwnProps> = ({
             return (
               <div className={buildClassName(styles.slide, styles.limits)}>
                 <h2 className={buildClassName(styles.header, isScrolledToTop && styles.noHeaderBorder)}>
-                  {lang(PREMIUM_FEATURE_TITLES.double_limits)}
+                  {oldLang(PREMIUM_FEATURE_TITLES.double_limits)}
                 </h2>
                 <div className={buildClassName(styles.limitsContent, 'custom-scroll')} onScroll={handleLimitsScroll}>
                   {PREMIUM_LIMITS_ORDER.map((limit, i) => {
@@ -234,8 +246,8 @@ const PremiumFeatureModal: FC<OwnProps> = ({
                     const premiumLimit = limits?.[limit][1].toString();
                     return (
                       <PremiumLimitPreview
-                        title={lang(LIMITS_TITLES[limit])}
-                        description={lang(LIMITS_DESCRIPTIONS[limit], premiumLimit)}
+                        title={oldLang(LIMITS_TITLES[limit])}
+                        description={oldLang(LIMITS_DESCRIPTIONS[limit], premiumLimit)}
                         leftValue={defaultLimit}
                         rightValue={premiumLimit}
                         colorStepProgress={i / (PREMIUM_LIMITS_ORDER.length - 1)}
@@ -254,10 +266,10 @@ const PremiumFeatureModal: FC<OwnProps> = ({
                   <PremiumFeaturePreviewStickers isActive={currentSlideIndex === index} />
                 </div>
                 <h1 className={styles.title}>
-                  {lang(PREMIUM_FEATURE_TITLES.premium_stickers)}
+                  {oldLang(PREMIUM_FEATURE_TITLES.premium_stickers)}
                 </h1>
                 <div className={styles.description}>
-                  {renderText(lang(PREMIUM_FEATURE_DESCRIPTIONS.premium_stickers), ['br'])}
+                  {renderText(oldLang(PREMIUM_FEATURE_DESCRIPTIONS.premium_stickers), ['br'])}
                 </div>
               </div>
             );
@@ -286,10 +298,10 @@ const PremiumFeatureModal: FC<OwnProps> = ({
                 />
               </div>
               <h1 className={styles.title}>
-                {lang(PREMIUM_FEATURE_TITLES[promo.videoSections[i]!])}
+                {oldLang(PREMIUM_FEATURE_TITLES[promo.videoSections[i]!])}
               </h1>
               <div className={styles.description}>
-                {renderText(lang(PREMIUM_FEATURE_DESCRIPTIONS[promo.videoSections[i]!]), ['br'])}
+                {renderText(oldLang(PREMIUM_FEATURE_DESCRIPTIONS[promo.videoSections[i]!]), ['br'])}
               </div>
             </div>
           );

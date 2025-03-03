@@ -2,11 +2,11 @@
 import BigInt from 'big-integer';
 import { Api as GramJs } from '../../../lib/gramjs';
 
-import type { ApiLimitType, ApiPremiumSection } from '../../../global/types';
-import type { ApiAppConfig } from '../../types';
+import type { ApiAppConfig, ApiLimitType, ApiPremiumSection } from '../../types';
 
 import {
   DEFAULT_LIMITS,
+  MAX_UNIQUE_REACTIONS,
   SERVICE_NOTIFICATIONS_USER_ID,
   STORY_EXPIRE_PERIOD,
   STORY_VIEWERS_EXPIRE_PERIOD,
@@ -64,6 +64,7 @@ export interface GramJsAppConfig extends LimitsConfig {
   giveaway_boosts_per_premium: number;
   giveaway_countries_max: number;
   boosts_per_sent_gift: number;
+  stars_paid_reaction_amount_max: number;
   // Forums
   topics_pinned_limit: number;
   // Stories
@@ -76,10 +77,16 @@ export interface GramJsAppConfig extends LimitsConfig {
   group_transcribe_level_min?: number;
   new_noncontact_peers_require_premium_without_ownpremium?: boolean;
   channel_restrict_sponsored_level_min?: number;
+  channel_revenue_withdrawal_enabled?: boolean;
   // Upload premium notifications
   upload_premium_speedup_notify_period?: number;
   upload_premium_speedup_download?: number;
   upload_premium_speedup_upload?: number;
+  stars_gifts_enabled?: boolean;
+  stargifts_message_length_max?: number;
+  stargifts_convert_period_max?: number;
+  starref_start_param_prefixes?: string[];
+  ton_blockchain_explorer_url?: string;
 }
 
 function buildEmojiSounds(appConfig: GramJsAppConfig) {
@@ -116,7 +123,7 @@ export function buildAppConfig(json: GramJs.TypeJSONValue, hash: number): ApiApp
     readDateExpiresAt: appConfig.pm_read_date_expire_period,
     autologinDomains: appConfig.autologin_domains || [],
     urlAuthDomains: appConfig.url_auth_domains || [],
-    maxUniqueReactions: appConfig.reactions_uniq_max,
+    maxUniqueReactions: appConfig.reactions_uniq_max ?? MAX_UNIQUE_REACTIONS,
     premiumBotUsername: appConfig.premium_bot_username,
     premiumInvoiceSlug: appConfig.premium_invoice_slug,
     premiumPromoOrder: appConfig.premium_promo_order as ApiPremiumSection[],
@@ -160,5 +167,12 @@ export function buildAppConfig(json: GramJs.TypeJSONValue, hash: number): ApiApp
     bandwidthPremiumUploadSpeedup: appConfig.upload_premium_speedup_upload,
     bandwidthPremiumDownloadSpeedup: appConfig.upload_premium_speedup_download,
     channelRestrictAdsLevelMin: appConfig.channel_restrict_sponsored_level_min,
+    paidReactionMaxAmount: appConfig.stars_paid_reaction_amount_max,
+    isChannelRevenueWithdrawalEnabled: appConfig.channel_revenue_withdrawal_enabled,
+    isStarsGiftEnabled: appConfig.stars_gifts_enabled,
+    starGiftMaxMessageLength: appConfig.stargifts_message_length_max,
+    starGiftMaxConvertPeriod: appConfig.stargifts_convert_period_max,
+    starRefStartPrefixes: appConfig.starref_start_param_prefixes,
+    tonExplorerUrl: appConfig.ton_blockchain_explorer_url,
   };
 }

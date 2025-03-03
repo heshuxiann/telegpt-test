@@ -33,12 +33,6 @@
   &-slideOptimizedRtlBackwards {
     contain: strict;
 
-    body.is-safari & {
-      // Create a new composite layer to reduce the page repaint area when switching a tab
-      // Consider experimenting with `contain` when browser support is better
-      transform: translate3d(0, 0, 0);
-    }
-
     #root & > .Transition_slide {
       position: absolute;
       top: 0;
@@ -261,6 +255,17 @@
     }
   }
 
+  &-zoomBounceSemiFade,
+  &-zoomBounceSemiFadeBackwards {
+    > .Transition_slide-from {
+      animation: zoom-bounce 0.25s ease-in-out;
+    }
+
+    > .Transition_slide-to {
+      animation: fade-in-opacity 250ms ease, zoom-bounce 0.25s ease-in-out;
+    }
+  }
+
   &-fade,
   &-fadeBackwards {
     > .Transition_slide-from {
@@ -363,7 +368,7 @@
       animation: push-out 0.25s ease-in-out;
 
       .custom-scroll {
-        scrollbar-color: transparent !important;
+        scrollbar-color: transparent transparent !important;
 
         &::-webkit-scrollbar-thumb {
           background-color: transparent !important;
@@ -745,5 +750,19 @@
   }
   100% {
     clip-path: inset(0 100% 0 0);
+  }
+}
+
+@keyframes zoom-bounce {
+  0% {
+    transform: scale(1);
+  }
+
+  25% {
+    transform: scale(0.95);
+  }
+
+  100% {
+    transform: scale(1);
   }
 }

@@ -8,9 +8,10 @@ import type { ApiChatMember, ApiUserStatus } from '../../../api/types';
 import { ManagementScreens, NewChatMembersProgress } from '../../../types';
 
 import {
-  filterUsersByName, getHasAdminRight, isChatBasicGroup,
+  getHasAdminRight, isChatBasicGroup,
   isChatChannel, isUserBot, isUserRightBanned, sortUserIds,
 } from '../../../global/helpers';
+import { filterPeersByQuery } from '../../../global/helpers/peers';
 import { selectChat, selectChatFullInfo, selectTabState } from '../../../global/selectors';
 import { unique } from '../../../util/iteratees';
 import sortChatIds from '../../common/helpers/sortChatIds';
@@ -19,10 +20,10 @@ import usePeerStoriesPolling from '../../../hooks/polling/usePeerStoriesPolling'
 import useHistoryBack from '../../../hooks/useHistoryBack';
 import useInfiniteScroll from '../../../hooks/useInfiniteScroll';
 import useKeyboardListNavigation from '../../../hooks/useKeyboardListNavigation';
-import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
+import useOldLang from '../../../hooks/useOldLang';
 
-import Icon from '../../common/Icon';
+import Icon from '../../common/icons/Icon';
 import NothingFound from '../../common/NothingFound';
 import PrivateChatInfo from '../../common/PrivateChatInfo';
 import FloatingActionButton from '../../ui/FloatingActionButton';
@@ -85,7 +86,7 @@ const ManageGroupMembers: FC<OwnProps & StateProps> = ({
     openChat, setUserSearchQuery, closeManagement,
     toggleParticipantsHidden, setNewChatMembersDialogState, toggleManagement,
   } = getActions();
-  const lang = useLang();
+  const lang = useOldLang();
   // eslint-disable-next-line no-null/no-null
   const inputRef = useRef<HTMLInputElement>(null);
   // eslint-disable-next-line no-null/no-null
@@ -121,7 +122,7 @@ const ManageGroupMembers: FC<OwnProps & StateProps> = ({
     const shouldUseSearchResults = Boolean(searchQuery);
     const listedIds = !shouldUseSearchResults
       ? memberIds
-      : (localContactIds ? filterUsersByName(localContactIds, usersById, searchQuery) : []);
+      : (localContactIds ? filterPeersByQuery({ ids: localContactIds, query: searchQuery, type: 'user' }) : []);
 
     return sortChatIds(
       unique([
@@ -208,7 +209,7 @@ const ManageGroupMembers: FC<OwnProps & StateProps> = ({
     <div className="Management">
       {noAdmins && renderSearchField()}
       <div className="custom-scroll">
-        {canHideParticipants && (
+        {canHideParticipants && !isChannel && (
           <div className="section">
             <ListItem icon="group" ripple onClick={handleToggleParticipantsHidden}>
               <span>{lang('ChannelHideMembers')}</span>

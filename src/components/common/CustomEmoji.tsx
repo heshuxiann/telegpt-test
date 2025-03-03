@@ -1,4 +1,4 @@
-import type { FC, TeactNode } from '../../lib/teact/teact';
+import type { FC } from '../../lib/teact/teact';
 import React, { memo, useRef, useState } from '../../lib/teact/teact';
 import { getGlobal } from '../../global';
 
@@ -13,23 +13,24 @@ import useDynamicColorListener from '../../hooks/stickers/useDynamicColorListene
 import useLastCallback from '../../hooks/useLastCallback';
 import useCustomEmoji from './hooks/useCustomEmoji';
 
+import Sparkles from './Sparkles';
 import StickerView from './StickerView';
 
 import styles from './CustomEmoji.module.scss';
 
 import blankImg from '../../assets/blank.png';
-import svgPlaceholder from '../../assets/square.svg';
 
 type OwnProps = {
   ref?: React.RefObject<HTMLDivElement>;
   documentId: string;
-  children?: TeactNode;
-  size?: number;
   className?: string;
-  loopLimit?: number;
   style?: string;
+  size?: number;
   isBig?: boolean;
   noPlay?: boolean;
+  noVideoOnMobile?: boolean;
+  loopLimit?: number;
+  isSelectable?: boolean;
   withSharedAnimation?: boolean;
   sharedCanvasRef?: React.RefObject<HTMLCanvasElement>;
   sharedCanvasHqRef?: React.RefObject<HTMLCanvasElement>;
@@ -41,6 +42,9 @@ type OwnProps = {
   observeIntersectionForPlaying?: ObserveFn;
   onClick?: NoneToVoidFunction;
   onAnimationEnd?: NoneToVoidFunction;
+  withSparkles?: boolean;
+  sparklesClassName?: string;
+  sparklesStyle?: string;
 };
 
 const STICKER_SIZE = 20;
@@ -48,12 +52,14 @@ const STICKER_SIZE = 20;
 const CustomEmoji: FC<OwnProps> = ({
   ref,
   documentId,
+  className,
+  style,
   size = STICKER_SIZE,
   isBig,
   noPlay,
-  className,
+  noVideoOnMobile,
   loopLimit,
-  style,
+  isSelectable,
   withSharedAnimation,
   sharedCanvasRef,
   sharedCanvasHqRef,
@@ -65,6 +71,9 @@ const CustomEmoji: FC<OwnProps> = ({
   observeIntersectionForPlaying,
   onClick,
   onAnimationEnd,
+  withSparkles,
+  sparklesStyle,
+  sparklesClassName,
 }) => {
   // eslint-disable-next-line no-null/no-null
   let containerRef = useRef<HTMLDivElement>(null);
@@ -79,7 +88,7 @@ const CustomEmoji: FC<OwnProps> = ({
   const [shouldPlay, setShouldPlay] = useState(true);
 
   const hasCustomColor = customEmoji?.shouldUseTextColor;
-  const customColor = useDynamicColorListener(containerRef, !hasCustomColor);
+  const customColor = useDynamicColorListener(containerRef, undefined, !hasCustomColor);
 
   const handleVideoEnded = useLastCallback((e) => {
     if (!loopLimit) return;
@@ -112,6 +121,7 @@ const CustomEmoji: FC<OwnProps> = ({
       ref={containerRef}
       className={buildClassName(
         styles.root,
+        withSparkles && styles.withSparkles,
         className,
         'custom-emoji',
         'emoji',
@@ -123,16 +133,28 @@ const CustomEmoji: FC<OwnProps> = ({
       data-alt={customEmoji?.emoji}
       style={style}
     >
-      <img
-        className={styles.highlightCatch}
-        src={blankImg}
-        alt={customEmoji?.emoji}
-        data-entity-type={ApiMessageEntityTypes.CustomEmoji}
-        data-document-id={documentId}
-        draggable={false}
-      />
+      {withSparkles && (
+        <Sparkles
+          className={buildClassName(
+            styles.sparkles,
+            sparklesClassName,
+          )}
+          style={sparklesStyle}
+          preset="button"
+        />
+      )}
+      {isSelectable && (
+        <img
+          className={styles.highlightCatch}
+          src={blankImg}
+          alt={customEmoji?.emoji}
+          data-entity-type={ApiMessageEntityTypes.CustomEmoji}
+          data-document-id={documentId}
+          draggable={false}
+        />
+      )}
       {!customEmoji ? (
-        <img className={styles.thumb} src={svgPlaceholder} alt="Emoji" draggable={false} />
+        <div className={buildClassName(styles.placeholder)} draggable={false} />
       ) : (
         <StickerView
           containerRef={containerRef}
@@ -140,6 +162,7 @@ const CustomEmoji: FC<OwnProps> = ({
           isSmall={!isBig}
           size={size}
           noPlay={noPlay || !(shouldPlay && canPlay)}
+          noVideoOnMobile={noVideoOnMobile}
           thumbClassName={styles.thumb}
           fullMediaClassName={styles.media}
           shouldLoop

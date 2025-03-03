@@ -14,7 +14,7 @@ import renderText from '../common/helpers/renderText';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useFlag from '../../hooks/useFlag';
-import useLang from '../../hooks/useLang';
+import useOldLang from '../../hooks/useOldLang';
 
 import Avatar from '../common/Avatar';
 import Button from '../ui/Button';
@@ -48,7 +48,7 @@ const NewContactModal: FC<OwnProps & StateProps> = ({
 }) => {
   const { updateContact, importContact, closeNewContactDialog } = getActions();
 
-  const lang = useLang();
+  const lang = useOldLang();
   const renderingUser = useCurrentOrPrev(user);
   const renderingIsByPhoneNumber = useCurrentOrPrev(isByPhoneNumber);
   // eslint-disable-next-line no-null/no-null
@@ -157,12 +157,13 @@ const NewContactModal: FC<OwnProps & StateProps> = ({
           )}
         </p>
         <Checkbox
+          className="dialog-checkbox"
           checked={shouldSharePhoneNumber}
           tabIndex={0}
           onCheck={setShouldSharePhoneNumber}
           label={lang('lng_new_contact_share')}
         />
-        <p className="NewContactModal__help-text">
+        <p className="NewContactModal__help-text NewContactModal__help-text__negative">
           {renderText(lang('AddContact.SharedContactExceptionInfo', renderingUser?.firstName))}
         </p>
       </>
@@ -213,17 +214,17 @@ const NewContactModal: FC<OwnProps & StateProps> = ({
         <Button
           isText
           className="confirm-dialog-button"
-          onClick={handleClose}
-        >
-          {lang('Cancel')}
-        </Button>
-        <Button
-          isText
-          className="confirm-dialog-button"
           disabled={!canBeSubmitted}
           onClick={handleSubmit}
         >
           {lang('Done')}
+        </Button>
+        <Button
+          isText
+          className="confirm-dialog-button"
+          onClick={handleClose}
+        >
+          {lang('Cancel')}
         </Button>
       </div>
     </Modal>

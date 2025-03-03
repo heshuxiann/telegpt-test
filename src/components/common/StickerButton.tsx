@@ -8,20 +8,21 @@ import type { ApiBotInlineMediaResult, ApiSticker } from '../../api/types';
 import type { ObserveFn } from '../../hooks/useIntersectionObserver';
 
 import buildClassName from '../../util/buildClassName';
-import { getServerTimeOffset } from '../../util/serverTime';
+import { getServerTime } from '../../util/serverTime';
 import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
 import { preventMessageInputBlurWithBubbling } from '../middle/helpers/preventMessageInputBlur';
 
 import useDynamicColorListener from '../../hooks/stickers/useDynamicColorListener';
 import useContextMenuHandlers from '../../hooks/useContextMenuHandlers';
 import { useIsIntersecting } from '../../hooks/useIntersectionObserver';
-import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
-import useMenuPosition from '../../hooks/useMenuPosition';
+import useOldLang from '../../hooks/useOldLang';
 
 import Button from '../ui/Button';
 import Menu from '../ui/Menu';
 import MenuItem from '../ui/MenuItem';
+import Icon from './icons/Icon';
+import Sparkles from './Sparkles';
 import StickerView from './StickerView';
 
 import './StickerButton.scss';
@@ -53,6 +54,8 @@ type OwnProps<T> = {
   onContextMenuOpen?: NoneToVoidFunction;
   onContextMenuClose?: NoneToVoidFunction;
   onContextMenuClick?: NoneToVoidFunction;
+  isEffectEmoji?: boolean;
+  withSparkles?: boolean;
 };
 
 const contentForStatusMenuContext = [
@@ -90,19 +93,24 @@ const StickerButton = <T extends number | ApiSticker | ApiBotInlineMediaResult |
   onContextMenuOpen,
   onContextMenuClose,
   onContextMenuClick,
+  isEffectEmoji,
+  withSparkles,
 }: OwnProps<T>) => {
   const { openStickerSet, openPremiumModal, setEmojiStatus } = getActions();
   // eslint-disable-next-line no-null/no-null
   const ref = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line no-null/no-null
   const menuRef = useRef<HTMLDivElement>(null);
-  const lang = useLang();
+  const lang = useOldLang();
   const hasCustomColor = sticker.shouldUseTextColor;
-  const customColor = useDynamicColorListener(ref, !hasCustomColor);
+  const customColor = useDynamicColorListener(ref, undefined, !hasCustomColor);
 
   const {
-    id, isCustomEmoji, hasEffect: isPremium, stickerSetInfo,
+    id, stickerSetInfo,
   } = sticker;
+
+  const isPremium = (!sticker.isFree && isEffectEmoji) || sticker.hasEffect;
+  const isCustomEmoji = sticker.isCustomEmoji || isEffectEmoji;
   const isLocked = !isCurrentUserPremium && isPremium && !shouldIgnorePremium;
 
   const isIntersecting = useIsIntersecting(ref, observeIntersection);
@@ -112,29 +120,18 @@ const StickerButton = <T extends number | ApiSticker | ApiBotInlineMediaResult |
   const isIntesectingForShowing = useIsIntersecting(ref, observeIntersectionForShowing);
 
   const {
-    isContextMenuOpen, contextMenuPosition,
+    isContextMenuOpen, contextMenuAnchor,
     handleBeforeContextMenu, handleContextMenu,
     handleContextMenuClose, handleContextMenuHide,
   } = useContextMenuHandlers(ref);
-  const shouldRenderContextMenu = Boolean(!noContextMenu && contextMenuPosition);
+  const shouldRenderContextMenu = Boolean(!noContextMenu && contextMenuAnchor);
 
   const getTriggerElement = useLastCallback(() => ref.current);
   const getRootElement = useLastCallback(() => ref.current!.closest('.custom-scroll, .no-scrollbar'));
   const getMenuElement = useLastCallback(() => {
     return isStatusPicker ? menuRef.current : ref.current!.querySelector('.sticker-context-menu .bubble');
   });
-
-  const getLayout = () => ({ withPortal: isStatusPicker, shouldAvoidNegativePosition: true });
-
-  const {
-    positionX, positionY, transformOriginX, transformOriginY, style: menuStyle,
-  } = useMenuPosition(
-    contextMenuPosition,
-    getTriggerElement,
-    getRootElement,
-    getMenuElement,
-    getLayout,
-  );
+  const getLayout = useLastCallback(() => ({ withPortal: isStatusPicker, shouldAvoidNegativePosition: true }));
 
   useEffect(() => {
     if (isContextMenuOpen) {
@@ -151,7 +148,11 @@ const StickerButton = <T extends number | ApiSticker | ApiBotInlineMediaResult |
   const handleClick = () => {
     if (isContextMenuOpen) return;
     if (isLocked) {
-      openPremiumModal({ initialSection: 'premium_stickers' });
+      if (isEffectEmoji) {
+        openPremiumModal({ initialSection: 'effects' });
+      } else {
+        openPremiumModal({ initialSection: 'premium_stickers' });
+      }
       return;
     }
     onClick?.(clickArg);
@@ -200,8 +201,7 @@ const StickerButton = <T extends number | ApiSticker | ApiBotInlineMediaResult |
     handleContextMenuClose();
     onContextMenuClick?.();
     setEmojiStatus({
-      emojiStatus: sticker,
-      expires: Date.now() / 1000 + duration + getServerTimeOffset(),
+      emojiStatus: { type: 'regular', documentId: sticker.id, until: getServerTime() + duration },
     });
   });
 
@@ -212,6 +212,7 @@ const StickerButton = <T extends number | ApiSticker | ApiBotInlineMediaResult |
     onClick && 'interactive',
     isSelected && 'selected',
     isCustomEmoji && 'custom-emoji',
+    isEffectEmoji && 'effect-emoji',
     className,
   );
 
@@ -290,6 +291,7 @@ const StickerButton = <T extends number | ApiSticker | ApiBotInlineMediaResult |
       onClick={handleClick}
       onContextMenu={handleContextMenu}
     >
+      {withSparkles && <Sparkles preset="button" /> }
       {isIntesectingForShowing && (
         <StickerView
           containerRef={ref}
@@ -300,6 +302,7 @@ const StickerButton = <T extends number | ApiSticker | ApiBotInlineMediaResult |
           shouldPreloadPreview
           noLoad={!shouldLoad}
           noPlay={!shouldPlay}
+          noVideoOnMobile
           withSharedAnimation
           sharedCanvasRef={sharedCanvasRef}
           withTranslucentThumb={withTranslucentThumb}
@@ -311,12 +314,12 @@ const StickerButton = <T extends number | ApiSticker | ApiBotInlineMediaResult |
         <div
           className="sticker-locked"
         >
-          <i className="icon icon-lock-badge" />
+          <Icon name="lock-badge" />
         </div>
       )}
       {!noShowPremium && isPremium && !isLocked && (
         <div className="sticker-premium">
-          <i className="icon icon-premium" />
+          <Icon name="star" />
         </div>
       )}
       {shouldShowCloseButton && (
@@ -327,18 +330,18 @@ const StickerButton = <T extends number | ApiSticker | ApiBotInlineMediaResult |
           noFastClick
           onClick={handleRemoveClick}
         >
-          <i className="icon icon-close" />
+          <Icon name="close" />
         </Button>
       )}
       {Boolean(contextMenuItems.length) && (
         <Menu
           ref={menuRef}
           isOpen={isContextMenuOpen}
-          transformOriginX={transformOriginX}
-          transformOriginY={transformOriginY}
-          positionX={positionX}
-          positionY={positionY}
-          style={menuStyle}
+          anchor={contextMenuAnchor}
+          getTriggerElement={getTriggerElement}
+          getRootElement={getRootElement}
+          getMenuElement={getMenuElement}
+          getLayout={getLayout}
           className="sticker-context-menu"
           autoClose
           withPortal={isStatusPicker}

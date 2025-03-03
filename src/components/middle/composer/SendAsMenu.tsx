@@ -8,13 +8,14 @@ import buildClassName from '../../../util/buildClassName';
 import setTooltipItemVisible from '../../../util/setTooltipItemVisible';
 import { IS_TOUCH_ENV } from '../../../util/windowEnvironment';
 
-import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 import useMouseInside from '../../../hooks/useMouseInside';
+import useOldLang from '../../../hooks/useOldLang';
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
 
 import Avatar from '../../common/Avatar';
 import FullNameTitle from '../../common/FullNameTitle';
+import Icon from '../../common/icons/Icon';
 import ListItem from '../../ui/ListItem';
 import Menu from '../../ui/Menu';
 
@@ -43,7 +44,7 @@ const SendAsMenu: FC<OwnProps> = ({
   const usersById = getGlobal().users.byId;
   const chatsById = getGlobal().chats.byId;
 
-  const lang = useLang();
+  const lang = useOldLang();
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -123,7 +124,7 @@ const SendAsMenu: FC<OwnProps> = ({
             onClick={handleClick}
             focus={selectedSendAsIndex === index}
             rightElement={!isCurrentUserPremium && isPremium
-              && <i className="icon icon-lock-badge send-as-icon-locked" />}
+              && <Icon name="lock-badge" className="send-as-icon-locked" />}
           >
             <Avatar
               size="small"

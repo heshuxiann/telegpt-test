@@ -6,7 +6,9 @@ import React, {
 import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
 
-import useLang from '../../hooks/useLang';
+import useOldLang from '../../hooks/useOldLang';
+
+import Icon from '../common/icons/Icon';
 
 import styles from './Draggable.module.scss';
 
@@ -44,7 +46,7 @@ const Draggable: FC<OwnProps> = ({
   knobStyle,
   isDisabled,
 }) => {
-  const lang = useLang();
+  const lang = useOldLang();
   // eslint-disable-next-line no-null/no-null
   const ref = useRef<HTMLDivElement>(null);
 
@@ -162,7 +164,7 @@ const Draggable: FC<OwnProps> = ({
           onTouchStart={handleMouseDown}
           style={knobStyle}
         >
-          <i className="icon icon-sort" aria-hidden />
+          <Icon name="sort" />
         </div>
       )}
     </div>

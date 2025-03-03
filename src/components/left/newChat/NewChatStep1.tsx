@@ -2,15 +2,17 @@ import type { FC } from '../../../lib/teact/teact';
 import React, { memo, useCallback, useMemo } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
-import { filterUsersByName, isUserBot } from '../../../global/helpers';
+import { isUserBot } from '../../../global/helpers';
+import { filterPeersByQuery } from '../../../global/helpers/peers';
 import { selectTabState } from '../../../global/selectors';
 import { unique } from '../../../util/iteratees';
 import sortChatIds from '../../common/helpers/sortChatIds';
 
 import useHistoryBack from '../../../hooks/useHistoryBack';
-import useLang from '../../../hooks/useLang';
+import useOldLang from '../../../hooks/useOldLang';
 
-import Picker from '../../common/Picker';
+import Icon from '../../common/icons/Icon';
+import PeerPicker from '../../common/pickers/PeerPicker';
 import Button from '../../ui/Button';
 import FloatingActionButton from '../../ui/FloatingActionButton';
 
@@ -27,28 +29,28 @@ type StateProps = {
   localContactIds?: string[];
   searchQuery?: string;
   isSearching?: boolean;
-  localUserIds?: string[];
-  globalUserIds?: string[];
+  localPeerIds?: string[];
+  globalPeerIds?: string[];
 };
 
 const NewChatStep1: FC<OwnProps & StateProps> = ({
   isChannel,
   isActive,
   selectedMemberIds,
-  onSelectedMemberIdsChange,
-  onNextStep,
-  onReset,
   localContactIds,
   searchQuery,
   isSearching,
-  localUserIds,
-  globalUserIds,
+  localPeerIds,
+  globalPeerIds,
+  onSelectedMemberIdsChange,
+  onNextStep,
+  onReset,
 }) => {
   const {
     setGlobalSearchQuery,
   } = getActions();
 
-  const lang = useLang();
+  const lang = useOldLang();
 
   useHistoryBack({
     isActive,
@@ -62,25 +64,23 @@ const NewChatStep1: FC<OwnProps & StateProps> = ({
   const displayedIds = useMemo(() => {
     // No need for expensive global updates on users, so we avoid them
     const usersById = getGlobal().users.byId;
-    const foundContactIds = localContactIds ? filterUsersByName(localContactIds, usersById, searchQuery) : [];
+    const foundContactIds = localContactIds
+      ? filterPeersByQuery({ ids: localContactIds, query: searchQuery, type: 'user' }) : [];
 
     return sortChatIds(
       unique([
         ...foundContactIds,
-        ...(localUserIds || []),
-        ...(globalUserIds || []),
+        ...(localPeerIds || []),
+        ...(globalPeerIds || []),
       ]).filter((contactId) => {
         const user = usersById[contactId];
-        if (!user) {
-          return true;
-        }
 
-        return !user.isSelf && (user.canBeInvitedToGroup || !isUserBot(user));
+        return user && !user.isSelf && (user.canBeInvitedToGroup || !isUserBot(user));
       }),
       false,
       selectedMemberIds,
     );
-  }, [localContactIds, searchQuery, localUserIds, globalUserIds, selectedMemberIds]);
+  }, [localContactIds, searchQuery, localPeerIds, globalPeerIds, selectedMemberIds]);
 
   const handleNextStep = useCallback(() => {
     setGlobalSearchQuery({ query: '' });
@@ -97,12 +97,12 @@ const NewChatStep1: FC<OwnProps & StateProps> = ({
           onClick={onReset}
           ariaLabel="Return to Chat List"
         >
-          <i className="icon icon-arrow-left" />
+          <Icon name="arrow-left" />
         </Button>
         <h3>{lang('GroupAddMembers')}</h3>
       </div>
       <div className="NewChat-inner step-1">
-        <Picker
+        <PeerPicker
           itemIds={displayedIds}
           selectedIds={selectedMemberIds}
           filterValue={searchQuery}
@@ -110,6 +110,10 @@ const NewChatStep1: FC<OwnProps & StateProps> = ({
           searchInputId="new-group-picker-search"
           isLoading={isSearching}
           isSearchable
+          allowMultiple
+          withStatus
+          itemInputType="checkbox"
+          withDefaultPadding
           onSelectedIdsChange={onSelectedMemberIdsChange}
           onFilterChange={handleFilterChange}
         />
@@ -119,7 +123,7 @@ const NewChatStep1: FC<OwnProps & StateProps> = ({
           onClick={handleNextStep}
           ariaLabel={isChannel ? 'Continue To Channel Info' : 'Continue To Group Info'}
         >
-          <i className="icon icon-arrow-right" />
+          <Icon name="arrow-right" />
         </FloatingActionButton>
       </div>
     </div>
@@ -136,15 +140,15 @@ export default memo(withGlobal<OwnProps>(
       globalResults,
       localResults,
     } = selectTabState(global).globalSearch;
-    const { userIds: globalUserIds } = globalResults || {};
-    const { userIds: localUserIds } = localResults || {};
+    const { peerIds: globalPeerIds } = globalResults || {};
+    const { peerIds: localPeerIds } = localResults || {};
 
     return {
       localContactIds,
       searchQuery,
       isSearching: fetchingStatus?.chats,
-      globalUserIds,
-      localUserIds,
+      globalPeerIds,
+      localPeerIds,
     };
   },
 )(NewChatStep1));

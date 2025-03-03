@@ -1,25 +1,22 @@
-import type { FC } from '../../lib/teact/teact';
 import React, {
-  memo, useCallback, useEffect, useLayoutEffect, useRef,
+  memo, useCallback, useLayoutEffect, useRef,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { GlobalState } from '../../global/types';
-import type { LangCode } from '../../types';
 
-import { DEFAULT_LANG_CODE, STRICTERDOM_ENABLED } from '../../config';
+import { STRICTERDOM_ENABLED } from '../../config';
 import { disableStrict, enableStrict } from '../../lib/fasterdom/stricterdom';
 import buildClassName from '../../util/buildClassName';
-import { setLanguage } from '../../util/langProvider';
+import { oldSetLanguage } from '../../util/oldLangProvider';
 import { LOCAL_TGS_URLS } from '../common/helpers/animatedAssets';
-import renderText from '../common/helpers/renderText';
 import { getSuggestedLanguage } from './helpers/getSuggestedLanguage';
 
 import useAsync from '../../hooks/useAsync';
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useLangString from '../../hooks/useLangString';
-import useMediaTransition from '../../hooks/useMediaTransition';
+import useMediaTransitionDeprecated from '../../hooks/useMediaTransitionDeprecated';
 
 import AnimatedIcon from '../common/AnimatedIcon';
 import Button from '../ui/Button';
@@ -29,7 +26,7 @@ import blankUrl from '../../assets/blank.png';
 
 type StateProps =
   Pick<GlobalState, 'connectionState' | 'authState' | 'authQrCode'>
-  & { language?: LangCode };
+  & { language?: string };
 
 const DATA_PREFIX = 'tg://login?token=';
 const QR_SIZE = 280;
@@ -45,12 +42,12 @@ function ensureQrCodeStyling() {
   return qrCodeStylingPromise;
 }
 
-const AuthCode: FC<StateProps> = ({
+const AuthCode = ({
   connectionState,
   authState,
   authQrCode,
   language,
-}) => {
+}: StateProps) => {
   const {
     returnToAuthPhoneNumber,
     setSettingOption,
@@ -62,7 +59,7 @@ const AuthCode: FC<StateProps> = ({
   const qrCodeRef = useRef<HTMLDivElement>(null);
 
   const isConnected = connectionState === 'connectionStateReady';
-  const continueText = useLangString(isConnected ? suggestedLanguage : undefined, 'ContinueOnThisLanguage', true);
+  const continueText = useLangString('AuthContinueOnThisLanguage', suggestedLanguage);
   const [isLoading, markIsLoading, unmarkIsLoading] = useFlag();
   const [isQrMounted, markQrMounted, unmarkQrMounted] = useFlag();
 
@@ -90,7 +87,7 @@ const AuthCode: FC<StateProps> = ({
     });
   }, []);
 
-  const transitionClassNames = useMediaTransition(isQrMounted);
+  const transitionClassNames = useMediaTransitionDeprecated(isQrMounted);
 
   useLayoutEffect(() => {
     if (!authQrCode || !qrCode) {
@@ -128,16 +125,10 @@ const AuthCode: FC<StateProps> = ({
     return undefined;
   }, [isConnected, authQrCode, isQrMounted, markQrMounted, unmarkQrMounted, qrCode]);
 
-  useEffect(() => {
-    if (isConnected) {
-      void setLanguage(DEFAULT_LANG_CODE);
-    }
-  }, [isConnected]);
-
   const handleLangChange = useCallback(() => {
     markIsLoading();
 
-    void setLanguage(suggestedLanguage, () => {
+    void oldSetLanguage(suggestedLanguage, () => {
       unmarkIsLoading();
 
       setSettingOption({ language: suggestedLanguage });
@@ -174,17 +165,17 @@ const AuthCode: FC<StateProps> = ({
           </div>
           {!isQrMounted && <div className="qr-loading"><Loading /></div>}
         </div>
-        <h1>{lang('Login.QR.Title')}</h1>
+        <h1>{lang('LoginQRTitle')}</h1>
         <ol>
-          <li><span>{lang('Login.QR.Help1')}</span></li>
-          <li><span>{renderText(lang('Login.QR2.Help2'), ['simple_markdown'])}</span></li>
-          <li><span>{lang('Login.QR.Help3')}</span></li>
+          <li><span>{lang('LoginQRHelp1')}</span></li>
+          <li><span>{lang('LoginQRHelp2', undefined, { withNodes: true, withMarkdown: true })}</span></li>
+          <li><span>{lang('LoginQRHelp3')}</span></li>
         </ol>
         {isAuthReady && (
-          <Button isText onClick={habdleReturnToAuthPhoneNumber}>{lang('Login.QR.Cancel')}</Button>
+          <Button size="smaller" isText onClick={habdleReturnToAuthPhoneNumber}>{lang('LoginQRCancel')}</Button>
         )}
         {suggestedLanguage && suggestedLanguage !== language && continueText && (
-          <Button isText isLoading={isLoading} onClick={handleLangChange}>{continueText}</Button>
+          <Button size="smaller" isText isLoading={isLoading} onClick={handleLangChange}>{continueText}</Button>
         )}
       </div>
     </div>

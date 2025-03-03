@@ -4,23 +4,22 @@ import { getGlobal, withGlobal } from '../../global';
 
 import type { ApiChatType } from '../../api/types';
 import type { ThreadId } from '../../types';
-import { MAIN_THREAD_ID } from '../../api/types';
 
 import { API_CHAT_TYPES } from '../../config';
 import {
-  filterChatsByName,
-  filterUsersByName,
   getCanPostInChat,
   isDeletedUser,
 } from '../../global/helpers';
-import { filterChatIdsByType } from '../../global/selectors';
+import { filterPeersByQuery } from '../../global/helpers/peers';
+import {
+  filterChatIdsByType, selectChat, selectChatFullInfo, selectUser,
+} from '../../global/selectors';
 import { unique } from '../../util/iteratees';
 import sortChatIds from './helpers/sortChatIds';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
-import useLang from '../../hooks/useLang';
 
-import ChatOrUserPicker from './ChatOrUserPicker';
+import ChatOrUserPicker from './pickers/ChatOrUserPicker';
 
 export type OwnProps = {
   isOpen: boolean;
@@ -56,7 +55,6 @@ const RecipientPicker: FC<OwnProps & StateProps> = ({
   onClose,
   onCloseAnimationEnd,
 }) => {
-  const lang = useLang();
   const [search, setSearch] = useState('');
   const ids = useMemo(() => {
     if (!isOpen) return undefined;
@@ -68,28 +66,36 @@ const RecipientPicker: FC<OwnProps & StateProps> = ({
 
     // No need for expensive global updates on users, so we avoid them
     const global = getGlobal();
-    const usersById = global.users.byId;
-    const chatsById = global.chats.byId;
-    const chatFullInfoById = global.chats.fullInfoById;
 
-    const chatIds = [
+    const peerIds = [
       ...(activeListIds || []),
       ...((search && archivedListIds) || []),
     ].filter((id) => {
-      const chat = chatsById[id];
-      const user = usersById[id];
-      if (user && isDeletedUser(user)) return false;
+      const chat = selectChat(global, id);
+      const user = selectUser(global, id);
+      if (user && !isDeletedUser(user)) return true;
 
-      return chat && getCanPostInChat(chat, MAIN_THREAD_ID, undefined, chatFullInfoById[id]);
+      const chatFullInfo = selectChatFullInfo(global, id);
+
+      return chat && (!chatFullInfo || getCanPostInChat(chat, undefined, undefined, chatFullInfo));
     });
 
-    const sorted = sortChatIds(unique([
-      ...filterChatsByName(lang, chatIds, chatsById, search, currentUserId),
-      ...(contactIds && filter.includes('users') ? filterUsersByName(contactIds, usersById, search) : []),
-    ]), undefined, priorityIds);
+    const sorted = sortChatIds(
+      filterPeersByQuery({
+        ids: unique([
+          ...(currentUserId ? [currentUserId] : []),
+          ...peerIds,
+          ...(contactIds || []),
+        ]),
+        query: search,
+      }),
+      undefined,
+      priorityIds,
+      currentUserId,
+    );
 
     return filterChatIdsByType(global, sorted, filter);
-  }, [pinnedIds, currentUserId, activeListIds, search, archivedListIds, lang, contactIds, filter, isOpen]);
+  }, [pinnedIds, currentUserId, activeListIds, search, archivedListIds, contactIds, filter, isOpen]);
 
   const renderingIds = useCurrentOrPrev(ids, true)!;
 
@@ -98,6 +104,7 @@ const RecipientPicker: FC<OwnProps & StateProps> = ({
       isOpen={isOpen}
       className={className}
       chatOrUserIds={renderingIds}
+      currentUserId={currentUserId}
       searchPlaceholder={searchPlaceholder}
       search={search}
       onSearchChange={setSearch}

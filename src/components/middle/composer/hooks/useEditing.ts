@@ -1,9 +1,8 @@
 import { useEffect, useState } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
-import type { ApiFormattedText, ApiMessage } from '../../../../api/types';
-import type { ApiDraft, MessageListType } from '../../../../global/types';
-import type { ThreadId } from '../../../../types';
+import type { ApiDraft, ApiFormattedText, ApiMessage } from '../../../../api/types';
+import type { MessageListType, ThreadId } from '../../../../types';
 import type { Signal } from '../../../../util/signals';
 import { ApiMessageEntityTypes } from '../../../../api/types';
 
@@ -29,14 +28,15 @@ const useEditing = (
   setHtml: (html: string) => void,
   editedMessage: ApiMessage | undefined,
   resetComposer: (shouldPreserveInput?: boolean) => void,
-  openDeleteModal: () => void,
   chatId: string,
   threadId: ThreadId,
   type: MessageListType,
   draft?: ApiDraft,
   editingDraft?: ApiFormattedText,
 ): [VoidFunction, VoidFunction, boolean] => {
-  const { editMessage, setEditingDraft, toggleMessageWebPage } = getActions();
+  const {
+    editMessage, setEditingDraft, toggleMessageWebPage, openDeleteMessageModal,
+  } = getActions();
   const [shouldForceShowEditing, setShouldForceShowEditing] = useState(false);
 
   const replyingToId = draft?.replyInfo?.replyToMsgId;
@@ -152,7 +152,11 @@ const useEditing = (
     }
 
     if (!text && !hasMessageMedia(editedMessage)) {
-      openDeleteModal();
+      openDeleteMessageModal({
+        chatId,
+        messageIds: [editedMessage.id],
+        isSchedule: type === 'scheduled',
+      });
       return;
     }
 

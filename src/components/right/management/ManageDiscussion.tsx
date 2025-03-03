@@ -15,9 +15,9 @@ import renderText from '../../common/helpers/renderText';
 
 import useFlag from '../../../hooks/useFlag';
 import useHistoryBack from '../../../hooks/useHistoryBack';
-import useLang from '../../../hooks/useLang';
+import useOldLang from '../../../hooks/useOldLang';
 
-import AnimatedIcon from '../../common/AnimatedIcon';
+import AnimatedIconWithPreview from '../../common/AnimatedIconWithPreview';
 import Avatar from '../../common/Avatar';
 import GroupChatInfo from '../../common/GroupChatInfo';
 import NothingFound from '../../common/NothingFound';
@@ -64,7 +64,7 @@ const ManageDiscussion: FC<OwnProps & StateProps> = ({
   const [isConfirmLinkGroupDialogOpen, openConfirmLinkGroupDialog, closeConfirmLinkGroupDialog] = useFlag();
   const [isJoinToSend, setIsJoinToSend] = useState(Boolean(linkedChat?.isJoinToSend));
   const [isJoinRequest, setIsJoinRequest] = useState(Boolean(linkedChat?.isJoinRequest));
-  const lang = useLang();
+  const lang = useOldLang();
   const linkedChatId = linkedChat?.id;
 
   useHistoryBack({
@@ -248,7 +248,7 @@ const ManageDiscussion: FC<OwnProps & StateProps> = ({
     <div className="Management">
       <div className="custom-scroll">
         <div className="section">
-          <AnimatedIcon
+          <AnimatedIconWithPreview
             tgsUrl={LOCAL_TGS_URLS.DiscussionGroups}
             size={STICKER_SIZE_DISCUSSION_GROUPS}
             className="section-icon"
@@ -259,19 +259,23 @@ const ManageDiscussion: FC<OwnProps & StateProps> = ({
         {linkedChat && (
           <div className="section">
             <h3 className="section-heading">{lang('ChannelSettingsJoinTitle')}</h3>
-            <Checkbox
-              checked={isJoinToSend}
-              onCheck={handleJoinToSendCheck}
-              label={lang('ChannelSettingsJoinToSend')}
-            />
-            {isJoinToSend && (
+            <div className="ListItem narrow">
               <Checkbox
-                checked={isJoinRequest}
-                onCheck={handleJoinRequestCheck}
-                label={lang('ChannelSettingsJoinRequest')}
+                checked={isJoinToSend}
+                onCheck={handleJoinToSendCheck}
+                label={lang('ChannelSettingsJoinToSend')}
               />
+            </div>
+            {isJoinToSend && (
+              <div className="ListItem narrow">
+                <Checkbox
+                  checked={isJoinRequest}
+                  onCheck={handleJoinRequestCheck}
+                  label={lang('ChannelSettingsJoinRequest')}
+                />
+              </div>
             )}
-            <p className="text-muted">
+            <p className="section-info section-info_push">
               {isJoinToSend ? lang('ChannelSettingsJoinRequestInfo') : lang('ChannelSettingsJoinToSendInfo')}
             </p>
           </div>

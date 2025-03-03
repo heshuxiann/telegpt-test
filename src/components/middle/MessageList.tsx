@@ -1,21 +1,16 @@
 import type { FC } from '../../lib/teact/teact';
 import React, {
-  memo,
-  useEffect,
-  useMemo,
-  useRef,
+  beginHeavyAnimation, memo, useEffect, useMemo, useRef,
 } from '../../lib/teact/teact';
 import { addExtraClass, removeExtraClass } from '../../lib/teact/teact-dom';
 import { getActions, getGlobal, withGlobal } from '../../global';
 
 import type {
-  ApiMessage, ApiRestrictionReason, ApiTopic,
+  ApiChatFullInfo, ApiMessage, ApiRestrictionReason, ApiTopic,
 } from '../../api/types';
-import type { MessageListType } from '../../global/types';
-import type { Signal } from '../../util/signals';
-import type { PinnedIntersectionChangedCallback } from './hooks/usePinnedMessage';
+import type { OnIntersectPinnedMessage } from './hooks/usePinnedMessage';
 import { MAIN_THREAD_ID } from '../../api/types';
-import { LoadMoreDirection, type ThreadId } from '../../types';
+import { LoadMoreDirection, type MessageListType, type ThreadId } from '../../types';
 
 import {
   ANIMATION_END_DELAY,
@@ -30,7 +25,7 @@ import {
   isAnonymousForwardsChat,
   isChatChannel,
   isChatGroup,
-  isChatWithRepliesBot,
+  isSystemBot,
   isUserId,
 } from '../../global/helpers';
 import {
@@ -43,6 +38,7 @@ import {
   selectCurrentMessageIds,
   selectFirstUnreadId,
   selectFocusedMessageId,
+  selectIsChatProtected,
   selectIsChatWithSelf,
   selectIsCurrentUserPremium,
   selectIsInSelectMode,
@@ -52,20 +48,21 @@ import {
   selectScrollOffset,
   selectTabState,
   selectThreadInfo,
+  selectTopic,
   selectUserFullInfo,
 } from '../../global/selectors';
 import animateScroll, { isAnimatingScroll, restartCurrentScrollAnimation } from '../../util/animateScroll';
 import buildClassName from '../../util/buildClassName';
 import { orderBy } from '../../util/iteratees';
-import { isLocalMessageId } from '../../util/messageKey';
+import { isLocalMessageId } from '../../util/keys/messageKey';
 import resetScroll from '../../util/resetScroll';
 import { debounce, onTickEnd } from '../../util/schedulers';
+import getOffsetToContainer from '../../util/visibility/getOffsetToContainer';
 import { groupMessages } from './helpers/groupMessages';
 import { preventMessageInputBlur } from './helpers/preventMessageInputBlur';
 
 import useInterval from '../../hooks/schedulers/useInterval';
 import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
-import { dispatchHeavyAnimationEvent } from '../../hooks/useHeavyAnimationCheck';
 import useLastCallback from '../../hooks/useLastCallback';
 import useLayoutEffectWithPrevDeps from '../../hooks/useLayoutEffectWithPrevDeps';
 import useNativeCopySelectedMessages from '../../hooks/useNativeCopySelectedMessages';
@@ -93,11 +90,9 @@ type OwnProps = {
   isReady: boolean;
   onScrollDownToggle: BooleanToVoidFunction;
   onNotchToggle: BooleanToVoidFunction;
-  hasTools?: boolean;
   withBottomShift?: boolean;
   withDefaultBg: boolean;
-  onPinnedIntersectionChange: PinnedIntersectionChangedCallback;
-  getForceNextPinnedInHeader: Signal<boolean | undefined>;
+  onIntersectPinnedMessage: OnIntersectPinnedMessage;
   isContactRequirePremium?: boolean;
 };
 
@@ -106,9 +101,10 @@ type StateProps = {
   isChannelChat?: boolean;
   isGroupChat?: boolean;
   isChatWithSelf?: boolean;
-  isRepliesChat?: boolean;
+  isSystemBotChat?: boolean;
   isAnonymousForwards?: boolean;
   isCreator?: boolean;
+  isChannelWithAvatars?: boolean;
   isBot?: boolean;
   isSynced?: boolean;
   messageIds?: number[];
@@ -128,14 +124,16 @@ type StateProps = {
   isForum?: boolean;
   currentUserId: string;
   areAdsEnabled?: boolean;
+  channelJoinInfo?: ApiChatFullInfo['joinInfo'];
+  isChatProtected?: boolean;
 };
 
 const MESSAGE_REACTIONS_POLLING_INTERVAL = 20 * 1000;
 const MESSAGE_COMMENTS_POLLING_INTERVAL = 20 * 1000;
+const MESSAGE_FACT_CHECK_UPDATE_INTERVAL = 5 * 1000;
 const MESSAGE_STORY_POLLING_INTERVAL = 5 * 60 * 1000;
 const BOTTOM_THRESHOLD = 50;
 const UNREAD_DIVIDER_TOP = 10;
-const UNREAD_DIVIDER_TOP_WITH_TOOLS = 60;
 const SCROLL_DEBOUNCE = 200;
 const MESSAGE_ANIMATION_DURATION = 500;
 const BOTTOM_FOCUS_MARGIN = 20;
@@ -148,18 +146,16 @@ const MessageList: FC<OwnProps & StateProps> = ({
   chatId,
   threadId,
   type,
-  hasTools,
-  onScrollDownToggle,
-  onNotchToggle,
   isChatLoaded,
   isForum,
   isChannelChat,
   isGroupChat,
+  isChannelWithAvatars,
   canPost,
   isSynced,
   isReady,
   isChatWithSelf,
-  isRepliesChat,
+  isSystemBotChat,
   isAnonymousForwards,
   isCreator,
   isBot,
@@ -181,14 +177,17 @@ const MessageList: FC<OwnProps & StateProps> = ({
   noMessageSendingAnimation,
   isServiceNotificationsChat,
   currentUserId,
-  getForceNextPinnedInHeader,
-  onPinnedIntersectionChange,
   isContactRequirePremium,
   areAdsEnabled,
+  channelJoinInfo,
+  isChatProtected,
+  onIntersectPinnedMessage,
+  onScrollDownToggle,
+  onNotchToggle,
 }) => {
   const {
     loadViewportMessages, setScrollOffset, loadSponsoredMessages, loadMessageReactions, copyMessagesByIds,
-    loadMessageViews, loadPeerStoriesByIds,
+    loadMessageViews, loadPeerStoriesByIds, loadFactChecks,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -231,10 +230,11 @@ const MessageList: FC<OwnProps & StateProps> = ({
   }, [firstUnreadId]);
 
   useEffect(() => {
-    if (areAdsEnabled && isChannelChat && isSynced && isReady) {
-      loadSponsoredMessages({ chatId });
+    const canHaveAds = isChannelChat || isBot;
+    if (areAdsEnabled && canHaveAds && isSynced && isReady) {
+      loadSponsoredMessages({ peerId: chatId });
     }
-  }, [chatId, isSynced, isReady, isChannelChat, areAdsEnabled]);
+  }, [chatId, isSynced, isReady, isChannelChat, isBot, areAdsEnabled]);
 
   // Updated only once when messages are loaded (as we want the unread divider to keep its position)
   useSyncEffect(() => {
@@ -254,7 +254,58 @@ const MessageList: FC<OwnProps & StateProps> = ({
       return undefined;
     }
 
-    const listedMessages = messageIds.map((id) => messagesById[id]).filter(Boolean);
+    const listedMessages: ApiMessage[] = [];
+    messageIds.forEach((id, index, arr) => {
+      const prevMessage = listedMessages[listedMessages.length - 1];
+
+      const message = messagesById[id];
+      if (!message) {
+        return;
+      }
+
+      const { shouldAppendJoinMessage, shouldAppendJoinMessageAfterCurrent } = (() => {
+        if (!channelJoinInfo || type !== 'thread') return undefined;
+        if (prevMessage
+          && prevMessage.date < channelJoinInfo.joinedDate && channelJoinInfo.joinedDate <= message.date) {
+          return { shouldAppendJoinMessage: true, shouldAppendJoinMessageAfterCurrent: false };
+        }
+
+        if (index === arr.length - 1 && message.date < channelJoinInfo.joinedDate) {
+          return {
+            shouldAppendJoinMessage: true,
+            shouldAppendJoinMessageAfterCurrent: true,
+          };
+        }
+
+        return undefined;
+      })() || {};
+
+      if (shouldAppendJoinMessageAfterCurrent) {
+        listedMessages.push(message);
+      }
+
+      if (shouldAppendJoinMessage) {
+        const lastMessageId = shouldAppendJoinMessageAfterCurrent ? message.id : (prevMessage?.id || (message.id - 1));
+        listedMessages.push({
+          id: generateChannelJoinMessageId(lastMessageId),
+          chatId: message.chatId,
+          date: channelJoinInfo!.joinedDate,
+          isOutgoing: false,
+          content: {
+            action: {
+              mediaType: 'action',
+              type: 'channelJoined',
+              inviterId: channelJoinInfo?.inviterId,
+              isViaRequest: channelJoinInfo?.isViaRequest || undefined,
+            },
+          },
+        } satisfies ApiMessage);
+      }
+
+      if (!shouldAppendJoinMessageAfterCurrent) {
+        listedMessages.push(message);
+      }
+    });
 
     // Service notifications have local IDs which may be not in sync with real message history
     const orderRule: (keyof ApiMessage)[] = type === 'scheduled' || isServiceNotificationsChat
@@ -269,7 +320,7 @@ const MessageList: FC<OwnProps & StateProps> = ({
         isChatWithSelf,
       )
       : undefined;
-  }, [messageIds, messagesById, type, isServiceNotificationsChat, isForum, threadId, isChatWithSelf]);
+  }, [messageIds, messagesById, type, isServiceNotificationsChat, isForum, threadId, isChatWithSelf, channelJoinInfo]);
 
   useInterval(() => {
     if (!messageIds || !messagesById || type === 'scheduled') return;
@@ -283,7 +334,7 @@ const MessageList: FC<OwnProps & StateProps> = ({
     if (!ids.length) return;
 
     loadMessageReactions({ chatId, ids });
-  }, MESSAGE_REACTIONS_POLLING_INTERVAL, true);
+  }, MESSAGE_REACTIONS_POLLING_INTERVAL);
 
   useInterval(() => {
     if (!messageIds || !messagesById || type === 'scheduled') {
@@ -320,6 +371,17 @@ const MessageList: FC<OwnProps & StateProps> = ({
     loadMessageViews({ chatId, ids });
   }, MESSAGE_COMMENTS_POLLING_INTERVAL, true);
 
+  useInterval(() => {
+    if (!messageIds || !messagesById || threadId !== MAIN_THREAD_ID || type === 'scheduled') {
+      return;
+    }
+    const ids = messageIds.filter((id) => messagesById[id]?.factCheck?.shouldFetch);
+
+    if (!ids.length) return;
+
+    loadFactChecks({ chatId, ids });
+  }, MESSAGE_FACT_CHECK_UPDATE_INTERVAL);
+
   const loadMoreAround = useMemo(() => {
     if (type !== 'thread') {
       return undefined;
@@ -343,14 +405,15 @@ const MessageList: FC<OwnProps & StateProps> = ({
     }
 
     if (!memoFocusingIdRef.current) {
-      updateStickyDates(container, hasTools);
+      updateStickyDates(container);
     }
 
     runDebouncedForScroll(() => {
       const global = getGlobal();
-      const forceNextPinnedInHeader = getForceNextPinnedInHeader() && !selectTabState(global).focusedMessage?.chatId;
-      if (forceNextPinnedInHeader) {
-        onPinnedIntersectionChange({ hasScrolled: true });
+
+      const isFocusing = Boolean(selectTabState(global).focusedMessage?.chatId);
+      if (!isFocusing) {
+        onIntersectPinnedMessage({ shouldCancelWaiting: true });
       }
 
       if (!container.parentElement) {
@@ -381,7 +444,7 @@ const MessageList: FC<OwnProps & StateProps> = ({
 
     const container = containerRef.current!;
 
-    if (!messageIds || (
+    if (!messageIds || messageIds.length === 1 || (
       messageIds.length < MESSAGE_LIST_SLICE / 2
       && (container.firstElementChild as HTMLDivElement).clientHeight <= container.offsetHeight
     )) {
@@ -411,7 +474,7 @@ const MessageList: FC<OwnProps & StateProps> = ({
   useSyncEffect(
     () => forceMeasure(() => rememberScrollPositionRef.current()),
     // This will run before modifying content and should match deps for `useLayoutEffectWithPrevDeps` below
-    [messageIds, isViewportNewest, hasTools, rememberScrollPositionRef],
+    [messageIds, isViewportNewest, rememberScrollPositionRef],
   );
   useEffect(
     () => rememberScrollPositionRef.current(),
@@ -495,16 +558,13 @@ const MessageList: FC<OwnProps & StateProps> = ({
         // Break out of `forceLayout`
         requestMeasure(() => {
           const shouldScrollToBottom = !isBackgroundModeActive() || !firstUnreadElement;
-
-          animateScroll(
+          animateScroll({
             container,
-            shouldScrollToBottom ? lastItemElement! : firstUnreadElement!,
-            shouldScrollToBottom ? 'end' : 'start',
-            BOTTOM_FOCUS_MARGIN,
-            undefined,
-            undefined,
-            noMessageSendingAnimation ? 0 : undefined,
-          );
+            element: shouldScrollToBottom ? lastItemElement! : firstUnreadElement!,
+            position: shouldScrollToBottom ? 'end' : 'start',
+            margin: BOTTOM_FOCUS_MARGIN,
+            forceDuration: noMessageSendingAnimation ? 0 : undefined,
+          });
         });
       }
 
@@ -528,7 +588,7 @@ const MessageList: FC<OwnProps & StateProps> = ({
         newScrollTop = scrollTop + (newAnchorTop - (anchorTopRef.current || 0));
       } else if (unreadDivider) {
         newScrollTop = Math.min(
-          unreadDivider.offsetTop - (hasTools ? UNREAD_DIVIDER_TOP_WITH_TOOLS : UNREAD_DIVIDER_TOP),
+          getOffsetToContainer(unreadDivider, container).top - UNREAD_DIVIDER_TOP,
           scrollHeight - scrollOffset,
         );
       } else {
@@ -556,17 +616,18 @@ const MessageList: FC<OwnProps & StateProps> = ({
       };
     });
     // This should match deps for `useSyncEffect` above
-  }, [messageIds, isViewportNewest, hasTools, getContainerHeight, prevContainerHeightRef, noMessageSendingAnimation]);
+  }, [messageIds, isViewportNewest, getContainerHeight, prevContainerHeightRef, noMessageSendingAnimation]);
 
   useEffectWithPrevDeps(([prevIsSelectModeActive]) => {
     if (prevIsSelectModeActive !== undefined) {
-      dispatchHeavyAnimationEvent(SELECT_MODE_ANIMATION_DURATION + ANIMATION_END_DELAY);
+      beginHeavyAnimation(SELECT_MODE_ANIMATION_DURATION + ANIMATION_END_DELAY);
     }
   }, [isSelectModeActive]);
 
-  const isPrivate = Boolean(chatId && isUserId(chatId));
-  const withUsers = Boolean((!isPrivate && !isChannelChat) || isChatWithSelf || isRepliesChat || isAnonymousForwards);
-  const noAvatars = Boolean(!withUsers || isChannelChat);
+  const isPrivate = isUserId(chatId);
+  const withUsers = Boolean((!isPrivate && !isChannelChat)
+    || isChatWithSelf || isSystemBotChat || isAnonymousForwards || isChannelWithAvatars);
+  const noAvatars = Boolean(!withUsers || (isChannelChat && !isChannelWithAvatars));
   const shouldRenderGreeting = isUserId(chatId) && !isChatWithSelf && !isBot && !isAnonymousForwards
     && type === 'thread'
     && (
@@ -595,6 +656,7 @@ const MessageList: FC<OwnProps & StateProps> = ({
     isScrolled && 'scrolled',
     !isReady && 'is-animating',
     hasOpenChatButton && 'saved-dialog',
+    isChatProtected && 'hide-on-print',
   );
 
   const hasMessages = (messageIds && messageGroups) || lastMessage;
@@ -634,7 +696,7 @@ const MessageList: FC<OwnProps & StateProps> = ({
         />
       ) : hasMessages ? (
         <MessageListContent
-          areAdsEnabled={areAdsEnabled}
+          canShowAds={areAdsEnabled && isChannelChat}
           chatId={chatId}
           isComments={isComments}
           isChannelChat={isChannelChat}
@@ -660,7 +722,7 @@ const MessageList: FC<OwnProps & StateProps> = ({
           noAppearanceAnimation={!messageGroups || !shouldAnimateAppearanceRef.current}
           onScrollDownToggle={onScrollDownToggle}
           onNotchToggle={onNotchToggle}
-          onPinnedIntersectionChange={onPinnedIntersectionChange}
+          onIntersectPinnedMessage={onIntersectPinnedMessage}
         />
       ) : (
         <Loading color="white" backgroundColor="dark" />
@@ -702,7 +764,7 @@ export default memo(withGlobal<OwnProps>(
 
     const chatBot = selectBot(global, chatId);
 
-    const topic = chat.topics?.[threadId];
+    const topic = selectTopic(global, chatId, threadId);
     const chatFullInfo = !isUserId(chatId) ? selectChatFullInfo(global, chatId) : undefined;
     const isEmptyThread = !selectThreadInfo(global, chatId, threadId)?.messagesCount;
 
@@ -716,9 +778,10 @@ export default memo(withGlobal<OwnProps>(
       restrictionReason,
       isChannelChat: isChatChannel(chat),
       isGroupChat: isChatGroup(chat),
+      isChannelWithAvatars: chat.areProfilesShown,
       isCreator: chat.isCreator,
       isChatWithSelf: selectIsChatWithSelf(global, chatId),
-      isRepliesChat: isChatWithRepliesBot(chatId),
+      isSystemBotChat: isSystemBot(chatId),
       isAnonymousForwards: isAnonymousForwardsChat(chatId),
       isBot: Boolean(chatBot),
       isSynced: global.isSynced,
@@ -729,13 +792,19 @@ export default memo(withGlobal<OwnProps>(
       focusingId,
       isSelectModeActive: selectIsInSelectMode(global),
       hasLinkedChat: chatFullInfo ? Boolean(chatFullInfo.linkedChatId) : undefined,
+      channelJoinInfo: chatFullInfo?.joinInfo,
       topic,
       noMessageSendingAnimation: !selectPerformanceSettingsValue(global, 'messageSendingAnimations'),
       isServiceNotificationsChat: chatId === SERVICE_NOTIFICATIONS_USER_ID,
       isForum: chat.isForum,
       isEmptyThread,
       currentUserId,
+      isChatProtected: selectIsChatProtected(global, chatId),
       ...(withLastMessageWhenPreloading && { lastMessage }),
     };
   },
 )(MessageList));
+
+function generateChannelJoinMessageId(lastMessageId: number) {
+  return lastMessageId + 10e-7; // Smaller than smallest possible id with `getNextLocalMessageId`
+}

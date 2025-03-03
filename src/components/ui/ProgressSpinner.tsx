@@ -9,7 +9,7 @@ import useDynamicColorListener from '../../hooks/stickers/useDynamicColorListene
 import { useStateRef } from '../../hooks/useStateRef';
 import useDevicePixelRatio from '../../hooks/window/useDevicePixelRatio';
 
-import Icon from '../common/Icon';
+import Icon from '../common/icons/Icon';
 
 import './ProgressSpinner.scss';
 
@@ -50,7 +50,7 @@ const ProgressSpinner: FC<{
 
   const dpr = useDevicePixelRatio();
 
-  const color = useDynamicColorListener(canvasRef, !withColor);
+  const color = useDynamicColorListener(canvasRef, undefined, !withColor);
 
   useEffect(() => {
     let isFirst = true;

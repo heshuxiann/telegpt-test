@@ -10,7 +10,7 @@ import type {
 import type { IconName } from '../../../types/icons';
 
 import {
-  getSenderTitle,
+  getPeerTitle,
   isUserId,
 } from '../../../global/helpers';
 import { selectPeer, selectPeerStory } from '../../../global/selectors';
@@ -20,10 +20,11 @@ import renderText from '../helpers/renderText';
 import { renderTextWithEntities } from '../helpers/renderTextWithEntities';
 
 import { useFastClick } from '../../../hooks/useFastClick';
-import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
+import useOldLang from '../../../hooks/useOldLang';
 
-import Icon from '../Icon';
+import Icon from '../icons/Icon';
+import PeerColorWrapper from '../PeerColorWrapper';
 import EmojiIconBackground from './EmojiIconBackground';
 
 import './EmbeddedMessage.scss';
@@ -48,7 +49,7 @@ const EmbeddedStoryForward: FC<OwnProps & StateProps> = ({
   // eslint-disable-next-line no-null/no-null
   const ref = useRef<HTMLDivElement>(null);
 
-  const lang = useLang();
+  const lang = useOldLang();
 
   useEffect(() => {
     if (!story && forwardInfo.fromPeerId && forwardInfo.storyId) {
@@ -59,7 +60,7 @@ const EmbeddedStoryForward: FC<OwnProps & StateProps> = ({
     }
   }, [forwardInfo, story]);
 
-  const senderTitle = sender ? getSenderTitle(lang, sender) : forwardInfo.fromName;
+  const senderTitle = sender ? getPeerTitle(lang, sender) : forwardInfo.fromName;
 
   const openOriginalStory = useLastCallback(() => {
     const { fromPeerId, storyId } = forwardInfo;
@@ -108,7 +109,7 @@ const EmbeddedStoryForward: FC<OwnProps & StateProps> = ({
   }
 
   return (
-    <div
+    <PeerColorWrapper
       ref={ref}
       className={buildClassName(
         'EmbeddedMessage',
@@ -131,7 +132,7 @@ const EmbeddedStoryForward: FC<OwnProps & StateProps> = ({
           {renderSender()}
         </div>
       </div>
-    </div>
+    </PeerColorWrapper>
   );
 };
 

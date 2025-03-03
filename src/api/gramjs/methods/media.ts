@@ -1,6 +1,7 @@
+import bigInt from 'big-integer';
 import { Api as GramJs } from '../../../lib/gramjs';
 
-import type { TelegramClient } from '../../../lib/gramjs';
+import type { SizeType, TelegramClient } from '../../../lib/gramjs';
 import type { ApiOnProgress, ApiParsedMedia } from '../../types';
 import {
   ApiMediaFormat,
@@ -17,11 +18,12 @@ import * as cacheApi from '../../../util/cacheApi';
 import { getEntityTypeById } from '../gramjsBuilders';
 import localDb from '../localDb';
 
-const MEDIA_ENTITY_TYPES = new Set([
-  'msg', 'sticker', 'gif', 'wallpaper', 'photo', 'webDocument', 'document', 'videoAvatar',
+const MEDIA_ENTITY_TYPES: Set<EntityType> = new Set([
+  'sticker', 'wallpaper', 'photo', 'webDocument', 'document',
 ]);
 
 const JPEG_SIZE_TYPES = new Set(['s', 'm', 'x', 'y', 'w', 'a', 'b', 'c', 'd']);
+const MP4_SIZES_TYPES = new Set(['u', 'v']);
 
 export default async function downloadMedia(
   {
@@ -66,8 +68,8 @@ export default async function downloadMedia(
 }
 
 export type EntityType = (
-  'msg' | 'sticker' | 'wallpaper' | 'gif' | 'channel' | 'chat' | 'user' | 'photo' | 'stickerSet' | 'webDocument' |
-  'document' | 'staticMap' | 'videoAvatar'
+  'sticker' | 'wallpaper' | 'channel' | 'chat' | 'user' | 'photo' | 'stickerSet' | 'webDocument' |
+  'document' | 'staticMap'
 );
 
 async function download(
@@ -87,15 +89,16 @@ async function download(
   } = parsed;
 
   if (entityType === 'staticMap') {
-    const accessHash = entityId;
+    const accessHash = bigInt(entityId);
     const parsedParams = new URLSearchParams(params);
-    const long = parsedParams.get('long');
-    const lat = parsedParams.get('lat');
-    const w = parsedParams.get('w');
-    const h = parsedParams.get('h');
-    const zoom = parsedParams.get('zoom');
-    const scale = parsedParams.get('scale');
-    const accuracyRadius = parsedParams.get('accuracy_radius');
+    const long = Number(parsedParams.get('long'));
+    const lat = Number(parsedParams.get('lat'));
+    const w = Number(parsedParams.get('w'));
+    const h = Number(parsedParams.get('h'));
+    const zoom = Number(parsedParams.get('zoom'));
+    const scale = Number(parsedParams.get('scale'));
+    const accuracyRadiusStr = parsedParams.get('accuracy_radius');
+    const accuracyRadius = accuracyRadiusStr ? Number(accuracyRadiusStr) : undefined;
 
     const data = await client.downloadStaticMap(accessHash, long, lat, w, h, zoom, scale, accuracyRadius);
     return {
@@ -118,15 +121,11 @@ async function download(
     case 'user':
       entity = localDb.users[entityId];
       break;
-    case 'msg':
-      entity = localDb.messages[entityId];
-      break;
     case 'sticker':
-    case 'gif':
     case 'wallpaper':
+    case 'document':
       entity = localDb.documents[entityId];
       break;
-    case 'videoAvatar':
     case 'photo':
       entity = localDb.photos[entityId];
       break;
@@ -135,9 +134,6 @@ async function download(
       break;
     case 'webDocument':
       entity = localDb.webDocuments[entityId];
-      break;
-    case 'document':
-      entity = localDb.documents[entityId];
       break;
   }
 
@@ -152,36 +148,18 @@ async function download(
     let mimeType;
     let fullSize;
 
-    if (entity instanceof GramJs.MessageService && entity.action instanceof GramJs.MessageActionSuggestProfilePhoto) {
+    if (sizeType && JPEG_SIZE_TYPES.has(sizeType)) {
       mimeType = 'image/jpeg';
-    } else if (entity instanceof GramJs.Message) {
-      mimeType = getMessageMediaMimeType(entity, sizeType);
-      if (entity.media instanceof GramJs.MessageMediaDocument && entity.media.document instanceof GramJs.Document) {
-        fullSize = entity.media.document.size.toJSNumber();
-      }
-      if (entity.media instanceof GramJs.MessageMediaWebPage
-        && entity.media.webpage instanceof GramJs.WebPage
-        && entity.media.webpage.document instanceof GramJs.Document) {
-        fullSize = entity.media.webpage.document.size.toJSNumber();
-      }
+    } else if (sizeType && MP4_SIZES_TYPES.has(sizeType)) {
+      mimeType = 'video/mp4';
     } else if (entity instanceof GramJs.Photo) {
-      if (entityType === 'videoAvatar') {
-        mimeType = 'video/mp4';
-      } else {
-        mimeType = 'image/jpeg';
-      }
-    } else if (entityType === 'sticker' && sizeType) {
-      mimeType = (entity as GramJs.Document).mimeType;
-    } else if (entityType === 'webDocument') {
-      mimeType = (entity as GramJs.TypeWebDocument).mimeType;
-      fullSize = (entity as GramJs.TypeWebDocument).size;
-    } else {
-      if (JPEG_SIZE_TYPES.has(sizeType || '')) {
-        mimeType = 'image/jpeg';
-      } else {
-        mimeType = (entity as GramJs.Document).mimeType;
-      }
-      fullSize = (entity as GramJs.Document).size.toJSNumber();
+      mimeType = 'image/jpeg';
+    } else if (entity instanceof GramJs.WebDocument) {
+      mimeType = entity.mimeType;
+      fullSize = entity.size;
+    } else if (entity instanceof GramJs.Document) {
+      mimeType = entity.mimeType;
+      fullSize = entity.size.toJSNumber();
     }
 
     // Prevent HTML-in-video attacks
@@ -191,57 +169,26 @@ async function download(
 
     return { mimeType, data, fullSize };
   } else if (entityType === 'stickerSet') {
-    const data = await client.downloadStickerSetThumb(entity);
-    const mimeType = getMimeType(data);
+    const data = await client.downloadStickerSetThumb(entity as GramJs.StickerSet);
+    const mimeType = data && getMimeType(data);
 
     return { mimeType, data };
   } else {
-    const data = await client.downloadProfilePhoto(entity, mediaMatchType === 'profile');
-    const mimeType = getMimeType(data);
+    const data = await client.downloadProfilePhoto(entity as GramJs.Chat | GramJs.User, mediaMatchType === 'profile');
+    const mimeType = data && getMimeType(data);
 
     return { mimeType, data };
   }
-}
-
-function getMessageMediaMimeType(message: GramJs.Message, sizeType?: string) {
-  if (!message || !message.media) {
-    return undefined;
-  }
-
-  if (message.media instanceof GramJs.MessageMediaPhoto) {
-    return 'image/jpeg';
-  }
-
-  if (message.media instanceof GramJs.MessageMediaGeo
-    || message.media instanceof GramJs.MessageMediaVenue
-    || message.media instanceof GramJs.MessageMediaGeoLive) {
-    return 'image/png';
-  }
-
-  if (message.media instanceof GramJs.MessageMediaDocument) {
-    const document = message.media.document;
-    if (document instanceof GramJs.Document) {
-      return document.mimeType;
-    }
-  }
-
-  if (message.media instanceof GramJs.MessageMediaWebPage
-    && message.media.webpage instanceof GramJs.WebPage
-    && message.media.webpage.document instanceof GramJs.Document) {
-    if (sizeType) {
-      return 'image/jpeg';
-    }
-
-    return message.media.webpage.document.mimeType;
-  }
-
-  return undefined;
 }
 
 // eslint-disable-next-line no-async-without-await/no-async-without-await
 async function parseMedia(
-  data: Buffer, mediaFormat: ApiMediaFormat, mimeType?: string,
+  data: Buffer | File, mediaFormat: ApiMediaFormat, mimeType?: string,
 ): Promise<ApiParsedMedia | undefined> {
+  if (data instanceof File) {
+    return data;
+  }
+
   switch (mediaFormat) {
     case ApiMediaFormat.BlobUrl:
       return new Blob([data], { type: mimeType });
@@ -294,7 +241,7 @@ export function parseMediaUrl(url: string) {
       ? url.match(/(webDocument):(.+)/)
       : url.match(
         // eslint-disable-next-line max-len
-        /(avatar|profile|photo|msg|stickerSet|sticker|wallpaper|gif|document|videoAvatar)([-\d\w./]+)(?::\d+)?(\?size=\w+)?/,
+        /(avatar|profile|photo|stickerSet|sticker|wallpaper|document)([-\d\w./]+)(?::\d+)?(\?size=\w+)?/,
       );
   if (!mediaMatch) {
     return undefined;
@@ -305,7 +252,7 @@ export function parseMediaUrl(url: string) {
 
   let entityType: EntityType;
   const params = mediaMatch[3];
-  const sizeType = params?.replace('?size=', '') || undefined;
+  const sizeType = params?.replace('?size=', '') as SizeType || undefined;
 
   if (mediaMatch[1] === 'avatar' || mediaMatch[1] === 'profile') {
     entityType = getEntityTypeById(entityId);

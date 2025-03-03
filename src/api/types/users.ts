@@ -3,6 +3,8 @@ import type { ApiBotInfo } from './bots';
 import type { ApiBusinessIntro, ApiBusinessLocation, ApiBusinessWorkHours } from './business';
 import type { ApiPeerColor } from './chats';
 import type { ApiDocument, ApiPhoto } from './messages';
+import type { ApiBotVerification } from './misc';
+import type { ApiSavedStarGift } from './payments';
 
 export interface ApiUser {
   id: string;
@@ -21,24 +23,21 @@ export interface ApiUser {
   phoneNumber: string;
   accessHash?: string;
   hasVideoAvatar?: boolean;
-  avatarHash?: string;
-  photos?: ApiPhoto[];
+  avatarPhotoId?: string;
   botPlaceholder?: string;
   canBeInvitedToGroup?: boolean;
-  commonChats?: {
-    ids: string[];
-    maxId: string;
-    isFullyLoaded: boolean;
-  };
   fakeType?: ApiFakeType;
   isAttachBot?: boolean;
-  emojiStatus?: ApiEmojiStatus;
+  emojiStatus?: ApiEmojiStatusType;
   areStoriesHidden?: boolean;
   hasStories?: boolean;
   hasUnreadStories?: boolean;
   maxStoryId?: number;
   color?: ApiPeerColor;
   canEditBot?: boolean;
+  hasMainMiniApp?: boolean;
+  botActiveUsers?: number;
+  botVerificationIconId?: string;
 }
 
 export interface ApiUserFullInfo {
@@ -62,6 +61,11 @@ export interface ApiUserFullInfo {
   businessLocation?: ApiBusinessLocation;
   businessWorkHours?: ApiBusinessWorkHours;
   businessIntro?: ApiBusinessIntro;
+  starGiftCount?: number;
+  isBotCanManageEmojiStatus?: boolean;
+  isBotAccessEmojiGranted?: boolean;
+  hasScheduledMessages?: boolean;
+  botVerification?: ApiBotVerification;
 }
 
 export type ApiFakeType = 'fake' | 'scam';
@@ -79,6 +83,17 @@ export interface ApiUserStatus {
   isReadDateRestricted?: boolean;
 }
 
+export interface ApiUserCommonChats {
+  ids: string[];
+  maxId?: string;
+  isFullyLoaded: boolean;
+}
+
+export interface ApiSavedGifts {
+  gifts: ApiSavedStarGift[];
+  nextOffset?: string;
+}
+
 export interface ApiUsername {
   username: string;
   isActive?: boolean;
@@ -88,9 +103,11 @@ export interface ApiUsername {
 export type ApiChatType = typeof API_CHAT_TYPES[number];
 export type ApiAttachMenuPeerType = 'self' | ApiChatType;
 
+export type ApiInlineQueryPeerType = 'self' | 'supergroups' | ApiChatType;
+
 type ApiAttachBotForMenu = {
   isForAttachMenu: true;
-  attachMenuPeerTypes: ApiAttachMenuPeerType[];
+  attachMenuPeerTypes?: ApiAttachMenuPeerType[];
 };
 
 type ApiAttachBotBase = {
@@ -117,8 +134,25 @@ export interface ApiPremiumGiftOption {
   botUrl: string;
 }
 
+export type ApiEmojiStatusType = ApiEmojiStatus | ApiEmojiStatusCollectible;
+
 export interface ApiEmojiStatus {
+  type: 'regular';
   documentId: string;
+  until?: number;
+}
+
+export interface ApiEmojiStatusCollectible {
+  type: 'collectible';
+  collectibleId: string;
+  documentId: string;
+  title: string;
+  slug: string;
+  patternDocumentId: string;
+  centerColor: string;
+  edgeColor: string;
+  patternColor: string;
+  textColor: string;
   until?: number;
 }
 

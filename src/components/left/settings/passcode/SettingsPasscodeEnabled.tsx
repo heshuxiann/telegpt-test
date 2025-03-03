@@ -6,7 +6,7 @@ import { SettingsScreens } from '../../../../types';
 import { LOCAL_TGS_URLS } from '../../../common/helpers/animatedAssets';
 
 import useHistoryBack from '../../../../hooks/useHistoryBack';
-import useLang from '../../../../hooks/useLang';
+import useOldLang from '../../../../hooks/useOldLang';
 
 import AnimatedIconWithPreview from '../../../common/AnimatedIconWithPreview';
 import ListItem from '../../../ui/ListItem';
@@ -22,7 +22,7 @@ type OwnProps = {
 const SettingsPasscodeEnabled: FC<OwnProps> = ({
   isActive, onReset, onScreenSelect,
 }) => {
-  const lang = useLang();
+  const lang = useOldLang();
 
   useHistoryBack({ isActive, onBack: onReset });
 
@@ -41,7 +41,7 @@ const SettingsPasscodeEnabled: FC<OwnProps> = ({
         </p>
       </div>
 
-      <div className="settings-item pt-0">
+      <div className="settings-item pt-2">
         <ListItem
           icon="edit"
           // eslint-disable-next-line react/jsx-no-bind

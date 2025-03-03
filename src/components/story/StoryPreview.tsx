@@ -6,12 +6,12 @@ import type {
 } from '../../api/types';
 import type { StoryViewerOrigin } from '../../types';
 
-import { getSenderTitle, getStoryMediaHash } from '../../global/helpers';
+import { getPeerTitle, getStoryMediaHash } from '../../global/helpers';
 import { selectTabState } from '../../global/selectors';
 import renderText from '../common/helpers/renderText';
 
-import useLang from '../../hooks/useLang';
 import useMedia from '../../hooks/useMedia';
+import useOldLang from '../../hooks/useOldLang';
 
 import Avatar from '../common/Avatar';
 import MediaAreaOverlay from './mediaArea/MediaAreaOverlay';
@@ -33,7 +33,7 @@ function StoryPreview({
   peer, peerStories, lastViewedId, storyIdsForViewer, origin,
 }: OwnProps & StateProps) {
   const { openStoryViewer, loadPeerSkippedStories } = getActions();
-  const lang = useLang();
+  const lang = useOldLang();
 
   const story = useMemo<ApiTypeStory | undefined>(() => {
     if (!peerStories) {
@@ -86,7 +86,7 @@ function StoryPreview({
             withStory
             storyViewerMode="disabled"
           />
-          <div className={styles.name}>{renderText(getSenderTitle(lang, peer) || '')}</div>
+          <div className={styles.name}>{renderText(getPeerTitle(lang, peer) || '')}</div>
         </div>
       </div>
     </div>

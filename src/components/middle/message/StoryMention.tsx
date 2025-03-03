@@ -5,7 +5,7 @@ import type {
   ApiMessage, ApiPeer, ApiTypeStory, ApiUser,
 } from '../../../api/types';
 
-import { getSenderTitle, getStoryMediaHash, getUserFirstOrLastName } from '../../../global/helpers';
+import { getPeerTitle, getStoryMediaHash, getUserFirstOrLastName } from '../../../global/helpers';
 import {
   selectPeer,
   selectPeerStories,
@@ -16,9 +16,9 @@ import buildClassName from '../../../util/buildClassName';
 import renderText from '../../common/helpers/renderText';
 
 import useEnsureStory from '../../../hooks/useEnsureStory';
-import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 import useMedia from '../../../hooks/useMedia';
+import useOldLang from '../../../hooks/useOldLang';
 
 interface OwnProps {
   message: ApiMessage;
@@ -36,7 +36,7 @@ function StoryMention({
 }: OwnProps & StateProps) {
   const { openStoryViewer } = getActions();
 
-  const lang = useLang();
+  const lang = useOldLang();
 
   const { storyData } = message.content;
 
@@ -69,7 +69,7 @@ function StoryMention({
 
     return isDeleted
       ? lang('ExpiredStoryMention')
-      : lang('StoryMentionedTitle', getSenderTitle(lang, peer!));
+      : lang('StoryMentionedTitle', getPeerTitle(lang, peer!));
   }
 
   return (

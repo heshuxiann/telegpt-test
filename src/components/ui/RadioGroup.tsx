@@ -2,13 +2,15 @@ import type { ChangeEvent } from 'react';
 import type { FC, TeactNode } from '../../lib/teact/teact';
 import React, { memo, useCallback } from '../../lib/teact/teact';
 
+import buildClassName from '../../util/buildClassName';
+
 import useLastCallback from '../../hooks/useLastCallback';
 
 import Radio from './Radio';
 
 export type IRadioOption<T = string> = {
   label: TeactNode;
-  subLabel?: string;
+  subLabel?: TeactNode;
   value: T;
   hidden?: boolean;
   className?: string;
@@ -24,8 +26,10 @@ type OwnProps = {
   onChange: (value: string, event: ChangeEvent<HTMLInputElement>) => void;
   onClickAction?: (value: string) => void;
   isLink?: boolean;
+  withIcon?: boolean;
   subLabelClassName?: string;
-  subLabel?: string | undefined;
+  subLabel?: TeactNode;
+  className?: string;
 };
 
 const RadioGroup: FC<OwnProps> = ({
@@ -39,7 +43,9 @@ const RadioGroup: FC<OwnProps> = ({
   onClickAction,
   subLabelClassName,
   isLink,
+  withIcon,
   subLabel,
+  className,
 }) => {
   const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.currentTarget;
@@ -51,7 +57,7 @@ const RadioGroup: FC<OwnProps> = ({
   });
 
   return (
-    <div id={id} className="radio-group">
+    <div id={id} className={buildClassName('radio-group', className)}>
       {options.map((option) => (
         <Radio
           name={name}
@@ -62,6 +68,7 @@ const RadioGroup: FC<OwnProps> = ({
           checked={option.value === selected}
           hidden={option.hidden}
           disabled={disabled}
+          withIcon={withIcon}
           isLoading={loadingOption ? loadingOption === option.value : undefined}
           className={option.className}
           onChange={handleChange}

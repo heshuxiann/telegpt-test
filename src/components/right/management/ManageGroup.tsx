@@ -24,10 +24,11 @@ import renderText from '../../common/helpers/renderText';
 
 import useFlag from '../../../hooks/useFlag';
 import useHistoryBack from '../../../hooks/useHistoryBack';
-import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 import useMedia from '../../../hooks/useMedia';
+import useOldLang from '../../../hooks/useOldLang';
 
+import Icon from '../../common/icons/Icon';
 import AvatarEditable from '../../ui/AvatarEditable';
 import Checkbox from '../../ui/Checkbox';
 import ConfirmDialog from '../../ui/ConfirmDialog';
@@ -130,7 +131,7 @@ const ManageGroup: FC<OwnProps & StateProps> = ({
   const imageHash = getChatAvatarHash(chat);
   const currentAvatarBlobUrl = useMedia(imageHash, false, ApiMediaFormat.BlobUrl);
   const isPublicGroup = useMemo(() => isChatPublic(chat), [chat]);
-  const lang = useLang();
+  const lang = useOldLang();
   // eslint-disable-next-line no-null/no-null
   const isPreHistoryHiddenCheckboxRef = useRef<HTMLDivElement>(null);
 
@@ -328,25 +329,26 @@ const ManageGroup: FC<OwnProps & StateProps> = ({
             onChange={handleSetPhoto}
             disabled={!canChangeInfo}
           />
-          <InputText
-            id="group-title"
-            label={lang('GroupName')}
-            onChange={handleTitleChange}
-            value={title}
-            error={error === GROUP_TITLE_EMPTY ? error : undefined}
-            disabled={!canChangeInfo}
-          />
-          <TextArea
-            id="group-about"
-            className="mb-2"
-            label={lang('DescriptionPlaceholder')}
-            maxLength={GROUP_MAX_DESCRIPTION}
-            maxLengthIndicator={(GROUP_MAX_DESCRIPTION - about.length).toString()}
-            onChange={handleAboutChange}
-            value={about}
-            disabled={!canChangeInfo}
-            noReplaceNewlines
-          />
+          <div className="settings-edit">
+            <InputText
+              id="group-title"
+              label={lang('GroupName')}
+              onChange={handleTitleChange}
+              value={title}
+              error={error === GROUP_TITLE_EMPTY ? error : undefined}
+              disabled={!canChangeInfo}
+            />
+            <TextArea
+              id="group-about"
+              label={lang('DescriptionPlaceholder')}
+              maxLength={GROUP_MAX_DESCRIPTION}
+              maxLengthIndicator={(GROUP_MAX_DESCRIPTION - about.length).toString()}
+              onChange={handleAboutChange}
+              value={about}
+              disabled={!canChangeInfo}
+              noReplaceNewlines
+            />
+          </div>
           {chat.isCreator && (
             <ListItem icon="lock" multiline onClick={handleClickEditType}>
               <span className="title">{lang('GroupType')}</span>
@@ -445,6 +447,9 @@ const ManageGroup: FC<OwnProps & StateProps> = ({
                 checked={!chatFullInfo.isPreHistoryHidden}
                 label={lang('ChatHistory')}
                 onChange={handleTogglePreHistory}
+                subLabel={
+                  chatFullInfo.isPreHistoryHidden ? lang('ChatHistoryHiddenInfo2') : lang('ChatHistoryVisibleInfo')
+                }
                 disabled={!canBanUsers}
               />
             </div>
@@ -465,7 +470,7 @@ const ManageGroup: FC<OwnProps & StateProps> = ({
         {isLoading ? (
           <Spinner color="white" />
         ) : (
-          <i className="icon icon-check" />
+          <Icon name="check" />
         )}
       </FloatingActionButton>
       <ConfirmDialog

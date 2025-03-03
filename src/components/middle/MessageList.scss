@@ -1,4 +1,6 @@
 .MessageList {
+  --action-message-bg: var(--pattern-color);
+
   flex: 1;
   width: 100%;
   margin-bottom: 0.5rem;
@@ -66,6 +68,10 @@
     }
   }
 
+  .first-message-date-group {
+    padding-top: var(--middle-header-panes-height);
+  }
+
   &.no-composer {
     margin-bottom: 0;
 
@@ -88,6 +94,14 @@
 
       &.ActionMessage {
         padding-bottom: 0.125rem;
+      }
+    }
+
+    &:has(.sponsored-media-preview) {
+      margin-bottom: 5.625rem;
+
+      .last-in-list {
+        margin-bottom: 1rem;
       }
     }
   }
@@ -188,7 +202,7 @@
     .Message,
     .ActionMessage {
       &::before {
-        background: var(--pattern-color);
+        background-color: var(--action-message-bg);
       }
 
       &.focused,
@@ -214,8 +228,6 @@
       text-align: left;
     }
   }
-
-  .join-text,
   .sticky-date,
   .local-action-message,
   .ActionMessage,
@@ -223,23 +235,23 @@
     text-align: center;
     user-select: none;
 
+    --custom-emoji-size: calc(var(--message-text-size, 1rem) + 0.125rem);
+    font-size: calc(var(--message-text-size, 1rem) - 0.0625rem);
+    line-height: 1.25;
+
     > span {
-      display: inline-block;
-      background: var(--pattern-color);
+      background-color: var(--action-message-bg);
       color: white;
-      font-size: calc(var(--message-text-size, 1rem) - 0.0625rem);
-      font-weight: 500;
-      line-height: 1.75;
-      padding: 0 0.5rem;
-      border-radius: var(--border-radius-messages);
-      word-break: break-word;
+
       position: relative;
+      border-radius: var(--border-radius-messages);
+
       z-index: 0;
 
       body.is-ios &,
       body.is-macos & {
-        font-size: calc(var(--message-text-size, 1rem) - 0.125rem);
-        line-height: calc(var(--message-text-size, 1rem) + 0.5rem);
+        font-size: calc(var(--message-text-size, 1rem) - 0.0625rem);
+        line-height: calc(var(--message-text-size, 1rem) + 0.09375rem);
       }
 
       .emoji-small {
@@ -251,62 +263,15 @@
     }
   }
 
-  .action-message-content {
-    max-width: 100%;
-  }
-
-  .ActionMessage.centered-action {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .action-message-gift {
-    display: flex !important;
-    flex-direction: column;
-    align-items: center;
-    line-height: 1rem !important;
-    padding-bottom: 0.75rem !important;
-    margin-top: 0.5rem;
-    cursor: var(--custom-cursor, pointer);
-    outline: none;
-  }
-
-  .action-message-gift-code {
-    width: 20rem;
-    margin-inline: auto;
-  }
-
-  .action-message-subtitle {
-    margin-top: 1rem;
-    font-weight: normal;
-    text-wrap: balance;
-  }
-
-  .action-message-suggested-avatar {
-    max-width: 16rem;
-    display: flex !important;
-    flex-direction: column;
-    align-items: center;
-    line-height: 1rem !important;
-    padding-bottom: 0.75rem !important;
-    margin-top: 0.5rem;
-    cursor: var(--custom-cursor, pointer);
-    outline: none;
-
-    .Avatar {
-      width: 6.5rem;
-      height: 6.5rem;
-      margin: 1rem;
+  .sticky-date,
+  .local-action-message,
+  .empty {
+    font-weight: var(--font-weight-medium);
+    & > span {
+      display: inline-block;
+      padding: 0.1875rem 0.5rem;
+      word-break: break-word;
     }
-  }
-
-  .action-message-button {
-    display: inline-block;
-    border-radius: var(--border-radius-default);
-    padding: 0.5rem 0.75rem;
-    margin-top: 0.5rem;
-    background-color: var(--pattern-color);
   }
 
   .sticky-date {
@@ -345,39 +310,17 @@
 
   &.scrolled:not(.is-animating) .sticky-date {
     position: sticky;
-    top: 0.625rem;
+    top: calc(0.625rem + var(--middle-header-panes-height));
   }
 
   &.is-animating .message-select-control {
     display: none !important;
   }
 
-  .has-header-tools & .sticky-date {
-    top: 3.75rem !important;
-  }
-
   .local-action-message,
   .ActionMessage {
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
-  }
-
-  .ActionMessage {
-    .action-link {
-      cursor: var(--custom-cursor, pointer);
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-
-    .underlined-link {
-      text-decoration: underline;
-
-      &:hover {
-        text-decoration: none;
-      }
-    }
   }
 
   .sticky-date + .ActionMessage {
@@ -424,7 +367,7 @@
 
   .Transition_slide-from > &,
   .Transition_slide-to > & {
-    scrollbar-color: transparent !important;
+    scrollbar-color: transparent transparent !important;
 
     &::-webkit-scrollbar-thumb {
       background-color: transparent !important;

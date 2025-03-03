@@ -1,9 +1,9 @@
 import type { FC } from '../../lib/teact/teact';
 import React, {
-  useCallback, useMemo,
-  useRef, useState,
+  useCallback, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
 
+import Icon from '../common/icons/Icon';
 import Button from './Button';
 import Menu from './Menu';
 
@@ -11,6 +11,7 @@ import './DropdownMenu.scss';
 
 type OwnProps = {
   className?: string;
+  bubbleClassName?: string;
   trigger?: FC<{ onTrigger: () => void; isOpen?: boolean }>;
   transformOriginX?: number;
   transformOriginY?: number;
@@ -24,11 +25,13 @@ type OwnProps = {
   onTransitionEnd?: NoneToVoidFunction;
   onMouseEnterBackdrop?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
   children: React.ReactNode;
+  autoClose?: boolean;
 };
 
 const DropdownMenu: FC<OwnProps> = ({
   trigger,
   className,
+  bubbleClassName,
   children,
   transformOriginX,
   transformOriginY,
@@ -41,15 +44,15 @@ const DropdownMenu: FC<OwnProps> = ({
   onTransitionEnd,
   onMouseEnterBackdrop,
   onHide,
+  autoClose = true,
 }) => {
   // eslint-disable-next-line no-null/no-null
   const menuRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleIsOpen = () => {
     setIsOpen(!isOpen);
+
     if (isOpen) {
       onClose?.();
     } else {
@@ -89,14 +92,13 @@ const DropdownMenu: FC<OwnProps> = ({
         onClick={onTrigger}
         ariaLabel="More actions"
       >
-        <i className="icon icon-more" />
+        <Icon name="more" />
       </Button>
     );
   }, [trigger]);
 
   return (
     <div
-      ref={dropdownRef}
       className={`DropdownMenu ${className || ''}`}
       onKeyDown={handleKeyDown}
       onTransitionEnd={onTransitionEnd}
@@ -105,17 +107,16 @@ const DropdownMenu: FC<OwnProps> = ({
 
       <Menu
         ref={menuRef}
-        containerRef={dropdownRef}
         isOpen={isOpen || Boolean(forceOpen)}
         className={className || ''}
+        bubbleClassName={bubbleClassName || ''}
         transformOriginX={transformOriginX}
         transformOriginY={transformOriginY}
         positionX={positionX}
         positionY={positionY}
         footer={footer}
-        autoClose
+        autoClose={autoClose}
         onClose={handleClose}
-        shouldSkipTransition={forceOpen}
         onCloseAnimationEnd={onHide}
         onMouseEnterBackdrop={onMouseEnterBackdrop}
       >

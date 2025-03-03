@@ -10,9 +10,10 @@ import { requestMeasure, requestNextMutation } from '../../../lib/fasterdom/fast
 import captureEscKeyListener from '../../../util/captureEscKeyListener';
 import parseHtmlAsFormattedText from '../../../util/parseHtmlAsFormattedText';
 
-import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
+import useOldLang from '../../../hooks/useOldLang';
 
+import Icon from '../../common/icons/Icon';
 import Button from '../../ui/Button';
 import Checkbox from '../../ui/Checkbox';
 import InputText from '../../ui/InputText';
@@ -53,7 +54,7 @@ const PollModal: FC<OwnProps> = ({
   const [correctOption, setCorrectOption] = useState<number | undefined>();
   const [hasErrors, setHasErrors] = useState<boolean>(false);
 
-  const lang = useLang();
+  const lang = useOldLang();
 
   const handleSolutionChange = useLastCallback((e: ChangeEvent<HTMLTextAreaElement>) => {
     setSolution(e.target.value);
@@ -111,7 +112,9 @@ const PollModal: FC<OwnProps> = ({
         if (!text) return undefined;
 
         return {
-          text,
+          text: {
+            text,
+          },
           option: String(index),
           ...(index === correctOption && { correct: true }),
         };
@@ -141,7 +144,9 @@ const PollModal: FC<OwnProps> = ({
 
     const payload: ApiNewPoll = {
       summary: {
-        question: questionTrimmed,
+        question: {
+          text: questionTrimmed,
+        },
         answers,
         ...(!isAnonymous && { isPublic: true }),
         ...(isMultipleAnswers && { multipleChoice: true }),
@@ -241,7 +246,7 @@ const PollModal: FC<OwnProps> = ({
     return (
       <div className="modal-header-condensed">
         <Button round color="translucent" size="smaller" ariaLabel="Cancel poll creation" onClick={onClear}>
-          <i className="icon icon-close" />
+          <Icon name="close" />
         </Button>
         <div className="modal-title">{lang('NewPoll')}</div>
         <Button
@@ -279,7 +284,7 @@ const PollModal: FC<OwnProps> = ({
             // eslint-disable-next-line react/jsx-no-bind
             onClick={() => removeOption(index)}
           >
-            <i className="icon icon-close" />
+            <Icon name="close" />
           </Button>
         )}
       </div>
@@ -333,18 +338,21 @@ const PollModal: FC<OwnProps> = ({
       <div className="quiz-mode">
         {!shouldBeAnonymous && (
           <Checkbox
+            className="dialog-checkbox"
             label={lang('PollAnonymous')}
             checked={isAnonymous}
             onChange={handleIsAnonymousChange}
           />
         )}
         <Checkbox
+          className="dialog-checkbox"
           label={lang('PollMultiple')}
           checked={isMultipleAnswers}
           disabled={isQuizMode}
           onChange={handleMultipleAnswersChange}
         />
         <Checkbox
+          className="dialog-checkbox"
           label={lang('PollQuiz')}
           checked={isQuizMode}
           disabled={isMultipleAnswers || isQuiz !== undefined}

@@ -4,8 +4,8 @@ import { ApiMediaFormat } from '../api/types';
 
 import { selectIsSynced } from '../global/selectors';
 import * as mediaLoader from '../util/mediaLoader';
+import useSelector from './data/useSelector';
 import useForceUpdate from './useForceUpdate';
-import useSelector from './useSelector';
 
 const useMedia = (
   mediaHash: string | false | undefined,
@@ -18,7 +18,7 @@ const useMedia = (
   const isSynced = useSelector(selectIsSynced);
 
   useEffect(() => {
-    if (isSynced && !noLoad && mediaHash && !mediaData) {
+    if (!noLoad && mediaHash && !mediaData) {
       const startedAt = Date.now();
 
       mediaLoader.fetch(mediaHash, mediaFormat).then(() => {

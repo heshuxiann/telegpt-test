@@ -7,7 +7,7 @@ import { getActions, withGlobal } from '../../global';
 import type {
   ApiBusinessIntro, ApiSticker, ApiUpdateConnectionStateType, ApiUser,
 } from '../../api/types';
-import type { MessageList } from '../../global/types';
+import type { MessageList } from '../../types';
 
 import { getUserFullName } from '../../global/helpers';
 import {
@@ -18,8 +18,8 @@ import {
   selectUserFullInfo,
 } from '../../global/selectors';
 
-import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
+import useOldLang from '../../hooks/useOldLang';
 
 import StickerView from '../common/StickerView';
 
@@ -52,7 +52,7 @@ const ContactGreeting: FC<OwnProps & StateProps> = ({
     markMessageListRead,
   } = getActions();
 
-  const lang = useLang();
+  const lang = useOldLang();
 
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);

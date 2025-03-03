@@ -1,7 +1,13 @@
-import type { ApiPrivacySettings } from '../../types';
 import type {
-  ApiGeoPoint, ApiMessage, ApiReaction, ApiReactionCount, ApiSticker, ApiStoryForwardInfo, MediaContent,
+  ApiGeoPoint,
+  ApiMessage,
+  ApiReaction,
+  ApiReactionCount,
+  ApiSticker,
+  ApiStoryForwardInfo,
+  MediaContent,
 } from './messages';
+import type { ApiPrivacySettings } from './settings';
 
 export interface ApiStory {
   '@type'?: 'story';
@@ -66,6 +72,7 @@ export type ApiPeerStories = {
 };
 
 export type ApiMessageStoryData = {
+  mediaType: 'storyData';
   id: number;
   peerId: string;
   isMention?: boolean;
@@ -124,6 +131,7 @@ export type ApiMediaAreaCoordinates = {
   width: number;
   height: number;
   rotation: number;
+  radius?: number;
 };
 
 export type ApiMediaAreaVenue = {
@@ -154,5 +162,25 @@ export type ApiMediaAreaChannelPost = {
   messageId: number;
 };
 
+export type ApiMediaAreaUrl = {
+  type: 'url';
+  coordinates: ApiMediaAreaCoordinates;
+  url: string;
+};
+
+export type ApiMediaAreaWeather = {
+  type: 'weather';
+  coordinates: ApiMediaAreaCoordinates;
+  emoji: string;
+  temperatureC: number;
+  color: number;
+};
+
+export type ApiMediaAreaUniqueGift = {
+  type: 'uniqueGift';
+  coordinates: ApiMediaAreaCoordinates;
+  slug: string;
+};
+
 export type ApiMediaArea = ApiMediaAreaVenue | ApiMediaAreaGeoPoint | ApiMediaAreaSuggestedReaction
-| ApiMediaAreaChannelPost;
+| ApiMediaAreaChannelPost | ApiMediaAreaUrl | ApiMediaAreaWeather | ApiMediaAreaUniqueGift;

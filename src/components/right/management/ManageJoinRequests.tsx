@@ -11,9 +11,9 @@ import { LOCAL_TGS_URLS } from '../../common/helpers/animatedAssets';
 
 import useFlag from '../../../hooks/useFlag';
 import useHistoryBack from '../../../hooks/useHistoryBack';
-import useLang from '../../../hooks/useLang';
+import useOldLang from '../../../hooks/useOldLang';
 
-import AnimatedIcon from '../../common/AnimatedIcon';
+import AnimatedIconWithPreview from '../../common/AnimatedIconWithPreview';
 import Button from '../../ui/Button';
 import ConfirmDialog from '../../ui/ConfirmDialog';
 import Spinner from '../../ui/Spinner';
@@ -41,7 +41,7 @@ const ManageJoinRequests: FC<OwnProps & StateProps> = ({
   const [isAcceptAllDialogOpen, openAcceptAllDialog, closeAcceptAllDialog] = useFlag();
   const [isRejectAllDialogOpen, openRejectAllDialog, closeRejectAllDialog] = useFlag();
 
-  const lang = useLang();
+  const lang = useOldLang();
 
   useHistoryBack({
     isActive,
@@ -68,7 +68,7 @@ const ManageJoinRequests: FC<OwnProps & StateProps> = ({
     <div className="Management ManageJoinRequests">
       <div className="custom-scroll">
         <div className="section">
-          <AnimatedIcon
+          <AnimatedIconWithPreview
             tgsUrl={LOCAL_TGS_URLS.JoinRequest}
             size={STICKER_SIZE_JOIN_REQUESTS}
             className="section-icon"
@@ -89,7 +89,7 @@ const ManageJoinRequests: FC<OwnProps & StateProps> = ({
             <Spinner key="loading" />
           )}
           {chat?.joinRequests?.length === 0 && (
-            <p className="text-muted" key="empty">
+            <p className="section-help" key="empty">
               {isChannel ? lang('NoSubscribeRequestsDescription') : lang('NoMemberRequestsDescription')}
             </p>
           )}

@@ -13,6 +13,7 @@
     padding: 0.1875rem 0.625rem;
     max-height: 75vh;
     overflow-y: scroll;
+
     @include mixins.adapt-padding-to-scrollbar(0.625rem);
 
     .row {
@@ -33,7 +34,7 @@
       border: 2px solid var(--color-primary);
       background: var(--color-background);
       color: var(--color-primary);
-      font-weight: 500;
+      font-weight: var(--font-weight-medium);
       text-transform: none;
 
       &:hover {

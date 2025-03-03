@@ -1,5 +1,6 @@
 import type { ChangeEvent } from 'react';
 
+import type { Signal } from '../../util/signals';
 import type {
   VirtualElement,
   VirtualElementChildren,
@@ -34,7 +35,12 @@ interface SelectionState {
   isCaretAtEnd: boolean;
 }
 
+type CurrentContext = Record<string, Signal<unknown>>;
+
 type DOMElement = HTMLElement | SVGElement;
+
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
 
 const FILTERED_ATTRIBUTES = new Set(['key', 'ref', 'teactFastList', 'teactOrderKey']);
 const HTML_ATTRIBUTES = new Set(['dir', 'role', 'form']);
@@ -59,7 +65,7 @@ function render($element: VirtualElement | undefined, parentEl: HTMLElement) {
 
   const runImmediateEffects = captureImmediateEffects();
   const $head = headsByElement.get(parentEl)!;
-  const $renderedChild = renderWithVirtual(parentEl, $head.children[0], $element, $head, 0);
+  const $renderedChild = renderWithVirtual(parentEl, $head.children[0], $element, $head, {}, 0);
   runImmediateEffects?.();
 
   $head.children = $renderedChild ? [$renderedChild] : [];
@@ -79,17 +85,18 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
   $current: VirtualElement | undefined,
   $new: T,
   $parent: VirtualElementParent | VirtualDomHead,
+  currentContext: CurrentContext,
   index: number,
   options: {
     skipComponentUpdate?: boolean;
     nextSibling?: ChildNode;
     forceMoveToEnd?: boolean;
     fragment?: DocumentFragment;
-    isSvg?: true;
+    namespace?: string;
   } = {},
 ): T {
   const { skipComponentUpdate, fragment } = options;
-  let { nextSibling, isSvg } = options;
+  let { nextSibling, namespace } = options;
 
   const isCurrentComponent = $current?.type === VirtualType.Component;
   const isNewComponent = $new?.type === VirtualType.Component;
@@ -98,8 +105,9 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
   const isCurrentFragment = !isCurrentComponent && $current?.type === VirtualType.Fragment;
   const isNewFragment = !isNewComponent && $new?.type === VirtualType.Fragment;
 
-  if ($new?.type === VirtualType.Tag && $new.tag === 'svg') {
-    isSvg = true;
+  if ($new?.type === VirtualType.Tag) {
+    if ($new.tag === 'svg') namespace = SVG_NAMESPACE;
+    if ($new.props.xmlns) namespace = $new.props.xmlns;
   }
 
   if (
@@ -116,7 +124,7 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
     && isNewComponent
     && ($new as VirtualElementComponent).componentInstance.mountState === MountState.Mounted
   ) {
-    setupComponentUpdateListener(parentEl, $new as VirtualElementComponent, $parent, index);
+    setupComponentUpdateListener(parentEl, $new as VirtualElementComponent, $parent, currentContext, index);
   }
 
   if ($current === $new) {
@@ -133,11 +141,14 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
   if (!$current && $new) {
     if (isNewComponent || isNewFragment) {
       if (isNewComponent) {
-        $new = initComponent(parentEl, $new as VirtualElementComponent, $parent, index) as unknown as typeof $new;
+        $new = initComponent(
+          parentEl, $new as VirtualElementComponent, $parent, currentContext, index,
+        ) as unknown as typeof $new;
+        currentContext = ($new as VirtualElementComponent).componentInstance.context ?? currentContext;
       }
 
-      mountChildren(parentEl, $new as VirtualElementComponent | VirtualElementFragment, {
-        nextSibling, fragment, isSvg,
+      mountChildren(parentEl, $new as VirtualElementComponent | VirtualElementFragment, currentContext, {
+        nextSibling, fragment, namespace,
       });
     } else {
       const canSetTextContent = !fragment
@@ -150,7 +161,7 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
         parentEl.textContent = $newAsReal.value;
         $newAsReal.target = parentEl.firstChild!;
       } else {
-        const node = createNode($newAsReal, isSvg);
+        const node = createNode($newAsReal, currentContext, namespace);
         $newAsReal.target = node;
         insertBefore(fragment || parentEl, node, nextSibling);
 
@@ -160,7 +171,7 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
       }
     }
   } else if ($current && !$new) {
-    remount(parentEl, $current, undefined);
+    remount(parentEl, $current, currentContext, undefined);
   } else if ($current && $new) {
     if (hasElementChanged($current, $new)) {
       if (!nextSibling) {
@@ -169,17 +180,20 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
 
       if (isNewComponent || isNewFragment) {
         if (isNewComponent) {
-          $new = initComponent(parentEl, $new as VirtualElementComponent, $parent, index) as unknown as typeof $new;
+          $new = initComponent(
+            parentEl, $new as VirtualElementComponent, $parent, currentContext, index,
+          ) as unknown as typeof $new;
+          currentContext = ($new as VirtualElementComponent).componentInstance.context ?? currentContext;
         }
 
-        remount(parentEl, $current, undefined);
-        mountChildren(parentEl, $new as VirtualElementComponent | VirtualElementFragment, {
-          nextSibling, fragment, isSvg,
+        remount(parentEl, $current, currentContext, undefined);
+        mountChildren(parentEl, $new as VirtualElementComponent | VirtualElementFragment, currentContext, {
+          nextSibling, fragment, namespace,
         });
       } else {
-        const node = createNode($newAsReal, isSvg);
+        const node = createNode($newAsReal, currentContext, namespace);
         $newAsReal.target = node;
-        remount(parentEl, $current, node, nextSibling);
+        remount(parentEl, $current, currentContext, node, nextSibling);
 
         if ($newAsReal.type === VirtualType.Tag) {
           setElementRef($newAsReal, node as DOMElement);
@@ -193,6 +207,7 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
         renderChildren(
           $current,
           $new as VirtualElementComponent | VirtualElementFragment,
+          currentContext,
           parentEl,
           nextSibling,
           options.forceMoveToEnd,
@@ -215,8 +230,10 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
             insertBefore(parentEl, currentTarget, nextSibling);
           }
 
-          updateAttributes($current, $newAsTag, currentTarget as DOMElement, isSvg);
-          renderChildren($current, $newAsTag, currentTarget as DOMElement, undefined, undefined, isSvg);
+          updateAttributes($current, $newAsTag, currentTarget as DOMElement, namespace);
+          renderChildren(
+            $current, $newAsTag, currentContext, currentTarget as DOMElement, undefined, undefined, namespace,
+          );
         }
       }
     }
@@ -229,13 +246,16 @@ function initComponent(
   parentEl: DOMElement,
   $element: VirtualElementComponent,
   $parent: VirtualElementParent | VirtualDomHead,
+  currentContext: CurrentContext,
   index: number,
 ) {
   const { componentInstance } = $element;
 
+  $element.componentInstance.context = currentContext;
+
   if (componentInstance.mountState === MountState.New) {
     $element = mountComponent(componentInstance);
-    setupComponentUpdateListener(parentEl, $element, $parent, index);
+    setupComponentUpdateListener(parentEl, $element, $parent, currentContext, index);
   }
 
   return $element;
@@ -251,6 +271,7 @@ function setupComponentUpdateListener(
   parentEl: DOMElement,
   $element: VirtualElementComponent,
   $parent: VirtualElementParent | VirtualDomHead,
+  currentContext: CurrentContext,
   index: number,
 ) {
   const { componentInstance } = $element;
@@ -261,6 +282,7 @@ function setupComponentUpdateListener(
       $parent.children[index],
       componentInstance.$element,
       $parent,
+      currentContext,
       index,
       { skipComponentUpdate: true },
     );
@@ -270,29 +292,32 @@ function setupComponentUpdateListener(
 function mountChildren(
   parentEl: DOMElement,
   $element: VirtualElementComponent | VirtualElementFragment,
+  currentContext: CurrentContext,
   options: {
     nextSibling?: ChildNode;
     fragment?: DocumentFragment;
-    isSvg?: true;
+    namespace?: string;
   },
 ) {
   const { children } = $element;
   for (let i = 0, l = children.length; i < l; i++) {
     const $child = children[i];
-    const $renderedChild = renderWithVirtual(parentEl, undefined, $child, $element, i, options);
+    const $renderedChild = renderWithVirtual(parentEl, undefined, $child, $element, currentContext, i, options);
     if ($renderedChild !== $child) {
       children[i] = $renderedChild;
     }
   }
 }
 
-function unmountChildren(parentEl: DOMElement, $element: VirtualElementComponent | VirtualElementFragment) {
+function unmountChildren(
+  parentEl: DOMElement, $element: VirtualElementComponent | VirtualElementFragment, currentContext: CurrentContext,
+) {
   for (const $child of $element.children) {
-    renderWithVirtual(parentEl, $child, undefined, $element, -1);
+    renderWithVirtual(parentEl, $child, undefined, $element, currentContext, -1);
   }
 }
 
-function createNode($element: VirtualElementReal, isSvg?: true): Node {
+function createNode($element: VirtualElementReal, currentContext: CurrentContext, namespace = HTML_NAMESPACE): Node {
   if ($element.type === VirtualType.Empty) {
     return document.createTextNode('');
   }
@@ -302,7 +327,7 @@ function createNode($element: VirtualElementReal, isSvg?: true): Node {
   }
 
   const { tag, props, children } = $element;
-  const element = isSvg ? document.createElementNS('http://www.w3.org/2000/svg', tag) : document.createElement(tag);
+  const element = document.createElementNS(namespace, tag) as DOMElement;
 
   processControlled(tag, props);
 
@@ -311,7 +336,7 @@ function createNode($element: VirtualElementReal, isSvg?: true): Node {
     if (!props.hasOwnProperty(key)) continue;
 
     if (props[key] !== undefined) {
-      setAttribute(element, key, props[key], isSvg);
+      setAttribute(element, key, props[key], namespace);
     }
   }
 
@@ -319,7 +344,7 @@ function createNode($element: VirtualElementReal, isSvg?: true): Node {
 
   for (let i = 0, l = children.length; i < l; i++) {
     const $child = children[i];
-    const $renderedChild = renderWithVirtual(element, undefined, $child, $element, i, { isSvg });
+    const $renderedChild = renderWithVirtual(element, undefined, $child, $element, currentContext, i, { namespace });
     if ($renderedChild !== $child) {
       children[i] = $renderedChild;
     }
@@ -331,6 +356,7 @@ function createNode($element: VirtualElementReal, isSvg?: true): Node {
 function remount(
   parentEl: DOMElement,
   $current: VirtualElement,
+  currentContext: CurrentContext,
   node: Node | undefined,
   componentNextSibling?: ChildNode,
 ) {
@@ -342,7 +368,7 @@ function remount(
       unmountComponent($current.componentInstance);
     }
 
-    unmountChildren(parentEl, $current);
+    unmountChildren(parentEl, $current, currentContext);
 
     if (node) {
       insertBefore(parentEl, node, componentNextSibling);
@@ -400,17 +426,18 @@ function getNextSibling($current: VirtualElement): ChildNode | undefined {
 function renderChildren(
   $current: VirtualElementParent,
   $new: VirtualElementParent,
+  currentContext: CurrentContext,
   currentEl: DOMElement,
   nextSibling?: ChildNode,
   forceMoveToEnd = false,
-  isSvg?: true,
+  namespace?: string,
 ) {
   if (DEBUG) {
     DEBUG_checkKeyUniqueness($new.children);
   }
 
   if (('props' in $new) && $new.props.teactFastList) {
-    renderFastListChildren($current, $new, currentEl);
+    renderFastListChildren($current, $new, currentContext, currentEl);
     return;
   }
 
@@ -433,8 +460,9 @@ function renderChildren(
       currentChildren[i],
       newChildren[i],
       $new,
+      currentContext,
       i,
-      i >= currentChildrenLength ? { fragment, isSvg } : { nextSibling, forceMoveToEnd, isSvg },
+      i >= currentChildrenLength ? { fragment, namespace } : { nextSibling, forceMoveToEnd, namespace },
     );
 
     if ($renderedChild && $renderedChild !== newChildren[i]) {
@@ -449,7 +477,9 @@ function renderChildren(
 
 // This function allows to prepend/append a bunch of new DOM nodes to the top/bottom of preserved ones.
 // It also allows to selectively move particular preserved nodes within their DOM list.
-function renderFastListChildren($current: VirtualElementParent, $new: VirtualElementParent, currentEl: DOMElement) {
+function renderFastListChildren(
+  $current: VirtualElementParent, $new: VirtualElementParent, currentContext: CurrentContext, currentEl: DOMElement,
+) {
   const currentChildren = $current.children;
   const newChildren = $new.children;
 
@@ -484,7 +514,7 @@ function renderFastListChildren($current: VirtualElementParent, $new: VirtualEle
 
     // First we process removed children
     if (isKeyPresent && !newKeys.has(key)) {
-      renderWithVirtual(currentEl, $currentChild, undefined, $new, -1);
+      renderWithVirtual(currentEl, $currentChild, undefined, $new, currentContext, -1);
 
       continue;
     } else if (!isKeyPresent) {
@@ -495,7 +525,7 @@ function renderFastListChildren($current: VirtualElementParent, $new: VirtualEle
         key = `${INDEX_KEY_PREFIX}${i}`;
         // Otherwise, we just remove it
       } else {
-        renderWithVirtual(currentEl, $currentChild, undefined, $new, -1);
+        renderWithVirtual(currentEl, $currentChild, undefined, $new, currentContext, -1);
 
         continue;
       }
@@ -531,7 +561,7 @@ function renderFastListChildren($current: VirtualElementParent, $new: VirtualEle
 
     // This prepends new children to the top
     if (fragmentSize) {
-      renderFragment(fragmentIndex!, fragmentSize, currentEl, $new);
+      renderFragment(fragmentIndex!, fragmentSize, currentEl, $new, currentContext);
       fragmentSize = undefined;
       fragmentIndex = undefined;
     }
@@ -551,7 +581,9 @@ function renderFastListChildren($current: VirtualElementParent, $new: VirtualEle
     const nextSibling = currentEl.childNodes[isMovingDown ? i + 1 : i];
     const options = shouldMoveNode ? (nextSibling ? { nextSibling } : { forceMoveToEnd: true }) : undefined;
 
-    const $renderedChild = renderWithVirtual(currentEl, currentChildInfo.$element, $newChild, $new, i, options);
+    const $renderedChild = renderWithVirtual(
+      currentEl, currentChildInfo.$element, $newChild, $new, currentContext, i, options,
+    );
     if ($renderedChild !== $newChild) {
       newChildren[i] = $renderedChild;
     }
@@ -559,18 +591,24 @@ function renderFastListChildren($current: VirtualElementParent, $new: VirtualEle
 
   // This appends new children to the bottom
   if (fragmentSize) {
-    renderFragment(fragmentIndex!, fragmentSize, currentEl, $new);
+    renderFragment(fragmentIndex!, fragmentSize, currentEl, $new, currentContext);
   }
 }
 
 function renderFragment(
-  fragmentIndex: number, fragmentSize: number, parentEl: DOMElement, $parent: VirtualElementParent,
+  fragmentIndex: number,
+  fragmentSize: number,
+  parentEl: DOMElement,
+  $parent: VirtualElementParent,
+  currentContext: CurrentContext,
 ) {
   const nextSibling = parentEl.childNodes[fragmentIndex];
 
   if (fragmentSize === 1) {
     const $child = $parent.children[fragmentIndex];
-    const $renderedChild = renderWithVirtual(parentEl, undefined, $child, $parent, fragmentIndex, { nextSibling });
+    const $renderedChild = renderWithVirtual(
+      parentEl, undefined, $child, $parent, currentContext, fragmentIndex, { nextSibling },
+    );
     if ($renderedChild !== $child) {
       $parent.children[fragmentIndex] = $renderedChild;
     }
@@ -582,7 +620,7 @@ function renderFragment(
 
   for (let i = fragmentIndex; i < fragmentIndex + fragmentSize; i++) {
     const $child = $parent.children[i];
-    const $renderedChild = renderWithVirtual(parentEl, undefined, $child, $parent, i, { fragment });
+    const $renderedChild = renderWithVirtual(parentEl, undefined, $child, $parent, currentContext, i, { fragment });
     if ($renderedChild !== $child) {
       $parent.children[i] = $renderedChild;
     }
@@ -591,13 +629,14 @@ function renderFragment(
   insertBefore(parentEl, fragment, nextSibling);
 }
 
-function setElementRef($element: VirtualElementTag, DOMElement: DOMElement | undefined) {
+function setElementRef($element: VirtualElementTag, element: DOMElement | undefined) {
   const { ref } = $element.props;
 
   if (typeof ref === 'object') {
-    ref.current = DOMElement;
+    ref.current = element;
+    ref.onChange?.();
   } else if (typeof ref === 'function') {
-    ref(DOMElement);
+    ref(element);
   }
 }
 
@@ -658,7 +697,9 @@ function processUncontrolledOnMount(element: DOMElement, props: AnyLiteral) {
   }
 }
 
-function updateAttributes($current: VirtualElementTag, $new: VirtualElementTag, element: DOMElement, isSvg?: true) {
+function updateAttributes(
+  $current: VirtualElementTag, $new: VirtualElementTag, element: DOMElement, namespace?: string,
+) {
   processControlled(element.tagName, $new.props);
 
   const currentEntries = Object.entries($current.props);
@@ -682,14 +723,14 @@ function updateAttributes($current: VirtualElementTag, $new: VirtualElementTag, 
     const currentValue = $current.props[key];
 
     if (newValue !== undefined && newValue !== currentValue) {
-      setAttribute(element, key, newValue, isSvg);
+      setAttribute(element, key, newValue, namespace);
     }
   }
 }
 
-function setAttribute(element: DOMElement, key: string, value: any, isSvg?: true) {
+function setAttribute(element: DOMElement, key: string, value: any, namespace?: string) {
   if (key === 'className') {
-    updateClassName(element, value, isSvg);
+    updateClassName(element, value, namespace);
   } else if (key === 'value') {
     const inputEl = element as HTMLInputElement;
 
@@ -716,7 +757,9 @@ function setAttribute(element: DOMElement, key: string, value: any, isSvg?: true
     element.innerHTML = value.__html;
   } else if (key.startsWith('on')) {
     addEventListener(element, key, value, key.endsWith('Capture'));
-  } else if (isSvg || key.startsWith('data-') || key.startsWith('aria-') || HTML_ATTRIBUTES.has(key)) {
+  } else if (
+    namespace === SVG_NAMESPACE || key.startsWith('data-') || key.startsWith('aria-') || HTML_ATTRIBUTES.has(key)
+  ) {
     element.setAttribute(key, value);
   } else if (!FILTERED_ATTRIBUTES.has(key)) {
     (element as any)[MAPPED_ATTRIBUTES[key] || key] = value;
@@ -739,8 +782,8 @@ function removeAttribute(element: DOMElement, key: string, value: any) {
   }
 }
 
-function updateClassName(element: DOMElement, value: string, isSvg?: true) {
-  if (isSvg) {
+function updateClassName(element: DOMElement, value: string, namespace?: string) {
+  if (namespace === SVG_NAMESPACE) {
     element.setAttribute('class', value);
     return;
   }
@@ -769,18 +812,7 @@ function updateStyle(element: DOMElement, value: string) {
   }
 }
 
-export function addExtraClass(element: DOMElement, className: string, forceSingle = false) {
-  if (!forceSingle) {
-    const classNames = className.split(' ');
-    if (classNames.length > 1) {
-      for (const cn of classNames) {
-        addExtraClass(element, cn, true);
-      }
-
-      return;
-    }
-  }
-
+export function addExtraClass(element: DOMElement, className: string) {
   element.classList.add(className);
 
   const classList = extraClasses.get(element);
@@ -791,18 +823,7 @@ export function addExtraClass(element: DOMElement, className: string, forceSingl
   }
 }
 
-export function removeExtraClass(element: DOMElement, className: string, forceSingle = false) {
-  if (!forceSingle) {
-    const classNames = className.split(' ');
-    if (classNames.length > 1) {
-      for (const cn of classNames) {
-        removeExtraClass(element, cn, true);
-      }
-
-      return;
-    }
-  }
-
+export function removeExtraClass(element: DOMElement, className: string) {
   element.classList.remove(className);
 
   const classList = extraClasses.get(element);
@@ -815,24 +836,15 @@ export function removeExtraClass(element: DOMElement, className: string, forceSi
   }
 }
 
-export function toggleExtraClass(element: DOMElement, className: string, force?: boolean, forceSingle = false) {
-  if (!forceSingle) {
-    const classNames = className.split(' ');
-    if (classNames.length > 1) {
-      for (const cn of classNames) {
-        toggleExtraClass(element, cn, force, true);
-      }
-
-      return;
-    }
-  }
-
-  element.classList.toggle(className, force);
-
-  if (element.classList.contains(className)) {
+export function toggleExtraClass(element: DOMElement, className: string, force?: boolean) {
+  if (force === true) {
     addExtraClass(element, className);
-  } else {
+  } else if (force === false) {
     removeExtraClass(element, className);
+  } else if (extraClasses.get(element)?.has(className)) {
+    removeExtraClass(element, className);
+  } else {
+    addExtraClass(element, className);
   }
 }
 
@@ -883,7 +895,7 @@ function DEBUG_checkKeyUniqueness(children: VirtualElementChildren) {
 
     if (keys.length !== unique(keys).length) {
       // eslint-disable-next-line no-console
-      console.warn('[Teact] Duplicated keys:', keys.filter((e, i, a) => a.indexOf(e) !== i));
+      console.warn('[Teact] Duplicated keys:', keys.filter((e, i, a) => a.indexOf(e) !== i), children);
       throw new Error('[Teact] Children keys are not unique');
     }
   }

@@ -12,9 +12,10 @@ import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
 
 import useTimeout from '../../hooks/schedulers/useTimeout';
 import useAppLayout from '../../hooks/useAppLayout';
-import useLang from '../../hooks/useLang';
+import useOldLang from '../../hooks/useOldLang';
 
 import Button from '../ui/Button';
+import Icon from './icons/Icon';
 
 type OwnProps = {
   submitLabel?: string;
@@ -53,7 +54,7 @@ const PasswordForm: FC<OwnProps> = ({
 }) => {
   // eslint-disable-next-line no-null/no-null
   const inputRef = useRef<HTMLInputElement>(null);
-  const lang = useLang();
+  const lang = useOldLang();
 
   const { isMobile } = useAppLayout();
   const [password, setPassword] = useState('');
@@ -149,12 +150,12 @@ const PasswordForm: FC<OwnProps> = ({
           title="Toggle password visibility"
           aria-label="Toggle password visibility"
         >
-          <i className={buildClassName('icon', isPasswordVisible ? 'icon-eye' : 'icon-eye-closed')} />
+          <Icon name={isPasswordVisible ? 'eye' : 'eye-closed'} />
         </div>
       </div>
       {description && <p className="description">{description}</p>}
       {onSubmit && (canSubmit || shouldShowSubmit) && (
-        <Button type="submit" ripple={!noRipple} isLoading={isLoading} disabled={!canSubmit}>
+        <Button size="smaller" type="submit" ripple={!noRipple} isLoading={isLoading} disabled={!canSubmit}>
           {submitLabel}
         </Button>
       )}

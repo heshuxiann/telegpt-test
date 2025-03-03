@@ -18,7 +18,7 @@
   }
 
   .fullName {
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     font-size: 1.25rem;
     line-height: 1.375rem;
     white-space: pre-wrap;
@@ -27,7 +27,7 @@
   }
 
   .VerifiedIcon,
-  .PremiumIcon {
+  .StarIcon {
     --color-fill: var(--color-white);
     --color-checkmark: var(--color-primary);
 

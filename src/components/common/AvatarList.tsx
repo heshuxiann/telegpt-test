@@ -6,9 +6,9 @@ import type { AvatarSize } from './Avatar';
 
 import buildClassName from '../../util/buildClassName';
 
-import useLang from '../../hooks/useLang';
+import useOldLang from '../../hooks/useOldLang';
 
-import Avatar from './Avatar';
+import Avatar, { AVATAR_SIZES } from './Avatar';
 
 import styles from './AvatarList.module.scss';
 
@@ -29,7 +29,10 @@ const AvatarList: FC<OwnProps> = ({
   limit = DEFAULT_LIMIT,
   badgeText,
 }) => {
-  const lang = useLang();
+  const lang = useOldLang();
+
+  const pxSize = typeof size === 'number' ? size : AVATAR_SIZES[size];
+
   const renderingBadgeText = useMemo(() => {
     if (badgeText) return badgeText;
     if (!peers?.length || peers.length <= limit) return undefined;
@@ -38,7 +41,8 @@ const AvatarList: FC<OwnProps> = ({
 
   return (
     <div
-      className={buildClassName(className, styles.root, styles[`size-${size}`])}
+      className={buildClassName(className, styles.root)}
+      style={`--_size: ${pxSize}px;`}
       dir={lang.isRtl ? 'rtl' : 'ltr'}
     >
       {peers?.slice(0, limit).map((peer) => <Avatar size={size} peer={peer} className={styles.avatar} />)}

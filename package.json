@@ -1,6 +1,6 @@
 {
   "name": "telegram-t",
-  "version": "10.9.6",
+  "version": "10.9.42",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -21,9 +21,11 @@
     "check": "tsc && stylelint \"**/*.{css,scss}\" && eslint . --ext .ts,.tsx,.js --ignore-pattern src/lib/gramjs",
     "check:fix": "npm run check -- --fix",
     "tl:rehash": "node ./dev/tlHash.js",
-    "gramjs:tl": "node ./src/lib/gramjs/tl/generateModules.js",
-    "gramjs:lint": "eslint src/lib/gramjs --ext .ts,.tsx,.js",
+    "gramjs:tl": "tsx ./src/lib/gramjs/tl/generateModules.ts",
+    "gramjs:lint": "cd src/lib/gramjs && eslint --ext .ts,.tsx,.js .",
     "gramjs:lint:fix": "npm run gramjs:lint -- --fix",
+    "lang:ts": "tsx ./dev/generateLangTypes.js",
+    "lang:initial": "tsx ./dev/generateInitialLangFallback.js",
     "icons:build": "fantasticon",
     "test": "cross-env APP_ENV=test jest --verbose --silent --forceExit",
     "test:playwright": "playwright test",
@@ -102,6 +104,7 @@
     "eslint-plugin-react-hooks-static-deps": "^1.0.7",
     "eslint-plugin-simple-import-sort": "^12.1.0",
     "eslint-plugin-teactn": "git+https://github.com/korenskoy/eslint-plugin-teactn#c2c39dd005d58c07c24c4361de804dce1c6261b5",
+    "fake-indexeddb": "^6.0.0",
     "git-revision-webpack-plugin": "^5.0.0",
     "gitlog": "^4.0.8",
     "html-webpack-plugin": "^5.6.0",
@@ -112,7 +115,6 @@
     "mini-css-extract-plugin": "^2.9.0",
     "postcss-loader": "^8.1.1",
     "postcss-modules": "^6.0.0",
-    "react": "^18.3.1",
     "sass": "^1.77.0",
     "sass-loader": "^14.2.1",
     "script-loader": "^0.7.2",
@@ -124,11 +126,13 @@
     "stylelint-high-performance-animation": "^1.10.0",
     "stylelint-selector-tag-no-without-class": "^3.0.1",
     "telegraph-node": "^1.0.4",
+    "tsx": "^4.11.0",
     "typescript": "^5.4.5",
     "webpack": "^5.91.0",
     "webpack-dev-server": "^5.0.4"
   },
   "dependencies": {
+    "@ai-sdk/react": "^1.1.19",
     "@cryptography/aes": "^0.1.1",
     "async-mutex": "^0.5.0",
     "big-integer": "github:painor/BigInteger.js",
@@ -142,6 +146,8 @@
     "pako": "^2.1.0",
     "path-browserify": "^1.0.1",
     "qr-code-styling": "github:zubiden/qr-code-styling#dbbfed0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "v8-compile-cache": "^2.4.0"
   },
   "optionalDependencies": {

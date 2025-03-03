@@ -1,9 +1,7 @@
 import BigInt from 'big-integer';
-import { constructors } from '../../lib/gramjs/tl';
+import { Api as GramJs } from '../../lib/gramjs';
 
-import type { Api as GramJs } from '../../lib/gramjs';
-
-import { DATA_BROADCAST_CHANNEL_NAME } from '../../config';
+import { DATA_BROADCAST_CHANNEL_NAME, DEBUG } from '../../config';
 import { throttle } from '../../util/schedulers';
 import { omitVirtualClassFields } from './apiBuilders/helpers';
 
@@ -11,20 +9,28 @@ import { omitVirtualClassFields } from './apiBuilders/helpers';
 const IS_MULTITAB_SUPPORTED = 'BroadcastChannel' in self;
 
 export type StoryRepairInfo = {
-  storyData?: {
-    peerId: string;
-    id: number;
-  };
+  type: 'story';
+  peerId: string;
+  id: number;
+};
+
+export type MessageRepairInfo = {
+  type: 'message';
+  peerId: string;
+  id: number;
+};
+
+export type RepairInfo = {
+  localRepairInfo?: StoryRepairInfo | MessageRepairInfo;
 };
 
 export interface LocalDb {
   // Used for loading avatars and media through in-memory Gram JS instances.
   chats: Record<string, GramJs.Chat | GramJs.Channel>;
   users: Record<string, GramJs.User>;
-  messages: Record<string, GramJs.Message | GramJs.MessageService>;
-  documents: Record<string, GramJs.Document & StoryRepairInfo>;
+  documents: Record<string, GramJs.Document & RepairInfo>;
   stickerSets: Record<string, GramJs.StickerSet>;
-  photos: Record<string, GramJs.Photo & StoryRepairInfo>;
+  photos: Record<string, GramJs.Photo & RepairInfo>;
   webDocuments: Record<string, GramJs.TypeWebDocument>;
   commonBoxState: Record<string, number>;
   channelPtsById: Record<string, number>;
@@ -74,7 +80,7 @@ function convertToVirtualClass(value: any): any {
   const path = value.className.split('.');
   const VirtualClass = path.reduce((acc: any, field: string) => {
     return acc[field];
-  }, constructors);
+  }, GramJs);
 
   const valueOmited = omitVirtualClassFields(value);
   const valueConverted = Object.keys(valueOmited).reduce((acc, key) => {
@@ -132,4 +138,8 @@ export function updateFullLocalDb(initial: LocalDb) {
 
 export function clearLocalDb() {
   Object.assign(localDb, createLocalDbInitial());
+}
+
+if (DEBUG) {
+  (globalThis as any).getLocalDb = () => localDb;
 }

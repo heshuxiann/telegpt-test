@@ -10,20 +10,21 @@ import type { IconName } from '../../types/icons';
 import { MediaViewerOrigin } from '../../types';
 
 import {
-  getMainUsername, getUserStatus, isUserOnline,
+  getMainUsername, getUserStatus, isSystemBot, isUserOnline,
 } from '../../global/helpers';
 import { selectChatMessages, selectUser, selectUserStatus } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import renderText from './helpers/renderText';
 
-import useLang from '../../hooks/useLang';
+import useIntervalForceUpdate from '../../hooks/schedulers/useIntervalForceUpdate';
 import useLastCallback from '../../hooks/useLastCallback';
+import useOldLang from '../../hooks/useOldLang';
 
 import RippleEffect from '../ui/RippleEffect';
 import Avatar from './Avatar';
 import DotAnimation from './DotAnimation';
 import FullNameTitle from './FullNameTitle';
-import Icon from './Icon';
+import Icon from './icons/Icon';
 import TypingStatus from './TypingStatus';
 
 type OwnProps = {
@@ -66,6 +67,8 @@ type StateProps =
     isSynced?: boolean;
   };
 
+const UPDATE_INTERVAL = 1000 * 60; // 1 min
+
 const PrivateChatInfo: FC<OwnProps & StateProps> = ({
   customPeer,
   typingStatus,
@@ -102,27 +105,30 @@ const PrivateChatInfo: FC<OwnProps & StateProps> = ({
   const {
     loadFullUser,
     openMediaViewer,
-    loadProfilePhotos,
+    loadMoreProfilePhotos,
   } = getActions();
 
-  const lang = useLang();
+  const lang = useOldLang();
 
   const { id: userId } = user || {};
 
   useEffect(() => {
     if (userId) {
       if (withFullInfo && isSynced) loadFullUser({ userId });
-      if (withMediaViewer) loadProfilePhotos({ profileId: userId });
+      if (withMediaViewer) loadMoreProfilePhotos({ peerId: userId, isPreload: true });
     }
   }, [userId, withFullInfo, withMediaViewer, isSynced]);
+
+  useIntervalForceUpdate(UPDATE_INTERVAL);
 
   const handleAvatarViewerOpen = useLastCallback(
     (e: React.MouseEvent<HTMLDivElement, MouseEvent>, hasMedia: boolean) => {
       if (user && hasMedia) {
         e.stopPropagation();
         openMediaViewer({
-          avatarOwnerId: user.id,
-          mediaId: 0,
+          isAvatarView: true,
+          chatId: user.id,
+          mediaIndex: 0,
           origin: avatarSize === 'jumbo' ? MediaViewerOrigin.ProfileAvatar : MediaViewerOrigin.MiddleHeaderAvatar,
         });
       }
@@ -167,6 +173,10 @@ const PrivateChatInfo: FC<OwnProps & StateProps> = ({
 
     if (typingStatus) {
       return <TypingStatus typingStatus={typingStatus} />;
+    }
+
+    if (isSystemBot(user.id)) {
+      return undefined;
     }
 
     const translatedStatus = getUserStatus(lang, user, userStatus);
@@ -227,7 +237,7 @@ const PrivateChatInfo: FC<OwnProps & StateProps> = ({
         />
       )}
       <Avatar
-        key={customPeer?.type || user?.id}
+        key={user?.id}
         size={avatarSize}
         peer={customPeer || user}
         className={buildClassName(isSavedDialog && 'overlay-avatar')}

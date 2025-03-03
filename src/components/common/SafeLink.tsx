@@ -1,5 +1,5 @@
-import type { FC } from '../../lib/teact/teact';
-import React, { memo } from '../../lib/teact/teact';
+import type { TeactNode } from '../../lib/teact/teact';
+import React from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import { ApiMessageEntityTypes } from '../../api/types';
@@ -17,27 +17,29 @@ type OwnProps = {
   url?: string;
   text: string;
   className?: string;
-  children?: React.ReactNode;
+  children?: TeactNode;
   isRtl?: boolean;
+  shouldSkipModal?: boolean;
 };
 
-const SafeLink: FC<OwnProps> = ({
+const SafeLink = ({
   url,
   text,
   className,
   children,
   isRtl,
-}) => {
+  shouldSkipModal,
+}: OwnProps) => {
   const { openUrl } = getActions();
 
   const content = children || text;
-  const isSafe = url === text;
+  const isRegularLink = url === text;
 
   const handleClick = useLastCallback((e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     if (!url) return true;
 
     e.preventDefault();
-    openUrl({ url, shouldSkipModal: isSafe });
+    openUrl({ url, shouldSkipModal: shouldSkipModal || isRegularLink });
 
     return false;
   });
@@ -48,7 +50,7 @@ const SafeLink: FC<OwnProps> = ({
 
   const classNames = buildClassName(
     className || 'text-entity-link',
-    text.length > 50 && 'long-word-break-all',
+    isRegularLink && 'word-break-all',
   );
 
   return (
@@ -96,4 +98,4 @@ function getUnicodeUrl(url?: string) {
   return undefined;
 }
 
-export default memo(SafeLink);
+export default SafeLink;

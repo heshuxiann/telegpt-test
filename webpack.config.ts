@@ -122,6 +122,7 @@ export default function createConfig(
                 importLoaders: 1,
                 modules: {
                   namedExport: false,
+                  auto: true,
                 },
               },
             },
@@ -156,7 +157,7 @@ export default function createConfig(
           type: 'asset/resource',
         },
         {
-          test: /\.(txt|tl)$/i,
+          test: /\.(txt|tl|strings)$/i,
           type: 'asset/source',
         },
       ],
@@ -170,6 +171,10 @@ export default function createConfig(
         buffer: require.resolve('buffer/'),
         fs: false,
         crypto: false,
+      },
+      alias: {
+        react: path.resolve(__dirname, 'src/lib/teact/teact'),
+        'react-original': require.resolve('react'),
       },
     },
 
