@@ -172,10 +172,10 @@ export default function createConfig(
         fs: false,
         crypto: false,
       },
-      alias: {
-        react: path.resolve(__dirname, 'src/lib/teact/teact'),
-        'react-original': require.resolve('react'),
-      },
+      // alias: {
+      //   react: path.resolve(__dirname, 'src/lib/teact/teact'),
+      //   'react-original': require.resolve('react'),
+      // },
     },
 
     plugins: [

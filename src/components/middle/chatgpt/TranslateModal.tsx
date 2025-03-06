@@ -85,7 +85,7 @@ const TranslateTitle = ({ language, onSelect, onClose }:TranslateTitleProps) => 
 };
 const TranslateModal = (props: TranslateModalProps) => {
   const { text, isOpen, onClose = () => {} } = props;
-  const [selectLanguage, setSelectedLanguage] = useState('English');
+  const [selectLanguage, setSelectedLanguage] = useState('中文');
   const [translateResult, setTranslateResult] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -136,7 +136,7 @@ const TranslateModal = (props: TranslateModalProps) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      hasCloseButton
+      hasCloseButton={false}
       className="translate-modal"
     >
       <TranslateTitle language={selectLanguage} onSelect={onSelectLanguage} onClose={onClose} />

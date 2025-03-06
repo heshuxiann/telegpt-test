@@ -1,0 +1,25 @@
+.chat-ai-room {
+  display: flex;
+  flex-direction: column;
+  > div {
+    flex: 1;
+    height: 100%;
+  }
+  p{
+    margin: 0;
+  }
+}
+.right-panel-chat-ai {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(
+    135deg,
+    rgba(172, 182, 229, 0.5) 10%,
+    rgba(116, 235, 213, 0.5) 90%
+  );
+  .chat-ai-output-wrapper {
+    flex: 1;
+    overflow-y: scroll;
+  }
+}

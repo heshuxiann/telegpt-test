@@ -42,6 +42,15 @@
       color: var(--color-text-secondary);
       font-size: 0.875rem;
     }
+    &.chat-ai-header{
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      img{
+        width: 24px;
+        height: 24px;
+      }
+    }
   }
 
   .tools {

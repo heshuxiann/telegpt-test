@@ -134,6 +134,17 @@ addActionHandler('openThreadWithInfo', (global, actions, payload): ActionReturnT
   actions.openThread({ ...payload, tabId });
 });
 
+addActionHandler('openChatAIWithInfo', (global, actions, payload): ActionReturnType => {
+  const { tabId = getCurrentTabId() } = payload;
+
+  global = updateTabState(global, {
+    ...selectTabState(global, tabId),
+    isChatAIShown: true,
+  }, tabId);
+  global = { ...global, lastIsChatInfoShown: true };
+  setGlobal(global);
+});
+
 addActionHandler('openChatWithDraft', (global, actions, payload): ActionReturnType => {
   const {
     chatId, text, threadId = MAIN_THREAD_ID, files, filter, tabId = getCurrentTabId(),

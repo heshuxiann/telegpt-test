@@ -26,6 +26,7 @@ import useWindowSize from '../../hooks/window/useWindowSize';
 
 import Transition from '../ui/Transition';
 import AddChatMembers from './AddChatMembers';
+import ChatAI from './ChatAI/ChatAI';
 import CreateTopic from './CreateTopic.async';
 import EditTopic from './EditTopic.async';
 import GifSearch from './GifSearch.async';
@@ -86,6 +87,7 @@ const RightColumn: FC<OwnProps & StateProps> = ({
 }) => {
   const {
     toggleChatInfo,
+    toggleChatAIInfo,
     toggleManagement,
     setStickerSearchQuery,
     setGifSearchQuery,
@@ -117,6 +119,7 @@ const RightColumn: FC<OwnProps & StateProps> = ({
 
   const isOpen = contentKey !== undefined;
   const isProfile = contentKey === RightColumnContent.ChatInfo;
+  const isChatAI = contentKey === RightColumnContent.ChatAI;
   const isManagement = contentKey === RightColumnContent.Management;
   const isStatistics = contentKey === RightColumnContent.Statistics;
   const isMessageStatistics = contentKey === RightColumnContent.MessageStatistics;
@@ -146,6 +149,9 @@ const RightColumn: FC<OwnProps & StateProps> = ({
           break;
         }
         toggleChatInfo({ force: false }, { forceSyncOnIOs: true });
+        break;
+      case RightColumnContent.ChatAI:
+        toggleChatAIInfo({ force: false }, { forceSyncOnIOs: true });
         break;
       case RightColumnContent.Management: {
         switch (managementScreen) {
@@ -293,7 +299,6 @@ const RightColumn: FC<OwnProps & StateProps> = ({
     if (renderingContentKey === -1) {
       return undefined;
     }
-
     switch (renderingContentKey) {
       case RightColumnContent.AddingMembers:
         return (
@@ -352,6 +357,8 @@ const RightColumn: FC<OwnProps & StateProps> = ({
         return <CreateTopic onClose={close} isActive={isOpen && isActive} />;
       case RightColumnContent.EditTopic:
         return <EditTopic onClose={close} isActive={isOpen && isActive} />;
+      case RightColumnContent.ChatAI:
+        return <ChatAI chatId={chatId} threadId={threadId} onClose={close} />;
     }
 
     return undefined; // Unreachable
@@ -371,6 +378,7 @@ const RightColumn: FC<OwnProps & StateProps> = ({
           threadId={threadId}
           isColumnOpen={isOpen}
           isProfile={isProfile}
+          isChatAI={isChatAI}
           isManagement={isManagement}
           isStatistics={isStatistics}
           isBoostStatistics={isBoostStatistics}

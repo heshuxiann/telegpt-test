@@ -53,6 +53,16 @@ addActionHandler('toggleChatInfo', (global, actions, payload): ActionReturnType 
   return global;
 });
 
+addActionHandler('toggleChatAIInfo', (global, actions, payload): ActionReturnType => {
+  const { force, tabId = getCurrentTabId() } = payload || {};
+  const isChatAIShown = force !== undefined ? force : !selectTabState(global, tabId).isChatAIShown;
+
+  global = updateTabState(global, { isChatAIShown }, tabId);
+  global = { ...global };
+
+  return global;
+});
+
 addActionHandler('setLeftColumnWidth', (global, actions, payload): ActionReturnType => {
   const { leftColumnWidth } = payload;
 

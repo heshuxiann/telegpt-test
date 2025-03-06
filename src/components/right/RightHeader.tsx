@@ -48,11 +48,14 @@ import Transition from '../ui/Transition';
 
 import './RightHeader.scss';
 
+import AILogoPath from '../../assets/chat-ai-logo-purple.png';
+
 type OwnProps = {
   chatId?: string;
   threadId?: ThreadId;
   isColumnOpen?: boolean;
   isProfile?: boolean;
+  isChatAI?:boolean;
   isManagement?: boolean;
   isStatistics?: boolean;
   isBoostStatistics?: boolean;
@@ -135,6 +138,7 @@ enum HeaderContent {
   CreateTopic,
   EditTopic,
   SavedDialogs,
+  ChatAI,
 }
 
 const RightHeader: FC<OwnProps & StateProps> = ({
@@ -142,6 +146,7 @@ const RightHeader: FC<OwnProps & StateProps> = ({
   threadId,
   isColumnOpen,
   isProfile,
+  isChatAI,
   isManagement,
   isStatistics,
   isMessageStatistics,
@@ -268,7 +273,7 @@ const RightHeader: FC<OwnProps & StateProps> = ({
     ) : profileState === ProfileState.SavedDialogs ? (
       HeaderContent.SavedDialogs
     ) : -1 // Never reached
-  ) : isPollResults ? (
+  ) : isChatAI ? HeaderContent.ChatAI : isPollResults ? (
     HeaderContent.PollResults
   ) : isStickerSearch ? (
     HeaderContent.StickerSearch
@@ -586,6 +591,13 @@ const RightHeader: FC<OwnProps & StateProps> = ({
               </section>
             )}
           </>
+        );
+      case HeaderContent.ChatAI:
+        return (
+          <div className="header chat-ai-header">
+            <img src={AILogoPath} alt="VoyAI" />
+            <h3 className="title">{oldLang('VoyAI')}</h3>
+          </div>
         );
       default:
         return (

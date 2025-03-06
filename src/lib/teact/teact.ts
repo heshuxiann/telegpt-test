@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { ReactElement } from 'react';
 
 // import * as OriginalReact from 'react-original';
@@ -16,6 +17,22 @@ import { getIsBlockingAnimating } from './heavyAnimation';
 export function useId() {}
 export function useContext() {}
 export function useDebugValue() {}
+export function useInsertionEffect() {}
+
+export function isValidReactElement<T extends keyof JSX.IntrinsicElements | React.JSXElementConstructor<any>>(
+  node: TeactNode,
+  type?: T,
+): node is ReactElement {
+  if (!React.isValidElement(node)) return false;
+  return type ? node.type === type : true;
+}
+
+export function forwardRef<T, P = {}>(
+  render: (props: P, ref: React.Ref<T>) => React.ReactElement | null,
+) {
+  return React.forwardRef(render);
+}
+
 // export const useContext = OriginalReact.useContext;
 // export const useDebugValue = OriginalReact.useDebugValue;
 export { getIsHeavyAnimating, beginHeavyAnimation, onFullyIdle } from './heavyAnimation';
@@ -34,6 +51,8 @@ export enum VirtualType {
   Component,
   Fragment,
 }
+
+export const Component = VirtualType.Component;
 
 interface VirtualElementEmpty {
   type: VirtualType.Empty;
@@ -153,7 +172,7 @@ export type Context<T> = {
   Provider: FC<{ value: T; children: TeactNode }>;
 };
 
-const Fragment = Symbol('Fragment');
+export const Fragment = Symbol('Fragment');
 
 const DEBUG_RENDER_THRESHOLD = 7;
 const DEBUG_EFFECT_THRESHOLD = 7;

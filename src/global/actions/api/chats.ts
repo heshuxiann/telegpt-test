@@ -636,6 +636,16 @@ addActionHandler('updateChatMutedState', (global, actions, payload): ActionRetur
   void callApi('updateChatMutedState', { chat, isMuted, muteUntil });
 });
 
+addActionHandler('updateChatMemoUnreadId', (global, actions, payload): ActionReturnType => {
+  const { chatId, memoUnreadId } = payload;
+  const chat = selectChat(global, chatId);
+  if (!chat) {
+    return;
+  }
+  global = updateChat(global, chatId, { memoUnreadId });
+  setGlobal(global);
+});
+
 addActionHandler('updateTopicMutedState', (global, actions, payload): ActionReturnType => {
   const { chatId, topicId, muteUntil = 0 } = payload;
   const chat = selectChat(global, chatId);

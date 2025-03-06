@@ -29,5 +29,6 @@
     "webpack.config.ts",
     "webpack-electron.config.ts",
     "babel.config.js",
+    "tailwind.config.js",
   ]
 }

@@ -97,6 +97,7 @@ export type TabState = {
   inviteHash?: string;
   canInstall?: boolean;
   isChatInfoShown: boolean;
+  isChatAIShown?: boolean;
   isStatisticsShown?: boolean;
   isLeftColumnShown: boolean;
   newChatMembersProgress?: NewChatMembersProgress;

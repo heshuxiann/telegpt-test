@@ -59,7 +59,7 @@ export function selectRightColumnContentKey<T extends GlobalState>(
     RightColumnContent.AddingMembers
   ) : tabState.isChatInfoShown && tabState.messageLists.length ? (
     RightColumnContent.ChatInfo
-  ) : undefined;
+  ) : tabState.isChatAIShown ? RightColumnContent.ChatAI : undefined;
 }
 
 export function selectIsRightColumnShown<T extends GlobalState>(

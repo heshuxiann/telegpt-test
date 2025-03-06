@@ -44,6 +44,8 @@ import MenuItem from '../ui/MenuItem';
 import MenuSeparator from '../ui/MenuSeparator';
 import HeaderMenuContainer from './HeaderMenuContainer.async';
 
+import chatAILogoPath from '../../assets/cgat-ai-logo.png';
+
 interface OwnProps {
   chatId: string;
   threadId: ThreadId;
@@ -137,6 +139,7 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     setSettingOption,
     unblockUser,
     setViewForumAsMessages,
+    openChatAIWithInfo,
   } = getActions();
   // eslint-disable-next-line no-null/no-null
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -148,6 +151,10 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     setIsMenuOpen(true);
     const rect = menuButtonRef.current!.getBoundingClientRect();
     setMenuAnchor({ x: rect.right, y: rect.bottom });
+  });
+
+  const handleChatAIOpen = useLastCallback(() => {
+    openChatAIWithInfo({ chatId, threadId });
   });
 
   const handleHeaderMenuClose = useLastCallback(() => {
@@ -298,6 +305,18 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
 
   return (
     <div className="HeaderActions">
+      <Button
+        className="chat-ai-button"
+        round
+        ripple={!isMobile}
+        size="smaller"
+        color="translucent"
+        disabled={noMenu}
+        ariaLabel="Chat AI"
+        onClick={handleChatAIOpen}
+      >
+        <img src={chatAILogoPath} alt="ai" />
+      </Button>
       {!isForForum && canTranslate && (
         <DropdownMenu
           className="stickers-more-menu with-menu-transitions"

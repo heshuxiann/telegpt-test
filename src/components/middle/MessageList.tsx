@@ -187,7 +187,7 @@ const MessageList: FC<OwnProps & StateProps> = ({
 }) => {
   const {
     loadViewportMessages, setScrollOffset, loadSponsoredMessages, loadMessageReactions, copyMessagesByIds,
-    loadMessageViews, loadPeerStoriesByIds, loadFactChecks,
+    loadMessageViews, loadPeerStoriesByIds, loadFactChecks, updateChatMemoUnreadId,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -240,8 +240,9 @@ const MessageList: FC<OwnProps & StateProps> = ({
   useSyncEffect(() => {
     if (areMessagesLoaded) {
       memoUnreadDividerBeforeIdRef.current = memoFirstUnreadIdRef.current;
+      updateChatMemoUnreadId({ chatId, memoUnreadId: memoFirstUnreadIdRef.current });
     }
-  }, [areMessagesLoaded]);
+  }, [areMessagesLoaded, chatId]);
 
   useSyncEffect(() => {
     memoFocusingIdRef.current = focusingId;

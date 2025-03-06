@@ -83,6 +83,9 @@ export interface ApiChat {
   unreadReactions?: number[];
   unreadMentions?: number[];
 
+  // memo unreadId
+  memoUnreadId?:number;
+
   // Stories
   areStoriesHidden?: boolean;
   hasStories?: boolean;
