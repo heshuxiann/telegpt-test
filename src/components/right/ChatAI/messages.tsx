@@ -5,7 +5,10 @@ import type { Message } from 'ai';
 import equal from 'fast-deep-equal';
 
 import { PreviewMessage, ThinkingMessage } from './message';
+import SummaryMessage from './summary-message';
 import { useScrollToBottom } from './use-scroll-to-bottom';
+
+import './messages.scss';
 
 interface MessagesProps {
   isLoading: boolean;
@@ -20,20 +23,27 @@ function PureMessages({
   const isAuxiliary = (message:Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'isAuxiliary' in item && item.isAuxiliary === true) ?? false;
   };
+  const isSummary = (message:Message) => {
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'isSummary' in item && item.isSummary === true) ?? false;
+  };
   return (
     <div
       ref={messagesContainerRef}
-      className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
+      className="flex flex-col min-w-0 gap-[10px] flex-1 overflow-y-scroll pt-4 ai-message-container"
     >
       {messages.map((message, index) => {
         if (!isAuxiliary(message)) {
-          return (
-            <PreviewMessage
-              key={message.id}
-              message={message}
-              isLoading={isLoading && messages.length - 1 === index}
-            />
-          );
+          if (index > 0 && isSummary(messages[index - 1])) {
+            return <SummaryMessage isLoading={isLoading} message={message} />;
+          } else {
+            return (
+              <PreviewMessage
+                key={message.id}
+                message={message}
+                isLoading={isLoading && messages.length - 1 === index}
+              />
+            );
+          }
         } else {
           return null;
         }

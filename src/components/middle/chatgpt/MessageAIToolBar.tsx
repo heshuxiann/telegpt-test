@@ -7,6 +7,8 @@ import React, { useCallback, useRef, useState } from '../../../lib/teact/teact';
 
 import type { ApiMessage } from '../../../api/types';
 
+// import aiSdkService from './ChatApiService';
+import eventEmitter from '../../../lib/EventEmitter';
 import { getMessageContent } from '../../../global/helpers';
 
 import useFlag from '../../../hooks/useFlag';
@@ -14,8 +16,6 @@ import useFlag from '../../../hooks/useFlag';
 import Menu from '../../ui/Menu';
 import MenuItem from '../../ui/MenuItem';
 import generateChatgpt from './ChatApiGenerate';
-// import aiSdkService from './ChatApiService';
-import eventEmitter from './EventEmitter';
 import SmartReply from './Icon/SmartReply';
 import Summarize from './Icon/Summarize';
 import Translate from './Icon/Translate';

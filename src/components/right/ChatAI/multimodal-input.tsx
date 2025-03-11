@@ -45,6 +45,7 @@ function PureMultimodalInput({
   className,
   summaryTodayMessages,
   summaryUnreadMessage,
+  showUnreadSummary,
 }: {
   chatId: string;
   input: string;
@@ -63,6 +64,7 @@ function PureMultimodalInput({
   className?: string;
   summaryTodayMessages: () => void;
   summaryUnreadMessage: () => void;
+  showUnreadSummary?:boolean;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -71,11 +73,11 @@ function PureMultimodalInput({
       key: '1',
       label: "Summarize today's messages",
     },
-    {
+    showUnreadSummary && {
       key: '2',
       label: 'Summarize unread messages',
     },
-  ];
+  ].filter(Boolean);
 
   useEffect(() => {
     if (textareaRef.current) {

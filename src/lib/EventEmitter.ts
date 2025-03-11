@@ -3,6 +3,9 @@ export enum Actions {
   ShowMenu = 'ShowMenu',
   ShowTranslateModal = 'ShowTranslateModal',
   ShowSummarizeModal = 'ShowSummarizeModal',
+
+  // global ai assistant
+  AddNewMessageToAiAssistant = 'AddNewMessageToAiAssistant',
 }
 class EventEmitter {
   events: { [key: string]: ((...args: any[]) => void)[] | undefined };

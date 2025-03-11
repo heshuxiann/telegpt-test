@@ -1,6 +1,8 @@
+/* eslint-disable max-len */
 /* eslint-disable teactn/no-unused-prop-types */
 /* eslint-disable react/no-unused-prop-types */
-import React, { useState } from 'react';
+// @ts-nocheck
+import React, { useEffect, useState } from 'react';
 import type { Message } from '@ai-sdk/react';
 import { useChat } from '@ai-sdk/react';
 import type { Attachment } from 'ai';
@@ -9,6 +11,8 @@ import { v4 as uuidv4 } from 'uuid';
 import type { ApiMessage } from '../../../api/types/messages';
 import type { ThreadId } from '../../../types';
 
+import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
+import { fetchChatUnreadMessage } from './fetch-messages';
 import { Messages } from './messages';
 import { MultimodalInput } from './multimodal-input';
 
@@ -16,37 +20,84 @@ import useLastCallback from '../../../hooks/useLastCallback';
 
 import './ChatAI.scss';
 
+const summaryData = {
+  mainTopic: [],
+  pendingMatters: [],
+  menssionMessage: [],
+  garbageMessage: [],
+};
+
 interface StateProps {
+  chat:ApiChat;
   chatId: string | undefined;
   chatTitle:string | undefined;
-  chatType: string | undefined;
+  // chatType: string | undefined;
   threadId: ThreadId;
   messageIds?: number[];
   messagesById?: Record<number, ApiMessage>;
   unreadMessages?: ApiMessage[];
+  memoUnreadId:number;
+  unreadCount:number;
   onClose?: () => void;
 }
 const ChatAIRoom = (props: StateProps) => {
   const {
-    chatId, messageIds, messagesById, unreadMessages, chatTitle,
+    chatId, messageIds, messagesById, chatTitle, unreadCount, memoUnreadId, chat, threadId,
   } = props;
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
+  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
+  const [unreadMessages, setUnreadMessages] = useState<ApiMessage[]>([]);
   const {
     messages, handleSubmit, setMessages, input, setInput, append, isLoading, stop,
   } = useChat({
     api: 'https://ai-api-sdm.vercel.app/chat',
     id: chatId,
+    initialMessages,
     sendExtraMessageFields: true,
   });
+
+  useEffect(() => {
+    if (chatId) {
+      CHATAI_IDB_STORE.get(chatId).then((localChatAiMessages = []) => {
+        // eslint-disable-next-line no-console
+        console.log('localChatAiMessages', chatId, localChatAiMessages);
+        setInitialMessages(localChatAiMessages as Array<Message>);
+      });
+    }
+
+    // get unread message
+    if (unreadCount > 0) {
+      fetchChatUnreadMessage({
+        chat,
+        offsetId: memoUnreadId,
+        addOffset: -31,
+        sliceSize: 30,
+        threadId,
+        unreadCount,
+      }).then((result) => {
+        // eslint-disable-next-line no-console
+        console.log('未读消息------>', result.messages);
+        setUnreadMessages(result.messages);
+      });
+    }
+  // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
+  }, [chatId]);
+  useEffect(() => {
+    if (chatId) {
+      CHATAI_IDB_STORE.set(chatId, messages);
+    }
+  }, [chatId, messages]);
 
   const summaryTodayMessages = useLastCallback(() => {
     const addMessage: Message[] = [];
     messageIds?.forEach((id) => {
       const message = messagesById?.[id];
       if (message && message.content.text) {
+        const { entities } = message.content.text;
+        const hasMention = entities?.some((entity) => entity?.userId !== undefined);
         addMessage.push({
           id: uuidv4(),
-          content: message.content.text.text,
+          content: `content:${message.content.text?.text},hasUnreadMention:${hasMention}`,
           role: 'user',
           annotations: [{
             isAuxiliary: true,
@@ -58,9 +109,11 @@ const ChatAIRoom = (props: StateProps) => {
     append({
       role: 'user',
       id: uuidv4(),
-      content: `Please summarize the above messages from ${chatTitle} in Chinese`,
+      content: `请总结上面的聊天内容,按照下面的 json 格式输出：
+            ${JSON.stringify(summaryData)};\n 主要讨论的主题放在mainTopic数组中,待处理事项放在pendingMatters数组中,被@的消息总结放在menssionMessage数组中(传入的消息中hasUnreadMention表示被@了),垃圾消息放在garbageMessage数组中;返回的消息添加额外的字段标记内容是一个 json 类型的数据`,
       annotations: [{
         isAuxiliary: true,
+        isSummary: true,
       }],
     });
   });
@@ -111,6 +164,7 @@ const ChatAIRoom = (props: StateProps) => {
           attachments={attachments}
           setAttachments={setAttachments}
           setMessages={setMessages}
+          showUnreadSummary={unreadMessages.length > 0}
           summaryTodayMessages={summaryTodayMessages}
           summaryUnreadMessage={summaryUnreadMessage}
         />

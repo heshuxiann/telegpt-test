@@ -53,6 +53,7 @@ import {
 } from '../../global/selectors';
 import animateScroll, { isAnimatingScroll, restartCurrentScrollAnimation } from '../../util/animateScroll';
 import buildClassName from '../../util/buildClassName';
+import { getCurrentTabId } from '../../util/establishMultitabRole';
 import { orderBy } from '../../util/iteratees';
 import { isLocalMessageId } from '../../util/keys/messageKey';
 import resetScroll from '../../util/resetScroll';
@@ -741,6 +742,12 @@ export default memo(withGlobal<OwnProps>(
     }
 
     const messageIds = selectCurrentMessageIds(global, chatId, threadId, type);
+    // eslint-disable-next-line no-console
+    console.log(messageIds, '------messageIds');
+    // eslint-disable-next-line no-console
+    console.log(chat, '------chat');
+    // eslint-disable-next-line no-console
+    console.log(type, '-------type');
     const messagesById = type === 'scheduled'
       ? selectChatScheduledMessages(global, chatId)
       : selectChatMessages(global, chatId);

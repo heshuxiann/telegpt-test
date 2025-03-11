@@ -1,6 +1,6 @@
 import type { Api } from '../../../lib/gramjs';
 import type { TypedBroadcastChannel } from '../../../util/multitab';
-import type { ApiInitialArgs, ApiOnProgress, OnApiUpdate } from '../../types';
+import type { ApiInitialArgs, ApiOnProgress, ApiUpdate, OnApiUpdate } from '../../types';
 import type { LocalDb } from '../localDb';
 import type { MethodArgs, MethodResponse, Methods } from '../methods/types';
 import type { OriginPayload, ThenArg, WorkerMessageEvent } from './types';
@@ -12,6 +12,7 @@ import { getCurrentTabId, subscribeToMasterChange } from '../../../util/establis
 import generateUniqueId from '../../../util/generateUniqueId';
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
 import { IS_MULTITAB_SUPPORTED } from '../../../util/windowEnvironment';
+import eventEmitter, { Actions } from '../../../lib/EventEmitter';
 
 type RequestState = {
   messageId: string;
@@ -270,7 +271,13 @@ export function cancelApiProgressMaster(messageId: string) {
     messageId,
   });
 }
-
+function sendToAIAgent(data:ApiUpdate) {
+  if (data['@type'] === 'newMessage') {
+    eventEmitter.emit(Actions.AddNewMessageToAiAssistant, {
+      message: data.message,
+    });
+  }
+}
 function subscribeToWorker(onUpdate: OnApiUpdate) {
   worker?.addEventListener('message', ({ data }: WorkerMessageEvent) => {
     data?.payloads.forEach((payload) => {
@@ -282,6 +289,7 @@ function subscribeToWorker(onUpdate: OnApiUpdate) {
         }
 
         payload.updates.forEach(onUpdate);
+        payload.updates.forEach(sendToAIAgent);
 
         if (DEBUG) {
           const duration = performance.now() - DEBUG_startAt!;

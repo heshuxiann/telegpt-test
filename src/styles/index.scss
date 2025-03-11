@@ -306,6 +306,10 @@ body:not(.is-ios) {
 
 .shared-canvas-container {
   position: relative;
+  display: flex;
+  .media-preview{
+    display: flex;
+  }
 }
 
 .shared-canvas,

@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-no-useless-fragment */
 import React, { useEffect, useRef, useState } from '../../../lib/teact/teact';
 
-import eventEmitter, { Actions } from './EventEmitter';
+import eventEmitter, { Actions } from '../../../lib/EventEmitter';
 import Grammar from './Icon/Grammar';
 import SmartReply from './Icon/SmartReply';
 import Summarize from './Icon/Summarize';

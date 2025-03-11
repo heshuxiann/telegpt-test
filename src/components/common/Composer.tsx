@@ -146,7 +146,7 @@ import useMentionTooltip from '../middle/composer/hooks/useMentionTooltip';
 import useStickerTooltip from '../middle/composer/hooks/useStickerTooltip';
 import useVoiceRecording from '../middle/composer/hooks/useVoiceRecording';
 
-import eventEmitter from '../middle/chatgpt/EventEmitter';
+import eventEmitter from '../../lib/EventEmitter';
 import InputAIMenu from '../middle/chatgpt/InputAIMenu';
 import AttachmentModal from '../middle/composer/AttachmentModal.async';
 import AttachMenu from '../middle/composer/AttachMenu';
