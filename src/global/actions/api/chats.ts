@@ -484,6 +484,19 @@ addActionHandler('openLinkedChat', async (global, actions, payload): Promise<voi
   }
 });
 
+addActionHandler('openSerenaChat', (global, actions, payload):ActionReturnType => {
+  const { tabId = getCurrentTabId(), isSerenaModalOpen } = payload;
+  return updateTabState(global, {
+    isSerenaModalOpen,
+  }, tabId);
+});
+addActionHandler('closeSerenaChat', (global, actions, payload):ActionReturnType => {
+  const { tabId = getCurrentTabId() } = payload;
+  return updateTabState(global, {
+    isSerenaModalOpen: false,
+  }, tabId);
+});
+
 addActionHandler('openSupportChat', async (global, actions, payload): Promise<void> => {
   const { tabId = getCurrentTabId() } = payload || {};
   const chat = selectSupportChat(global);

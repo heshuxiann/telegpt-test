@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-bind */
 /* eslint-disable max-len */
 /* eslint-disable teactn/no-unused-prop-types */
 /* eslint-disable react/no-unused-prop-types */
@@ -16,8 +17,7 @@ import { fetchChatUnreadMessage } from './fetch-messages';
 import { Messages } from './messages';
 import { MultimodalInput } from './multimodal-input';
 
-import useLastCallback from '../../../hooks/useLastCallback';
-
+// import useLastCallback from '../../../hooks/useLastCallback';
 import './ChatAI.scss';
 
 const summaryData = {
@@ -83,12 +83,12 @@ const ChatAIRoom = (props: StateProps) => {
   // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, [chatId]);
   useEffect(() => {
-    if (chatId) {
+    if (chatId && messages) {
       CHATAI_IDB_STORE.set(chatId, messages);
     }
   }, [chatId, messages]);
 
-  const summaryTodayMessages = useLastCallback(() => {
+  const summaryTodayMessages = () => {
     const addMessage: Message[] = [];
     messageIds?.forEach((id) => {
       const message = messagesById?.[id];
@@ -116,15 +116,17 @@ const ChatAIRoom = (props: StateProps) => {
         isSummary: true,
       }],
     });
-  });
-  const summaryUnreadMessage = useLastCallback(() => {
+  };
+  const summaryUnreadMessage = () => {
     if (!unreadMessages) return;
     const addMessage: Message[] = [];
     unreadMessages?.forEach((message) => {
       if (message && message.content.text) {
+        const { entities } = message.content.text;
+        const hasMention = entities?.some((entity) => entity?.userId !== undefined);
         addMessage.push({
           id: uuidv4(),
-          content: message.content.text.text,
+          content: `content:${message.content.text?.text},hasUnreadMention:${hasMention}`,
           role: 'user',
           annotations: [{
             isAuxiliary: true,
@@ -136,12 +138,14 @@ const ChatAIRoom = (props: StateProps) => {
     append({
       role: 'user',
       id: uuidv4(),
-      content: `Above message from ${chatTitle} I have not read, please summarize in Chinese`,
+      content: `请总结上面的聊天内容,按照下面的 json 格式输出：
+            ${JSON.stringify(summaryData)};\n 主要讨论的主题放在mainTopic数组中,待处理事项放在pendingMatters数组中,被@的消息总结放在menssionMessage数组中(传入的消息中hasUnreadMention表示被@了),垃圾消息放在garbageMessage数组中;返回的消息添加额外的字段标记内容是一个 json 类型的数据`,
       annotations: [{
         isAuxiliary: true,
+        isSummary: true,
       }],
     });
-  });
+  };
   return (
     <div className="right-panel-chat-ai">
       <div className="chat-ai-output-wrapper">

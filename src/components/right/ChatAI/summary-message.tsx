@@ -4,7 +4,6 @@ import type { Message } from 'ai';
 
 import { formatTime } from '../../../util/dates/dateFormat';
 
-import useLastCallback from '../../../hooks/useLastCallback';
 import useOldLang from '../../../hooks/useOldLang';
 
 enum SummaryType {
@@ -33,7 +32,7 @@ const SummaryCard = ({ children }: { children: React.ReactNode }) => {
 
 const SummaryMessageItem = ({ type, content, time }: { type: SummaryType; content: [];time:Date | undefined }) => {
   const oldLang = useOldLang();
-  const renderSummaryTitle = useLastCallback(() => {
+  const renderSummaryTitle = () => {
     switch (type) {
       case SummaryType.MainTopic:
         return (
@@ -57,7 +56,7 @@ const SummaryMessageItem = ({ type, content, time }: { type: SummaryType; conten
       default:
         return 'Summary';
     }
-  });
+  };
   return (
     <SummaryCard>
       <div className="flex flex-row items-center">
@@ -88,19 +87,24 @@ const SummaryMessage = (props:IProps) => {
   });
   useEffect(() => {
     if (!isLoading) {
-      const messageContent = JSON.parse(message.content.replace(/^```json\n/, '').replace(/```$/, ''));
-      setParsedMessage(messageContent);
+      try {
+        const messageContent = JSON.parse(message.content.replace(/^```json\n/, '').replace(/```$/, ''));
+        setParsedMessage(messageContent);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(error);
+      }
     }
   }, [isLoading, message]);
   return (
     <>
-      {parsedMessage?.mainTopic && <SummaryMessageItem type={SummaryType.MainTopic} content={parsedMessage?.mainTopic} time={message.createdAt} />}
+      {parsedMessage?.mainTopic && parsedMessage?.mainTopic.length > 0 && <SummaryMessageItem type={SummaryType.MainTopic} content={parsedMessage?.mainTopic} time={message.createdAt} />}
 
-      {parsedMessage?.pendingMatters && <SummaryMessageItem type={SummaryType.PendingMatters} content={parsedMessage?.pendingMatters} time={message.createdAt} />}
+      {parsedMessage?.pendingMatters && parsedMessage?.pendingMatters.length > 0 && <SummaryMessageItem type={SummaryType.PendingMatters} content={parsedMessage?.pendingMatters} time={message.createdAt} />}
 
-      {parsedMessage?.menssionMessage && <SummaryMessageItem type={SummaryType.MenssionMessage} content={parsedMessage.menssionMessage} time={message.createdAt} />}
+      {parsedMessage?.menssionMessage && parsedMessage?.menssionMessage.length > 0 && <SummaryMessageItem type={SummaryType.MenssionMessage} content={parsedMessage.menssionMessage} time={message.createdAt} />}
 
-      {parsedMessage?.garbageMessage && <SummaryMessageItem type={SummaryType.GarbageMessage} content={parsedMessage.garbageMessage} time={message.createdAt} />}
+      {parsedMessage?.garbageMessage && parsedMessage?.garbageMessage.length > 0 && <SummaryMessageItem type={SummaryType.GarbageMessage} content={parsedMessage.garbageMessage} time={message.createdAt} />}
     </>
   );
 };

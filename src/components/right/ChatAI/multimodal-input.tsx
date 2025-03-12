@@ -5,7 +5,7 @@
 /* eslint-disable react/jsx-no-bind */
 /* eslint-disable no-console */
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   type Dispatch,
   memo,
@@ -68,16 +68,20 @@ function PureMultimodalInput({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
-  const actionItems: MenuProps['items'] = [
-    {
-      key: '1',
-      label: "Summarize today's messages",
-    },
-    showUnreadSummary && {
-      key: '2',
-      label: 'Summarize unread messages',
-    },
-  ].filter(Boolean);
+  const [actionItems, setActionItems] = useState<MenuProps['items']>([]);
+
+  useEffect(() => {
+    setActionItems([
+      {
+        key: '1',
+        label: "Summarize today's messages",
+      },
+      showUnreadSummary && {
+        key: '2',
+        label: 'Summarize unread messages',
+      },
+    ].filter(Boolean));
+  }, [showUnreadSummary]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -215,6 +219,7 @@ export const MultimodalInput = memo(
   (prevProps, nextProps) => {
     if (prevProps.input !== nextProps.input) return false;
     if (prevProps.isLoading !== nextProps.isLoading) return false;
+    if (prevProps.showUnreadSummary !== nextProps.showUnreadSummary) return false;
     if (!equal(prevProps.attachments, nextProps.attachments)) return false;
 
     return true;

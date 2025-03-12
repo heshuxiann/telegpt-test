@@ -52,7 +52,7 @@ const ImAssistant = (props:StateProps) => {
     }
   });
   return (
-    <div className="im-assistant-container" ref={containerRef} />
+    <div className="im-assistant-container w-full h-full" ref={containerRef} />
   );
 };
 

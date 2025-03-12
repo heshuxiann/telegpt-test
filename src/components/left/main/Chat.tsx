@@ -163,6 +163,7 @@ const Chat: FC<OwnProps & StateProps> = ({
     closeForumPanel,
     setShouldCloseRightColumn,
     reportMessages,
+    closeSerenaChat,
   } = getActions();
 
   const { isMobile } = useAppLayout();
@@ -199,7 +200,7 @@ const Chat: FC<OwnProps & StateProps> = ({
 
   const handleClick = useLastCallback(() => {
     const noForumTopicPanel = isMobile && isForumAsMessages;
-
+    closeSerenaChat({ isSerenaModalOpen: false });
     if (isMobile) {
       setShouldCloseRightColumn({ value: true });
     }

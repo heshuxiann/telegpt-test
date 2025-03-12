@@ -79,7 +79,6 @@ import DraftRecipientPicker from './DraftRecipientPicker.async';
 import ForwardRecipientPicker from './ForwardRecipientPicker.async';
 import GameModal from './GameModal';
 import HistoryCalendar from './HistoryCalendar.async';
-import ImAssistant from './imAssistant/ImAssistant';
 import NewContactModal from './NewContactModal.async';
 import Notifications from './Notifications.async';
 import PremiumLimitReachedModal from './premium/common/PremiumLimitReachedModal.async';
@@ -141,6 +140,7 @@ type StateProps = {
   noRightColumnAnimation?: boolean;
   withInterfaceAnimations?: boolean;
   isSynced?: boolean;
+  isSerenaModalOpen?: boolean;
 };
 
 const APP_OUTDATED_TIMEOUT_MS = 5 * 60 * 1000; // 5 min
@@ -194,6 +194,7 @@ const Main = ({
   noRightColumnAnimation,
   isSynced,
   currentUserId,
+  isSerenaModalOpen,
 }: OwnProps & StateProps) => {
   const {
     initMain,
@@ -540,7 +541,7 @@ const Main = ({
   return (
     <div ref={containerRef} id="Main" className={className}>
       <LeftColumn ref={leftColumnRef} />
-      <MiddleColumn leftColumnRef={leftColumnRef} isMobile={isMobile} />
+      <MiddleColumn leftColumnRef={leftColumnRef} isMobile={isMobile} isSerenaModalOpen={isSerenaModalOpen} />
       <RightColumn isMobile={isMobile} />
       <MediaViewer isOpen={isMediaViewerOpen} />
       <StoryViewer isOpen={isStoryViewerOpen} />
@@ -592,7 +593,6 @@ const Main = ({
       <DeleteFolderDialog folder={deleteFolderDialog} />
       <ReactionPicker isOpen={isReactionPickerOpen} />
       <DeleteMessageModal isOpen={isDeleteMessageModalOpen} />
-      <ImAssistant />
     </div>
   );
 };
@@ -631,6 +631,7 @@ export default memo(withGlobal<OwnProps>(
       payment,
       limitReachedModal,
       deleteFolderDialogModal,
+      isSerenaModalOpen,
     } = selectTabState(global);
 
     const gameMessage = openedGame && selectChatMessage(global, openedGame.chatId, openedGame.messageId);
@@ -685,6 +686,7 @@ export default memo(withGlobal<OwnProps>(
       requestedDraft,
       noRightColumnAnimation,
       isSynced: global.isSynced,
+      isSerenaModalOpen,
     };
   },
 )(Main));

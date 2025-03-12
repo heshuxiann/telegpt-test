@@ -320,6 +320,7 @@ export const HEART_REACTION: ApiReactionEmoji = {
 };
 
 // MTProto constants
+export const SERENA_USER_ID = '777888';
 export const SERVICE_NOTIFICATIONS_USER_ID = '777000';
 export const REPLIES_USER_ID = '1271266957'; // TODO For Test connection ID must be equal to 708513
 export const VERIFICATION_CODES_USER_ID = '489000';

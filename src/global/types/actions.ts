@@ -391,6 +391,8 @@ export interface ActionPayloads {
   deleteChatFolder: {
     id: number;
   };
+  openSerenaChat:{ isSerenaModalOpen:boolean } & WithTabId;
+  closeSerenaChat: { isSerenaModalOpen:boolean } & WithTabId;
   openSupportChat: WithTabId | undefined;
   openChatByPhoneNumber: {
     phoneNumber: string;

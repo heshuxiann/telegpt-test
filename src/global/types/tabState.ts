@@ -775,4 +775,5 @@ export type TabState = {
 
   isWaitingForStarGiftUpgrade?: true;
   isWaitingForStarGiftTransfer?: true;
+  isSerenaModalOpen?:boolean;
 };
