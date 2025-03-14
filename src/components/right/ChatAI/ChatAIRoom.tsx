@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable react/jsx-no-bind */
 /* eslint-disable max-len */
 /* eslint-disable teactn/no-unused-prop-types */
@@ -74,10 +75,8 @@ const ChatAIRoom = (props: StateProps) => {
         sliceSize: 30,
         threadId,
         unreadCount,
-      }).then((result) => {
-        // eslint-disable-next-line no-console
-        console.log('未读消息------>', result.messages);
-        setUnreadMessages(result.messages);
+      }).then((messages) => {
+        setUnreadMessages(messages);
       });
     }
   // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps

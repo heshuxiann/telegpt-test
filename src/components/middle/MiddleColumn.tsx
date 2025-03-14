@@ -101,7 +101,6 @@ import MiddleSearch from './search/MiddleSearch.async';
 
 import './MiddleColumn.scss';
 import styles from './MiddleColumn.module.scss';
-import ImAssistant from '../main/imAssistant/ImAssistant';
 
 interface OwnProps {
   leftColumnRef: React.RefObject<HTMLDivElement>;
@@ -482,13 +481,6 @@ function MiddleColumn({
     || (isPinnedMessageList && canUnpin) || canShowOpenChatButton || renderingCanUnblock,
   );
   const withExtraShift = Boolean(isMessagingDisabled || isSelectModeActive);
-  if (isSerenaModalOpen) {
-    return (
-      <div id="MiddleColumn">
-        <ImAssistant />
-      </div>
-    );
-  }
   return (
     <div
       id="MiddleColumn"

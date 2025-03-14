@@ -91,6 +91,7 @@ import SnapEffectContainer from './visualEffects/SnapEffectContainer';
 import WaveContainer from './visualEffects/WaveContainer';
 
 import './Main.scss';
+import ImAssistantContainer from './imAssistant/ImAssistantContainer';
 
 export interface OwnProps {
   isMobile?: boolean;
@@ -593,6 +594,7 @@ const Main = ({
       <DeleteFolderDialog folder={deleteFolderDialog} />
       <ReactionPicker isOpen={isReactionPickerOpen} />
       <DeleteMessageModal isOpen={isDeleteMessageModalOpen} />
+      <ImAssistantContainer />
     </div>
   );
 };

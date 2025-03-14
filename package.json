@@ -157,6 +157,7 @@
     "pako": "^2.1.0",
     "path-browserify": "^1.0.1",
     "qr-code-styling": "github:zubiden/qr-code-styling#dbbfed0",
+    "rc-virtual-list": "^3.18.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.0.1",
@@ -165,7 +166,8 @@
     "tailwind-merge": "^3.0.2",
     "usehooks-ts": "^3.1.1",
     "uuid": "^11.1.0",
-    "v8-compile-cache": "^2.4.0"
+    "v8-compile-cache": "^2.4.0",
+    "vector-storage": "^1.0.55"
   },
   "optionalDependencies": {
     "dmg-license": "^1.0.11",

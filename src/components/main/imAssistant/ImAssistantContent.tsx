@@ -74,7 +74,7 @@ const ImAssistantContent = forwardRef<ImAssistantContentRef, IProps>(
           if (!chat?.unreadCount) return undefined;
 
           const { unreadCount, lastReadInboxMessageId } = chat;
-          const result = await fetchChatUnreadMessage({
+          const messages = await fetchChatUnreadMessage({
             chat,
             offsetId: lastReadInboxMessageId || 0,
             addOffset: -31,
@@ -83,7 +83,7 @@ const ImAssistantContent = forwardRef<ImAssistantContentRef, IProps>(
             unreadCount,
           });
 
-          return result?.messages.length ? [chatId, result.messages] : undefined;
+          return messages.length ? [chatId, messages] : undefined;
         }),
       );
 

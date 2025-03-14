@@ -39,7 +39,7 @@ import Loading from '../../ui/Loading';
 import Archive from './Archive';
 import Chat from './Chat';
 import EmptyFolder from './EmptyFolder';
-import Serena from './Serena';
+// import Serena from './Serena';
 import UnconfirmedSession from './UnconfirmedSession';
 
 type OwnProps = {
@@ -78,7 +78,7 @@ const ChatList: FC<OwnProps> = ({
     openNextChat,
     closeForumPanel,
     toggleStoryRibbon,
-    openSerenaChat,
+    // openSerenaChat,
   } = getActions();
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
@@ -100,7 +100,7 @@ const ChatList: FC<OwnProps> = ({
   const chatsHeight = (orderedIds?.length || 0) * CHAT_HEIGHT_PX;
   const archiveHeight = shouldDisplayArchive
     ? archiveSettings?.isMinimized ? ARCHIVE_MINIMIZED_HEIGHT : CHAT_HEIGHT_PX : 0;
-  const serenaHeight = CHAT_HEIGHT_PX;
+  // const serenaHeight = CHAT_HEIGHT_PX;
 
   const { orderDiffById, getAnimationType } = useOrderDiff(orderedIds);
 
@@ -184,9 +184,9 @@ const ChatList: FC<OwnProps> = ({
     }
     handleArchivedClick();
   });
-  const handleSerenaClick = useLastCallback(() => {
-    openSerenaChat({ isSerenaModalOpen: true });
-  });
+  // const handleSerenaClick = useLastCallback(() => {
+  //   openSerenaChat({ isSerenaModalOpen: true });
+  // });
 
   const handleDragEnter = useDebouncedCallback((chatId: string) => {
     if (shouldIgnoreDragRef.current) {
@@ -221,7 +221,7 @@ const ChatList: FC<OwnProps> = ({
 
     return viewportIds!.map((id, i) => {
       const isPinned = viewportOffset + i < pinnedCount;
-      const offsetTop = unconfirmedSessionHeight + archiveHeight + serenaHeight + (viewportOffset + i) * CHAT_HEIGHT_PX;
+      const offsetTop = unconfirmedSessionHeight + archiveHeight + (viewportOffset + i) * CHAT_HEIGHT_PX;
 
       return (
         <Chat
@@ -269,7 +269,7 @@ const ChatList: FC<OwnProps> = ({
           onDragEnter={handleArchivedDragEnter}
         />
       )}
-      <Serena onClick={handleSerenaClick} offsetTop={unconfirmedSessionHeight + archiveHeight} />
+      {/* <Serena onClick={handleSerenaClick} offsetTop={unconfirmedSessionHeight + archiveHeight} /> */}
       {viewportIds?.length ? (
         renderChats()
       ) : viewportIds && !viewportIds.length && !isSaved ? (

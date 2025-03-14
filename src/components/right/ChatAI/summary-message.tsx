@@ -13,10 +13,15 @@ enum SummaryType {
   MenssionMessage = 'Menssion Message',
 }
 interface IParsedMessage {
+  summaryCount:number;
   mainTopic: [];
   pendingMatters: [];
   garbageMessage: [];
   menssionMessage: [];
+  range: {
+    startTime: number;
+    endTime: number;
+  };
 }
 interface IProps {
   isLoading: boolean;
@@ -29,28 +34,55 @@ const SummaryCard = ({ children }: { children: React.ReactNode }) => {
     </div>
   );
 };
-
-const SummaryMessageItem = ({ type, content, time }: { type: SummaryType; content: [];time:Date | undefined }) => {
+const SummaryTime = ({ startTime, endTime }:{ startTime:number;endTime:number }) => {
   const oldLang = useOldLang();
+  return (
+    <>
+      <span>{formatTime(oldLang, startTime)}</span>
+      <span> - </span>
+      <span>{formatTime(oldLang, endTime)}</span>
+    </>
+  );
+};
+const SummaryMessageItem = ({
+  type, content, range, summaryCount,
+}: { type: SummaryType; content: [];range:{ startTime:number;endTime:number }; summaryCount:number }) => {
+  const { startTime, endTime } = range;
   const renderSummaryTitle = () => {
     switch (type) {
       case SummaryType.MainTopic:
         return (
           <>
             <span className="mr-[10px]">🗂</span>
-            <span className="text-[16px] font-bold">Message Summary:</span>
-            <span className="text-[14px]">{formatTime(oldLang, time as Date)}</span>
+            <span className="text-[16px] font-bold">Message Summary: </span>
+            {/* <span className="text-[14px]">{formatTime(oldLang, time as Date)}</span> */}
+            {startTime && endTime && <SummaryTime startTime={startTime} endTime={endTime} />}
+            {summaryCount && <span className="text-[16px]">({summaryCount}messages)</span>}
           </>
         );
       case SummaryType.PendingMatters:
-        return <span className="text-[16px] font-bold">❗ Waiting for your confirmation</span>;
+        return (
+          <>
+            <span className="text-[16px] font-bold">❗ Waiting for your confirmation: </span>
+            {startTime && endTime && <SummaryTime startTime={startTime} endTime={endTime} />}
+            {summaryCount && <span className="text-[16px]">({summaryCount}messages)</span>}
+          </>
+        );
       case SummaryType.GarbageMessage:
-        return <span className="text-[16px] font-bold">❗ Spam Alert</span>;
+        return (
+          <>
+            <span className="text-[16px] font-bold">❗ Spam Alert: </span>
+            {startTime && endTime && <SummaryTime startTime={startTime} endTime={endTime} />}
+            {summaryCount && <span className="text-[16px]">({summaryCount}messages)</span>}
+          </>
+        );
       case SummaryType.MenssionMessage:
         return (
           <>
             <span className="mr-[10px]">🗂</span>
-            <span className="text-[16px] font-bold">@ Mention you</span>
+            <span className="text-[16px] font-bold">@ Mention you: </span>
+            {startTime && endTime && <SummaryTime startTime={startTime} endTime={endTime} />}
+            {summaryCount && <span className="text-[16px]">({summaryCount}messages)</span>}
           </>
         );
       default:
@@ -59,7 +91,7 @@ const SummaryMessageItem = ({ type, content, time }: { type: SummaryType; conten
   };
   return (
     <SummaryCard>
-      <div className="flex flex-row items-center">
+      <div className="items-center">
         {renderSummaryTitle()}
       </div>
       <div>
@@ -83,12 +115,17 @@ const SummaryMessageItem = ({ type, content, time }: { type: SummaryType; conten
 const SummaryMessage = (props:IProps) => {
   const { isLoading, message } = props;
   const [parsedMessage, setParsedMessage] = useState<IParsedMessage>({
-    mainTopic: [], pendingMatters: [], garbageMessage: [], menssionMessage: [],
+    summaryCount: 0,
+    mainTopic: [],
+    pendingMatters: [],
+    garbageMessage: [],
+    menssionMessage: [],
+    range: { startTime: 0, endTime: 0 },
   });
   useEffect(() => {
     if (!isLoading) {
       try {
-        const messageContent = JSON.parse(message.content.replace(/^```json\n/, '').replace(/```$/, ''));
+        const messageContent = JSON.parse(message.content.replace(/^```json\n?/, '').replace(/```\n?$/, ''));
         setParsedMessage(messageContent);
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -98,13 +135,13 @@ const SummaryMessage = (props:IProps) => {
   }, [isLoading, message]);
   return (
     <>
-      {parsedMessage?.mainTopic && parsedMessage?.mainTopic.length > 0 && <SummaryMessageItem type={SummaryType.MainTopic} content={parsedMessage?.mainTopic} time={message.createdAt} />}
+      {parsedMessage?.mainTopic && parsedMessage?.mainTopic.length > 0 && <SummaryMessageItem type={SummaryType.MainTopic} content={parsedMessage?.mainTopic} range={parsedMessage.range} summaryCount={parsedMessage.summaryCount} />}
 
-      {parsedMessage?.pendingMatters && parsedMessage?.pendingMatters.length > 0 && <SummaryMessageItem type={SummaryType.PendingMatters} content={parsedMessage?.pendingMatters} time={message.createdAt} />}
+      {parsedMessage?.pendingMatters && parsedMessage?.pendingMatters.length > 0 && <SummaryMessageItem type={SummaryType.PendingMatters} content={parsedMessage?.pendingMatters} range={parsedMessage.range} summaryCount={parsedMessage.summaryCount} />}
 
-      {parsedMessage?.menssionMessage && parsedMessage?.menssionMessage.length > 0 && <SummaryMessageItem type={SummaryType.MenssionMessage} content={parsedMessage.menssionMessage} time={message.createdAt} />}
+      {parsedMessage?.menssionMessage && parsedMessage?.menssionMessage.length > 0 && <SummaryMessageItem type={SummaryType.MenssionMessage} content={parsedMessage.menssionMessage} range={parsedMessage.range} summaryCount={parsedMessage.summaryCount} />}
 
-      {parsedMessage?.garbageMessage && parsedMessage?.garbageMessage.length > 0 && <SummaryMessageItem type={SummaryType.GarbageMessage} content={parsedMessage.garbageMessage} time={message.createdAt} />}
+      {parsedMessage?.garbageMessage && parsedMessage?.garbageMessage.length > 0 && <SummaryMessageItem type={SummaryType.GarbageMessage} content={parsedMessage.garbageMessage} range={parsedMessage.range} summaryCount={parsedMessage.summaryCount} />}
     </>
   );
 };

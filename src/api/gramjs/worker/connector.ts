@@ -1,18 +1,22 @@
+import { VectorStorage } from 'vector-storage';
+
 import type { Api } from '../../../lib/gramjs';
 import type { TypedBroadcastChannel } from '../../../util/multitab';
-import type { ApiInitialArgs, ApiOnProgress, ApiUpdate, OnApiUpdate } from '../../types';
+import type {
+  ApiInitialArgs, ApiOnProgress, ApiUpdate, OnApiUpdate,
+} from '../../types';
 import type { LocalDb } from '../localDb';
 import type { MethodArgs, MethodResponse, Methods } from '../methods/types';
 import type { OriginPayload, ThenArg, WorkerMessageEvent } from './types';
 
 import { DATA_BROADCAST_CHANNEL_NAME, DEBUG, IGNORE_UNHANDLED_ERRORS } from '../../../config';
+import eventEmitter, { Actions } from '../../../lib/EventEmitter';
 import { logDebugMessage } from '../../../util/debugConsole';
 import Deferred from '../../../util/Deferred';
 import { getCurrentTabId, subscribeToMasterChange } from '../../../util/establishMultitabRole';
 import generateUniqueId from '../../../util/generateUniqueId';
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
 import { IS_MULTITAB_SUPPORTED } from '../../../util/windowEnvironment';
-import eventEmitter, { Actions } from '../../../lib/EventEmitter';
 
 type RequestState = {
   messageId: string;
@@ -27,6 +31,7 @@ const HEALTH_CHECK_MIN_DELAY = 5 * 1000; // 5 sec
 const NO_QUEUE_BEFORE_INIT = new Set(['destroy']);
 
 let worker: Worker | undefined;
+let vectorStore: VectorStorage<any>;
 
 const requestStates = new Map<string, RequestState>();
 const requestStatesByCallback = new Map<AnyToVoidFunction, RequestState>();
@@ -86,6 +91,10 @@ export function initApi(onUpdate: OnApiUpdate, initialArgs: ApiInitialArgs) {
   if (!isMasterTab) {
     initApiOnMasterTab(initialArgs);
     return Promise.resolve();
+  }
+  if (!vectorStore) {
+    // eslint-disable-next-line max-len
+    vectorStore = new VectorStorage({ openAIApiKey: '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' });
   }
 
   if (!worker) {
@@ -276,6 +285,9 @@ function sendToAIAgent(data:ApiUpdate) {
     eventEmitter.emit(Actions.AddNewMessageToAiAssistant, {
       message: data.message,
     });
+    if (data.message.content?.text && data.message.content?.text.text) {
+      vectorStore.addText(data.message.content?.text.text, { category: '测试' });
+    }
   }
 }
 function subscribeToWorker(onUpdate: OnApiUpdate) {
