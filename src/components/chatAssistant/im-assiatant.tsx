@@ -235,6 +235,7 @@ const ImAssistant = (props:ImAssistantProps) => {
                     appendTodayPrompt={appendTodayPrompt}
                     // eslint-disable-next-line react/jsx-no-bind
                     setAppendUnreadPrompt={(value) => { setAppendUnreadPrompt(value); }}
+                    // eslint-disable-next-line react/jsx-no-bind
                     setAppendTodayPrompt={(value) => { setAppendTodayPrompt(value); }}
                   />
                 </div>
