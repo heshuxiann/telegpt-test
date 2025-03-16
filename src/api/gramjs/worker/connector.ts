@@ -94,7 +94,7 @@ export function initApi(onUpdate: OnApiUpdate, initialArgs: ApiInitialArgs) {
   }
   if (!vectorStore) {
     // eslint-disable-next-line max-len
-    vectorStore = new VectorStorage({ openAIApiKey: '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' });
+    vectorStore = new VectorStorage({ openAIApiKey: process.env.OPEN_API_KEY });
   }
 
   if (!worker) {
@@ -286,7 +286,17 @@ function sendToAIAgent(data:ApiUpdate) {
       message: data.message,
     });
     if (data.message.content?.text && data.message.content?.text.text) {
-      vectorStore.addText(data.message.content?.text.text, { category: '测试' });
+      const {
+        date, id, senderId, chatId,
+      } = data.message;
+      const messageContent = data.message.content.text.text;
+      vectorStore.addText(JSON.stringify({
+        chatId,
+        time: date,
+        senderId,
+        messageContent,
+        messageId: id,
+      }), { category: chatId });
     }
   }
 }

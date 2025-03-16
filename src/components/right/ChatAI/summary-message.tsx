@@ -63,7 +63,7 @@ const SummaryMessageItem = ({
       case SummaryType.PendingMatters:
         return (
           <>
-            <span className="text-[16px] font-bold">❗ Waiting for your confirmation: </span>
+            <span className="text-[16px] font-bold">❗ Action Items: </span>
             {startTime && endTime && <SummaryTime startTime={startTime} endTime={endTime} />}
             {summaryCount && <span className="text-[16px]">({summaryCount}messages)</span>}
           </>
@@ -102,8 +102,9 @@ const SummaryMessageItem = ({
           </div>
         ) : (
           <ul className="m-0 list-decimal text-[16px] pl-[20px] pt-[8px]">
-            {content.map((message) => (
-              <li>{message}</li>
+            {content.map((message, index) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <li key={`summary-${index}`}>{message}</li>
             ))}
           </ul>
         )}

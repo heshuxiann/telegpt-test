@@ -4,7 +4,7 @@ import React, {
 } from '../../../lib/teact/teact';
 import { getGlobal } from '../../../global';
 
-import type { IFetchUnreadMessage, ImAssistantChat } from '../../chatAssistant/im-assiatant';
+import type { IFetchUnreadMessage, ImAssistantChat } from '../../chatAssistant/im-assistant';
 import { type ApiMessage, type ApiPeer, MAIN_THREAD_ID } from '../../../api/types';
 
 import { ALL_FOLDER_ID } from '../../../config';
@@ -15,7 +15,7 @@ import {
 } from '../../../global/selectors';
 import * as mediaLoader from '../../../util/mediaLoader';
 import { getFirstLetters } from '../../../util/textFormat';
-import ImAssistant from '../../chatAssistant/im-assiatant';
+import ImAssistant from '../../chatAssistant/im-assistant';
 
 import { useFolderManagerForOrderedIds } from '../../../hooks/useFolderManager';
 

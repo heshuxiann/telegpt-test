@@ -14,6 +14,8 @@ import SettingPanel from './setting-panel';
 
 import { Messages } from '../right/ChatAI/messages';
 
+import './imAssistant.scss';
+
 import SerenaPath from '../../assets/serena.png';
 
 export interface IFetchUnreadMessage {
@@ -58,7 +60,7 @@ const ImAssistant = (props:ImAssistantProps) => {
   const [appendTodayPrompt, setAppendTodayPrompt] = useState<string>('');
   const [localChatAiMessages, setLocalChatAiMessages] = useState<Message[]>([]);
   const originSummaryPrompt = `请总结上面的聊天内容,按照下面的 json 格式输出：
-              ${JSON.stringify(summaryData)};\n 主要讨论的主题放在mainTopic数组中,待处理事项放在pendingMatters数组中,被@的消息总结放在menssionMessage数组中(传入的消息中hasUnreadMention表示被@了),垃圾消息放在garbageMessage数组中;range中的startTime是总结的第一条消息的时间(time字段),range中的endTime是总结的最后一条消息的时间(time字段),summaryCount是总结的消息数量`;
+              ${JSON.stringify(summaryData)};\n 主要讨论的主题放在mainTopic数组中,待处理事项放在pendingMatters数组中,被@的消息总结放在menssionMessage数组中(传入的消息中hasUnreadMention表示被@了),垃圾消息放在garbageMessage数组中;对应的消息都以字符串的形式放入分类的数组中,range中的startTime是总结的第一条消息的时间(time字段),range中的endTime是总结的最后一条消息的时间(time字段),summaryCount是总结的消息数量`;
   const {
     messages, handleSubmit, setMessages, input, setInput, append, isLoading, stop,
   } = useChat({
@@ -166,7 +168,10 @@ const ImAssistant = (props:ImAssistantProps) => {
                 <List data={chatList} height={window.innerHeight * 0.9} itemKey="id" itemHeight={30}>
                   {(item) => {
                     return (
-                      <div className="flex flex-row items-center p-[9px] cursor-pointer" onClick={() => setCurrentChat(item)}>
+                      <div
+                        className={`im-assiatant-chat-item flex flex-row items-center p-[9px] cursor-pointer relative ${currentChat?.chatId === item.chatId ? 'active' : ''}`}
+                        onClick={() => setCurrentChat(item)}
+                      >
                         <div className="w-[54px] h-[54px] rounded-full overflow-hidden mr-[0.5rem]">
                           {item.avatar ? (
                             <img className="w-full h-full" src={item.avatar} alt="" />
@@ -175,6 +180,7 @@ const ImAssistant = (props:ImAssistantProps) => {
                           )}
                         </div>
                         <div className="text-[16px] font-semibold flex-1 overflow-hidden whitespace-nowrap text-ellipsis">{item.name}</div>
+                        <div className="w-[24px] h-[24px] absolute right-[8px] bottom-[8px] rounded-full bg-[#00C73E] flex items-center justify-center text-white">{item.unreadCount}</div>
                       </div>
                     );
                   }}

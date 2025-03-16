@@ -1,3 +1,5 @@
+/* eslint-disable react/no-unused-prop-types */
+/* eslint-disable teactn/no-unused-prop-types */
 /* eslint-disable max-len */
 import React, { useState } from 'react';
 import { Tabs, type TabsProps } from 'antd';
@@ -7,8 +9,8 @@ import './setting.scss';
 interface SettingPanelProps {
   originSummaryPrompt: string;
   appendUnreadPrompt: string;
-  setAppendUnreadPrompt?: (value: string) => void;
   appendTodayPrompt: string;
+  setAppendUnreadPrompt?: (value: string) => void;
   setAppendTodayPrompt?: (value: string) => void;
 }
 const UnreadPrompt = (props: SettingPanelProps) => {
@@ -18,12 +20,12 @@ const UnreadPrompt = (props: SettingPanelProps) => {
     <div className="chat-ai-setting relative w-full h-full flex flex-col bg-white overflow-scroll">
       <h2 className="text-[14px] text-[#979797] mb-[12px]">提示词</h2>
       <h3>origin prompt</h3>
-      <div className="p-2 text-[14px] text-[#979797] border border-[#979797] rounded-[8px] h-auto">
+      <div className="p-2 text-[14px] text-[#979797] border border-[#979797] rounded-[8px] h-auto word-wrap break-all">
         {originSummaryPrompt}
       </div>
       <h3>append prompt</h3>
       <textarea
-        className="p-2 text-[14px] text-[#979797] h-[300px] border border-[#979797] rounded-[8px]"
+        className="p-2 text-[14px] text-[#979797] flex-shrink-0 h-[200px] border border-[#979797] rounded-[8px]"
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
       />
@@ -73,6 +75,7 @@ const SettingPanel = (props: SettingPanelProps) => {
     {
       key: '2',
       label: 'prompt 总结今日',
+      // eslint-disable-next-line react/jsx-props-no-spreading
       children: <TodayMessagePrompt {...props} />,
     },
   ];

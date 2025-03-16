@@ -211,6 +211,7 @@ export default function createConfig(
         RELEASE_DATETIME: Date.now(),
         TELEGRAM_API_ID: undefined,
         TELEGRAM_API_HASH: undefined,
+        OPEN_API_KEY: undefined,
         // eslint-disable-next-line no-null/no-null
         TEST_SESSION: null,
         IS_PACKAGED_ELECTRON: false,
