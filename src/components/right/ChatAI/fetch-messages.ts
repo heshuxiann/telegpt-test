@@ -1,5 +1,3 @@
-import { message } from 'antd';
-
 import type { ApiChat, ApiMessage } from '../../../api/types';
 
 import { callApi } from '../../../api/gramjs/worker/connector';
