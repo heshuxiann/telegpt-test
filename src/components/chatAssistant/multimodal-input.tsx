@@ -109,8 +109,7 @@ function PureMultimodalInput({
   };
 
   const submitForm = useCallback(() => {
-    window.history.replaceState({}, '', `/chat/${chatId}`);
-
+    // window.history.replaceState({}, '', `/chat/${chatId}`);
     handleSubmit(undefined, {
       experimental_attachments: attachments,
     });
@@ -122,6 +121,7 @@ function PureMultimodalInput({
     if (width && width > 768) {
       textareaRef.current?.focus();
     }
+  // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, [
     attachments,
     handleSubmit,
@@ -184,6 +184,7 @@ export const MultimodalInput = memo(
   (prevProps, nextProps) => {
     if (prevProps.input !== nextProps.input) return false;
     if (prevProps.isLoading !== nextProps.isLoading) return false;
+    if (prevProps.chatId !== nextProps.chatId) return false;
     if (!equal(prevProps.attachments, nextProps.attachments)) return false;
 
     return true;

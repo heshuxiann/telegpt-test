@@ -18,7 +18,6 @@ const UnreadPrompt = (props: SettingPanelProps) => {
   const [prompt, setPrompt] = useState<string>(appendUnreadPrompt);
   return (
     <div className="chat-ai-setting relative w-full h-full flex flex-col bg-white overflow-scroll">
-      <h2 className="text-[14px] text-[#979797] mb-[12px]">提示词</h2>
       <h3>origin prompt</h3>
       <div className="p-2 text-[14px] text-[#979797] border border-[#979797] rounded-[8px] h-auto word-wrap break-all">
         {originSummaryPrompt}

@@ -3,3 +3,16 @@
     border-radius: 12px;
     color: #fff;
 }
+.im-assistant-modal{
+    top: 5vh!important;
+    >div{
+        height: 100%;
+    }
+    .ant-modal-content{
+        padding: 0;
+        height: 100%;
+    }
+    .ant-modal-body{
+        height: 100%;
+    }
+}

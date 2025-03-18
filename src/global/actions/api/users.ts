@@ -9,6 +9,7 @@ import * as langProvider from '../../../util/oldLangProvider';
 import { throttle } from '../../../util/schedulers';
 import { getServerTime } from '../../../util/serverTime';
 import { callApi } from '../../../api/gramjs';
+import { CHATAI_STORE } from '../../../components/chatAssistant/store';
 import { isUserBot, isUserId } from '../../helpers';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
@@ -71,7 +72,6 @@ addActionHandler('loadFullUser', async (global, actions, payload): Promise<void>
   global = updateUserFullInfo(global, userId, result.fullInfo);
   global = updateUsers(global, buildCollectionByKey(result.users, 'id'));
   global = updateChats(global, buildCollectionByKey(result.chats, 'id'));
-
   setGlobal(global);
   if (withPhotos || (profilePhotos?.count && hasChangedPhoto)) {
     actions.loadMoreProfilePhotos({ peerId: userId, shouldInvalidateCache: true });
@@ -91,6 +91,16 @@ addActionHandler('loadUser', async (global, actions, payload): Promise<void> => 
   }
 
   const { users, userStatusesById } = result;
+
+  // add user to db
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  users.forEach((user) => {
+    CHATAI_STORE.UsersStore.addUser({
+      id: user.id,
+      name: `${user?.firstName || ''} ${user?.lastName || ''}`,
+      phoneNumber: user.phoneNumber,
+    });
+  });
 
   global = getGlobal();
   global = updateUsers(global, buildCollectionByKey(users, 'id'));
@@ -143,6 +153,23 @@ addActionHandler('loadContactList', async (global): Promise<void> => {
   const sortedUsers = contactList.users.sort((a, b) => (
     collator.compare(getCompareString(a), getCompareString(b))
   )).filter((user) => !user.isSelf);
+
+  // add contacts to db
+  sortedUsers.forEach((user) => {
+    CHATAI_STORE.ContactStore.addContact({
+      id: user.id,
+      name: `${user?.firstName || ''} ${user?.lastName || ''}`,
+      phoneNumber: user.phoneNumber,
+    });
+    CHATAI_STORE.UsersStore.updateUser(user.id, (oldValue) => {
+      return {
+        ...oldValue,
+        id: user.id,
+        name: `${user?.firstName || ''} ${user?.lastName || ''}`,
+        phoneNumber: user.phoneNumber,
+      };
+    });
+  });
 
   global = {
     ...global,

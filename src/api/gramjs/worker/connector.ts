@@ -1,5 +1,3 @@
-import { VectorStorage } from 'vector-storage';
-
 import type { Api } from '../../../lib/gramjs';
 import type { TypedBroadcastChannel } from '../../../util/multitab';
 import type {
@@ -17,6 +15,7 @@ import { getCurrentTabId, subscribeToMasterChange } from '../../../util/establis
 import generateUniqueId from '../../../util/generateUniqueId';
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
 import { IS_MULTITAB_SUPPORTED } from '../../../util/windowEnvironment';
+import vectorStore from '../../../components/chatAssistant/vector-store';
 
 type RequestState = {
   messageId: string;
@@ -31,7 +30,6 @@ const HEALTH_CHECK_MIN_DELAY = 5 * 1000; // 5 sec
 const NO_QUEUE_BEFORE_INIT = new Set(['destroy']);
 
 let worker: Worker | undefined;
-let vectorStore: VectorStorage<any>;
 
 const requestStates = new Map<string, RequestState>();
 const requestStatesByCallback = new Map<AnyToVoidFunction, RequestState>();
@@ -91,10 +89,6 @@ export function initApi(onUpdate: OnApiUpdate, initialArgs: ApiInitialArgs) {
   if (!isMasterTab) {
     initApiOnMasterTab(initialArgs);
     return Promise.resolve();
-  }
-  if (!vectorStore) {
-    // eslint-disable-next-line max-len
-    vectorStore = new VectorStorage({ openAIApiKey: process.env.OPEN_API_KEY });
   }
 
   if (!worker) {

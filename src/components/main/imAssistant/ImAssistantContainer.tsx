@@ -32,9 +32,12 @@ const ImAssistantContainer = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const orderedIds = useFolderManagerForOrderedIds(ALL_FOLDER_ID);
   const [chatList, setChatList] = useState<ImAssistantChat[]>([]);
+  const currentUser = global.currentUserId ? selectUser(global, global.currentUserId) : undefined;
   useEffect(() => {
     if (orderedIds?.length) {
       const list:ImAssistantChat[] = [];
+      // eslint-disable-next-line no-console
+      console.log(selectUser(global, '7024666635'));
       orderedIds.forEach((chatId) => {
         const chat = selectChat(global, chatId);
         const user = selectUser(global, chatId);
@@ -48,6 +51,7 @@ const ImAssistantContainer = () => {
         if (chat) {
           list.push({
             chatId,
+            chatType: isUserId(chatId) ? 'single' : 'group',
             name: chat.title,
             avatar: mediaData,
             avatarColor: peerColor,
@@ -104,7 +108,16 @@ const ImAssistantContainer = () => {
 
   useEffect(() => {
     if (containerRef.current) {
-      injectMessageAI(containerRef.current, { chatList, getRoomUnreadMessages, getRoomTodayMessage });
+      injectMessageAI(containerRef.current, {
+        chatList,
+        getRoomUnreadMessages,
+        getRoomTodayMessage,
+        currentUser: currentUser ? {
+          id: currentUser.id,
+          name: `${currentUser.firstName} ${currentUser.lastName}`,
+          phoneNumber: currentUser.phoneNumber,
+        } : undefined,
+      });
     }
     // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, [chatList]);
