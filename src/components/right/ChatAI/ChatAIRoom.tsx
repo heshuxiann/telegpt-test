@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { ApiMessage } from '../../../api/types/messages';
 import type { ThreadId } from '../../../types';
 
-import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
+import { CHATAI_STORE } from '../../chatAssistant/store';
 import { fetchChatUnreadMessage } from './fetch-messages';
 import { Messages } from './messages';
 import { MultimodalInput } from './multimodal-input';
@@ -59,7 +59,7 @@ const ChatAIRoom = (props: StateProps) => {
 
   useEffect(() => {
     if (chatId) {
-      CHATAI_IDB_STORE.get(chatId).then((localChatAiMessages = []) => {
+      CHATAI_STORE.MessageStore.getMessage(chatId).then((localChatAiMessages = []) => {
         // eslint-disable-next-line no-console
         console.log('localChatAiMessages', chatId, localChatAiMessages);
         setInitialMessages(localChatAiMessages as Array<Message>);
@@ -83,7 +83,7 @@ const ChatAIRoom = (props: StateProps) => {
   }, [chatId]);
   useEffect(() => {
     if (chatId && messages) {
-      CHATAI_IDB_STORE.set(chatId, messages);
+      CHATAI_STORE.MessageStore.addMessage(chatId, messages);
     }
   }, [chatId, messages]);
 

@@ -1,16 +1,12 @@
 /* eslint-disable max-len */
 import type { CSSProperties } from 'react';
-import React, { useEffect, useState } from 'react';
-import type { Message } from 'ai';
+import React, { useState } from 'react';
 import { Modal } from 'antd';
 import List from 'rc-virtual-list';
-import { v4 as uuidv4 } from 'uuid';
 
 import type { ApiMessage } from '../../api/types';
 
-import { CHATAI_IDB_STORE } from '../../util/browser/idb';
 import { Chat } from './chat';
-import { CHATAI_STORE } from './store';
 
 import './imAssistant.scss';
 
@@ -51,41 +47,6 @@ const ImAssistant = (props:ImAssistantProps) => {
   const [assiatantModalOpen, setAssiatantModalOpen] = useState(false);
 
   const [currentChat, setCurrentChat] = useState<ImAssistantChat>();
-
-  const [localChatAiMessages, setLocalChatAiMessages] = useState<Message[]>([]);
-  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
-
-  useEffect(() => {
-    if (currentChat) {
-      setLocalChatAiMessages([]);
-      // eslint-disable-next-line @typescript-eslint/no-shadow
-      CHATAI_IDB_STORE.get(currentChat?.chatId).then((localChatAiMessages = []) => {
-        setLocalChatAiMessages(localChatAiMessages as Array<Message>);
-      });
-      if (currentChat?.chatType === 'single') {
-        CHATAI_STORE.UsersStore.getUser(currentChat.chatId).then((userInfo) => {
-          if (userInfo) {
-            let content = `这是一个IM聊天室,你的名字是${userInfo.name},你的手机号是${userInfo.phoneNumber};`;
-            if (userInfo?.tags) {
-              content += `你的附加信息是${userInfo?.tags};`;
-            }
-            if (currentUser) {
-              content += `对方的名字是${currentUser.name},对方的手机号是${currentUser.phoneNumber}`;
-            }
-            setInitialMessages([{
-              id: uuidv4(),
-              content,
-              role: 'system',
-              annotations: [{
-                isAuxiliary: true,
-              }],
-            }]);
-          }
-        });
-      }
-    }
-    // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
-  }, [currentChat]);
 
   return (
     <div className="im-assistant-main">
@@ -136,8 +97,7 @@ const ImAssistant = (props:ImAssistantProps) => {
             {currentChat && (
               <div className="im-assistant-right flex-1 flex flex-col" style={{ background: 'linear-gradient(135deg, rgba(172, 182, 229, 0.5) 10%, rgba(116, 235, 213, 0.5) 90%)' } as CSSProperties}>
                 <Chat
-                  initialMessages={initialMessages}
-                  localChatAiMessages={localChatAiMessages}
+                  currentUser={currentUser}
                   currentChat={currentChat}
                   getRoomTodayMessage={getRoomTodayMessage}
                   getRoomUnreadMessages={getRoomUnreadMessages}

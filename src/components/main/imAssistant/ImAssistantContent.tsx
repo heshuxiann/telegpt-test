@@ -15,7 +15,7 @@ import { type ApiMessage, MAIN_THREAD_ID } from '../../../api/types/messages';
 
 import { ALL_FOLDER_ID } from '../../../config';
 import { selectChat } from '../../../global/selectors';
-import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
+import { CHATAI_STORE } from '../../chatAssistant/store';
 
 import { useFolderManagerForOrderedIds } from '../../../hooks/useFolderManager';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -52,7 +52,7 @@ const ImAssistantContent = forwardRef<ImAssistantContentRef, IProps>(
     }));
 
     useEffect(() => {
-      CHATAI_IDB_STORE.get('777888').then((localChatAiMessages = []) => {
+      CHATAI_STORE.MessageStore.getMessage('777888').then((localChatAiMessages = []) => {
         setLocalChatAiMessages(localChatAiMessages as Array<Message>);
       });
       if (orderedIds) {
@@ -63,7 +63,7 @@ const ImAssistantContent = forwardRef<ImAssistantContentRef, IProps>(
 
     useEffect(() => {
       if (messages.length > 0) {
-        CHATAI_IDB_STORE.set('777888', messages);
+        CHATAI_STORE.MessageStore.addMessage('777888', messages);
       }
     }, [messages]);
     const getAllUnreadMessages = async () => {

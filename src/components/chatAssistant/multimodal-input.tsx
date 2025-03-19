@@ -5,7 +5,7 @@
 /* eslint-disable react/jsx-no-bind */
 /* eslint-disable no-console */
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   type Dispatch,
   memo,
@@ -17,6 +17,7 @@ import {
 import type {
   Attachment,
   ChatRequestOptions,
+  CreateMessage,
   Message,
 } from 'ai';
 import cx from 'classnames';
@@ -25,6 +26,7 @@ import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
 import { sanitizeUIMessages } from '../../lib/utils';
+import vectorStore from './vector-store';
 
 import { ArrowUpIcon, StopIcon } from '../right/ChatAI/icons';
 import { PreviewAttachment } from '../right/ChatAI/preview-attachment';
@@ -41,6 +43,7 @@ function PureMultimodalInput({
   setAttachments,
   setMessages,
   handleSubmit,
+  append,
   className,
 }: {
   chatId: string;
@@ -57,6 +60,7 @@ function PureMultimodalInput({
     },
     chatRequestOptions?: ChatRequestOptions,
   ) => void;
+  append:(message: Message | CreateMessage, chatRequestOptions?: ChatRequestOptions) => Promise<string | null | undefined>;
   className?: string;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -86,13 +90,15 @@ function PureMultimodalInput({
     'input',
     '',
   );
+  const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
     if (textareaRef.current) {
       const domValue = textareaRef.current.value;
       // Prefer DOM value over localStorage to handle hydration
       const finalValue = domValue || localStorageInput || '';
-      setInput(finalValue);
+      // setInput(finalValue);
+      setInputValue(finalValue);
       adjustHeight();
     }
     // Only run once after hydration
@@ -104,18 +110,51 @@ function PureMultimodalInput({
   }, [input, setLocalStorageInput]);
 
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(event.target.value);
+    // setInput(event.target.value);
+    setInputValue(event.target.value);
     adjustHeight();
   };
 
-  const submitForm = useCallback(() => {
+  const submitForm = useCallback(async () => {
     // window.history.replaceState({}, '', `/chat/${chatId}`);
-    handleSubmit(undefined, {
-      experimental_attachments: attachments,
+    // handleSubmit(undefined, {
+    //   experimental_attachments: attachments,
+    // });
+    const vectorSearchResults = await vectorStore.similaritySearch({
+      query: `${inputValue}`,
+      k: 100,
+      filterOptions: {
+        include: {
+          metadata: {
+            category: chatId,
+          },
+        },
+      },
     });
-
+    if (vectorSearchResults.similarItems) {
+      let matchContent = '';
+      vectorSearchResults.similarItems.forEach((item) => {
+        matchContent += `${item.text}\n`;
+      });
+      setMessages((messages) => {
+        return [...messages, {
+          role: 'system',
+          content: matchContent,
+          id: Math.random().toString(),
+          annotations: [{
+            isAuxiliary: true,
+          }],
+        }];
+      });
+    }
+    append({
+      role: 'user',
+      content: inputValue,
+      id: Math.random().toString(),
+    });
     setAttachments([]);
     setLocalStorageInput('');
+    setInputValue('');
     resetHeight();
 
     if (width && width > 768) {
@@ -129,6 +168,7 @@ function PureMultimodalInput({
     setLocalStorageInput,
     width,
     chatId,
+    inputValue,
   ]);
 
   return (
@@ -144,7 +184,7 @@ function PureMultimodalInput({
       <Textarea
         ref={textareaRef}
         placeholder="Send a message..."
-        value={input}
+        value={inputValue}
         onChange={handleInput}
         className={cx(
           'min-h-[24px] h-[76px] overflow-hidden resize-none rounded-2xl !text-base bg-muted pb-10 dark:border-zinc-700',

@@ -95,10 +95,13 @@ addActionHandler('loadUser', async (global, actions, payload): Promise<void> => 
   // add user to db
   // eslint-disable-next-line @typescript-eslint/no-shadow
   users.forEach((user) => {
-    CHATAI_STORE.UsersStore.addUser({
-      id: user.id,
-      name: `${user?.firstName || ''} ${user?.lastName || ''}`,
-      phoneNumber: user.phoneNumber,
+    CHATAI_STORE.UsersStore.updateUser(user.id, (oldValue) => {
+      return {
+        ...oldValue,
+        id: user.id,
+        name: `${user?.firstName || ''} ${user?.lastName || ''}`,
+        phoneNumber: user.phoneNumber,
+      };
     });
   });
 

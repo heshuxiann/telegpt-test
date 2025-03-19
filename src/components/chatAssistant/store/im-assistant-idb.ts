@@ -67,3 +67,4 @@ class IdbStore {
 
 export const CONTACT_IDB_STORE = new IdbStore('chatai-contacts');
 export const USERINFO_IDB_STORE = new IdbStore('chatai-users');
+export const CHAT_IDB_STORE = new IdbStore('chatai-chats');

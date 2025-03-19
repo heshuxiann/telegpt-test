@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import type { Attachment, Message } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,13 +10,17 @@ import type { IFetchUnreadMessage, ImAssistantChat } from './im-assistant';
 import TagsModal from './modal/tagsModal';
 import { MultimodalInput } from './multimodal-input';
 import SettingPanel from './setting-panel';
+import { CHATAI_STORE } from './store';
 
 import { Messages } from '../right/ChatAI/messages';
 
 interface IProps {
   currentChat: ImAssistantChat;
-  initialMessages?:Message[];
-  localChatAiMessages?:Message[];
+  currentUser?:{
+    id:string;
+    name:string;
+    phoneNumber:string;
+  } | undefined;
   getRoomUnreadMessages:(params:IFetchUnreadMessage)=>Promise<ApiMessage[]>;
   getRoomTodayMessage:(chatId:string)=>Promise<ApiMessage[]>;
 }
@@ -35,12 +39,14 @@ const originSummaryPrompt = `请总结上面的聊天内容,按照下面的 json
               ${JSON.stringify(summaryData)};\n 主要讨论的主题放在mainTopic数组中,待处理事项放在pendingMatters数组中,被@的消息总结放在menssionMessage数组中(传入的消息中hasUnreadMention表示被@了),垃圾消息放在garbageMessage数组中;对应的消息都以字符串的形式放入分类的数组中,range中的startTime是总结的第一条消息的时间(time字段),range中的endTime是总结的最后一条消息的时间(time字段),summaryCount是总结的消息数量`;
 export function Chat(props:IProps) {
   const {
-    currentChat, initialMessages, localChatAiMessages, getRoomUnreadMessages, getRoomTodayMessage,
+    currentChat, getRoomUnreadMessages, getRoomTodayMessage, currentUser,
   } = props;
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const [appendUnreadPrompt, setAppendUnreadPrompt] = useState<string>('');
   const [appendTodayPrompt, setAppendTodayPrompt] = useState<string>('');
   const [tagsModalVisable, setTagsModalVisable] = useState<boolean>(false);
+  const [localChatAiMessages, setLocalChatAiMessages] = useState<Message[]>([]);
+  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
   const {
     messages, handleSubmit, setMessages, input, setInput, append, isLoading, stop,
   } = useChat({
@@ -50,7 +56,41 @@ export function Chat(props:IProps) {
     initialMessages,
     experimental_throttle: 100,
   });
-
+  useEffect(() => {
+    if (currentChat) {
+      // eslint-disable-next-line @typescript-eslint/no-shadow
+      CHATAI_STORE.MessageStore.getMessage(currentChat?.chatId).then((localChatAiMessages = []) => {
+        setLocalChatAiMessages(localChatAiMessages as Array<Message>);
+      });
+      if (currentChat?.chatType === 'single') {
+        CHATAI_STORE.UsersStore.getUser(currentChat.chatId).then((userInfo) => {
+          if (userInfo) {
+            let content = `这是一个IM聊天室,你的名字是${userInfo.name},你的手机号是${userInfo.phoneNumber};`;
+            if (userInfo?.tags) {
+              content += `你的附加信息是${userInfo?.tags};`;
+            }
+            if (currentUser) {
+              content += `对方的名字是${currentUser.name},对方的手机号是${currentUser.phoneNumber}`;
+            }
+            setInitialMessages([{
+              id: uuidv4(),
+              content,
+              role: 'system',
+              annotations: [{
+                isAuxiliary: true,
+              }],
+            }]);
+          }
+        });
+      }
+    }
+  }, [currentChat, currentUser]);
+  useEffect(() => {
+    if (messages.length && currentChat?.chatId) {
+      CHATAI_STORE.MessageStore.addMessage(currentChat?.chatId as string, [...localChatAiMessages || [], ...messages]);
+    }
+  // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
+  }, [messages, currentChat]);
   async function handleSummaryUnreadMessage() {
     const unreadMessage = await getRoomUnreadMessages({
       chatId: currentChat?.chatId as string,
@@ -164,6 +204,7 @@ export function Chat(props:IProps) {
                 attachments={attachments}
                 setAttachments={setAttachments}
                 setMessages={setMessages}
+                append={append}
               />
             </form>
           </div>

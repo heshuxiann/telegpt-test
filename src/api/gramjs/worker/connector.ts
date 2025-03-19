@@ -286,7 +286,8 @@ function sendToAIAgent(data:ApiUpdate) {
       const messageContent = data.message.content.text.text;
       vectorStore.addText(JSON.stringify({
         chatId,
-        time: date,
+        timestamp: date,
+        date: date ? (new Date(date * 1000)).toISOString().split('T')[0] : '0',
         senderId,
         messageContent,
         messageId: id,

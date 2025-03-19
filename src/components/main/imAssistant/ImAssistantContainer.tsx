@@ -105,7 +105,6 @@ const ImAssistantContainer = () => {
     }
     return [];
   }
-
   useEffect(() => {
     if (containerRef.current) {
       injectMessageAI(containerRef.current, {

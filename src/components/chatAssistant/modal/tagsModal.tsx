@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Button, Form, Input, Modal,
-} from 'antd';
+import { Form, Input, Modal } from 'antd';
 
 import { CHATAI_STORE } from '../store';
 
