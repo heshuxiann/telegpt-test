@@ -1,0 +1,26 @@
+.response-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  .thought-chain-container {
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #f5f5f5;
+    img {
+      width: 18px;
+      height: 18px;
+    }
+    span {
+      font-size: 12px;
+    }
+  }
+  .chat-content {
+    font-size: 14px;
+    background-color: #ffffff;
+    padding: 0.3125rem 0.5rem 0.375rem;
+    font-size: var(--message-text-size, 1rem);
+    border-radius: var(--border-radius-messages-small);
+    width: fit-content;
+  }
+}

@@ -4,15 +4,15 @@ import { useChat } from '@ai-sdk/react';
 import type { Attachment, Message } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 
-import type { ApiMessage, ApiMessageEntityMentionName } from '../../api/types';
+import type { ApiMessage, ApiMessageEntityMentionName } from '../../../api/types';
 import type { IFetchUnreadMessage, ImAssistantChat } from './im-assistant';
 
-import TagsModal from './modal/tagsModal';
+import TagsModal from '../modal/tagsModal';
+import SettingPanel from '../setting-panel';
+import { CHATAI_STORE } from '../store';
 import { MultimodalInput } from './multimodal-input';
-import SettingPanel from './setting-panel';
-import { CHATAI_STORE } from './store';
 
-import { Messages } from '../right/ChatAI/messages';
+import { Messages } from '../../right/ChatAI/messages';
 
 interface IProps {
   currentChat: ImAssistantChat;

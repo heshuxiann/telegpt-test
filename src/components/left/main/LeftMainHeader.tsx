@@ -38,6 +38,7 @@ import useLeftHeaderButtonRtlForumTransition from './hooks/useLeftHeaderButtonRt
 
 import Icon from '../../common/icons/Icon';
 import PeerChip from '../../common/PeerChip';
+import GlobalSummaryRoot from '../../main/imAssistant/GlobalSummaryRoot';
 import StoryToggler from '../../story/StoryToggler';
 import Button from '../../ui/Button';
 import DropdownMenu from '../../ui/DropdownMenu';
@@ -301,6 +302,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
             canShow={withStoryToggler}
           />
         </SearchInput>
+        <GlobalSummaryRoot />
         {isCurrentUserPremium && <StatusButton />}
         {hasPasscode && (
           <Button

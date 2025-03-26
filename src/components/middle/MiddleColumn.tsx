@@ -105,7 +105,6 @@ import styles from './MiddleColumn.module.scss';
 interface OwnProps {
   leftColumnRef: React.RefObject<HTMLDivElement>;
   isMobile?: boolean;
-  isSerenaModalOpen?: boolean;
 }
 
 type StateProps = {
@@ -214,7 +213,6 @@ function MiddleColumn({
   canShowOpenChatButton,
   isContactRequirePremium,
   topics,
-  isSerenaModalOpen,
 }: OwnProps & StateProps) {
   const {
     openChat,

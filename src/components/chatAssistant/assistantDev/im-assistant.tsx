@@ -4,13 +4,13 @@ import React, { useState } from 'react';
 import { Modal } from 'antd';
 import List from 'rc-virtual-list';
 
-import type { ApiMessage } from '../../api/types';
+import type { ApiMessage } from '../../../api/types';
 
 import { Chat } from './chat';
 
 import './imAssistant.scss';
 
-import SerenaPath from '../../assets/serena.png';
+import SerenaPath from '../assets/serena.png';
 
 export interface IFetchUnreadMessage {
   chatId:string;

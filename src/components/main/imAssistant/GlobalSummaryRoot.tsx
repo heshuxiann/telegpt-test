@@ -10,26 +10,23 @@ import { withGlobal } from '../../../global';
 
 import type { ApiChat } from '../../../api/types';
 import type { ApiMessage } from '../../../api/types/messages';
-import type { ImAssistantContentRef } from './ImAssistantContent';
+import type { GlobalSummaryRef } from '../../chatAssistant/globalSummary/global-summary';
 
 import eventEmitter, { Actions } from '../../../lib/EventEmitter';
 import { injectComponent } from '../../../lib/injectComponent';
 import { selectChat } from '../../../global/selectors';
+import GlobalSummary from '../../chatAssistant/globalSummary/global-summary';
 
 import useLastCallback from '../../../hooks/useLastCallback';
-
-import ImAssistantContent from './ImAssistantContent';
-
-import './ImAssistant.scss';
 
 interface StateProps {
   memoSelectChat:(chatId:string) => ApiChat | undefined;
 }
 
-const injectMessageAI = injectComponent(ImAssistantContent);
-const ImAssistant = (props:StateProps) => {
+const injectMessageAI = injectComponent(GlobalSummary);
+const GlobalSummaryRoot = (props:StateProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [instance, setInstance] = useState<ImAssistantContentRef | null>(null);
+  const [instance, setInstance] = useState<GlobalSummaryRef | null>(null);
   useEffect(() => {
     if (containerRef.current) {
       injectMessageAI(containerRef.current, { ...props }).then(setInstance);
@@ -52,7 +49,7 @@ const ImAssistant = (props:StateProps) => {
     }
   });
   return (
-    <div className="im-assistant-container w-full h-full" ref={containerRef} />
+    <div className="w-[40px] h-[40px] ml-[0.625rem]" ref={containerRef} />
   );
 };
 
@@ -65,4 +62,4 @@ export default memo(withGlobal(
       memoSelectChat,
     };
   },
-)(ImAssistant));
+)(GlobalSummaryRoot));

@@ -39,7 +39,6 @@ import Loading from '../../ui/Loading';
 import Archive from './Archive';
 import Chat from './Chat';
 import EmptyFolder from './EmptyFolder';
-// import Serena from './Serena';
 import UnconfirmedSession from './UnconfirmedSession';
 
 type OwnProps = {

@@ -10,6 +10,8 @@ export function injectComponent<T extends {}>(Component: React.ComponentType<T>)
 
     if (!domRoot.$aiRoot) {
       const mountNode = document.createElement('div');
+      mountNode.style.width = '100%';
+      mountNode.style.height = '100%';
       domRoot.appendChild(mountNode);
 
       const root = createRoot(mountNode);

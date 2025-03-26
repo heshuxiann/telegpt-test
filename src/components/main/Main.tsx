@@ -141,7 +141,6 @@ type StateProps = {
   noRightColumnAnimation?: boolean;
   withInterfaceAnimations?: boolean;
   isSynced?: boolean;
-  isSerenaModalOpen?: boolean;
 };
 
 const APP_OUTDATED_TIMEOUT_MS = 5 * 60 * 1000; // 5 min
@@ -195,7 +194,6 @@ const Main = ({
   noRightColumnAnimation,
   isSynced,
   currentUserId,
-  isSerenaModalOpen,
 }: OwnProps & StateProps) => {
   const {
     initMain,
@@ -542,7 +540,7 @@ const Main = ({
   return (
     <div ref={containerRef} id="Main" className={className}>
       <LeftColumn ref={leftColumnRef} />
-      <MiddleColumn leftColumnRef={leftColumnRef} isMobile={isMobile} isSerenaModalOpen={isSerenaModalOpen} />
+      <MiddleColumn leftColumnRef={leftColumnRef} isMobile={isMobile} />
       <RightColumn isMobile={isMobile} />
       <MediaViewer isOpen={isMediaViewerOpen} />
       <StoryViewer isOpen={isStoryViewerOpen} />
@@ -633,7 +631,6 @@ export default memo(withGlobal<OwnProps>(
       payment,
       limitReachedModal,
       deleteFolderDialogModal,
-      isSerenaModalOpen,
     } = selectTabState(global);
 
     const gameMessage = openedGame && selectChatMessage(global, openedGame.chatId, openedGame.messageId);
@@ -688,7 +685,6 @@ export default memo(withGlobal<OwnProps>(
       requestedDraft,
       noRightColumnAnimation,
       isSynced: global.isSynced,
-      isSerenaModalOpen,
     };
   },
 )(Main));

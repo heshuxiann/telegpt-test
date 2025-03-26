@@ -742,12 +742,6 @@ export default memo(withGlobal<OwnProps>(
     }
 
     const messageIds = selectCurrentMessageIds(global, chatId, threadId, type);
-    // eslint-disable-next-line no-console
-    console.log(messageIds, '------messageIds');
-    // eslint-disable-next-line no-console
-    console.log(chat, '------chat');
-    // eslint-disable-next-line no-console
-    console.log(type, '-------type');
     const messagesById = type === 'scheduled'
       ? selectChatScheduledMessages(global, chatId)
       : selectChatMessages(global, chatId);

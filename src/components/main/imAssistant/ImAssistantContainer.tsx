@@ -4,7 +4,7 @@ import React, {
 } from '../../../lib/teact/teact';
 import { getGlobal } from '../../../global';
 
-import type { IFetchUnreadMessage, ImAssistantChat } from '../../chatAssistant/im-assistant';
+import type { IFetchUnreadMessage, ImAssistantChat } from '../../chatAssistant/assistantDev/im-assistant';
 import { type ApiMessage, type ApiPeer, MAIN_THREAD_ID } from '../../../api/types';
 
 import { ALL_FOLDER_ID } from '../../../config';
@@ -15,7 +15,7 @@ import {
 } from '../../../global/selectors';
 import * as mediaLoader from '../../../util/mediaLoader';
 import { getFirstLetters } from '../../../util/textFormat';
-import ImAssistant from '../../chatAssistant/im-assistant';
+import ImAssistant from '../../chatAssistant/assistantDev/im-assistant';
 
 import { useFolderManagerForOrderedIds } from '../../../hooks/useFolderManager';
 
@@ -36,8 +36,6 @@ const ImAssistantContainer = () => {
   useEffect(() => {
     if (orderedIds?.length) {
       const list:ImAssistantChat[] = [];
-      // eslint-disable-next-line no-console
-      console.log(selectUser(global, '7024666635'));
       orderedIds.forEach((chatId) => {
         const chat = selectChat(global, chatId);
         const user = selectUser(global, chatId);
