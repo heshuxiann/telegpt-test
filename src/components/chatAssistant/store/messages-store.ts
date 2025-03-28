@@ -1,24 +1,29 @@
-import type { Message } from 'ai';
+/* eslint-disable no-null/no-null */
+/* eslint-disable no-console */
+import type { Message, UIMessage } from 'ai';
 
-// import type { UIMessage } from 'ai';
-import { CHAT_IDB_STORE } from './im-assistant-idb';
+interface StoreMessage extends Message {
+  chatId: string;
+  timestamp: number;
+}
+// import { CHAT_IDB_STORE } from './im-assistant-idb';
 
 // // const isAuxiliary = (message:Message) => {
 // //   // eslint-disable-next-line max-len
 // //   return message?.annotations?.some((item) => item && typeof item === 'object' && 'isAuxiliary' in item && item.isAuxiliary === true) ?? false;
 // // };
-export const addMessage = (chatId:string, messages:Message[]) => {
-  // const filterMessage = messages.filter((item) => !isAuxiliary(item));
-  const uniqueArr = [...new Map(messages.map((item) => [item.id, item])).values()];
-  CHAT_IDB_STORE.set(chatId, uniqueArr);
-};
-export const getMessage = (chatId: string):Promise<Message[] | undefined> => {
-  return CHAT_IDB_STORE.get(chatId);
-};
+// export const addMessage = (chatId:string, messages:Message[]) => {
+//   // const filterMessage = messages.filter((item) => !isAuxiliary(item));
+//   const uniqueArr = [...new Map(messages.map((item) => [item.id, item])).values()];
+//   CHAT_IDB_STORE.set(chatId, uniqueArr);
+// };
+// export const getMessage = (chatId: string):Promise<Message[] | undefined> => {
+//   return CHAT_IDB_STORE.get(chatId);
+// };
 
-export const updateMessage = (chatId: string, updater: (oldValue: Message[] | undefined) => Message[]) => {
-  CHAT_IDB_STORE.update(chatId, updater);
-};
+// export const updateMessage = (chatId: string, updater: (oldValue: Message[] | undefined) => Message[]) => {
+//   CHAT_IDB_STORE.update(chatId, updater);
+// };
 // interface Message extends UIMessage {
 //   chatId: string;
 // }
@@ -31,150 +36,126 @@ export const updateMessage = (chatId: string, updater: (oldValue: Message[] | un
 //   return copyMessages;
 // }
 
-// class MessageStorage {
-//   private dbName: string;
+class MessageStore {
+  // eslint-disable-next-line no-null/no-null
+  private static db: IDBDatabase | null = null;
 
-//   private storeName: string;
+  private static DB_NAME = 'chat-ai-message';
 
-//   // eslint-disable-next-line no-null/no-null
-//   private db: IDBDatabase | null = null;
+  private static STORE_NAME = 'messages';
 
-//   constructor(dbName: string = 'chat-ai-message', storeName: string = 'messages') {
-//     this.dbName = dbName;
-//     this.storeName = storeName;
-//     this.openDb();
-//   }
+  private static VERSION = 1;
 
-//   // 打开数据库
-//   private openDb(): void {
-//     const request = indexedDB.open(this.dbName, 1);
+  /** 📌 获取数据库实例（单例模式） */
+  static getDB(): Promise<IDBDatabase> {
+    if (this.db) {
+      return Promise.resolve(this.db); // 确保返回的是 Promise<IDBDatabase>
+    }
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.DB_NAME, this.VERSION);
 
-//     request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-//       const db = (event.target as IDBRequest).result;
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        if (!db.objectStoreNames.contains(this.STORE_NAME)) {
+          const store = db.createObjectStore(this.STORE_NAME, { keyPath: 'id' });
 
-//       if (!db.objectStoreNames.contains(this.storeName)) {
-//         const store = db.createObjectStore(this.storeName, { keyPath: 'id' });
-//         store.createIndex('chatId', 'chatId', { unique: false });
-//       }
-//     };
+          // 🔥 创建索引（支持多列查询）
+          store.createIndex('id', 'id', { unique: false });
+          store.createIndex('chatId_timestamp', ['chatId', 'timestamp'], { unique: false });
+        }
+      };
 
-//     request.onerror = (event: Event) => {
-//       console.error('Database error:', (event.target as IDBRequest).error);
-//     };
+      request.onsuccess = () => {
+        this.db = request.result;
+        resolve(this.db);
+      };
 
-//     request.onsuccess = (event: Event) => {
-//       this.db = (event.target as IDBRequest).result;
-//       console.log('Database opened successfully');
-//     };
-//   }
+      request.onerror = () => reject(new Error('Failed to open database'));
+    });
+  }
 
-//   // 存储消息
-//   public storeMessage(message:Message): void {
-//     if (!this.db) {
-//       console.error('Database is not initialized yet');
-//       return;
-//     }
+  static async storeMessages(messages: StoreMessage[]): Promise<void> {
+    const db = await this.getDB();
 
-//     const transaction = this.db.transaction([this.storeName], 'readwrite');
-//     const store = transaction.objectStore(this.storeName);
+    const transaction = db.transaction([this.STORE_NAME], 'readwrite');
+    const store = transaction.objectStore(this.STORE_NAME);
 
-//     const request = store.put(message);
+    messages.forEach((message) => {
+      const request = store.put(message);
 
-//     request.onsuccess = () => {
-//       console.log('Message stored successfully');
-//     };
+      request.onsuccess = () => {
+        console.log(`Message ${message.id} stored successfully`);
+      };
 
-//     request.onerror = (event: Event) => {
-//       console.error('Error storing message:', (event.target as IDBRequest).error);
-//     };
-//   }
+      request.onerror = (event: Event) => {
+        console.error(`Error storing message ${message.id}:`, (event.target as IDBRequest).error);
+      };
+    });
 
-//   public storeMessages(messages: Message[]): void {
-//     if (!this.db) {
-//       console.error('Database is not initialized yet');
-//       return;
-//     }
+    transaction.oncomplete = () => {
+      console.log('All messages stored successfully');
+    };
 
-//     const transaction = this.db.transaction([this.storeName], 'readwrite');
-//     const store = transaction.objectStore(this.storeName);
+    transaction.onerror = (event: Event) => {
+      console.error('Error storing messages:', (event.target as IDBRequest).error);
+    };
+  }
 
-//     messages.forEach((message) => {
-//       const request = store.put(message);
+  /** 📌 分页查询某个房间的消息（按 `time` 倒序） */
+  static async getMessages(
+    chatId: string,
+    lastTime: number | undefined,
+    pageSize: number,
+  ): Promise<{ messages: any[]; lastTime: number | undefined }> {
+    const db = await this.getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(this.STORE_NAME, 'readonly');
+      const store = tx.objectStore(this.STORE_NAME);
+      const index = store.index('chatId_timestamp');
 
-//       request.onsuccess = () => {
-//         console.log(`Message ${message.id} stored successfully`);
-//       };
+      // 🔥 查询指定房间的消息，按 `time` 倒序
+      const range = lastTime !== undefined
+        ? IDBKeyRange.bound([chatId, 0], [chatId, lastTime], false, true) // 限制 chatId，从 lastTime 之前查
+        : IDBKeyRange.bound([chatId, 0], [chatId, Number.MAX_SAFE_INTEGER]); // 查询全部
 
-//       request.onerror = (event: Event) => {
-//         console.error(`Error storing message ${message.id}:`, (event.target as IDBRequest).error);
-//       };
-//     });
+      const request = index.openCursor(range, 'prev'); // 🔥 逆序取数据
+      const messages: any[] = [];
+      let count = 0;
+      let newLastTime: number | undefined;
 
-//     transaction.oncomplete = () => {
-//       console.log('All messages stored successfully');
-//     };
+      request.onsuccess = (event) => {
+        const cursor = (event.target as IDBRequest).result;
+        if (cursor && count < pageSize) {
+          messages.unshift(cursor.value);
+          newLastTime = cursor.value.time; // 记录最后一条的时间
+          count++;
+          cursor.continue();
+        } else {
+          resolve({ messages, lastTime: newLastTime });
+        }
+      };
 
-//     transaction.onerror = (event: Event) => {
-//       console.error('Error storing messages:', (event.target as IDBRequest).error);
-//     };
-//   }
+      request.onerror = () => reject(new Error('Failed to fetch messages'));
+    });
+  }
+}
 
-//   // 获取单个消息
-//   public getMessage(chatId: string, id: string): void {
-//     if (!this.db) {
-//       console.error('Database is not initialized yet');
-//       return;
-//     }
+export function parseMessage2StoreMessage(chatId: string, messages: Message[]):StoreMessage[] {
+  const copyedMessages = JSON.parse(JSON.stringify(messages));
+  copyedMessages.forEach((message:Message) => {
+    (message as StoreMessage).chatId = chatId;
+    (message as StoreMessage).timestamp = new Date(message.createdAt as Date).getTime();
+  });
+  return copyedMessages as StoreMessage[];
+}
 
-//     const transaction = this.db.transaction([this.storeName], 'readonly');
-//     const store = transaction.objectStore(this.storeName);
+export function parseStoreMessage2Message(messages: StoreMessage[]):Message[] {
+  const copyedMessages = JSON.parse(JSON.stringify(messages));
+  copyedMessages.forEach((message:StoreMessage) => {
+    delete (message as any).chatId;
+    delete (message as any).timestamp;
+  });
+  return copyedMessages as Message[];
+}
 
-//     const request = store.get(id);
-
-//     request.onsuccess = (event: Event) => {
-//       const message = (event.target as IDBRequest).result;
-//       if (message && message.chatId === chatId) {
-//         console.log('Message found:', message);
-//       } else {
-//         console.log('Message not found or chatId mismatch');
-//       }
-//     };
-
-//     request.onerror = (event: Event) => {
-//       console.error('Error fetching message:', (event.target as IDBRequest).error);
-//     };
-//   }
-
-//   // 获取某个 chatId 下的所有消息
-//   public getMessagesByChatId(chatId: string): void {
-//     if (!this.db) {
-//       console.error('Database is not initialized yet');
-//       return;
-//     }
-
-//     const transaction = this.db.transaction([this.storeName], 'readonly');
-//     const store = transaction.objectStore(this.storeName);
-//     const index = store.index('chatId');
-
-//     const request = index.openCursor(IDBKeyRange.only(chatId));
-
-//     const messages: Message[] = [];
-
-//     request.onsuccess = (event: Event) => {
-//       const cursor = (event.target as IDBRequest).result;
-//       if (cursor) {
-//         messages.push(cursor.value);
-//         cursor.continue();
-//       } else {
-//         console.log('Messages for chatId:', chatId, messages);
-//       }
-//     };
-
-//     request.onerror = (event: Event) => {
-//       console.error('Error fetching messages by chatId:', (event.target as IDBRequest).error);
-//     };
-//   }
-// }
-
-// const MessageStore = new MessageStorage();
-// export default MessageStore;
+export default MessageStore;

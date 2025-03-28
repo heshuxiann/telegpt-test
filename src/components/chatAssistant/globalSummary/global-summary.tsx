@@ -1,8 +1,9 @@
+/* eslint-disable no-null/no-null */
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import React, {
-  forwardRef, useEffect, useImperativeHandle, useState,
+  forwardRef, useEffect, useImperativeHandle, useRef, useState,
 } from 'react';
 import { useChat } from '@ai-sdk/react';
 import type { Attachment, Message } from 'ai';
@@ -22,6 +23,7 @@ import { CloseIcon } from '../icons';
 import { Messages } from '../messages';
 import MessagePanel from '../rightPanel/message-panel';
 import { CHATAI_STORE, GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME } from '../store';
+import MessageStore, { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
 
 import './global-summary.scss';
@@ -76,6 +78,9 @@ const SUMMARY_INTERVAL = 1000 * 60 * 60;
 const GlobalSummary = forwardRef<GlobalSummaryRef>(
   (_, ref) => {
     const global = getGlobal();
+    const messageContainerRef = useRef<HTMLDivElement>(null);
+    const sentinelTopRef = useRef<HTMLDivElement>(null);
+    const sentinelBottomRef = useRef<HTMLDivElement>(null);
     const [pendingSummaryMessages, setPendingSummaryMessages] = useState<Record<string, ApiMessage[]>>({});
     const [localChatAiMessages, setLocalChatAiMessages] = useState<Message[]>([]);
     const [summaryModalVisible, setSummaryModalVisible] = useState(false);
@@ -93,8 +98,13 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
 
     useEffect(() => {
       CHATAI_STORE.GENERAL_IDB_STORE.set(GLOBAL_SUMMARY_READ_TIME, new Date().getTime());
-      CHATAI_STORE.MessageStore.getMessage(GLOBAL_SUMMARY_CHATID).then((localChatAiMessages) => {
-        setLocalChatAiMessages(localChatAiMessages || []);
+      MessageStore.getMessages(GLOBAL_SUMMARY_CHATID, undefined, 10)?.then((res) => {
+        // eslint-disable-next-line no-console
+        console.log(res, '-----本地消息');
+        if (res.messages) {
+          const localChatAiMessages = parseStoreMessage2Message(res.messages);
+          setLocalChatAiMessages(localChatAiMessages);
+        }
       });
       const interval = setInterval(() => {
         startSummary(pendingSummaryMessages);
@@ -108,9 +118,10 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
 
     useEffect(() => {
       if (messages.length > 0) {
-        CHATAI_STORE.MessageStore.addMessage(GLOBAL_SUMMARY_CHATID, [...localChatAiMessages, ...messages]);
+        const parsedMessage = parseMessage2StoreMessage(GLOBAL_SUMMARY_CHATID, messages);
+        MessageStore.storeMessages([...parsedMessage]);
       }
-    }, [messages, localChatAiMessages]);
+    }, [messages]);
 
     const initUnSummaryMessage = async () => {
       const globalSummaryLastTime:number | undefined = await CHATAI_STORE.GENERAL_IDB_STORE.get(GLOBAL_SUMMARY_LAST_TIME);
@@ -278,6 +289,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       }
       CHATAI_STORE.GENERAL_IDB_STORE.set(GLOBAL_SUMMARY_READ_TIME, new Date().getTime());
     };
+
     return (
       <>
         <button className="w-full h-full flex justify-center items-center" onClick={openGlobalSummaryModal}>
@@ -294,7 +306,11 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             </div>
             <div className="flex flex-1 flex-row overflow-hidden">
               <div className="flex-1 flex flex-col">
-                <div className="chat-ai-output-wrapper flex-1 overflow-auto">
+                <div
+                  className="chat-ai-output-wrapper flex-1 overflow-auto"
+                  ref={messageContainerRef}
+                >
+                  <div ref={sentinelTopRef} className="h-[1px]" />
                   {localChatAiMessages && (
                     <Messages isLoading={false} messages={localChatAiMessages} />
                   )}
@@ -302,6 +318,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
                     isLoading={isLoading}
                     messages={messages}
                   />
+                  <div ref={sentinelBottomRef} className="h-[1px]" />
                 </div>
                 <form className="flex mx-auto px-4 pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
                   <MultimodalInput
