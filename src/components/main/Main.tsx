@@ -79,7 +79,7 @@ import DraftRecipientPicker from './DraftRecipientPicker.async';
 import ForwardRecipientPicker from './ForwardRecipientPicker.async';
 import GameModal from './GameModal';
 import HistoryCalendar from './HistoryCalendar.async';
-import ImAssistantContainer from './imAssistant/ImAssistantContainer';
+// import ImAssistantContainer from './imAssistant/ImAssistantContainer';
 import NewContactModal from './NewContactModal.async';
 import Notifications from './Notifications.async';
 import PremiumLimitReachedModal from './premium/common/PremiumLimitReachedModal.async';
@@ -592,7 +592,7 @@ const Main = ({
       <DeleteFolderDialog folder={deleteFolderDialog} />
       <ReactionPicker isOpen={isReactionPickerOpen} />
       <DeleteMessageModal isOpen={isDeleteMessageModalOpen} />
-      <ImAssistantContainer />
+      {/* <ImAssistantContainer /> */}
     </div>
   );
 };

@@ -4,7 +4,6 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import React, { useEffect, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { Skeleton } from 'antd';
 import VirtualList from 'rc-virtual-list';
 import { getActions, getGlobal } from '../../../global';
@@ -25,7 +24,7 @@ import './message-panel.scss';
 
 import MingcuteaiIcon from '../assets/mingcute-ai.png';
 
-const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) => {
+const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; messageId: number;closeSummaryModal:()=>void }) => {
   const global = getGlobal();
   const chat = selectChat(global, chatId);
   const [message, setMessage] = useState<ApiMessage | undefined>();
@@ -44,6 +43,7 @@ const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) =
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight + 2}px`;
     }
   };
+  const { focusMessage } = getActions();
   useEffect(() => {
     const message = selectChatMessage(global, chatId, messageId);
     if (message) {
@@ -113,6 +113,11 @@ const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) =
     setShowSmartReply(false);
   };
 
+  const handleFocusMessage = () => {
+    closeSummaryModal();
+    focusMessage({ chatId, messageId });
+  };
+
   return (
     <div className="right-panel-message-item pb-[20px] pt-[16px] border-solid border-b-[1px] border-[rgba(0,0,0,0.1)]">
       <div className="flex flex-row items-center mb-[12px]">
@@ -134,10 +139,15 @@ const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) =
               '!flex': showSmartReply,
             })}
             >
-              <img src={MingcuteaiIcon} alt="ai-reply" className="w-[15px] h-[15px] cursor-pointer" />
+              <div
+                className="w-[15px] h-[15px] cursor-pointer"
+                onClick={() => { setShowSmartReply(true); handleSmaryReply(message); }}
+              >
+                <img src={MingcuteaiIcon} alt="ai-reply" className="w-full h-full" />
+              </div>
               <div
                 className="text-[#9F9F9F] cursor-pointer"
-                onClick={() => { setShowSmartReply(true); handleSmaryReply(message); }}
+                onClick={handleFocusMessage}
                 aria-label="Smart Reply"
               >
                 <ArrowRightIcon size={16} />
@@ -177,16 +187,24 @@ const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) =
   );
 };
 
-const CustomVirtualList = ({ chatId, messageIds, height }:{ chatId:string;messageIds:number[];height:number }) => {
+const CustomVirtualList = ({
+  chatId, messageIds, height, closeSummaryModal,
+}:
+{
+  chatId:string;
+  messageIds:number[];
+  height:number;
+  closeSummaryModal:()=>void;
+}) => {
   return (
     // eslint-disable-next-line react/jsx-no-bind
     <VirtualList data={messageIds} height={height} itemHeight={50} itemKey={(item:number) => item}>
-      {(item) => <Message chatId={chatId} messageId={item} />}
+      {(item) => <Message chatId={chatId} messageId={item} closeSummaryModal={closeSummaryModal} />}
     </VirtualList>
   );
 };
 
-const MessagePanel = () => {
+const MessagePanel = ({ closeSummaryModal }:{ closeSummaryModal:()=>void }) => {
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [chats, setChats] = useState<{ chatId: string; messageIds: number[] }[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -231,7 +249,7 @@ const MessagePanel = () => {
               const { chatId, messageIds } = item;
               if (!messageIds) return null;
               return (
-                <CustomVirtualList chatId={chatId} messageIds={messageIds} height={height} />
+                <CustomVirtualList chatId={chatId} messageIds={messageIds} height={height} closeSummaryModal={closeSummaryModal} />
               );
             })}
           </div>

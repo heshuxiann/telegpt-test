@@ -1,4 +1,22 @@
-.globa-summary-container{
-    background-image: url('../assets/ai-bg.png');
-    background-size: cover;
+.globa-summary-container {
+  background-image: url("../assets/ai-bg.png");
+  background-size: cover;
+}
+.global-summary-modal-wrap {
+  .global-summary-modal {
+    padding: 0;
+    margin: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-width: unset;
+    .ant-modal-content{
+        height: 100vh;
+        padding: 0;
+        .ant-modal-body{
+            height: 100vh;
+        }
+    }
+  }
 }
