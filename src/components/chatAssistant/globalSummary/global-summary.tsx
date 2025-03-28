@@ -12,15 +12,19 @@ import { getGlobal } from '../../../global';
 import { type ApiMessage, MAIN_THREAD_ID } from '../../../api/types/messages';
 
 import { ALL_FOLDER_ID } from '../../../config';
-import { isUserId } from '../../../global/helpers';
-import { selectChat, selectFirstUnreadId } from '../../../global/selectors';
+import { isSystemBot, isUserId } from '../../../global/helpers';
+import {
+  selectBot, selectChat, selectChatLastMessageId, selectFirstUnreadId,
+} from '../../../global/selectors';
 import { getOrderedIds } from '../../../util/folderManager';
 import { MultimodalInput } from '../assistantDev/multimodal-input';
 import { CloseIcon } from '../icons';
 import { Messages } from '../messages';
 import MessagePanel from '../rightPanel/message-panel';
-import { CHATAI_STORE, GLOBAL_SUMMARY_LAST_TIME } from '../store';
-import { fetchChatUnreadMessage } from '../utils/fetch-messages';
+import { CHATAI_STORE, GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME } from '../store';
+import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
+
+import './global-summary.scss';
 
 import AISummaryPath from '../assets/ai-summary.png';
 import SerenaPath from '../assets/serena.png';
@@ -68,7 +72,7 @@ export interface GlobalSummaryRef {
   addNewMessage: (message: ApiMessage) => void;
 }
 const GLOBAL_SUMMARY_CHATID = '777888';
-const SUMMARY_INTERVAL = 1000 * 60 * 10;
+const SUMMARY_INTERVAL = 1000 * 60 * 60;
 const GlobalSummary = forwardRef<GlobalSummaryRef>(
   (_, ref) => {
     const global = getGlobal();
@@ -82,18 +86,22 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       api: 'https://ai-api-sdm.vercel.app/chat',
       sendExtraMessageFields: true,
     });
+    const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
     useImperativeHandle(ref, () => ({
       addNewMessage,
     }));
 
     useEffect(() => {
+      CHATAI_STORE.GENERAL_IDB_STORE.set(GLOBAL_SUMMARY_READ_TIME, new Date().getTime());
       CHATAI_STORE.MessageStore.getMessage(GLOBAL_SUMMARY_CHATID).then((localChatAiMessages) => {
         setLocalChatAiMessages(localChatAiMessages || []);
       });
       const interval = setInterval(() => {
-        // startSummary(pendingSummaryMessages);
+        startSummary(pendingSummaryMessages);
       }, SUMMARY_INTERVAL);
-      // initUnSummaryMessage();
+      if (orderedIds?.length) {
+        initUnSummaryMessage();
+      }
       return () => clearInterval(interval);
       // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
     }, []);
@@ -105,38 +113,67 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     }, [messages, localChatAiMessages]);
 
     const initUnSummaryMessage = async () => {
-      const globalSummaryLastTime = await CHATAI_STORE.GENERAL_IDB_STORE.get(GLOBAL_SUMMARY_LAST_TIME);
+      const globalSummaryLastTime:number | undefined = await CHATAI_STORE.GENERAL_IDB_STORE.get(GLOBAL_SUMMARY_LAST_TIME);
       if (!globalSummaryLastTime) {
-        // TODO 获取所有的未读消息
-        const orderedIds = getOrderedIds(ALL_FOLDER_ID);
-        if (orderedIds?.length) {
-          const unreadMap: Record<string, ApiMessage[]> = {};
-          for (let i = 0; i < orderedIds.length; i++) {
-            const chatId = orderedIds[i];
-            const chat = selectChat(global, chatId);
-            if (chat && chat.unreadCount) {
-              const firstUnreadId = selectFirstUnreadId(global, chatId, MAIN_THREAD_ID) || chat.lastReadInboxMessageId;
-              const roomUnreadMsgs = await fetchChatUnreadMessage({
-                chat,
-                offsetId: firstUnreadId || 0,
-                addOffset: -30,
-                sliceSize: 30,
-                threadId: MAIN_THREAD_ID,
-                unreadCount: chat.unreadCount,
-              });
-              unreadMap[chatId] = roomUnreadMsgs;
-            }
-          }
-          if (Object.keys(unreadMap).length) {
-            startSummary(unreadMap);
-          }
+        // TODO 总结所有的未读消息
+        summaryAllUnreadMessages();
+      } else {
+        // TODO: 获取上次总结时间之后的未读消息
+        summaryMessageByDeadline(globalSummaryLastTime);
+      }
+    };
+
+    const summaryAllUnreadMessages = async () => {
+      const unreadMap: Record<string, ApiMessage[]> = {};
+      for (let i = 0; i < orderedIds.length; i++) {
+        const chatId = orderedIds[i];
+        const chat = selectChat(global, chatId);
+        const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
+        if (chat && chat.unreadCount && !chatBot) {
+          const firstUnreadId = selectFirstUnreadId(global, chatId, MAIN_THREAD_ID) || chat.lastReadInboxMessageId;
+          const roomUnreadMsgs = await fetchChatUnreadMessage({
+            chat,
+            offsetId: firstUnreadId || 0,
+            addOffset: -30,
+            sliceSize: 30,
+            threadId: MAIN_THREAD_ID,
+            unreadCount: chat.unreadCount,
+          });
+          unreadMap[chatId] = roomUnreadMsgs;
         }
+      }
+      if (Object.keys(unreadMap).length) {
+        startSummary(unreadMap);
+      }
+    };
+
+    const summaryMessageByDeadline = async (deadline:number) => {
+      const unreadMap: Record<string, ApiMessage[]> = {};
+      for (let i = 0; i < orderedIds.length; i++) {
+        const chatId = orderedIds[i];
+        const chat = selectChat(global, chatId);
+        const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
+        const chatLastMessageId = selectChatLastMessageId(global, chatId) || 0;
+        if (chat && chat.unreadCount && !chatBot && chatLastMessageId) {
+          const roomUnreadMsgs = await fetchChatMessageByDeadline({
+            chat,
+            deadline: deadline / 1000,
+            offsetId: chatLastMessageId,
+            addOffset: -30,
+            sliceSize: 30,
+            threadId: MAIN_THREAD_ID,
+          });
+          unreadMap[chatId] = roomUnreadMsgs;
+        }
+      }
+      if (Object.keys(unreadMap).length) {
+        startSummary(unreadMap);
       }
     };
 
     const startSummary = async (messages:Record<string, ApiMessage[]>) => {
       // eslint-disable-next-line no-console
-      console.log('开始总结');
+      console.log('开始总结', messages);
       const globalSummaryLastTime = await CHATAI_STORE.GENERAL_IDB_STORE.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
       const summaryTime = new Date().getTime();
       //   const summaryMessages:SummaryMessage[] = [];
@@ -157,9 +194,11 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       });
       // eslint-disable-next-line no-console
       console.log('summaryMessages', summaryMessages);
+      if (!summaryMessages.length) return;
       const pendingMessage: Message = {
         id: uuidv4(),
-        role: 'system',
+        role: 'user',
+        createdAt: new Date(),
         content: `消息列表:${summaryMessages.map((item) => JSON.stringify(item)).join(';')}\n
           消息总数量:${summaryMessages.length};\n
           总结开始时间:${globalSummaryLastTime};\n
@@ -186,7 +225,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
               5.content是消息的内容;
             总结消息的相关概览:
               1.过滤所有的无意义消息；
-              2.尽量总结关键信息,保持简洁明了,仅提及核心内容
+              2.尽量总结关键信息,保持简洁明了,仅提及核心内容;
             总结返回的数据结构注释：
               1.mainTopic结构解释:
                 a.按照房间的维度总结主要讨论的话题(chatId是房间的标识符),主要讨论的主题放在mainTopic数组中;
@@ -211,6 +250,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           template: 'global-summary',
         }],
       });
+      CHATAI_STORE.GENERAL_IDB_STORE.set(GLOBAL_SUMMARY_LAST_TIME, new Date().getTime());
     };
     const addNewMessage = (message: ApiMessage) => {
       // eslint-disable-next-line no-console
@@ -229,14 +269,23 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         });
       }
     };
+    const openGlobalSummaryModal = async () => {
+      setSummaryModalVisible(true);
+      // 距离上次浏览到现在间隔超过2个周期
+      const lastReadTime:number | undefined = await CHATAI_STORE.GENERAL_IDB_STORE.get(GLOBAL_SUMMARY_READ_TIME);
+      if (lastReadTime && (lastReadTime + SUMMARY_INTERVAL * 2 < Date.now())) {
+        summaryMessageByDeadline(lastReadTime);
+      }
+      CHATAI_STORE.GENERAL_IDB_STORE.set(GLOBAL_SUMMARY_READ_TIME, new Date().getTime());
+    };
     return (
       <>
-        <button className="w-full h-full flex justify-center items-center" onClick={() => setSummaryModalVisible(true)}>
+        <button className="w-full h-full flex justify-center items-center" onClick={openGlobalSummaryModal}>
           <img className="w-[24px] h-[24px]" src={AISummaryPath} alt="AI Summary" />
         </button>
         {summaryModalVisible && (
-          <div className="fixed top-0 bottom-0 left-0 right-0 z-[2147483647] bg-[linear-gradient(135deg,_rgb(172,182,229)_10%,_rgb(116,235,213)_90%)] flex flex-col">
-            <div className="h-[56px] w-full px-[20px] flex items-center bg-white">
+          <div className="globa-summary-container fixed top-0 bottom-0 left-0 right-0 z-[2147483647] flex flex-col">
+            <div className="h-[56px] w-full px-[20px] flex items-center bg-white/50">
               <img className="w-[40px] h-[40px] rounded-full mr-[12px]" src={SerenaPath} alt="Serena" />
               <span className="text-[15px] font-semibold">Serena AI</span>
               <div className="ml-auto cursor-pointer" onClick={() => setSummaryModalVisible(false)}>

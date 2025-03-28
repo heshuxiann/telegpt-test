@@ -595,8 +595,9 @@ addActionHandler('updateDraftReplyInfo', (global, actions, payload): ActionRetur
   }
 
   const { chatId, threadId } = currentMessageList;
+  const targetChatId = payload.chatId || chatId;
 
-  const currentDraft = selectDraft(global, chatId, threadId);
+  const currentDraft = selectDraft(global, targetChatId, threadId);
 
   const updatedReplyInfo = {
     type: 'message',
@@ -612,7 +613,7 @@ addActionHandler('updateDraftReplyInfo', (global, actions, payload): ActionRetur
   };
 
   saveDraft({
-    global, chatId, threadId, draft: newDraft, isLocalOnly: true, noLocalTimeUpdate: true,
+    global, chatId: targetChatId, threadId, draft: newDraft, isLocalOnly: true, noLocalTimeUpdate: true,
   });
 });
 

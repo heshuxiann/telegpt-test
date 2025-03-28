@@ -1156,10 +1156,32 @@ export const LineChartIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-export const CloseIcon = () => {
+export const CloseIcon = ({ size = 24 }: { size?: number }) => {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
       <path d="M7 17L17 7M7 7L17 17" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  );
+};
+
+export const ArrowRightIcon = ({ size = 24 }: { size?: number }) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path d="M20.3635 12.7068C20.5509 12.5193 20.6562 12.265 20.6562 11.9998C20.6562 11.7347 20.5509 11.4803 20.3635 11.2928L14.7065 5.63582C14.5179 5.45366 14.2653 5.35287 14.0031 5.35515C13.7409 5.35742 13.4901 5.46259 13.3046 5.648C13.1192 5.83341 13.0141 6.08422 13.0118 6.34642C13.0095 6.60862 13.1103 6.86122 13.2925 7.04982L17.2425 10.9998L3.99946 10.9998C3.73425 10.9998 3.47989 11.1052 3.29236 11.2927C3.10482 11.4803 2.99946 11.7346 2.99946 11.9998C2.99946 12.265 3.10482 12.5194 3.29236 12.7069C3.47989 12.8945 3.73425 12.9998 3.99946 12.9998L17.2425 12.9998L13.2925 16.9498C13.1103 17.1384 13.0095 17.391 13.0118 17.6532C13.0141 17.9154 13.1192 18.1662 13.3046 18.3516C13.4901 18.537 13.7409 18.6422 14.0031 18.6445C14.2653 18.6468 14.5179 18.546 14.7065 18.3638L20.3635 12.7068Z" fill="currentColor" />
+    </svg>
+  );
+};
+
+export const SendIcon = ({ size = 24 }: { size?: number }) => {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 15 15" fill="none">
+      <path d="M0 15L1.56 8.055L10.185 7.515L1.56 6.93L0 0L15 7.5L0 15Z" fill="currentColor" />
     </svg>
   );
 };

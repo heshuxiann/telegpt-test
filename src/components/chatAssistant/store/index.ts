@@ -11,3 +11,4 @@ export const CHATAI_STORE = {
 };
 
 export const GLOBAL_SUMMARY_LAST_TIME = 'globalSummaryLastTime';
+export const GLOBAL_SUMMARY_READ_TIME = 'globalSummaryReadTime';

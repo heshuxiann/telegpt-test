@@ -379,6 +379,7 @@ export interface ApiInputMessageReplyInfo {
   replyToTopId?: number;
   replyToPeerId?: string;
   quoteText?: ApiFormattedText;
+  chatId?: string;
 }
 
 export interface ApiInputStoryReplyInfo {

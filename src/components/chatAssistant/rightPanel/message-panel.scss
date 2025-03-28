@@ -1,0 +1,22 @@
+.right-panel-message-item {
+  .right-panel-message-actions {
+    display: none;
+  }
+  &:hover {
+    .right-panel-message-actions {
+      display: flex;
+    }
+  }
+}
+
+.summary-right-panel {
+  animation: expandWidth 0.2s alternate ease-in-out;
+}
+@keyframes expandWidth {
+  from {
+    width: 0px;
+  }
+  to {
+    width: 375px;
+  }
+}

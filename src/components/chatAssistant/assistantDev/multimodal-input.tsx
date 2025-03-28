@@ -136,16 +136,18 @@ function PureMultimodalInput({
       vectorSearchResults.similarItems.forEach((item) => {
         matchContent += `${item.text}\n`;
       });
-      setMessages((messages) => {
-        return [...messages, {
-          role: 'system',
-          content: matchContent,
-          id: Math.random().toString(),
-          annotations: [{
-            isAuxiliary: true,
-          }],
-        }];
-      });
+      if (matchContent) {
+        setMessages((messages) => {
+          return [...messages, {
+            role: 'system',
+            content: matchContent,
+            id: Math.random().toString(),
+            annotations: [{
+              isAuxiliary: true,
+            }],
+          }];
+        });
+      }
     }
     append({
       role: 'user',
