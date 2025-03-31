@@ -30,6 +30,8 @@ import { CHATAI_STORE, GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME } from
 import MessageStore, { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
 
+import ErrorBoundary from '../ErrorBoundary';
+
 import './global-summary.scss';
 
 import AISummaryPath from '../assets/ai-summary.png';
@@ -66,6 +68,62 @@ const summaryResponseType = {
     relevantMessageIds: [],
   }],
 };
+const summaryInfo = {
+  summaryMessageCount: 0,
+  summaryStartTime: 0,
+  summaryEndTime: 0,
+  summaryChatIds: [],
+};
+
+const mainTopic = {
+  chatId: '',
+  chatTitle: '',
+  summaryItems: [{
+    topic: '',
+    relevantMessage: [{
+      summary: '',
+      relevantMessageIds: [],
+    }],
+  }],
+};
+
+const pendingMatters = {
+  chatId: '',
+  chatTitle: '',
+  messageId: '',
+  senderId: '',
+  summary: '',
+};
+
+const garbageMessage = {
+  chatId: '',
+  chatTitle: '',
+  summary: '',
+  level: '',
+  relevantMessageIds: [],
+};
+
+const summaryInfoTemplate = `
+<!-- code-id: summary-info -->
+    ${summaryInfo}
+<!-- end-code-id -->
+`;
+
+const mainTopicTemplate = `
+<!-- code-id: main-topic -->
+    [${mainTopic}]
+<!-- end-code-id -->
+`;
+const pendingMattersTemplate = `
+<!-- code-id: pending-matters -->
+    [${pendingMatters}]
+<!-- end-code-id -->
+`;
+const garbageMessageTemplate = `
+<!-- code-id: garbage-message -->
+    [${garbageMessage}]
+<!-- end-code-id -->
+`;
 interface SummaryMessage {
   chatId: string;
   chatTitle: string;
@@ -89,7 +147,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const {
       messages, setMessages, append, isLoading, input, setInput, stop, handleSubmit,
     } = useChat({
-      api: 'https://ai-api-sdm.vercel.app/chat',
+      api: 'https://sdm-ai-api.vercel.app/chat',
       sendExtraMessageFields: true,
     });
     const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
@@ -140,8 +198,11 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       append({
         id: uuidv4(),
         role: 'user',
-        content: `请总结上面的聊天内容,按照下面的 json 格式输出：
-            ${JSON.stringify(summaryResponseType)};
+        content: `请总结上面的聊天内容,输出markdown格式,去除所有的换行和空格符,按照下面的模板输出:
+            ${summaryInfoTemplate}
+            ${mainTopicTemplate}
+            ${pendingMattersTemplate}
+            ${garbageMessageTemplate}
             消息列表字段解释:
               1.chatId是房间的标识符;
               2.chatTitle是房间的标题;
@@ -151,24 +212,26 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             总结消息的相关概览:
               1.过滤所有的无意义消息；
               2.尽量总结关键信息,保持简洁明了,仅提及核心内容;
+              3.为保证输出内容的完整性,尽量精简总结内容；
             总结返回的数据结构注释：
-              1.mainTopic结构解释:
+              1.summaryInfoTemplate模板解析:
+                a.summaryMessageCount是总结的消息数量;
+                b.summaryStartTime是总结的开始时间;
+                c.summaryEndTime是总结的结束时间;
+                d.summaryChatIds是总结的房间列表;
+              2.mainTopicTemplate模板解析:
                 a.按照房间的维度总结主要讨论的话题(chatId是房间的标识符),主要讨论的主题放在mainTopic数组中;
-                b.summaryItems 房间内消息的话题列表
+                b.summaryItems数组包含该房间内消息的话题列表
                 c.topic 是话题名称;
-                d.relevantMessage 对该话题的相关消息进行二次总结,summary是二次总结的内容,relevantMessageIds是该summary相关联的消息messageId;
-              2.pendingMatters结构解:
+                d.relevantMessage数组包含对该话题的相关消息进行二次总结,summary是二次总结的内容,relevantMessageIds是该summary相关联的消息messageId;
+              3.pendingMattersTemplate模板解析:
                 a.总结待处理的事项
                 b.summary 总结的内容
-              3.garbageMessage结构解释:
+              4.garbageMessageTemplate模板解析:
                 a.按照房间的维度总结广告消息(chatId是房间的标识符);
                 b.garbageMessage只需要总结chatType是private的消息
                 c.summary 总结的内容,relevantMessageIds是该summary相关联的消息messageId,level是消息的级别,level的取值是high和low,分别表示高风险和低风险;
                 d.包含敏感词（钱包、投资回报、代币发行、拉盘、割韭菜等）可判定为高风险
-              4.summaryStartTime 总结开始时间
-              5.summaryEndTime 总结结束时间
-              6.summaryMessageCount 消息总数量
-              7.summaryChatIds 总结的房间列表。
         `,
         annotations: [{
           isAuxiliary: true,
@@ -323,7 +386,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     };
 
     return (
-      <>
+      <ErrorBoundary>
         <div className="w-full h-full flex justify-center items-center cursor-pointer" onClick={openGlobalSummaryModal}>
           <img className="w-[24px] h-[24px]" src={AISummaryPath} alt="AI Summary" />
         </div>
@@ -352,7 +415,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           />
         </Modal>
 
-      </>
+      </ErrorBoundary>
 
     );
   },
