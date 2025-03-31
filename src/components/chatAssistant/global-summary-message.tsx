@@ -91,7 +91,9 @@ const SummaryTopicItem = ({ topicItem, global }:{ topicItem:ISummaryTopicItem;gl
         const { topic, relevantMessage } = summaryItem;
         return (
           <div>
-            <p className="text-[14px] font-semibold">{index + 1}. {topic}</p>
+            <div>
+              <p className="text-[14px] font-semibold">{index + 1}. {topic}</p>
+            </div>
             <ul className="list-disc pl-[28px] text-[16px]">
               {relevantMessage.map((message:any) => (
                 <li
@@ -205,7 +207,7 @@ const MainSummaryContent = ({
         <img className="w-[16px] h-[16px]" src={UserIcon} alt="" />
         <span>聊天群组/人: </span>
         <div className="flex items-center">
-          {summaryChatIds.map((id, index) => {
+          {summaryChatIds.slice(0, 10).map((id, index) => {
             let peer;
             if (isUserId(id)) {
               peer = selectUser(global, id);
@@ -223,6 +225,9 @@ const MainSummaryContent = ({
               />
             );
           })}
+          {summaryChatIds.length > 10 ? (
+            <div className="w-[24px] h-[24px] rounded-full bg-[#979797] text-[12px] whitespace-nowrap flex items-center justify-center">{summaryChatIds.length - 10}+</div>
+          ) : undefined}
         </div>
       </div>
       {/* maintopic  */}

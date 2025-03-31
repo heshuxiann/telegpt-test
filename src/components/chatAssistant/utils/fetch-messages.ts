@@ -37,13 +37,14 @@ export const fetchChatUnreadMessage = async (
     sliceSize: number;
     threadId: number;
     unreadCount:number;
+    maxCount?:number;
   },
 ): Promise<ApiMessage[]> => {
   let messages: any[] = [];
   let totalCount = 0;
   let { offsetId } = props; // 记录偏移量
-
-  while (messages.length < props.unreadCount) {
+  const mergeCount = Math.min(props.unreadCount, props.maxCount || 100);
+  while (messages.length < mergeCount) {
     const result = await callApi('fetchMessages', {
       ...props,
       offsetId,
@@ -54,8 +55,8 @@ export const fetchChatUnreadMessage = async (
       break; // 没有更多消息，退出循环
     }
     const resultMessage = result.messages.reverse();
-    if (totalCount + resultMessage.length > props.unreadCount) {
-      messages = messages.concat(resultMessage.slice(0, props.unreadCount - messages.length));
+    if (totalCount + resultMessage.length > mergeCount) {
+      messages = messages.concat(resultMessage.slice(0, mergeCount - messages.length));
       break;
     } else {
       messages = messages.concat(resultMessage);
@@ -80,15 +81,16 @@ export const fetchChatMessageByDeadline = async (
     addOffset: number;
     sliceSize: number;
     threadId: number;
+    maxCount?:number;
   },
 ): Promise<ApiMessage[]> => {
   let messages: any[] = [];
   let {
     // eslint-disable-next-line prefer-const
-    offsetId, deadline, sliceSize,
+    offsetId, deadline, sliceSize, maxCount = 100,
   } = props; // 记录偏移量
 
-  while (!messages.length || messages[0]?.date >= deadline) {
+  while ((!messages.length || messages[0]?.date >= deadline) && messages.length < maxCount) {
     const result = await callApi('fetchMessages', {
       ...props,
       offsetId,
@@ -101,6 +103,9 @@ export const fetchChatMessageByDeadline = async (
     if (result.messages[result.messages.length - 1].date < deadline) {
       const effectMessage = result.messages.filter((msg) => msg.date >= deadline);
       messages = messages.concat(effectMessage);
+      break;
+    } else if (messages.length + result.messages.length > maxCount) {
+      messages = messages.concat(result.messages.slice(0, maxCount - messages.length));
       break;
     } else {
       messages = messages.concat(result.messages);

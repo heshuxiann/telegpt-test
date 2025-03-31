@@ -242,6 +242,9 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         const chat = selectChat(global, chatId);
         const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
         if (chat && chat.unreadCount && !chatBot) {
+          if (chat?.membersCount && chat?.membersCount > 100) {
+            continue;
+          }
           const firstUnreadId = selectFirstUnreadId(global, chatId, MAIN_THREAD_ID) || chat.lastReadInboxMessageId;
           const roomUnreadMsgs = await fetchChatUnreadMessage({
             chat,
@@ -250,8 +253,11 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             sliceSize: 30,
             threadId: MAIN_THREAD_ID,
             unreadCount: chat.unreadCount,
+            maxCount: 100,
           });
-          unreadMap[chatId] = roomUnreadMsgs;
+          if (roomUnreadMsgs.length > 0) {
+            unreadMap[chatId] = roomUnreadMsgs;
+          }
         }
       }
       if (Object.keys(unreadMap).length) {
@@ -274,6 +280,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             addOffset: -30,
             sliceSize: 30,
             threadId: MAIN_THREAD_ID,
+            maxCount: 100,
           });
           unreadMap[chatId] = roomUnreadMsgs;
         }
@@ -417,7 +424,7 @@ const SummaryModalContent = (props: SummaryContentProps) => {
             />
           </form>
         </div>
-        <MessagePanel closeSummaryModal={onClose}/>
+        <MessagePanel closeSummaryModal={onClose} />
       </div>
     </div>
   );
