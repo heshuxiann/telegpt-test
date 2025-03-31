@@ -30,6 +30,8 @@ import { CHATAI_STORE, GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME } from
 import MessageStore, { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
 
+import ErrorBoundary from '../ErrorBoundary';
+
 import './global-summary.scss';
 
 import AISummaryPath from '../assets/ai-summary.png';
@@ -89,7 +91,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const {
       messages, setMessages, append, isLoading, input, setInput, stop, handleSubmit,
     } = useChat({
-      api: 'https://ai-api-sdm.vercel.app/chat',
+      api: 'https://sdm-ai-api.vercel.app/chat',
       sendExtraMessageFields: true,
     });
     const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
@@ -323,7 +325,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     };
 
     return (
-      <>
+      <ErrorBoundary>
         <div className="w-full h-full flex justify-center items-center cursor-pointer" onClick={openGlobalSummaryModal}>
           <img className="w-[24px] h-[24px]" src={AISummaryPath} alt="AI Summary" />
         </div>
@@ -352,7 +354,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           />
         </Modal>
 
-      </>
+      </ErrorBoundary>
 
     );
   },
