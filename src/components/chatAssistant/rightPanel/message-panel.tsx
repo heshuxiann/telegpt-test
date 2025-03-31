@@ -18,6 +18,7 @@ import { callApi } from '../../../api/gramjs';
 import { ArrowRightIcon, CloseIcon, SendIcon } from '../icons';
 import { cn, formatTimestamp } from '../utils/util';
 
+import ErrorBoundary from '../ErrorBoundary';
 import Avatar from '../ui/Avatar';
 
 import './message-panel.scss';
@@ -119,71 +120,73 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
   };
 
   return (
-    <div className="right-panel-message-item pb-[20px] pt-[16px] border-solid border-b-[1px] border-[rgba(0,0,0,0.1)]">
-      <div className="flex flex-row items-center mb-[12px]">
-        <Avatar
-          key={chatId}
-          className="overlay-avatar"
-          size={34}
-          peer={peer}
-          withStory
-        />
-        <span className="text-[16px] font-semibold mr-[8px] ml-[12px]">{peer ? (peer?.firstName || '') + (peer?.lastName || '') : ''}</span>
-        <span className="text-[#979797] text-[13px]">{message ? formatTimestamp(message.date * 1000) : ''}</span>
-      </div>
-      {message ? (
-        <>
-          <div className="text-[15px] relative">
-            <div>{message.content.text?.text}</div>
-            <div className={cn('right-panel-message-actions flex items-center flex-row justify-end gap-[4px] absolute bottom-0 right-0', {
-              '!flex': showSmartReply,
-            })}
-            >
-              <div
-                className="w-[15px] h-[15px] cursor-pointer"
-                onClick={() => { setShowSmartReply(true); handleSmaryReply(message); }}
+    <ErrorBoundary>
+      <div className="right-panel-message-item pb-[20px] pt-[16px] border-solid border-b-[1px] border-[rgba(0,0,0,0.1)]">
+        <div className="flex flex-row items-center mb-[12px]">
+          <Avatar
+            key={chatId}
+            className="overlay-avatar"
+            size={34}
+            peer={peer}
+            withStory
+          />
+          <span className="text-[16px] font-semibold mr-[8px] ml-[12px]">{peer ? (peer?.firstName || '') + (peer?.lastName || '') : ''}</span>
+          <span className="text-[#979797] text-[13px]">{message ? formatTimestamp(message.date * 1000) : ''}</span>
+        </div>
+        {message ? (
+          <>
+            <div className="text-[15px] relative">
+              <div>{message.content.text?.text}</div>
+              <div className={cn('right-panel-message-actions flex items-center flex-row justify-end gap-[4px] absolute bottom-0 right-0', {
+                '!flex': showSmartReply,
+              })}
               >
-                <img src={MingcuteaiIcon} alt="ai-reply" className="w-full h-full" />
-              </div>
-              <div
-                className="text-[#9F9F9F] cursor-pointer"
-                onClick={handleFocusMessage}
-                aria-label="Smart Reply"
-              >
-                <ArrowRightIcon size={16} />
-              </div>
-            </div>
-          </div>
-          {showSmartReply ? (
-            <div>
-              <div className="flex flex-row items-center gap-[6px]">
-                <img className="w-[15px] h-[15px]" src={MingcuteaiIcon} alt="MingcuteaiIcon" />
-                <span className="text-[14px] text-[#757575]">Reply suggested by Serena AI</span>
-              </div>
-              <div className="flex flex-row items-end gap-[12px]">
-                <textarea
-                  ref={textareaRef}
-                  className="w-full py-[8px] px-[12px] border border-[#7949FF] rounded-[8px] mt-[12px] resize-none leading-[18px]"
-                  placeholder="Type your reply here..."
-                  rows={1}
-                  value={replyResponse}
-                  onChange={handleInput}
-                />
-                <button
-                  className="w-[36px] h-[36px] bg-[#8C59D0] flex items-center justify-center text-white rounded-full flex-shrink-0"
-                  aria-label="Send message"
-                  onClick={handleReply}
+                <div
+                  className="w-[15px] h-[15px] cursor-pointer"
+                  onClick={() => { setShowSmartReply(true); handleSmaryReply(message); }}
                 >
-                  <SendIcon size={15} />
-                </button>
+                  <img src={MingcuteaiIcon} alt="ai-reply" className="w-full h-full" />
+                </div>
+                <div
+                  className="text-[#9F9F9F] cursor-pointer"
+                  onClick={handleFocusMessage}
+                  aria-label="Smart Reply"
+                >
+                  <ArrowRightIcon size={16} />
+                </div>
               </div>
             </div>
-          ) : null}
-        </>
-      ) : (
-        <Skeleton active paragraph={{ rows: 2 }} />
-      )}
-    </div>
+            {showSmartReply ? (
+              <div>
+                <div className="flex flex-row items-center gap-[6px]">
+                  <img className="w-[15px] h-[15px]" src={MingcuteaiIcon} alt="MingcuteaiIcon" />
+                  <span className="text-[14px] text-[#757575]">Reply suggested by Serena AI</span>
+                </div>
+                <div className="flex flex-row items-end gap-[12px]">
+                  <textarea
+                    ref={textareaRef}
+                    className="w-full py-[8px] px-[12px] border border-[#7949FF] rounded-[8px] mt-[12px] resize-none leading-[18px]"
+                    placeholder="Type your reply here..."
+                    rows={1}
+                    value={replyResponse}
+                    onChange={handleInput}
+                  />
+                  <button
+                    className="w-[36px] h-[36px] bg-[#8C59D0] flex items-center justify-center text-white rounded-full flex-shrink-0"
+                    aria-label="Send message"
+                    onClick={handleReply}
+                  >
+                    <SendIcon size={15} />
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <Skeleton active paragraph={{ rows: 2 }} />
+        )}
+      </div>
+    </ErrorBoundary>
   );
 };
 
@@ -247,7 +250,7 @@ const MessagePanel = ({ closeSummaryModal }:{ closeSummaryModal:()=>void }) => {
           <div className="flex-1 overflow-y-scroll px-[18px]" ref={containerRef}>
             {chats.map((item) => {
               const { chatId, messageIds } = item;
-              if (!messageIds) return null;
+              if (!messageIds || !chatId) return null;
               return (
                 <CustomVirtualList chatId={chatId} messageIds={messageIds} height={height} closeSummaryModal={closeSummaryModal} />
               );
