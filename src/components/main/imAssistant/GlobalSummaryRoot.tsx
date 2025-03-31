@@ -8,7 +8,6 @@ import React, {
 } from '../../../lib/teact/teact';
 import { withGlobal } from '../../../global';
 
-import type { ApiChat } from '../../../api/types';
 import type { ApiMessage } from '../../../api/types/messages';
 import type { GlobalSummaryRef } from '../../chatAssistant/globalSummary/global-summary';
 
@@ -19,17 +18,13 @@ import GlobalSummary from '../../chatAssistant/globalSummary/global-summary';
 
 import useLastCallback from '../../../hooks/useLastCallback';
 
-interface StateProps {
-  memoSelectChat:(chatId:string) => ApiChat | undefined;
-}
-
 const injectMessageAI = injectComponent(GlobalSummary);
-const GlobalSummaryRoot = (props:StateProps) => {
+const GlobalSummaryRoot = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [instance, setInstance] = useState<GlobalSummaryRef | null>(null);
   useEffect(() => {
     if (containerRef.current) {
-      injectMessageAI(containerRef.current, { ...props }).then(setInstance);
+      injectMessageAI(containerRef.current).then(setInstance);
     }
     // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, []);
