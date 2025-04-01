@@ -1,36 +1,35 @@
-/* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
-import React from 'react';
+import type { ReactNode } from 'react';
+import { Component } from 'react';
 
-class ErrorBoundary extends React.Component<
-{ children: React.ReactNode },
-{ hasError: boolean; error: Error | null }
-> {
-  constructor(props: { children: React.ReactNode }) {
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
+  static getDerivedStateFromError() {
+    return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Caught error:', error, errorInfo);
+  componentDidCatch(error: any, errorInfo: any) {
+    // eslint-disable-next-line no-console
+    console.error('Error caught by ErrorBoundary:', error, errorInfo);
   }
 
   render() {
-    const { hasError, error } = this.state;
+    const { hasError } = this.state;
     const { children } = this.props;
     if (hasError) {
-      return (
-        <div className="p-[20px] bg-[#f5f5f5]">
-          <p className="text-red">Error: {error?.message}</p>
-          <details className="white-space-pre-wrap">
-            {error?.stack}
-          </details>
-        </div>
-      );
+      return null; // 直接跳过这个组件
     }
     return children;
   }

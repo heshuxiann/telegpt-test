@@ -29,6 +29,7 @@ import MessagePanel from '../rightPanel/message-panel';
 import { CHATAI_STORE, GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME } from '../store';
 import MessageStore, { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
+import summaryPrompt from './summary-prompt';
 
 import ErrorBoundary from '../ErrorBoundary';
 
@@ -75,17 +76,19 @@ const summaryInfo = {
   summaryChatIds: [],
 };
 
-const mainTopic = {
-  chatId: '',
-  chatTitle: '',
-  summaryItems: [{
-    topic: '',
-    relevantMessage: [{
-      summary: '',
-      relevantMessageIds: [],
+const mainTopic = [
+  {
+    chatId: '房间ID',
+    chatTitle: '房间标题',
+    summaryItems: [{
+      topic: '话题',
+      relevantMessage: [{
+        summary: '总结',
+        relevantMessageIds: [],
+      }],
     }],
-  }],
-};
+  },
+];
 
 const pendingMatters = {
   chatId: '',
@@ -103,27 +106,10 @@ const garbageMessage = {
   relevantMessageIds: [],
 };
 
-const summaryInfoTemplate = `
-<!-- code-id: summary-info -->
-    ${summaryInfo}
-<!-- end-code-id -->
-`;
-
-const mainTopicTemplate = `
-<!-- code-id: main-topic -->
-    [${mainTopic}]
-<!-- end-code-id -->
-`;
-const pendingMattersTemplate = `
-<!-- code-id: pending-matters -->
-    [${pendingMatters}]
-<!-- end-code-id -->
-`;
-const garbageMessageTemplate = `
-<!-- code-id: garbage-message -->
-    [${garbageMessage}]
-<!-- end-code-id -->
-`;
+const summaryInfoTemplate = '<!-- code-id: summary-info --><!-- end-code-id -->';
+const mainTopicTemplate = '<!-- code-id: main-topic --><!-- end-code-id -->';
+const pendingMattersTemplate = '<!-- code-id: pending-matters --><!-- end-code-id -->';
+const garbageMessageTemplate = '<!-- code-id: garbage-message --><!-- end-code-id -->';
 interface SummaryMessage {
   chatId: string;
   chatTitle: string;
@@ -198,41 +184,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       append({
         id: uuidv4(),
         role: 'user',
-        content: `请总结上面的聊天内容,输出markdown格式,去除所有的换行和空格符,按照下面的模板输出:
-            ${summaryInfoTemplate}
-            ${mainTopicTemplate}
-            ${pendingMattersTemplate}
-            ${garbageMessageTemplate}
-            消息列表字段解释:
-              1.chatId是房间的标识符;
-              2.chatTitle是房间的标题;
-              3.senderId是消息发送人的标识符;
-              4.messageId是消息的唯一标识符;
-              5.content是消息的内容;
-            总结消息的相关概览:
-              1.过滤所有的无意义消息；
-              2.尽量总结关键信息,保持简洁明了,仅提及核心内容;
-              3.为保证输出内容的完整性,尽量精简总结内容；
-            总结返回的数据结构注释：
-              1.summaryInfoTemplate模板解析:
-                a.summaryMessageCount是总结的消息数量;
-                b.summaryStartTime是总结的开始时间;
-                c.summaryEndTime是总结的结束时间;
-                d.summaryChatIds是总结的房间列表;
-              2.mainTopicTemplate模板解析:
-                a.按照房间的维度总结主要讨论的话题(chatId是房间的标识符),主要讨论的主题放在mainTopic数组中;
-                b.summaryItems数组包含该房间内消息的话题列表
-                c.topic 是话题名称;
-                d.relevantMessage数组包含对该话题的相关消息进行二次总结,summary是二次总结的内容,relevantMessageIds是该summary相关联的消息messageId;
-              3.pendingMattersTemplate模板解析:
-                a.总结待处理的事项
-                b.summary 总结的内容
-              4.garbageMessageTemplate模板解析:
-                a.按照房间的维度总结广告消息(chatId是房间的标识符);
-                b.garbageMessage只需要总结chatType是private的消息
-                c.summary 总结的内容,relevantMessageIds是该summary相关联的消息messageId,level是消息的级别,level的取值是high和low,分别表示高风险和低风险;
-                d.包含敏感词（钱包、投资回报、代币发行、拉盘、割韭菜等）可判定为高风险
-        `,
+        content: summaryPrompt,
         annotations: [{
           isAuxiliary: true,
           template: 'global-summary',

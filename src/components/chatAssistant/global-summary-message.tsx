@@ -11,7 +11,7 @@ import type { GlobalState } from '../../global/types';
 import eventEmitter, { Actions } from './lib/EventEmitter';
 import { isUserId } from '../../global/helpers';
 import { selectChat, selectUser } from '../../global/selectors';
-import { formatTimestamp } from './utils/util';
+import { formatTimestamp, validateAndFixJsonStructure } from './utils/util';
 
 import Avatar from './ui/Avatar';
 
@@ -35,16 +35,16 @@ interface ISummaryInfo {
 }
 
 interface ISummaryTopicItem {
-  chatId: string;
-  chatTitle: string;
-  summaryItems: {
-    topic: string;
-    relevantMessage: {
-      summary: string;
-      relevantMessageIds: number[];
-    }[];
-  }[];
+  topic: string;
+  summaryItems: Array<{
+    title: string;
+    relevantMessages: Array<{
+      chatId: string;
+      messageIds: Array<number>;
+    }>;
+  }>;
 }
+
 interface ISummaryPendingItem {
   chatId: string;
   chatTitle: string;
@@ -60,53 +60,49 @@ interface ISummaryGarbageItem {
   relevantMessageIds: number[];
 }
 
-const SummaryTopicItem = ({ topicItem, global }: { topicItem: ISummaryTopicItem; global: GlobalState }) => {
-  const { chatId, chatTitle, summaryItems } = topicItem;
+const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTopicItem; index: number; global: GlobalState }) => {
+  const { topic, summaryItems } = topicItem;
   if (!summaryItems.length) return undefined;
-  const showMessageDetail = (chatId: string, relevantMessageIds: number[]) => {
+  const showMessageDetail = (relevantMessages: Array<{ chatId: string; relevantMessageIds: number[] }>) => {
     eventEmitter.emit(Actions.ShowGlobalSummaryMessagePanel, {
-      chats: [{ chatId, messageIds: relevantMessageIds }],
+      relevantMessages,
     });
   };
-  let peer;
-  if (isUserId(chatId)) {
-    peer = selectUser(global, chatId);
-  } else {
-    peer = selectChat(global, chatId);
-  }
+
+  const renderChatAvatar = (chatId: string) => {
+    let peer;
+    if (isUserId(chatId)) {
+      peer = selectUser(global, chatId);
+    } else {
+      peer = selectChat(global, chatId);
+    }
+    return (
+      <Avatar
+        key={chatId}
+        className="overlay-avatar"
+        size={20}
+        peer={peer}
+        withStory
+      />
+    );
+  };
   return (
-    <div key={chatId}>
-      <div className="pb-[10px] border-b-[1px] border-[#EEEEEE] flex items-center gap-[4px]">
-        <Avatar
-          key={chatId}
-          className="overlay-avatar"
-          size={20}
-          peer={peer}
-          withStory
-        />
-        <span>{chatTitle}</span>
-      </div>
-      {summaryItems.map((summaryItem: any, index: number) => {
-        const { topic, relevantMessage } = summaryItem;
-        return (
-          <div>
-            <div>
-              <p className="text-[14px] font-semibold">{index + 1}. {topic}</p>
-            </div>
-            <ul className="list-disc pl-[28px] text-[16px]">
-              {relevantMessage.map((message: any) => (
-                <li
-                  role="button"
-                  className="cursor-pointer"
-                  onClick={() => showMessageDetail(chatId, message.relevantMessageIds)}
-                >
-                  {message.summary}
-                </li>
-              ))}
-            </ul>
-          </div>
-        );
-      })}
+    <div>
+      <span>{index + 1}.{topic}</span>
+      <ul className="list-disc pl-[28px] text-[16px]">
+        {summaryItems.map((summaryItem: any) => {
+          const { title, relevantMessages } = summaryItem;
+          return (
+            <li
+              role="button"
+              className="cursor-pointer"
+              onClick={() => showMessageDetail(relevantMessages)}
+            >
+              {title}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 };
@@ -132,7 +128,7 @@ const SummaryGarbageItem = ({ garBageItem, global }: { garBageItem: ISummaryGarb
   }
   const showMessageDetail = (chatId: string, relevantMessageIds: number[]) => {
     eventEmitter.emit(Actions.ShowGlobalSummaryMessagePanel, {
-      chats: [{ chatId, messageIds: relevantMessageIds }],
+      relevantMessages: [{ chatId, messageIds: relevantMessageIds }],
     });
   };
   return (
@@ -241,7 +237,7 @@ const MainSummaryContent = ({
             <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
             <span className="text-[18px] font-bold">Key Topics</span>
           </p>
-          {mainTopic.map((item) => (<SummaryTopicItem topicItem={item} global={global} />))}
+          {mainTopic.map((item, index) => (<SummaryTopicItem topicItem={item} global={global} index={index} />))}
         </div>
       )}
       {/* pending actions  */}
@@ -311,15 +307,6 @@ const SummaryContent = ({
 };
 const GlobalSummaryMessage = (props: IProps) => {
   const { isLoading, message } = props;
-  // const [parsedMessage, setParsedMessage] = useState<IParsedMessage>({
-  //   summaryMessageCount: 0,
-  //   summaryStartTime: 0,
-  //   summaryEndTime: 0,
-  //   summaryChatIds: [],
-  //   mainTopic: [],
-  //   pendingMatters: [],
-  //   garbageMessage: [],
-  // });
   const [summaryInfo, setSummaryInfo] = useState<ISummaryInfo | null>(null);
   const [mainTopic, setMainTopic] = useState<ISummaryTopicItem[]>([]);
   const [pendingMatters, setPendingMatters] = useState<ISummaryPendingItem[]>([]);
@@ -329,11 +316,17 @@ const GlobalSummaryMessage = (props: IProps) => {
     //   `<!-- code-id: ${codeId} -->\\s*\\s*([\\s\\S]*?)\\s*<!-- end-code-id -->`,
     //   's',
     // );
-    const regex = new RegExp(`<!--\\s*code-id:\\s*${codeId}\\s*-->([\\s\\S]*?)<!--\\s*end-code-id\\s*-->`, 's');
+    const regex = new RegExp(`<!--\\s*json-start:\\s*${codeId}\\s*-->([\\s\\S]*?)<!--\\s*json-end\\s*-->`, 's');
     const match = content.match(regex);
     if (match) {
       try {
-        return JSON.parse(match[1].trim());
+        const result = validateAndFixJsonStructure(match[1].trim());
+        if (result.valid) {
+          console.log('修复后的 JSON:', result.fixedJson);
+          return JSON.parse(result.fixedJson);
+        } else {
+          console.error('JSON 修复失败:', result.error);
+        }
       } catch (error) {
         console.error('JSON 解析错误:', error);
         return null;
@@ -362,19 +355,6 @@ const GlobalSummaryMessage = (props: IProps) => {
     if (garbageMessage) {
       setGarbageMessage(garbageMessage as ISummaryGarbageItem[]);
     }
-
-    // const regex = /<!-- code-id: (\w+) -->\s*(.*?)\s*(?=<!-- end-code-id -->)/gs;
-    // let match;
-    // const result:{ [key:string]:any } = {};
-
-    // // eslint-disable-next-line no-null/no-null, no-cond-assign
-    // while ((match = regex.exec(message)) !== null) {
-    //   const key = match[1]; // 'summary-info', 'main-topic', etc.
-    //   const value = match[2].trim();
-    //   result[key] = value;
-    // }
-    // // eslint-disable-next-line no-console
-    // console.log(result, '-------result');
   }, []);
   useEffect(() => {
     if (!isLoading) {

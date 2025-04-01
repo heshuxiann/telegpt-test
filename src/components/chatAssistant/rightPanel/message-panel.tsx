@@ -18,6 +18,7 @@ import { callApi } from '../../../api/gramjs';
 import { ArrowRightIcon, CloseIcon, SendIcon } from '../icons';
 import { cn, formatTimestamp } from '../utils/util';
 
+import ErrorBoundary from '../ErrorBoundary';
 import Avatar from '../ui/Avatar';
 
 import './message-panel.scss';
@@ -28,7 +29,6 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
   const global = getGlobal();
   const chat = selectChat(global, chatId);
   const [message, setMessage] = useState<ApiMessage | undefined>();
-  const [peer, setPeer] = useState<ApiUser | undefined>();
   const [showSmartReply, setShowSmartReply] = useState(false);
   const [replyResponse, setReplyResponse] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -50,8 +50,9 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
       setMessage(message);
     } else if (chat) {
       callApi('fetchMessage', { chat, messageId }).then((result) => {
-        if (result && result !== MESSAGE_DELETED) {
+        if (result && result !== MESSAGE_DELETED && result.message.content.text?.text) {
           setMessage(result.message);
+          console.log('result.message----->', result.message.content.text?.text);
           updateChatMessage(global, chat.id, messageId, result.message);
         }
       });
@@ -59,18 +60,9 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
     // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, [chatId, messageId]);
   useEffect(() => {
-    if (message) {
-      const senderId = message.senderId;
-      const peer = senderId ? selectUser(global, senderId) : undefined;
-      setPeer(peer);
-    }
-  }, [message, global]);
-  useEffect(() => {
     if (messages.length > 0) {
-      console.log(messages, '--------message');
       messages.forEach((message) => {
         if (message.role === 'assistant') {
-          console.log(message.content);
           setReplyResponse(message.content);
           adjustHeight();
         }
@@ -118,68 +110,82 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
     focusMessage({ chatId, messageId });
   };
 
-  return (
-    <div className="right-panel-message-item pb-[20px] pt-[16px] border-solid border-b-[1px] border-[rgba(0,0,0,0.1)]">
-      <div className="flex flex-row items-center mb-[12px]">
-        <Avatar
-          key={chatId}
-          className="overlay-avatar"
-          size={34}
-          peer={peer}
-          withStory
-        />
-        <span className="text-[16px] font-semibold mr-[8px] ml-[12px]">{peer ? (peer?.firstName || '') + (peer?.lastName || '') : ''}</span>
-        <span className="text-[#979797] text-[13px]">{message ? formatTimestamp(message.date * 1000) : ''}</span>
-      </div>
-      {message ? (
-        <>
-          <div className="text-[15px] relative">
-            <div>{message.content.text?.text}</div>
-            <div className={cn('right-panel-message-actions flex items-center flex-row justify-end gap-[4px] absolute bottom-0 right-0', {
-              '!flex': showSmartReply,
-            })}
+  const renderMessage = () => {
+    if (!message || !message.content.text?.text) {
+      return undefined;
+    }
+    const text = message.content.text?.text;
+    const date = formatTimestamp(message.date * 1000);
+    const senderId = message.senderId;
+    const peer = senderId ? selectUser(global, senderId) : undefined;
+    const name = peer ? (peer?.firstName || '') + (peer?.lastName || '') : '';
+    return (
+      <>
+        <div className="flex flex-row items-center mb-[12px]">
+          <Avatar
+            key={chatId}
+            className="overlay-avatar"
+            size={34}
+            peer={peer}
+            withStory
+          />
+          <span className="text-[16px] font-semibold mr-[8px] ml-[12px]">{name}</span>
+          <span className="text-[#979797] text-[13px]">{date}</span>
+        </div>
+        <div className="text-[15px] relative">
+          <div>{text}</div>
+          <div className={cn('right-panel-message-actions flex items-center flex-row justify-end gap-[4px] absolute bottom-0 right-0', {
+            '!flex': showSmartReply,
+          })}
+          >
+            <div
+              className="w-[15px] h-[15px] cursor-pointer"
+              onClick={() => { setShowSmartReply(true); handleSmaryReply(message); }}
             >
-              <div
-                className="w-[15px] h-[15px] cursor-pointer"
-                onClick={() => { setShowSmartReply(true); handleSmaryReply(message); }}
-              >
-                <img src={MingcuteaiIcon} alt="ai-reply" className="w-full h-full" />
-              </div>
-              <div
-                className="text-[#9F9F9F] cursor-pointer"
-                onClick={handleFocusMessage}
-                aria-label="Smart Reply"
-              >
-                <ArrowRightIcon size={16} />
-              </div>
+              <img src={MingcuteaiIcon} alt="ai-reply" className="w-full h-full" />
+            </div>
+            <div
+              className="text-[#9F9F9F] cursor-pointer"
+              onClick={handleFocusMessage}
+              aria-label="Smart Reply"
+            >
+              <ArrowRightIcon size={16} />
             </div>
           </div>
-          {showSmartReply ? (
-            <div>
-              <div className="flex flex-row items-center gap-[6px]">
-                <img className="w-[15px] h-[15px]" src={MingcuteaiIcon} alt="MingcuteaiIcon" />
-                <span className="text-[14px] text-[#757575]">Reply suggested by Serena AI</span>
-              </div>
-              <div className="flex flex-row items-end gap-[12px]">
-                <textarea
-                  ref={textareaRef}
-                  className="w-full py-[8px] px-[12px] border border-[#7949FF] rounded-[8px] mt-[12px] resize-none leading-[18px]"
-                  placeholder="Type your reply here..."
-                  rows={1}
-                  value={replyResponse}
-                  onChange={handleInput}
-                />
-                <button
-                  className="w-[36px] h-[36px] bg-[#8C59D0] flex items-center justify-center text-white rounded-full flex-shrink-0"
-                  aria-label="Send message"
-                  onClick={handleReply}
-                >
-                  <SendIcon size={15} />
-                </button>
-              </div>
+        </div>
+        {showSmartReply ? (
+          <div>
+            <div className="flex flex-row items-center gap-[6px]">
+              <img className="w-[15px] h-[15px]" src={MingcuteaiIcon} alt="MingcuteaiIcon" />
+              <span className="text-[14px] text-[#757575]">Reply suggested by Serena AI</span>
             </div>
-          ) : null}
-        </>
+            <div className="flex flex-row items-end gap-[12px]">
+              <textarea
+                ref={textareaRef}
+                className="w-full py-[8px] px-[12px] border border-[#7949FF] rounded-[8px] mt-[12px] resize-none leading-[18px]"
+                placeholder="Type your reply here..."
+                rows={1}
+                value={replyResponse}
+                onChange={handleInput}
+              />
+              <button
+                className="w-[36px] h-[36px] bg-[#8C59D0] flex items-center justify-center text-white rounded-full flex-shrink-0"
+                aria-label="Send message"
+                onClick={handleReply}
+              >
+                <SendIcon size={15} />
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </>
+    );
+  };
+
+  return (
+    <div className="right-panel-message-item pb-[20px] pt-[16px] border-solid border-b-[1px] border-[rgba(0,0,0,0.1)]">
+      {message ? (
+        renderMessage()
       ) : (
         <Skeleton active paragraph={{ rows: 2 }} />
       )}
@@ -198,15 +204,21 @@ const CustomVirtualList = ({
 }) => {
   return (
     // eslint-disable-next-line react/jsx-no-bind
-    <VirtualList data={messageIds} height={height} itemHeight={50} itemKey={(item:number) => item}>
-      {(item) => <Message chatId={chatId} messageId={item} closeSummaryModal={closeSummaryModal} />}
+    <VirtualList data={messageIds} height={height} itemHeight={50} itemKey={(item:number) => `${chatId}-${item}`}>
+      {(item) => {
+        return (
+          <ErrorBoundary>
+            <Message chatId={chatId} messageId={item} closeSummaryModal={closeSummaryModal} />
+          </ErrorBoundary>
+        );
+      }}
     </VirtualList>
   );
 };
 
 const MessagePanel = ({ closeSummaryModal }:{ closeSummaryModal:()=>void }) => {
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
-  const [chats, setChats] = useState<{ chatId: string; messageIds: number[] }[]>([]);
+  const [relevantMessages, setRelevantMessages] = useState<{ chatId: string; messageIds: number[] }[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
 
@@ -215,10 +227,10 @@ const MessagePanel = ({ closeSummaryModal }:{ closeSummaryModal:()=>void }) => {
       setHeight(containerRef.current.getBoundingClientRect().height);
     }
   }, []);
-  const handleOpenRightPanle = (payload: { chats: { chatId: string; messageIds: number[] }[] }) => {
+  const handleOpenRightPanle = (payload: { relevantMessages: { chatId: string; messageIds: number[] }[] }) => {
     setRightPanelOpen(true);
-    const { chats } = payload;
-    setChats(chats);
+    const { relevantMessages } = payload;
+    setRelevantMessages(relevantMessages);
   };
   useEffect(() => {
     eventEmitter.on(Actions.ShowGlobalSummaryMessagePanel, handleOpenRightPanle);
@@ -229,7 +241,7 @@ const MessagePanel = ({ closeSummaryModal }:{ closeSummaryModal:()=>void }) => {
   }, []);
   const handleClose = () => {
     setRightPanelOpen(false);
-    setChats([]);
+    setRelevantMessages([]);
   };
   return (
     <div>
@@ -245,9 +257,9 @@ const MessagePanel = ({ closeSummaryModal }:{ closeSummaryModal:()=>void }) => {
             </div>
           </div>
           <div className="flex-1 overflow-y-scroll px-[18px]" ref={containerRef}>
-            {chats.map((item) => {
+            {relevantMessages.map((item) => {
               const { chatId, messageIds } = item;
-              if (!messageIds) return null;
+              if (!messageIds || !chatId) return null;
               return (
                 <CustomVirtualList chatId={chatId} messageIds={messageIds} height={height} closeSummaryModal={closeSummaryModal} />
               );

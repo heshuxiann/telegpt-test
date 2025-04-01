@@ -36,7 +36,7 @@ import useMedia from '../../../hooks/useMedia';
 import useMediaTransitionDeprecated from '../../../hooks/useMediaTransitionDeprecated';
 import useOldLang from '../../../hooks/useOldLang';
 
-import AvatarStoryCircle from '../../common/AvatarStoryCircle';
+// import AvatarStoryCircle from '../../common/AvatarStoryCircle';
 import Icon from '../../common/icons/Icon';
 import OptimizedVideo from '../../ui/OptimizedVideo';
 
@@ -309,9 +309,9 @@ const Avatar: FC<OwnProps> = ({
       <div className="inner">
         {typeof content === 'string' ? renderText(content, [isBig ? 'hq_emoji' : 'emoji']) : content}
       </div>
-      {withStory && realPeer?.hasStories && (
+      {/* {withStory && realPeer?.hasStories && (
         <AvatarStoryCircle peerId={realPeer.id} size={pxSize} withExtraGap={withStoryGap} />
-      )}
+      )} */}
     </div>
   );
 };
