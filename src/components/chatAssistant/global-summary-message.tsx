@@ -277,7 +277,7 @@ const SummaryContent = ({ message }: { message: IParsedMessage }) => {
             <img className="w-[52px] h-[52px] rounded-full ml-[-60px]" src={SerenaLogoPath} alt="" />
             <div>
               <p className="text-[16px] font-semibold">Serena</p>
-              <p className="text-[14px] text-[#A8A6AC]">{summaryEndTime}</p>
+              <p className="text-[14px] text-[#A8A6AC]">{formatTimestamp(summaryEndTime)}</p>
             </div>
           </div>
           <p className="text-[22px] font-bold mb-[16px]">Spam Filtering</p>
