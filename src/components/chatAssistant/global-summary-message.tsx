@@ -4,7 +4,8 @@
 /* eslint-disable max-len */
 import React, { useCallback, useEffect, useState } from 'react';
 import type { Message } from 'ai';
-import { getGlobal } from '../../global';
+import copy from 'copy-to-clipboard';
+import { getActions, getGlobal } from '../../global';
 
 import type { GlobalState } from '../../global/types';
 
@@ -12,6 +13,12 @@ import eventEmitter, { Actions } from './lib/EventEmitter';
 import { isUserId } from '../../global/helpers';
 import { selectChat, selectUser } from '../../global/selectors';
 import { formatTimestamp, validateAndFixJsonStructure } from './utils/util';
+import {
+  CopyIcon, DeleteIcon, VoiceIcon,
+  VoiceingIcon,
+} from './icons';
+
+import useOldLang from '../../hooks/useOldLang';
 
 import Avatar from './ui/Avatar';
 
@@ -26,6 +33,7 @@ import WriteIcon from './assets/write.png';
 interface IProps {
   isLoading: boolean;
   message: Message;
+  deleteMessage: () => void;
 }
 interface ISummaryInfo {
   summaryMessageCount: number;
@@ -36,6 +44,7 @@ interface ISummaryInfo {
 
 interface ISummaryTopicItem {
   topic: string;
+  summaryChatIds: Array<string>;
   summaryItems: Array<{
     title: string;
     relevantMessages: Array<{
@@ -61,7 +70,7 @@ interface ISummaryGarbageItem {
 }
 
 const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTopicItem; index: number; global: GlobalState }) => {
-  const { topic, summaryItems } = topicItem;
+  const { topic, summaryItems, summaryChatIds } = topicItem;
   if (!summaryItems.length) return undefined;
   const showMessageDetail = (relevantMessages: Array<{ chatId: string; relevantMessageIds: number[] }>) => {
     eventEmitter.emit(Actions.ShowGlobalSummaryMessagePanel, {
@@ -79,7 +88,7 @@ const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTop
     return (
       <Avatar
         key={chatId}
-        className="overlay-avatar"
+        className="overlay-avatar inline-block ml-[-4px] cursor-pointer"
         size={20}
         peer={peer}
         withStory
@@ -88,7 +97,18 @@ const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTop
   };
   return (
     <div>
-      <span>{index + 1}.{topic}</span>
+      <div className="flex flex-row items-center flex-wrap">
+        <span className="text-[16px] font-bold mr-[24px]">{index + 1}.{topic}</span>
+        {summaryChatIds ? (
+          <>
+            {
+              summaryChatIds.slice(0, 10).map((chatId: string) => {
+                return renderChatAvatar(chatId);
+              })
+            }
+          </>
+        ) : null}
+      </div>
       <ul className="list-disc pl-[28px] text-[16px]">
         {summaryItems.map((summaryItem: any) => {
           const { title, relevantMessages } = summaryItem;
@@ -158,14 +178,84 @@ const SummaryGarbageItem = ({ garBageItem, global }: { garBageItem: ISummaryGarb
     </div>
   );
 };
+
+const ActionsItems = ({
+  summaryInfo,
+  mainTopic,
+  pendingMatters,
+  deleteMessage,
+}:{
+  summaryInfo: ISummaryInfo | null;
+  mainTopic: ISummaryTopicItem[];
+  pendingMatters: ISummaryPendingItem[];
+  deleteMessage: () => void;
+}) => {
+  const lang = useOldLang();
+  const { showNotification } = getActions();
+  const [voicePlaying, setVoicePlaying] = useState(false);
+  const handleCopy = () => {
+    const { summaryStartTime, summaryEndTime } = summaryInfo || {};
+    const timeRange = `${summaryStartTime ? `${formatTimestamp(summaryStartTime)}-` : ''}${summaryEndTime ? formatTimestamp(summaryEndTime) : ''}`;
+    const copyText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item) => `${item.topic}:\n ${item.summaryItems.map((subItem) => subItem.title).join(';\n ')}`).join('\n')}\n\nNext Actions:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}`;
+    copy(copyText);
+    showNotification({
+      message: lang('TextCopied'),
+    });
+  };
+  const handleVoicePlay = () => {
+    const { summaryStartTime, summaryEndTime } = summaryInfo || {};
+    const timeRange = `${summaryStartTime ? `${formatTimestamp(summaryStartTime)}-` : ''}${summaryEndTime ? formatTimestamp(summaryEndTime) : ''}`;
+    const voiceText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item) => `${item.topic}:\n ${item.summaryItems.map((subItem) => subItem.title).join(';\n ')}`).join('\n')}\n\nNext Actions:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}`;
+    if (!window.speechSynthesis) {
+      console.error('Text-to-Speech is not supported in this browser.');
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(voiceText);
+    window.speechSynthesis.speak(utterance);
+    setVoicePlaying(true);
+  };
+  const handleVoiceStop = () => {
+    window.speechSynthesis.cancel();
+    setVoicePlaying(false);
+  };
+  return (
+    <div className="flex items-center gap-[8px]">
+      <div className="w-[24px] h-[24px] text-[#676B74] cursor-pointer" onClick={handleCopy}>
+        <CopyIcon size={24} />
+      </div>
+      {voicePlaying ? (
+        <div
+          className="w-[24px] h-[24px] text-[#676B74] cursor-pointer"
+          onClick={handleVoiceStop}
+          title="Stop Voice"
+        >
+          <VoiceingIcon size={24} />
+        </div>
+      ) : (
+        <div
+          className="w-[24px] h-[24px] text-[#676B74] cursor-pointer"
+          onClick={handleVoicePlay}
+          title="Play Voice"
+        >
+          <VoiceIcon size={24} />
+        </div>
+      )}
+      <div className="w-[20px] h-[20px] cursor-pointer" onClick={deleteMessage}>
+        <DeleteIcon size={20} />
+      </div>
+    </div>
+  );
+};
 const MainSummaryContent = ({
   summaryInfo,
   mainTopic,
   pendingMatters,
+  deleteMessage,
 }: {
   summaryInfo: ISummaryInfo | null;
   mainTopic: ISummaryTopicItem[];
   pendingMatters: ISummaryPendingItem[];
+  deleteMessage: () => void;
 }) => {
   const global = getGlobal();
   return (
@@ -250,17 +340,20 @@ const MainSummaryContent = ({
           {pendingMatters.map((item) => (<SummaryPenddingItem pendingItem={item} />))}
         </div>
       )}
+      {/* action buttons  */}
+      <ActionsItems summaryInfo={summaryInfo} mainTopic={mainTopic} pendingMatters={pendingMatters} deleteMessage={deleteMessage} />
     </div>
   );
 };
 const SummaryContent = ({
-  summaryInfo, mainTopic, pendingMatters, garbageMessage,
+  summaryInfo, mainTopic, pendingMatters, garbageMessage, deleteMessage,
 }:
 {
   summaryInfo: ISummaryInfo | null;
   mainTopic: ISummaryTopicItem[];
   pendingMatters: ISummaryPendingItem[];
   garbageMessage: ISummaryGarbageItem[];
+  deleteMessage: () => void;
 }) => {
   const global = getGlobal();
   return (
@@ -270,6 +363,7 @@ const SummaryContent = ({
           summaryInfo={summaryInfo}
           mainTopic={mainTopic}
           pendingMatters={pendingMatters}
+          deleteMessage={deleteMessage}
         />
       )}
 
@@ -306,7 +400,7 @@ const SummaryContent = ({
   );
 };
 const GlobalSummaryMessage = (props: IProps) => {
-  const { isLoading, message } = props;
+  const { isLoading, message, deleteMessage } = props;
   const [summaryInfo, setSummaryInfo] = useState<ISummaryInfo | null>(null);
   const [mainTopic, setMainTopic] = useState<ISummaryTopicItem[]>([]);
   const [pendingMatters, setPendingMatters] = useState<ISummaryPendingItem[]>([]);
@@ -323,7 +417,11 @@ const GlobalSummaryMessage = (props: IProps) => {
         const result = validateAndFixJsonStructure(match[1].trim());
         if (result.valid) {
           console.log('修复后的 JSON:', result.fixedJson);
-          return JSON.parse(result.fixedJson);
+          if (result.fixedJson) {
+            return JSON.parse(result.fixedJson);
+          } else {
+            console.error('JSON 修复失败:', result.error);
+          }
         } else {
           console.error('JSON 修复失败:', result.error);
         }
@@ -374,6 +472,7 @@ const GlobalSummaryMessage = (props: IProps) => {
       mainTopic={mainTopic}
       pendingMatters={pendingMatters}
       garbageMessage={garbageMessage}
+      deleteMessage={deleteMessage}
     />
   );
 };

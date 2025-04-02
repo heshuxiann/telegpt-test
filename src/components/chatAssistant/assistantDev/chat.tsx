@@ -9,7 +9,7 @@ import type { IFetchUnreadMessage, ImAssistantChat } from './im-assistant';
 
 import TagsModal from '../modal/tagsModal';
 import SettingPanel from '../setting-panel';
-import { CHATAI_STORE } from '../store';
+import { ChataiUserStore } from '../store';
 import { MultimodalInput } from './multimodal-input';
 
 import { Messages } from '../../right/ChatAI/messages';
@@ -45,7 +45,6 @@ export function Chat(props:IProps) {
   const [appendUnreadPrompt, setAppendUnreadPrompt] = useState<string>('');
   const [appendTodayPrompt, setAppendTodayPrompt] = useState<string>('');
   const [tagsModalVisable, setTagsModalVisable] = useState<boolean>(false);
-  const [localChatAiMessages, setLocalChatAiMessages] = useState<Message[]>([]);
   const [initialMessages, setInitialMessages] = useState<Message[]>([]);
   const {
     messages, handleSubmit, setMessages, input, setInput, append, isLoading, stop,
@@ -59,11 +58,8 @@ export function Chat(props:IProps) {
   useEffect(() => {
     if (currentChat) {
       // eslint-disable-next-line @typescript-eslint/no-shadow
-      CHATAI_STORE.MessageStore.getMessage(currentChat?.chatId).then((localChatAiMessages = []) => {
-        setLocalChatAiMessages(localChatAiMessages as Array<Message>);
-      });
       if (currentChat?.chatType === 'single') {
-        CHATAI_STORE.UsersStore.getUser(currentChat.chatId).then((userInfo) => {
+        ChataiUserStore.getUser(currentChat.chatId).then((userInfo) => {
           if (userInfo) {
             let content = `这是一个IM聊天室,你的名字是${userInfo.name},你的手机号是${userInfo.phoneNumber};`;
             if (userInfo?.tags) {
@@ -85,12 +81,6 @@ export function Chat(props:IProps) {
       }
     }
   }, [currentChat, currentUser]);
-  useEffect(() => {
-    if (messages.length && currentChat?.chatId) {
-      CHATAI_STORE.MessageStore.addMessage(currentChat?.chatId as string, [...localChatAiMessages || [], ...messages]);
-    }
-  // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
-  }, [messages, currentChat]);
   async function handleSummaryUnreadMessage() {
     const unreadMessage = await getRoomUnreadMessages({
       chatId: currentChat?.chatId as string,
@@ -180,9 +170,6 @@ export function Chat(props:IProps) {
       <div className="im-assistant-chat-main h-full flex-1 flex flex-row overflow-hidden">
         <div className="flex-1 flex flex-col">
           <div className="chat-ai-output-wrapper flex-1 overflow-auto">
-            {localChatAiMessages && (
-              <Messages isLoading={false} messages={localChatAiMessages} />
-            )}
             <Messages
               isLoading={isLoading}
               messages={messages}

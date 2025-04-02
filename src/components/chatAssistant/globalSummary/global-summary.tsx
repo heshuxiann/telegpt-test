@@ -26,8 +26,10 @@ import { MultimodalInput } from '../assistantDev/multimodal-input';
 import { CloseIcon } from '../icons';
 import { Messages } from '../messages';
 import MessagePanel from '../rightPanel/message-panel';
-import { CHATAI_STORE, GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME } from '../store';
-import MessageStore, { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
+import {
+  ChataiGeneralStore, ChataiMessageStore, GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME,
+} from '../store';
+import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
 import summaryPrompt from './summary-prompt';
 
@@ -38,78 +40,6 @@ import './global-summary.scss';
 import AISummaryPath from '../assets/ai-summary.png';
 import SerenaPath from '../assets/serena.png';
 
-const summaryResponseType = {
-  summaryMessageCount: 0,
-  summaryStartTime: 0,
-  summaryEndTime: 0,
-  summaryChatIds: [],
-  mainTopic: [{
-    chatId: '',
-    chatTitle: '',
-    summaryItems: [{
-      topic: '',
-      relevantMessage: [{
-        summary: '',
-        relevantMessageIds: [],
-      }],
-    }],
-  }],
-  pendingMatters: [{
-    chatId: '',
-    chatTitle: '',
-    messageId: '',
-    senderId: '',
-    summary: '',
-  }],
-  garbageMessage: [{
-    chatId: '',
-    chatTitle: '',
-    summary: '',
-    level: '',
-    relevantMessageIds: [],
-  }],
-};
-const summaryInfo = {
-  summaryMessageCount: 0,
-  summaryStartTime: 0,
-  summaryEndTime: 0,
-  summaryChatIds: [],
-};
-
-const mainTopic = [
-  {
-    chatId: '房间ID',
-    chatTitle: '房间标题',
-    summaryItems: [{
-      topic: '话题',
-      relevantMessage: [{
-        summary: '总结',
-        relevantMessageIds: [],
-      }],
-    }],
-  },
-];
-
-const pendingMatters = {
-  chatId: '',
-  chatTitle: '',
-  messageId: '',
-  senderId: '',
-  summary: '',
-};
-
-const garbageMessage = {
-  chatId: '',
-  chatTitle: '',
-  summary: '',
-  level: '',
-  relevantMessageIds: [],
-};
-
-const summaryInfoTemplate = '<!-- code-id: summary-info --><!-- end-code-id -->';
-const mainTopicTemplate = '<!-- code-id: main-topic --><!-- end-code-id -->';
-const pendingMattersTemplate = '<!-- code-id: pending-matters --><!-- end-code-id -->';
-const garbageMessageTemplate = '<!-- code-id: garbage-message --><!-- end-code-id -->';
 interface SummaryMessage {
   chatId: string;
   chatTitle: string;
@@ -143,23 +73,26 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const startSummary = useCallback(async (messages: Record<string, ApiMessage[]>) => {
       // eslint-disable-next-line no-console
       console.log('开始总结', messages);
-      const globalSummaryLastTime = await CHATAI_STORE.GENERAL_IDB_STORE.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
+      const globalSummaryLastTime = await ChataiGeneralStore.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
       const summaryTime = new Date().getTime();
       //   const summaryMessages:SummaryMessage[] = [];
       if (!Object.keys(messages).length) return;
       const summaryMessages: SummaryMessage[] = Object.entries(messages).flatMap(([chatId, messages]) => {
         const chat = selectChat(global, chatId);
         return messages.map((message) => {
-          return {
-            chatId,
-            chatTitle: chat?.title ?? 'Unknown',
-            chatType: isUserId(chatId) ? 'private' : 'group',
-            senderId: message.senderId,
-            date: message.date,
-            messageId: Math.floor(message.id),
-            content: message.content.text?.text ?? '',
-          };
-        });
+          if (message.content.text?.text) {
+            return {
+              chatId,
+              chatTitle: chat?.title ?? 'Unknown',
+              chatType: isUserId(chatId) ? 'private' : 'group',
+              senderId: message.senderId,
+              date: message.date,
+              messageId: Math.floor(message.id),
+              content: message.content.text?.text ?? '',
+            };
+          }
+          return null;
+        }).filter(Boolean);
       });
       // eslint-disable-next-line no-console
       console.log('summaryMessages', summaryMessages);
@@ -172,7 +105,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           消息总数量:${summaryMessages.length};\n
           总结开始时间:${globalSummaryLastTime};\n
           总结结束时间:${summaryTime};\n
-          总结的房间列表:${Object.keys(messages).join(';')};\n
+          总结的房间列表:${Object.keys(messages)};\n
         `,
         annotations: [{ isAuxiliary: true }],
       };
@@ -190,7 +123,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           template: 'global-summary',
         }],
       });
-      CHATAI_STORE.GENERAL_IDB_STORE.set(GLOBAL_SUMMARY_LAST_TIME, new Date().getTime());
+      ChataiGeneralStore.set(GLOBAL_SUMMARY_LAST_TIME, new Date().getTime());
       setUnreadSummaryCount(unreadSummaryCount + 1);
     }, [append, global, setMessages, unreadSummaryCount]);
     useEffect(() => {
@@ -222,8 +155,8 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     }, [pendingSummaryMessages, startSummary]);
 
     useEffect(() => {
-      CHATAI_STORE.GENERAL_IDB_STORE.set(GLOBAL_SUMMARY_READ_TIME, new Date().getTime());
-      MessageStore.getMessages(GLOBAL_SUMMARY_CHATID, undefined, 10)?.then((res) => {
+      ChataiGeneralStore.set(GLOBAL_SUMMARY_READ_TIME, new Date().getTime());
+      ChataiMessageStore.getMessages(GLOBAL_SUMMARY_CHATID, undefined, 10)?.then((res) => {
         if (res.messages) {
           const localChatAiMessages = parseStoreMessage2Message(res.messages);
           setLocalChatAiMessages(localChatAiMessages);
@@ -238,12 +171,12 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     useEffect(() => {
       if (messages.length > 0) {
         const parsedMessage = parseMessage2StoreMessage(GLOBAL_SUMMARY_CHATID, messages);
-        MessageStore.storeMessages([...parsedMessage]);
+        ChataiMessageStore.storeMessages([...parsedMessage]);
       }
     }, [messages]);
 
     const initUnSummaryMessage = async () => {
-      const globalSummaryLastTime: number | undefined = await CHATAI_STORE.GENERAL_IDB_STORE.get(GLOBAL_SUMMARY_LAST_TIME);
+      const globalSummaryLastTime: number | undefined = await ChataiGeneralStore.get(GLOBAL_SUMMARY_LAST_TIME);
       if (!globalSummaryLastTime || globalSummaryLastTime < Date.now() - 1000 * 60 * 60 * 12) {
         // TODO 总结所有的未读消息
         summaryAllUnreadMessages();
@@ -329,13 +262,20 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const openGlobalSummaryModal = async () => {
       setSummaryModalVisible(true);
       // 距离上次浏览到现在间隔超过2个周期
-      const lastReadTime: number | undefined = await CHATAI_STORE.GENERAL_IDB_STORE.get(GLOBAL_SUMMARY_READ_TIME);
+      const lastReadTime: number | undefined = await ChataiGeneralStore.get(GLOBAL_SUMMARY_READ_TIME);
       if (lastReadTime && unreadSummaryCount > 2) {
         summaryMessageByDeadline(lastReadTime);
       }
-      CHATAI_STORE.GENERAL_IDB_STORE.set(GLOBAL_SUMMARY_READ_TIME, new Date().getTime());
+      ChataiGeneralStore.set(GLOBAL_SUMMARY_READ_TIME, new Date().getTime());
       setUnreadSummaryCount(0);
     };
+
+    const deleteMessage = useCallback((messageId: string) => {
+      ChataiMessageStore.delMessage(messageId).then(() => {
+        setLocalChatAiMessages((prev) => prev.filter((message) => message.id !== messageId));
+        setMessages((prev) => prev.filter((message) => message.id !== messageId));
+      });
+    }, [setMessages]);
 
     return (
       <ErrorBoundary>
@@ -364,6 +304,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             setMessages={setMessages}
             handleSubmit={handleSubmit}
             append={append}
+            deleteMessage={deleteMessage}
           />
         </Modal>
 
@@ -382,6 +323,7 @@ interface SummaryContentProps {
   attachments: Array<Attachment>;
   setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   setMessages: Dispatch<SetStateAction<Array<Message>>>;
+  deleteMessage: (messageId: string) => void;
   handleSubmit: (
     event?: {
       preventDefault?: () => void;
@@ -394,7 +336,7 @@ interface SummaryContentProps {
 
 const SummaryModalContent = (props: SummaryContentProps) => {
   const {
-    localChatAiMessages, isLoading, messages, input, setInput, handleSubmit, attachments, setAttachments, setMessages, append, stop, onClose,
+    localChatAiMessages, isLoading, messages, input, setInput, handleSubmit, attachments, setAttachments, setMessages, append, stop, onClose, deleteMessage,
   } = props;
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const sentinelTopRef = useRef<HTMLDivElement>(null);
@@ -416,11 +358,12 @@ const SummaryModalContent = (props: SummaryContentProps) => {
           >
             <div ref={sentinelTopRef} className="h-[1px]" />
             {localChatAiMessages && (
-              <Messages isLoading={false} messages={localChatAiMessages} />
+              <Messages isLoading={false} messages={localChatAiMessages} deleteMessage={deleteMessage} />
             )}
             <Messages
               isLoading={isLoading}
               messages={messages}
+              deleteMessage={deleteMessage}
             />
             <div ref={sentinelBottomRef} className="h-[1px]" />
           </div>

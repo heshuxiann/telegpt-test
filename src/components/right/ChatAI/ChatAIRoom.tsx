@@ -13,7 +13,6 @@ import { v4 as uuidv4 } from 'uuid';
 import type { ApiMessage } from '../../../api/types/messages';
 import type { ThreadId } from '../../../types';
 
-import { CHATAI_STORE } from '../../chatAssistant/store';
 import { fetchChatUnreadMessage } from './fetch-messages';
 import { Messages } from './messages';
 import { MultimodalInput } from './multimodal-input';
@@ -43,29 +42,19 @@ interface StateProps {
 }
 const ChatAIRoom = (props: StateProps) => {
   const {
-    chatId, messageIds, messagesById, chatTitle, unreadCount, memoUnreadId, chat, threadId,
+    chatId, messageIds, messagesById, unreadCount, memoUnreadId, chat, threadId,
   } = props;
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
-  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
   const [unreadMessages, setUnreadMessages] = useState<ApiMessage[]>([]);
   const {
     messages, handleSubmit, setMessages, input, setInput, append, isLoading, stop,
   } = useChat({
     api: 'https://ai-api-sdm.vercel.app/chat',
     id: chatId,
-    initialMessages,
     sendExtraMessageFields: true,
   });
 
   useEffect(() => {
-    if (chatId) {
-      CHATAI_STORE.MessageStore.getMessage(chatId).then((localChatAiMessages = []) => {
-        // eslint-disable-next-line no-console
-        console.log('localChatAiMessages', chatId, localChatAiMessages);
-        setInitialMessages(localChatAiMessages as Array<Message>);
-      });
-    }
-
     // get unread message
     if (unreadCount > 0) {
       fetchChatUnreadMessage({
@@ -81,12 +70,6 @@ const ChatAIRoom = (props: StateProps) => {
     }
   // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, [chatId]);
-  useEffect(() => {
-    if (chatId && messages) {
-      CHATAI_STORE.MessageStore.addMessage(chatId, messages);
-    }
-  }, [chatId, messages]);
-
   const summaryTodayMessages = () => {
     const addMessage: Message[] = [];
     messageIds?.forEach((id) => {

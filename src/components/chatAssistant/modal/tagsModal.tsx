@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Input, Modal } from 'antd';
 
-import { CHATAI_STORE } from '../store';
+import { ChataiUserStore } from '../store';
 
 import useLastCallback from '../../../hooks/useLastCallback';
 
@@ -25,7 +25,7 @@ const TagsModal = (props: Iprops) => {
   const [userInfo, setUserInfo] = useState<UserInfo>({});
   useEffect(() => {
     if (userId) {
-      CHATAI_STORE.UsersStore.getUser(userId).then((user) => {
+      ChataiUserStore.getUser(userId).then((user) => {
         if (user) {
           setUserInfo(user);
           form.setFieldsValue({
@@ -40,7 +40,7 @@ const TagsModal = (props: Iprops) => {
   const handleSubmit = useLastCallback(() => {
     // eslint-disable-next-line no-console
     console.log(form);
-    CHATAI_STORE.UsersStore.addUser({
+    ChataiUserStore.addUser({
       ...userInfo,
       tags: form.getFieldValue('tags'),
     });

@@ -14,11 +14,13 @@ import './messages.scss';
 interface MessagesProps {
   isLoading: boolean;
   messages: Array<Message>;
+  deleteMessage?: (messageId: string) => void;
 }
 
 function PureMessages({
   isLoading,
   messages,
+  deleteMessage,
 }: MessagesProps) {
   const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
   const isAuxiliary = (message:Message) => {
@@ -30,6 +32,10 @@ function PureMessages({
   const isGlobalSummary = (message:Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'template' in item && item.template === 'global-summary') ?? false;
   };
+  const handleDeleteMessage = (message:Message, prevMessage:Message) => {
+    deleteMessage?.(message.id);
+    deleteMessage?.(prevMessage.id);
+  };
   return (
     <div
       ref={messagesContainerRef}
@@ -40,7 +46,14 @@ function PureMessages({
           if (index > 0 && isSummary(messages[index - 1])) {
             return <SummaryMessage isLoading={isLoading} message={message} />;
           } else if (index > 0 && isGlobalSummary(messages[index - 1])) {
-            return <GlobalSummaryMessage isLoading={isLoading} message={message} />;
+            return (
+              <GlobalSummaryMessage
+                isLoading={isLoading}
+                message={message}
+                // eslint-disable-next-line react/jsx-no-bind
+                deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
+              />
+            );
           } else {
             return (
               <PreviewMessage
