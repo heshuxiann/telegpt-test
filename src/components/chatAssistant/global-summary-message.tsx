@@ -29,6 +29,7 @@ import MessageIcon from './assets/message.png';
 import SerenaLogoPath from './assets/serena.png';
 import UserIcon from './assets/user.png';
 import WriteIcon from './assets/write.png';
+import ErrorBoundary from 'antd/es/alert/ErrorBoundary';
 
 interface IProps {
   isLoading: boolean;
@@ -72,7 +73,9 @@ interface ISummaryGarbageItem {
 const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTopicItem; index: number; global: GlobalState }) => {
   const { topic, summaryItems, summaryChatIds } = topicItem;
   if (!summaryItems.length) return undefined;
+  if (!topic) return undefined;
   const showMessageDetail = (relevantMessages: Array<{ chatId: string; relevantMessageIds: number[] }>) => {
+    if (!relevantMessages.length) return;
     eventEmitter.emit(Actions.ShowGlobalSummaryMessagePanel, {
       relevantMessages,
     });
@@ -112,6 +115,7 @@ const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTop
       <ul className="list-disc pl-[28px] text-[16px]">
         {summaryItems.map((summaryItem: any) => {
           const { title, relevantMessages } = summaryItem;
+          if (!title) return undefined;
           return (
             <li
               role="button"
@@ -327,7 +331,11 @@ const MainSummaryContent = ({
             <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
             <span className="text-[18px] font-bold">Key Topics</span>
           </p>
-          {mainTopic.map((item, index) => (<SummaryTopicItem topicItem={item} global={global} index={index} />))}
+          {mainTopic.map((item, index) => (
+            <ErrorBoundary>
+              <SummaryTopicItem topicItem={item} global={global} index={index} />
+            </ErrorBoundary>
+          ))}
         </div>
       )}
       {/* pending actions  */}
