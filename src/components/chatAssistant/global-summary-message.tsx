@@ -20,6 +20,7 @@ import {
 
 import useOldLang from '../../hooks/useOldLang';
 
+import ErrorBoundary from './ErrorBoundary';
 import Avatar from './ui/Avatar';
 
 import ActionsIcon from './assets/actions.png';
@@ -29,7 +30,6 @@ import MessageIcon from './assets/message.png';
 import SerenaLogoPath from './assets/serena.png';
 import UserIcon from './assets/user.png';
 import WriteIcon from './assets/write.png';
-import ErrorBoundary from 'antd/es/alert/ErrorBoundary';
 
 interface IProps {
   isLoading: boolean;
@@ -58,9 +58,8 @@ interface ISummaryTopicItem {
 interface ISummaryPendingItem {
   chatId: string;
   chatTitle: string;
-  messageId: number;
-  senderId: string;
   summary: string;
+  relevantMessageIds: number[];
 }
 interface ISummaryGarbageItem {
   chatId: string;
@@ -74,7 +73,7 @@ const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTop
   const { topic, summaryItems, summaryChatIds } = topicItem;
   if (!summaryItems.length) return undefined;
   if (!topic) return undefined;
-  const showMessageDetail = (relevantMessages: Array<{ chatId: string; relevantMessageIds: number[] }>) => {
+  const showMessageDetail = (relevantMessages: Array<{ chatId: string; messageIds: number[] }>) => {
     if (!relevantMessages.length) return;
     eventEmitter.emit(Actions.ShowGlobalSummaryMessagePanel, {
       relevantMessages,
@@ -132,8 +131,17 @@ const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTop
 };
 
 const SummaryPenddingItem = ({ pendingItem }: { pendingItem: ISummaryPendingItem }) => {
+  const showMessageDetail = () => {
+    eventEmitter.emit(Actions.ShowGlobalSummaryMessagePanel, {
+      relevantMessages: [{ chatId: pendingItem.chatId, messageIds: [pendingItem.relevantMessageIds] }],
+    });
+  };
   return (
-    <div className="flex items-center gap-[8px] my-[4px]" key={pendingItem.messageId}>
+    <div
+      className="flex items-center gap-[8px] my-[4px] cursor-pointer"
+      key={pendingItem.chatId}
+      onClick={showMessageDetail}
+    >
       <img className="w-[18px] h-[18px]" src={CheckIcon} alt="" />
       <span>{pendingItem.summary}</span>
     </div>
@@ -188,7 +196,7 @@ const ActionsItems = ({
   mainTopic,
   pendingMatters,
   deleteMessage,
-}:{
+}: {
   summaryInfo: ISummaryInfo | null;
   mainTopic: ISummaryTopicItem[];
   pendingMatters: ISummaryPendingItem[];

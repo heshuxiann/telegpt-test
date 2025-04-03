@@ -68,6 +68,8 @@ const summaryPrompt = `
                             "relevantMessageIds": [消息ID1, 消息ID2, ...]
                         }
                     ]
+            # summary-info(摘要信息)
+                ## 根据上面对应的字段直接填充
             # main-topic(主要话题)总结标准
                 ## 总结的JSON是一个数组
                 ## 每个主话题需包讨论的核心内容(1-2句话概括)、关键决策或结论(如有)

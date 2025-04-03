@@ -10,7 +10,7 @@ import { useChat } from '@ai-sdk/react';
 import type {
   Attachment, ChatRequestOptions, CreateMessage, Message,
 } from 'ai';
-import { Modal } from 'antd';
+import { Button, Modal } from 'antd';
 import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
 
@@ -34,6 +34,7 @@ import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fet
 import summaryPrompt from './summary-prompt';
 
 import ErrorBoundary from '../ErrorBoundary';
+import { TestModal } from './TestModal';
 
 import './global-summary.scss';
 
@@ -60,17 +61,18 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const [summaryModalVisible, setSummaryModalVisible] = useState(false);
     const [attachments, setAttachments] = useState<Array<Attachment>>([]);
     const [unreadSummaryCount, setUnreadSummaryCount] = useState(0);
+    const [testModalVisable, setTestModalVisible] = useState(false);
     const {
       messages, setMessages, append, isLoading, input, setInput, stop, handleSubmit,
     } = useChat({
       api: 'https://sdm-ai-api.vercel.app/chat',
       sendExtraMessageFields: true,
     });
-    const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
+    const orderedIds = React.useMemo(() => getOrderedIds(ALL_FOLDER_ID) || [], []);
     useImperativeHandle(ref, () => ({
       addNewMessage,
     }));
-    const startSummary = useCallback(async (messages: Record<string, ApiMessage[]>) => {
+    const startSummary = useCallback(async (messages: Record<string, ApiMessage[]>, prompt?: string) => {
       // eslint-disable-next-line no-console
       console.log('开始总结', messages);
       const globalSummaryLastTime = await ChataiGeneralStore.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
@@ -97,27 +99,17 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       // eslint-disable-next-line no-console
       console.log('summaryMessages', summaryMessages);
       if (!summaryMessages.length) return;
-      const pendingMessage: Message = {
-        id: uuidv4(),
-        role: 'user',
-        createdAt: new Date(),
-        content: `消息列表:${summaryMessages.map((item) => JSON.stringify(item)).join(';')}\n
-          消息总数量:${summaryMessages.length};\n
-          总结开始时间:${globalSummaryLastTime};\n
-          总结结束时间:${summaryTime};\n
-          总结的房间列表:${Object.keys(messages)};\n
-        `,
-        annotations: [{ isAuxiliary: true }],
+      const summaryMessageContent = {
+        messageList: summaryMessages,
+        summaryMessageCount: summaryMessages.length,
+        summaryStartTime: globalSummaryLastTime,
+        summaryEndTime: summaryTime,
+        summaryChatIds: Object.keys(messages),
       };
-      // eslint-disable-next-line no-console
-      console.log('pendingMessage', pendingMessage);
-      setMessages((prev) => {
-        return [...prev, pendingMessage];
-      });
       append({
         id: uuidv4(),
         role: 'user',
-        content: summaryPrompt,
+        content: `${prompt || summaryPrompt}\n\n${JSON.stringify(summaryMessageContent)}`,
         annotations: [{
           isAuxiliary: true,
           template: 'global-summary',
@@ -125,7 +117,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       });
       ChataiGeneralStore.set(GLOBAL_SUMMARY_LAST_TIME, new Date().getTime());
       setUnreadSummaryCount(unreadSummaryCount + 1);
-    }, [append, global, setMessages, unreadSummaryCount]);
+    }, [append, global, unreadSummaryCount]);
     useEffect(() => {
       const executeTask = () => {
         const currentTime = new Date();
@@ -221,6 +213,9 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
         const chatLastMessageId = selectChatLastMessageId(global, chatId) || 0;
         if (chat && chat.unreadCount && !chatBot && chatLastMessageId) {
+          if (chat?.membersCount && chat?.membersCount > 100) {
+            continue;
+          }
           const roomUnreadMsgs = await fetchChatMessageByDeadline({
             chat,
             deadline: deadline / 1000,
@@ -245,14 +240,21 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       console.log('chat---->', selectChat(global, message.chatId));
       if (message.content.text) {
         const chatId = message.chatId;
-        setPendingSummaryMessages((messages) => {
-          if (messages[chatId]) {
-            messages[chatId].push(message);
-          } else {
-            messages[chatId] = [message];
+        const chat = selectChat(global, chatId);
+        const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
+        if (!chatBot) {
+          if (chat?.membersCount && chat?.membersCount > 100) {
+            return;
           }
-          return messages;
-        });
+          setPendingSummaryMessages((messages) => {
+            if (messages[chatId]) {
+              messages[chatId].push(message);
+            } else {
+              messages[chatId] = [message];
+            }
+            return messages;
+          });
+        }
       }
     };
     const handleClose = React.useCallback(() => {
@@ -276,6 +278,36 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         setMessages((prev) => prev.filter((message) => message.id !== messageId));
       });
     }, [setMessages]);
+
+    const handleReSummary = useCallback(async (prompt: string) => {
+      const unreadMap: Record<string, ApiMessage[]> = {};
+      for (let i = 0; i < orderedIds.length; i++) {
+        const chatId = orderedIds[i];
+        const chat = selectChat(global, chatId);
+        const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
+        if (chat && chat.unreadCount && !chatBot) {
+          if (chat?.membersCount && chat?.membersCount > 100) {
+            continue;
+          }
+          const firstUnreadId = selectFirstUnreadId(global, chatId, MAIN_THREAD_ID) || chat.lastReadInboxMessageId;
+          const roomUnreadMsgs = await fetchChatUnreadMessage({
+            chat,
+            offsetId: firstUnreadId || 0,
+            addOffset: -30,
+            sliceSize: 30,
+            threadId: MAIN_THREAD_ID,
+            unreadCount: chat.unreadCount,
+            maxCount: 100,
+          });
+          if (roomUnreadMsgs.length > 0) {
+            unreadMap[chatId] = roomUnreadMsgs;
+          }
+        }
+      }
+      if (Object.keys(unreadMap).length) {
+        startSummary(unreadMap, prompt);
+      }
+    }, [global, orderedIds, startSummary]);
 
     return (
       <ErrorBoundary>
@@ -305,6 +337,15 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             handleSubmit={handleSubmit}
             append={append}
             deleteMessage={deleteMessage}
+          />
+          <Button type="primary" className="absolute right-[20px] bottom-[20px]" onClick={() => { setTestModalVisible(true); }}>
+            测试入口
+          </Button>
+          <TestModal
+            visible={testModalVisable}
+            // eslint-disable-next-line react/jsx-no-bind
+            onClose={() => setTestModalVisible(false)}
+            handleReSummary={handleReSummary}
           />
         </Modal>
 
@@ -383,6 +424,7 @@ const SummaryModalContent = (props: SummaryContentProps) => {
           </form>
         </div>
         <MessagePanel closeSummaryModal={onClose} />
+
       </div>
     </div>
   );
