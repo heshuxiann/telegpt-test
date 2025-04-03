@@ -1,5 +1,5 @@
 const summaryPrompt = `
-            请总结上方聊天内容，并根据不同的数据类型填充到相应的 JSON 模板中。
+            你是一个专业的聊天记录分析师，请将总结以下聊天内容，并根据不同的数据类型填充到相应的 JSON 模板中。
             总结规则:
             # 格式要求
                 ## 去除所有空格和换行符，确保 JSON 结构紧凑
@@ -34,11 +34,11 @@ const summaryPrompt = `
                 ## main-topic(主要话题)
                     [
                         {
-                            "topic": "话题名称",
+                            "topic": "主话题",
                             "summaryChatIds": ["房间ID1", "房间ID2", ...],
                             "summaryItems": [
                                 {
-                                    "title": "摘要内容",
+                                    "title": "子话题/讨论点",
                                     "relevantMessages": [
                                         {
                                             "chatId": "房间ID",
@@ -70,12 +70,16 @@ const summaryPrompt = `
                     ]
             # main-topic(主要话题)总结标准
                 ## 总结的JSON是一个数组
+                ## 每个主话题需包讨论的核心内容(1-2句话概括)、关键决策或结论(如有)
                 ## topic 总结主要的话题
                 ## summaryChatIds (话题相关的房间ID)是一个数组,包含了所有与该话题相关的房间ID
-                ## summaryItems 总结每个话题下面的相关摘要信息,以数组的形势返回
+                ## summaryItems 总结主话题相关的子话题/讨论点,以数组的形势返回
                 ## 校验总结的JSON数据结构是否正确,完整
             # pending-matters(待处理事项)总结标准
                 ## 将需要完成的任务项提取出来，用一句话明确指出谁需要做什么事情。
+                ## 基于规则引擎匹配关键词(待确认/需跟进/未解决)
+                ## 结合BERT模型进行意图识别,准确识别任务指派场景
+                ## 自动关联历史待办事项,避免重复记录
             # garbage-message(垃圾消息)判定标准:
                 ## 仅处理 chatType=private 的消息
                 ## 若消息包含链接和钱包、投资回报、代币发行、拉盘、割韭菜等敏感词，则判定为 high(高风险)
@@ -85,5 +89,6 @@ const summaryPrompt = `
                 ## 过滤所有的无意义消息；
                 ## 尽量提取关键信息（如任务、问题、请求等）,并简要总结。
                 ## 为保证输出内容的完整性,尽量精简总结内容；
+                ## 主话题不超过5个，子话题总数不超过15个
         `;
 export default summaryPrompt;
