@@ -430,6 +430,7 @@ const Message: FC<OwnProps & StateProps> = ({
     animateUnreadReaction,
     focusLastMessage,
     markMentionsRead,
+    requestMessageTranslation,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -817,6 +818,15 @@ const Message: FC<OwnProps & StateProps> = ({
 
   const quickReactionPosition: QuickReactionPosition = isCustomShape ? 'in-meta' : 'in-content';
 
+  // 自动翻译
+  // eslint-disable-next-line max-len
+  if (shouldTranslate && textMessage && !isTranslationPending && !requestedTranslationLanguage && !webPage && !emojiSize && !isInvertedMedia && !webPage) {
+    requestMessageTranslation({
+      chatId,
+      id: messageId,
+    });
+  }
+
   useEnsureMessage(
     replyToPeerId || chatId,
     replyToMsgId,
@@ -959,6 +969,8 @@ const Message: FC<OwnProps & StateProps> = ({
     if (!textMessage) return undefined;
     return (
       <MessageText
+        id={message.id}
+        chatId={chatId}
         messageOrStory={textMessage}
         translatedText={requestedTranslationLanguage ? currentTranslatedText : undefined}
         isForAnimation={isForAnimation}
