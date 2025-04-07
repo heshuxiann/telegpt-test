@@ -1,8 +1,6 @@
 import React, {
-  memo, useEffect,
-  useMemo, useRef,
+  memo, useMemo, useRef,
 } from '../../lib/teact/teact';
-import { getActions } from '../../global';
 
 import type { ApiFormattedText, ApiMessage, ApiStory } from '../../api/types';
 import type { ObserveFn } from '../../hooks/useIntersectionObserver';
@@ -18,8 +16,6 @@ import useSyncEffect from '../../hooks/useSyncEffect';
 import useUniqueId from '../../hooks/useUniqueId';
 
 interface OwnProps {
-  id: number;
-  chatId: string;
   messageOrStory: ApiMessage | ApiStory;
   threadId?: ThreadId;
   translatedText?: ApiFormattedText;
@@ -63,10 +59,7 @@ function MessageText({
   canBeEmpty,
   maxTimestamp,
   threadId,
-  id,
-  chatId,
 }: OwnProps) {
-  const { requestMessageTranslation } = getActions();
   // eslint-disable-next-line no-null/no-null
   const sharedCanvasRef = useRef<HTMLCanvasElement>(null);
   // eslint-disable-next-line no-null/no-null
@@ -83,15 +76,6 @@ function MessageText({
   useSyncEffect(() => {
     textCacheBusterRef.current += 1;
   }, [text, entities]);
-
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('渲染文字消息', text);
-    requestMessageTranslation({
-      chatId,
-      id,
-    });
-  }, [chatId, id, text]);
 
   const withSharedCanvas = useMemo(() => {
     const hasSpoilers = entities?.some((e) => e.type === ApiMessageEntityTypes.Spoiler);

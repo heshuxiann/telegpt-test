@@ -16,6 +16,7 @@ import { selectChat, selectUser } from '../../../global/selectors';
 import { selectChatMessage } from '../../../global/selectors/messages';
 import { callApi } from '../../../api/gramjs';
 import { ArrowRightIcon, CloseIcon, SendIcon } from '../icons';
+import { smartReplyPrompt } from '../prompt';
 import { cn, formatTimestamp } from '../utils/util';
 
 import ErrorBoundary from '../ErrorBoundary';
@@ -35,6 +36,11 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
   const { messages, append } = useChat({
     api: 'https://ai-api-sdm.vercel.app/chat',
     sendExtraMessageFields: true,
+    initialMessages: [{
+      id: '0',
+      role: 'system',
+      content: smartReplyPrompt,
+    }],
   });
   const { updateDraftReplyInfo, sendMessage, clearDraft } = getActions();
   const adjustHeight = () => {
@@ -72,7 +78,7 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
   const handleSmaryReply = (message:ApiMessage) => {
     append({
       role: 'user',
-      content: `你是一个普通用户，和朋友在聊天。请用自然、轻松的语气回复对方的消息，像一个真实的人一样互动，不要过于正式或像客服。。请回复下面的消息: ${message.content.text?.text};`,
+      content: `请回复下面的消息: ${message.content.text?.text}`,
     });
   };
 

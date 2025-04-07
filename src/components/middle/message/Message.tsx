@@ -94,6 +94,7 @@ import {
   selectMessageIdsByGroupId,
   selectMessageLastPlaybackTimestamp,
   selectMessageTimestampableDuration,
+  selectMessageTranslations,
   selectOutgoingStatus,
   selectPeer,
   selectPeerStory,
@@ -280,6 +281,7 @@ type StateProps = {
   isTranscribing?: boolean;
   transcribedText?: string;
   isTranscriptionError?: boolean;
+  hasTranslation?: boolean;
   isPremium: boolean;
   senderAdminMember?: ApiChatMember;
   messageTopic?: ApiTopic;
@@ -341,6 +343,7 @@ const Message: FC<OwnProps & StateProps> = ({
   isLastInDocumentGroup,
   isTranscribing,
   transcribedText,
+  hasTranslation,
   isLastInList,
   theme,
   forceSenderName,
@@ -820,12 +823,12 @@ const Message: FC<OwnProps & StateProps> = ({
 
   // 自动翻译
   // eslint-disable-next-line max-len
-  // if (shouldTranslate && textMessage && !isTranslationPending && !requestedTranslationLanguage && !webPage && !emojiSize && !isInvertedMedia && !webPage) {
-  //   requestMessageTranslation({
-  //     chatId,
-  //     id: messageId,
-  //   });
-  // }
+  if (shouldTranslate && textMessage && !isTranslationPending && !currentTranslatedText && !webPage && !emojiSize && !isInvertedMedia && !webPage && !hasTranslation && !message.isOutgoing) {
+    requestMessageTranslation({
+      chatId,
+      id: messageId,
+    });
+  }
 
   useEnsureMessage(
     replyToPeerId || chatId,
@@ -969,8 +972,6 @@ const Message: FC<OwnProps & StateProps> = ({
     if (!textMessage) return undefined;
     return (
       <MessageText
-        id={message.id}
-        chatId={chatId}
         messageOrStory={textMessage}
         translatedText={requestedTranslationLanguage ? currentTranslatedText : undefined}
         isForAnimation={isForAnimation}
@@ -1852,6 +1853,9 @@ export default memo(withGlobal<OwnProps>(
     const maxTimestamp = selectMessageTimestampableDuration(global, message);
 
     const lastPlaybackTimestamp = selectMessageLastPlaybackTimestamp(global, chatId, message.id);
+    const hasTranslation = requestedTranslationLanguage
+      ? Boolean(selectMessageTranslations(global, message.chatId, requestedTranslationLanguage)[message.id]?.text)
+      : undefined;
 
     return {
       theme: selectTheme(global),
@@ -1908,6 +1912,7 @@ export default memo(withGlobal<OwnProps>(
       hasUnreadReaction,
       isTranscribing: transcriptionId !== undefined && global.transcriptions[transcriptionId]?.isPending,
       transcribedText: transcriptionId !== undefined ? global.transcriptions[transcriptionId]?.text : undefined,
+      hasTranslation,
       isPremium,
       senderAdminMember,
       messageTopic,

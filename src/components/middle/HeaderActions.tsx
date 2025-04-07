@@ -117,8 +117,8 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
   shouldSendJoinRequest,
   noAnimation,
   canTranslate,
-  isTranslating,
-  translationLanguage,
+  // isTranslating,
+  // translationLanguage,
   language,
   detectedChatLanguage,
   doNotTranslate,
@@ -134,7 +134,7 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     showNotification,
     openChat,
     requestChatTranslation,
-    togglePeerTranslations,
+    // togglePeerTranslations,
     openChatLanguageModal,
     setSettingOption,
     unblockUser,
@@ -186,14 +186,14 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     unblockUser({ userId: chatId });
   });
 
-  const handleTranslateClick = useLastCallback(() => {
-    if (isTranslating) {
-      requestChatTranslation({ chatId, toLanguageCode: undefined });
-      return;
-    }
+  // const handleTranslateClick = useLastCallback(() => {
+  //   if (isTranslating) {
+  //     requestChatTranslation({ chatId, toLanguageCode: undefined });
+  //     return;
+  //   }
 
-    requestChatTranslation({ chatId, toLanguageCode: translationLanguage });
-  });
+  //   requestChatTranslation({ chatId, toLanguageCode: translationLanguage });
+  // });
 
   const handleJoinRequestsClick = useLastCallback(() => {
     requestNextManagementScreen({ screen: ManagementScreens.JoinRequests });
@@ -251,11 +251,11 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     return lang(`${langKey}Other`, translatedName);
   });
 
-  const buttonText = useMemo(() => {
-    if (isTranslating) return lang('ShowOriginalButton');
+  // const buttonText = useMemo(() => {
+  //   if (isTranslating) return lang('ShowOriginalButton');
 
-    return getTextWithLanguage('TranslateToButton', translationLanguage);
-  }, [translationLanguage, getTextWithLanguage, isTranslating, lang]);
+  //   return getTextWithLanguage('TranslateToButton', translationLanguage);
+  // }, [translationLanguage, getTextWithLanguage, isTranslating, lang]);
 
   const doNotTranslateText = useMemo(() => {
     if (!detectedChatLanguage) return undefined;
@@ -263,10 +263,10 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     return getTextWithLanguage('DoNotTranslateLanguage', detectedChatLanguage);
   }, [getTextWithLanguage, detectedChatLanguage]);
 
-  const handleHide = useLastCallback(() => {
-    togglePeerTranslations({ chatId, isEnabled: false });
-    requestChatTranslation({ chatId, toLanguageCode: undefined });
-  });
+  // const handleHide = useLastCallback(() => {
+  //   togglePeerTranslations({ chatId, isEnabled: false });
+  //   requestChatTranslation({ chatId, toLanguageCode: undefined });
+  // });
 
   const handleChangeLanguage = useLastCallback(() => {
     openChatLanguageModal({ chatId });
@@ -323,16 +323,16 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
           trigger={MoreMenuButton}
           positionX="right"
         >
-          <MenuItem icon="language" onClick={handleTranslateClick}>
+          {/* <MenuItem icon="language" onClick={handleTranslateClick}>
             {buttonText}
-          </MenuItem>
+          </MenuItem> */}
           <MenuItem icon="replace" onClick={handleChangeLanguage}>
             {lang('Chat.Translate.Menu.To')}
           </MenuItem>
           <MenuSeparator />
           {detectedChatLanguage
             && <MenuItem icon="hand-stop" onClick={handleDoNotTranslate}>{doNotTranslateText}</MenuItem>}
-          <MenuItem icon="close-circle" onClick={handleHide}>{lang('Hide')}</MenuItem>
+          {/* <MenuItem icon="close-circle" onClick={handleHide}>{lang('Hide')}</MenuItem> */}
         </DropdownMenu>
       )}
       {!isMobile && (
@@ -532,7 +532,6 @@ export default memo(withGlobal<OwnProps>(
 
     const isTranslating = Boolean(selectRequestedChatTranslationLanguage(global, chatId));
     const canTranslate = selectCanTranslateChat(global, chatId) && !fullInfo?.isTranslationDisabled;
-
     return {
       noMenu: false,
       isChannel,
