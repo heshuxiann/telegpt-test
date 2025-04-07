@@ -20,6 +20,7 @@ import { ALL_FOLDER_ID } from '../../../config';
 import { isSystemBot, isUserId } from '../../../global/helpers';
 import {
   selectBot, selectChat, selectChatLastMessageId, selectFirstUnreadId,
+  selectUser,
 } from '../../../global/selectors';
 import { getOrderedIds } from '../../../util/folderManager';
 import { MultimodalInput } from '../assistantDev/multimodal-input';
@@ -44,6 +45,7 @@ import SerenaPath from '../assets/serena.png';
 interface SummaryMessage {
   chatId: string;
   chatTitle: string;
+  senderName: string;
   senderId: string | undefined;
   date: number;
   messageId: number;
@@ -85,11 +87,13 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         const chat = selectChat(global, chatId);
         return messages.map((message) => {
           if (message.content.text?.text) {
+            const peer = message.senderId ? selectUser(global, message.senderId) : undefined;
             return {
               chatId,
               chatTitle: chat?.title ?? 'Unknown',
               chatType: isUserId(chatId) ? 'private' : 'group',
               senderId: message.senderId,
+              senderName: peer ? `${peer.firstName} ${peer.lastName}` : '',
               date: message.date,
               messageId: Math.floor(message.id),
               content: message.content.text?.text ?? '',
@@ -166,11 +170,11 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     }, []);
 
     useEffect(() => {
-      if (messages.length > 0) {
+      if (messages.length > 0 && !isLoading) {
         const parsedMessage = parseMessage2StoreMessage(GLOBAL_SUMMARY_CHATID, messages);
         ChataiMessageStore.storeMessages([...parsedMessage]);
       }
-    }, [messages]);
+    }, [messages, isLoading]);
 
     const initUnSummaryMessage = async () => {
       const globalSummaryLastTime: number | undefined = await ChataiGeneralStore.get(GLOBAL_SUMMARY_LAST_TIME);
