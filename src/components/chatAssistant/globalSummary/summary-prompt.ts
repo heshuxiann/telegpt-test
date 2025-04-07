@@ -13,7 +13,6 @@ const summaryPrompt = `
                         <!-- json-end -->
                     \`\`\`
             # 分类插入 JSON 数据
-                ## summary-info:填充摘要信息
                 ## main-topic:填充主要讨论的话题
                 ## pending-matters:填充待处理事项
                 ## garbage-message:填充无用或垃圾消息
@@ -24,13 +23,6 @@ const summaryPrompt = `
                 ## messageId:消息的唯一标识符
                 ## content:消息的内容
             # 数据格式
-                ## summary-info(摘要信息)
-                    {
-                        "summaryMessageCount": 总结的消息总数,
-                        "summaryStartTime": 开始时间戳,
-                        "summaryEndTime": 结束时间戳,
-                        "summaryChatIds": ["房间ID1", "房间ID2", ...]
-                    }
                 ## main-topic(主要话题)
                     [
                         {
@@ -68,8 +60,6 @@ const summaryPrompt = `
                             "relevantMessageIds": [消息ID1, 消息ID2, ...]
                         }
                     ]
-            # summary-info(摘要信息)
-                ## 根据上面对应的字段直接填充
             # main-topic(主要话题)总结标准
                 ## 总结的JSON是一个数组
                 ## 每个主话题需包讨论的核心内容(1-2句话概括)、关键决策或结论(如有)

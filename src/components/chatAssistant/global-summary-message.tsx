@@ -34,6 +34,7 @@ import WriteIcon from './assets/write.png';
 interface IProps {
   isLoading: boolean;
   message: Message;
+  prevMessage: Message;
   deleteMessage: () => void;
 }
 interface ISummaryInfo {
@@ -416,16 +417,14 @@ const SummaryContent = ({
   );
 };
 const GlobalSummaryMessage = (props: IProps) => {
-  const { isLoading, message, deleteMessage } = props;
+  const {
+    isLoading, message, prevMessage, deleteMessage,
+  } = props;
   const [summaryInfo, setSummaryInfo] = useState<ISummaryInfo | null>(null);
   const [mainTopic, setMainTopic] = useState<ISummaryTopicItem[]>([]);
   const [pendingMatters, setPendingMatters] = useState<ISummaryPendingItem[]>([]);
   const [garbageMessage, setGarbageMessage] = useState<ISummaryGarbageItem[]>([]);
   const extractContent = (content: string, codeId: string): ISummaryInfo | ISummaryTopicItem[] | ISummaryPendingItem[] | ISummaryGarbageItem[] | null => {
-    // const regex = new RegExp(
-    //   `<!-- code-id: ${codeId} -->\\s*\\s*([\\s\\S]*?)\\s*<!-- end-code-id -->`,
-    //   's',
-    // );
     const regex = new RegExp(`<!--\\s*json-start:\\s*${codeId}\\s*-->([\\s\\S]*?)<!--\\s*json-end\\s*-->`, 's');
     const match = content.match(regex);
     if (match) {
@@ -448,18 +447,17 @@ const GlobalSummaryMessage = (props: IProps) => {
     }
     return null;
   };
+  const getSummaryInfo = (message:Message) => {
+    const summaryInfo = message.annotations?.find((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-summary')?.summaryInfo;
+    return summaryInfo;
+  };
   const parseMessage = useCallback((messageContent: string) => {
-    const summaryInfo = extractContent(messageContent, 'summary-info');
     const mainTopic = extractContent(messageContent, 'main-topic');
     const pendingMatters = extractContent(messageContent, 'pending-matters');
     const garbageMessage = extractContent(messageContent, 'garbage-message');
-    console.log(summaryInfo, '-----summaryInfo');
     console.log(mainTopic, '-----mainTopic');
     console.log(pendingMatters, '-----pendingMatters');
     console.log(garbageMessage, '-----garbageMessage');
-    if (summaryInfo) {
-      setSummaryInfo(summaryInfo as ISummaryInfo);
-    }
     if (mainTopic) {
       setMainTopic(mainTopic as ISummaryTopicItem[]);
     }
@@ -475,13 +473,20 @@ const GlobalSummaryMessage = (props: IProps) => {
       try {
         // const messageContent = JSON.parse(message.content.replace(/^```json\n?/, '').replace(/```\n?$/, ''));
         // setParsedMessage(messageContent);
+        const summaryInfo = getSummaryInfo(prevMessage);
+        if (summaryInfo) {
+          setSummaryInfo(summaryInfo as ISummaryInfo);
+        }
         parseMessage(message.content);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error(error);
       }
     }
-  }, [isLoading, message, parseMessage]);
+  }, [isLoading, message, parseMessage, prevMessage]);
+  if (!summaryInfo) {
+    return null;
+  }
   return (
     <SummaryContent
       summaryInfo={summaryInfo}

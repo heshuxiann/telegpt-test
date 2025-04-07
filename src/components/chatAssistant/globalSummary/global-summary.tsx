@@ -49,9 +49,11 @@ interface SummaryMessage {
   messageId: number;
   content: string;
 }
+
 export interface GlobalSummaryRef {
   addNewMessage: (message: ApiMessage) => void;
 }
+
 const GLOBAL_SUMMARY_CHATID = '777888';
 const GlobalSummary = forwardRef<GlobalSummaryRef>(
   (_, ref) => {
@@ -68,6 +70,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       api: 'https://sdm-ai-api.vercel.app/chat',
       sendExtraMessageFields: true,
     });
+
     const orderedIds = React.useMemo(() => getOrderedIds(ALL_FOLDER_ID) || [], []);
     useImperativeHandle(ref, () => ({
       addNewMessage,
@@ -77,7 +80,6 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       console.log('开始总结', messages);
       const globalSummaryLastTime = await ChataiGeneralStore.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
       const summaryTime = new Date().getTime();
-      //   const summaryMessages:SummaryMessage[] = [];
       if (!Object.keys(messages).length) return;
       const summaryMessages: SummaryMessage[] = Object.entries(messages).flatMap(([chatId, messages]) => {
         const chat = selectChat(global, chatId);
@@ -96,15 +98,9 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           return null;
         }).filter(Boolean);
       });
-      // eslint-disable-next-line no-console
-      console.log('summaryMessages', summaryMessages);
       if (!summaryMessages.length) return;
       const summaryMessageContent = {
         messageList: summaryMessages,
-        summaryMessageCount: summaryMessages.length,
-        summaryStartTime: globalSummaryLastTime,
-        summaryEndTime: summaryTime,
-        summaryChatIds: Object.keys(messages),
       };
       append({
         id: uuidv4(),
@@ -112,7 +108,13 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         content: `${prompt || summaryPrompt}\n\n${JSON.stringify(summaryMessageContent)}`,
         annotations: [{
           isAuxiliary: true,
-          template: 'global-summary',
+          type: 'global-summary',
+          summaryInfo: {
+            summaryStartTime: globalSummaryLastTime,
+            summaryEndTime: summaryTime,
+            summaryMessageCount: summaryMessages.length,
+            summaryChatIds: Object.keys(messages),
+          },
         }],
       });
       ChataiGeneralStore.set(GLOBAL_SUMMARY_LAST_TIME, new Date().getTime());
@@ -123,7 +125,10 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         const currentTime = new Date();
         const hours = currentTime.getHours();
         const minutes = currentTime.getMinutes();
-
+        // eslint-disable-next-line no-console
+        console.log('计时任务hours', hours);
+        // eslint-disable-next-line no-console
+        console.log('计时任务minutes', minutes);
         // 9:00 - 12:00 每30分钟执行一次
         if (hours >= 9 && hours < 12 && minutes % 30 === 0) {
           startSummary(pendingSummaryMessages);
@@ -135,7 +140,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         }
 
         // 17:00 - 23:00 每2小时执行一次
-        if (hours >= 17 && hours < 23 && hours % 2 === 0 && minutes === 0) {
+        if (hours >= 17 && hours < 23 && (hours - 17) % 2 === 0 && minutes === 0) {
           startSummary(pendingSummaryMessages);
         }
       };
@@ -172,6 +177,8 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       if (!globalSummaryLastTime || globalSummaryLastTime < Date.now() - 1000 * 60 * 60 * 12) {
         // TODO 总结所有的未读消息
         summaryAllUnreadMessages();
+      } else if (globalSummaryLastTime < Date.now() - 1000 * 60 * 60 * 10) {
+        summaryMessageByDeadline(globalSummaryLastTime);
       }
     };
 

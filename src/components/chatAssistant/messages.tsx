@@ -30,7 +30,7 @@ function PureMessages({
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'isSummary' in item && item.isSummary === true) ?? false;
   };
   const isGlobalSummary = (message:Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'template' in item && item.template === 'global-summary') ?? false;
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-summary') ?? false;
   };
   const handleDeleteMessage = (message:Message, prevMessage:Message) => {
     deleteMessage?.(message.id);
@@ -50,6 +50,7 @@ function PureMessages({
               <GlobalSummaryMessage
                 isLoading={isLoading}
                 message={message}
+                prevMessage={messages[index - 1]}
                 // eslint-disable-next-line react/jsx-no-bind
                 deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
               />

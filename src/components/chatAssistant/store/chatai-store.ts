@@ -28,6 +28,42 @@ class ChataiDB {
   constructor(DB_NAME: string, VERSION: number) {
     this.DB_NAME = DB_NAME;
     this.VERSION = VERSION;
+    this.initDB();
+  }
+
+  initDB() {
+    // eslint-disable-next-line @typescript-eslint/quotes, no-console
+    console.log("初始化indexdb", this.VERSION);
+    const request = indexedDB.open(this.DB_NAME, this.VERSION);
+
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      // 遍历 STORE_CONFIG，确保所有表都被创建
+      if (db.objectStoreNames.contains('message')) {
+        db.deleteObjectStore('message');
+        // eslint-disable-next-line no-console
+        console.log('messages 对象存储已删除');
+      }
+      Object.entries(this.STORE_CONFIG).forEach(([storeName, config]) => {
+        if (!db.objectStoreNames.contains(storeName)) {
+          const store = db.createObjectStore(storeName,
+            { keyPath: config.keyPath, autoIncrement: config.autoIncrement });
+
+          if (config.indexes) {
+            config.indexes.forEach(([indexName, keyPath]) => {
+              store.createIndex(indexName, keyPath, { unique: false });
+            });
+          }
+        }
+      });
+    };
+
+    request.onsuccess = () => {
+      this.db = request.result;
+    };
+
+    // eslint-disable-next-line no-console
+    request.onerror = () => console.log(new Error('Failed to open database'));
   }
 
   getDB(): Promise<IDBDatabase> {
@@ -40,7 +76,6 @@ class ChataiDB {
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
         // 遍历 STORE_CONFIG，确保所有表都被创建
-
         Object.entries(this.STORE_CONFIG).forEach(([storeName, config]) => {
           if (!db.objectStoreNames.contains(storeName)) {
             const store = db.createObjectStore(storeName,

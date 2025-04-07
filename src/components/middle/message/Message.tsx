@@ -820,12 +820,12 @@ const Message: FC<OwnProps & StateProps> = ({
 
   // 自动翻译
   // eslint-disable-next-line max-len
-  if (shouldTranslate && textMessage && !isTranslationPending && !requestedTranslationLanguage && !webPage && !emojiSize && !isInvertedMedia && !webPage) {
-    requestMessageTranslation({
-      chatId,
-      id: messageId,
-    });
-  }
+  // if (shouldTranslate && textMessage && !isTranslationPending && !requestedTranslationLanguage && !webPage && !emojiSize && !isInvertedMedia && !webPage) {
+  //   requestMessageTranslation({
+  //     chatId,
+  //     id: messageId,
+  //   });
+  // }
 
   useEnsureMessage(
     replyToPeerId || chatId,
