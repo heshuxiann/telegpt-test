@@ -17,16 +17,18 @@ import { getGlobal } from '../../../global';
 import { type ApiMessage, MAIN_THREAD_ID } from '../../../api/types/messages';
 
 import { ALL_FOLDER_ID } from '../../../config';
+import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { isSystemBot, isUserId } from '../../../global/helpers';
 import {
   selectBot, selectChat, selectChatLastMessageId, selectFirstUnreadId,
   selectUser,
 } from '../../../global/selectors';
 import { getOrderedIds } from '../../../util/folderManager';
-import { MultimodalInput } from '../assistantDev/multimodal-input';
-import { CloseIcon } from '../icons';
+import { CloseIcon, MoreIcon } from '../icons';
 import { Messages } from '../messages';
-import MessagePanel from '../rightPanel/message-panel';
+import { MultimodalInput } from '../multimodal-input';
+import { RightPanelKey } from '../rightPanel/right-header';
+import { RightPanel } from '../rightPanel/right-panel';
 import {
   ChataiGeneralStore, ChataiMessageStore, GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME,
 } from '../store';
@@ -393,13 +395,23 @@ const SummaryModalContent = (props: SummaryContentProps) => {
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const sentinelTopRef = useRef<HTMLDivElement>(null);
   const sentinelBottomRef = useRef<HTMLDivElement>(null);
+  const handleShowTemplate = useCallback(() => {
+    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
+      rightPanelKey: RightPanelKey.PromptTemplate,
+    });
+  }, []);
   return (
     <div className="globa-summary-container flex flex-col w-full h-full">
       <div className="h-[56px] w-full px-[20px] flex items-center bg-white/50">
         <img className="w-[40px] h-[40px] rounded-full mr-[12px]" src={SerenaPath} alt="Serena" />
         <span className="text-[15px] font-semibold">Serena AI</span>
-        <div className="ml-auto cursor-pointer" onClick={onClose}>
-          <CloseIcon />
+        <div className="flex items-center ml-auto gap-[20px]">
+          <div className="cursor-pointer text-black" onClick={handleShowTemplate}>
+            <MoreIcon />
+          </div>
+          <div className="cursor-pointer text-black" onClick={onClose}>
+            <CloseIcon />
+          </div>
         </div>
       </div>
       <div className="flex flex-1 flex-row overflow-hidden">
@@ -434,7 +446,7 @@ const SummaryModalContent = (props: SummaryContentProps) => {
             />
           </form>
         </div>
-        <MessagePanel closeSummaryModal={onClose} />
+        <RightPanel closeSummaryModal={onClose} />
 
       </div>
     </div>

@@ -12,6 +12,7 @@ import type { GlobalState } from '../../global/types';
 import eventEmitter, { Actions } from './lib/EventEmitter';
 import { isUserId } from '../../global/helpers';
 import { selectChat, selectUser } from '../../global/selectors';
+import { RightPanelKey } from './rightPanel/right-header';
 import { formatTimestamp, validateAndFixJsonStructure } from './utils/util';
 import {
   CopyIcon, DeleteIcon, VoiceIcon,
@@ -76,8 +77,11 @@ const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTop
   if (!topic) return undefined;
   const showMessageDetail = (relevantMessages: Array<{ chatId: string; messageIds: number[] }>) => {
     if (!relevantMessages.length) return;
-    eventEmitter.emit(Actions.ShowGlobalSummaryMessagePanel, {
-      relevantMessages,
+    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
+      rightPanelKey: RightPanelKey.OriginalMessages,
+      rightPanelPayload: {
+        relevantMessages,
+      },
     });
   };
 
@@ -133,8 +137,11 @@ const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTop
 
 const SummaryPenddingItem = ({ pendingItem }: { pendingItem: ISummaryPendingItem }) => {
   const showMessageDetail = () => {
-    eventEmitter.emit(Actions.ShowGlobalSummaryMessagePanel, {
-      relevantMessages: [{ chatId: pendingItem.chatId, messageIds: [pendingItem.relevantMessageIds] }],
+    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
+      rightPanelKey: RightPanelKey.OriginalMessages,
+      rightPanelPayload: {
+        relevantMessages: [{ chatId: pendingItem.chatId, messageIds: [pendingItem.relevantMessageIds] }],
+      },
     });
   };
   return (
@@ -160,8 +167,11 @@ const SummaryGarbageItem = ({ garBageItem, global }: { garBageItem: ISummaryGarb
     peer = selectChat(global, chatId);
   }
   const showMessageDetail = (chatId: string, relevantMessageIds: number[]) => {
-    eventEmitter.emit(Actions.ShowGlobalSummaryMessagePanel, {
-      relevantMessages: [{ chatId, messageIds: relevantMessageIds }],
+    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
+      rightPanelKey: RightPanelKey.OriginalMessages,
+      rightPanelPayload: {
+        relevantMessages: [{ chatId, messageIds: relevantMessageIds }],
+      },
     });
   };
   return (

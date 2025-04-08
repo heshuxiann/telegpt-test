@@ -17,21 +17,20 @@ import {
 import type {
   Attachment,
   ChatRequestOptions,
-  CreateMessage,
   Message,
 } from 'ai';
+import type { MenuProps } from 'antd';
+import { Dropdown } from 'antd';
 import cx from 'classnames';
 import equal from 'fast-deep-equal';
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
 import { sanitizeUIMessages } from '../../../lib/utils';
-import vectorStore from '../vector-store';
-
-import { ArrowUpIcon, StopIcon } from '../../right/ChatAI/icons';
-import { PreviewAttachment } from '../../right/ChatAI/preview-attachment';
-import { Button } from '../../right/ChatAI/ui/button';
-import { Textarea } from '../../right/ChatAI/ui/textarea';
+import { ArrowUpIcon, MoreIcon, StopIcon } from '../icons';
+import { PreviewAttachment } from '../preview-attachment';
+import { Button } from '../ui/button';
+import { Textarea } from '../ui/textarea';
 
 function PureMultimodalInput({
   chatId,
@@ -43,8 +42,10 @@ function PureMultimodalInput({
   setAttachments,
   setMessages,
   handleSubmit,
-  append,
   className,
+  summaryTodayMessages,
+  summaryUnreadMessage,
+  showUnreadSummary,
 }: {
   chatId: string;
   input: string;
@@ -60,11 +61,27 @@ function PureMultimodalInput({
     },
     chatRequestOptions?: ChatRequestOptions,
   ) => void;
-  append:(message: Message | CreateMessage, chatRequestOptions?: ChatRequestOptions) => Promise<string | null | undefined>;
   className?: string;
+  summaryTodayMessages: () => void;
+  summaryUnreadMessage: () => void;
+  showUnreadSummary?:boolean;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
+  const [actionItems, setActionItems] = useState<MenuProps['items']>([]);
+
+  useEffect(() => {
+    setActionItems([
+      {
+        key: '1',
+        label: "Summarize today's messages",
+      },
+      showUnreadSummary && {
+        key: '2',
+        label: 'Summarize unread messages',
+      },
+    ].filter(Boolean));
+  }, [showUnreadSummary]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -90,15 +107,13 @@ function PureMultimodalInput({
     'input',
     '',
   );
-  const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
     if (textareaRef.current) {
       const domValue = textareaRef.current.value;
       // Prefer DOM value over localStorage to handle hydration
       const finalValue = domValue || localStorageInput || '';
-      // setInput(finalValue);
-      setInputValue(finalValue);
+      setInput(finalValue);
       adjustHeight();
     }
     // Only run once after hydration
@@ -109,60 +124,34 @@ function PureMultimodalInput({
     setLocalStorageInput(input);
   }, [input, setLocalStorageInput]);
 
+  const handleActionsClick: MenuProps['onClick'] = (item) => {
+    // TODO: Implement actions
+    console.log(item);
+    if (item.key === '1') {
+      summaryTodayMessages();
+    } else if (item.key === '2') {
+      summaryUnreadMessage();
+    }
+  };
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    // setInput(event.target.value);
-    setInputValue(event.target.value);
+    setInput(event.target.value);
     adjustHeight();
   };
 
-  const submitForm = useCallback(async () => {
-    // window.history.replaceState({}, '', `/chat/${chatId}`);
-    // handleSubmit(undefined, {
-    //   experimental_attachments: attachments,
-    // });
-    const vectorSearchResults = await vectorStore.similaritySearch({
-      query: `${inputValue}`,
-      k: 100,
-      filterOptions: {
-        include: {
-          metadata: {
-            category: chatId,
-          },
-        },
-      },
+  const submitForm = useCallback(() => {
+    window.history.replaceState({}, '', `/chat/${chatId}`);
+
+    handleSubmit(undefined, {
+      experimental_attachments: attachments,
     });
-    if (vectorSearchResults.similarItems) {
-      let matchContent = '';
-      vectorSearchResults.similarItems.forEach((item) => {
-        matchContent += `${item.text}\n`;
-      });
-      if (matchContent) {
-        setMessages((messages) => {
-          return [...messages, {
-            role: 'system',
-            content: matchContent,
-            id: Math.random().toString(),
-            annotations: [{
-              isAuxiliary: true,
-            }],
-          }];
-        });
-      }
-    }
-    append({
-      role: 'user',
-      content: inputValue,
-      id: Math.random().toString(),
-    });
+
     setAttachments([]);
     setLocalStorageInput('');
-    setInputValue('');
     resetHeight();
 
     if (width && width > 768) {
       textareaRef.current?.focus();
     }
-  // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, [
     attachments,
     handleSubmit,
@@ -170,7 +159,6 @@ function PureMultimodalInput({
     setLocalStorageInput,
     width,
     chatId,
-    inputValue,
   ]);
 
   return (
@@ -186,7 +174,7 @@ function PureMultimodalInput({
       <Textarea
         ref={textareaRef}
         placeholder="Send a message..."
-        value={inputValue}
+        value={input}
         onChange={handleInput}
         className={cx(
           'min-h-[24px] h-[76px] overflow-hidden resize-none rounded-2xl !text-base bg-muted pb-10 dark:border-zinc-700',
@@ -208,6 +196,11 @@ function PureMultimodalInput({
       />
 
       <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-col justify-end">
+        <Dropdown menu={{ items: actionItems, onClick: handleActionsClick }} placement="top" arrow trigger={['click']}>
+          <Button className="!bg-transparent p-1.5 h-fit text-[#e5e7eb]">
+            <MoreIcon />
+          </Button>
+        </Dropdown>
         {isLoading ? (
           <StopButton stop={stop} setMessages={setMessages} />
         ) : (
@@ -226,7 +219,7 @@ export const MultimodalInput = memo(
   (prevProps, nextProps) => {
     if (prevProps.input !== nextProps.input) return false;
     if (prevProps.isLoading !== nextProps.isLoading) return false;
-    if (prevProps.chatId !== nextProps.chatId) return false;
+    if (prevProps.showUnreadSummary !== nextProps.showUnreadSummary) return false;
     if (!equal(prevProps.attachments, nextProps.attachments)) return false;
 
     return true;

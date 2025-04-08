@@ -357,8 +357,8 @@ const RightColumn: FC<OwnProps & StateProps> = ({
         return <CreateTopic onClose={close} isActive={isOpen && isActive} />;
       case RightColumnContent.EditTopic:
         return <EditTopic onClose={close} isActive={isOpen && isActive} />;
-      case RightColumnContent.ChatAI:
-        return <ChatAI chatId={chatId} threadId={threadId} onClose={close} />;
+      // case RightColumnContent.ChatAI:
+      //   return <ChatAI chatId={chatId} threadId={threadId} onClose={close} />;
     }
 
     return undefined; // Unreachable

@@ -463,19 +463,18 @@ export const UncheckedSquare = ({ size = 16 }: { size?: number }) => {
 export const MoreIcon = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
-      height={size}
-      strokeLinejoin="round"
-      viewBox="0 0 16 16"
       width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
       style={{ color: 'currentcolor' } as React.CSSProperties}
     >
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M8 4C7.17157 4 6.5 3.32843 6.5 2.5C6.5 1.67157 7.17157 1 8 1C8.82843 1 9.5 1.67157 9.5 2.5C9.5 3.32843 8.82843 4 8 4ZM8 9.5C7.17157 9.5 6.5 8.82843 6.5 8C6.5 7.17157 7.17157 6.5 8 6.5C8.82843 6.5 9.5 7.17157 9.5 8C9.5 8.82843 8.82843 9.5 8 9.5ZM6.5 13.5C6.5 14.3284 7.17157 15 8 15C8.82843 15 9.5 14.3284 9.5 13.5C9.5 12.6716 8.82843 12 8 12C7.17157 12 6.5 12.6716 6.5 13.5Z"
-        fill="currentColor"
-      />
+      <circle cx="4.5" cy="11.5" r="1.5" fill="black" />
+      <circle cx="11.5" cy="11.5" r="1.5" fill="black" />
+      <path d="M20 11.5C20 12.3284 19.3284 13 18.5 13C17.6716 13 17 12.3284 17 11.5C17 10.6716 17.6716 10 18.5 10C19.3284 10 20 10.6716 20 11.5Z" fill="black" />
     </svg>
+
   );
 };
 

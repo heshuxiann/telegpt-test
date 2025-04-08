@@ -7,7 +7,7 @@ export enum Actions {
   // global ai assistant
   AddNewMessageToAiAssistant = 'AddNewMessageToAiAssistant',
   // global summary
-  ShowGlobalSummaryMessagePanel = 'ShowGlobalSummaryMessagePanel',
+  ShowGlobalSummaryPanel = 'ShowGlobalSummaryPanel',
 }
 class EventEmitter {
   events: { [key: string]: ((...args: any[]) => void)[] | undefined };

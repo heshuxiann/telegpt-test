@@ -222,9 +222,13 @@ const CustomVirtualList = ({
   );
 };
 
-const MessagePanel = ({ closeSummaryModal }:{ closeSummaryModal:()=>void }) => {
-  const [rightPanelOpen, setRightPanelOpen] = useState(false);
-  const [relevantMessages, setRelevantMessages] = useState<{ chatId: string; messageIds: number[] }[]>([]);
+export interface MessagePanelPayload {
+  relevantMessages:{ chatId: string; messageIds: number[] }[];
+}
+interface MessagePanelProps extends MessagePanelPayload {
+  closeSummaryModal:()=>void;
+}
+const MessagePanel = ({ closeSummaryModal, relevantMessages }:MessagePanelProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
 
@@ -233,46 +237,16 @@ const MessagePanel = ({ closeSummaryModal }:{ closeSummaryModal:()=>void }) => {
       setHeight(containerRef.current.getBoundingClientRect().height);
     }
   }, []);
-  const handleOpenRightPanle = (payload: { relevantMessages: { chatId: string; messageIds: number[] }[] }) => {
-    setRightPanelOpen(true);
-    const { relevantMessages } = payload;
-    setRelevantMessages(relevantMessages);
-  };
-  useEffect(() => {
-    eventEmitter.on(Actions.ShowGlobalSummaryMessagePanel, handleOpenRightPanle);
-    return () => {
-      eventEmitter.off(Actions.ShowGlobalSummaryMessagePanel, handleOpenRightPanle);
-    };
-    // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
-  }, []);
-  const handleClose = () => {
-    setRightPanelOpen(false);
-    setRelevantMessages([]);
-  };
+
   return (
-    <div>
-      {rightPanelOpen ? (
-        <div className="summary-right-panel w-[375px] h-full bg-white/50 flex flex-col">
-          <div className="h-[50px] flex items-center justify-center relative">
-            <span className="text-[16px] font-semibold">Original Messages</span>
-            <div
-              className="w-[20px] h-[20px] rounded-full bg-[#B1B1B1] flex items-center justify-center absolute right-[18px] top-[15px] cursor-pointer"
-              onClick={handleClose}
-            >
-              <CloseIcon size={14} />
-            </div>
-          </div>
-          <div className="flex-1 overflow-y-scroll px-[18px]" ref={containerRef}>
-            {relevantMessages.map((item) => {
-              const { chatId, messageIds } = item;
-              if (!messageIds || !chatId) return null;
-              return (
-                <CustomVirtualList chatId={chatId} messageIds={messageIds} height={height} closeSummaryModal={closeSummaryModal} />
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
+    <div className="h-full" ref={containerRef}>
+      {relevantMessages.map((item) => {
+        const { chatId, messageIds } = item;
+        if (!messageIds || !chatId) return null;
+        return (
+          <CustomVirtualList chatId={chatId} messageIds={messageIds} height={height} closeSummaryModal={closeSummaryModal} />
+        );
+      })}
     </div>
   );
 };
