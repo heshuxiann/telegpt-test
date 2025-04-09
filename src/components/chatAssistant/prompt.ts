@@ -1,4 +1,4 @@
-export const smartReplyPrompt = `
+export const languagePrompt = `
     [实时语言雷达]
         1. 语言指纹扫描：自动检测输入文本的
             - 主要语种(支持92种语言置信度识别)

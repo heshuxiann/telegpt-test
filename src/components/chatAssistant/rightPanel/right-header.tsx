@@ -2,7 +2,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import cx from 'classnames';
 
-import { CloseIcon } from '../icons';
+import eventEmitter, { Actions } from '../lib/EventEmitter';
+import { ArrowLeftIcon, CloseIcon } from '../icons';
 
 export enum RightPanelKey {
   OriginalMessages = 'OriginalMessages',
@@ -18,7 +19,7 @@ interface Props {
 const HeaderButton = ({ icon, className, onClick }:{ icon:React.ReactNode;className?:string;onClick:()=>void }) => {
   return (
     <div
-      className={cx('w-[20px] h-[20px] rounded-full bg-[#B1B1B1] flex items-center justify-center cursor-pointer', className)}
+      className={cx('flex items-center justify-center cursor-pointer', className)}
       onClick={onClick}
     >
       {icon}
@@ -30,7 +31,9 @@ const RightHeader = (props: Props) => {
   const [title, setTitle] = useState('');
   const [backButton, setBackButton] = useState<React.ReactNode | undefined>(undefined);
   const handleBack = useCallback(() => {
-    // console.log('back');
+    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
+      rightPanelKey: RightPanelKey.PromptTemplate,
+    });
   }, []);
   useEffect(() => {
     switch (rightPanelKey) {
@@ -41,8 +44,8 @@ const RightHeader = (props: Props) => {
         setTitle('Personalized settings ');
         break;
       case RightPanelKey.CustomizationPrompt:
-        setTitle('Global Summary');
-        setBackButton(<HeaderButton icon={<CloseIcon size={14} />} onClick={handleBack} />);
+        setTitle('Customization');
+        setBackButton(<HeaderButton className="absolute left-[18px]" icon={<ArrowLeftIcon size={24} />} onClick={handleBack} />);
     }
   }, [handleBack, rightPanelKey]);
   return (

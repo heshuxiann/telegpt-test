@@ -24,9 +24,11 @@ import {
   selectUser,
 } from '../../../global/selectors';
 import { getOrderedIds } from '../../../util/folderManager';
+import { useDidUpdateEffect } from '../hook/useDidUpdateEffect';
 import { CloseIcon, MoreIcon } from '../icons';
 import { Messages } from '../messages';
 import { MultimodalInput } from '../multimodal-input';
+import { languagePrompt } from '../prompt';
 import { RightPanelKey } from '../rightPanel/right-header';
 import { RightPanel } from '../rightPanel/right-panel';
 import {
@@ -34,7 +36,7 @@ import {
 } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
-import summaryPrompt from './summary-prompt';
+import defaultSummaryPrompt, { getGlobalSummaryPrompt } from './summary-prompt';
 
 import ErrorBoundary from '../ErrorBoundary';
 import { TestModal } from './TestModal';
@@ -68,20 +70,43 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const [attachments, setAttachments] = useState<Array<Attachment>>([]);
     const [unreadSummaryCount, setUnreadSummaryCount] = useState(0);
     const [testModalVisable, setTestModalVisible] = useState(false);
+    const [globalSummaryPrompt, setGlobalSummaryPrompt] = useState(defaultSummaryPrompt);
+    const [customizationTemplate, setCustomizationTemplate] = useState<{ title: string; prompt: string } | null>(null);
     const {
       messages, setMessages, append, isLoading, input, setInput, stop, handleSubmit,
     } = useChat({
       api: 'https://sdm-ai-api.vercel.app/chat',
       sendExtraMessageFields: true,
+      initialMessages: [{
+        id: '0',
+        role: 'system',
+        content: languagePrompt,
+        annotations: [{
+          isAuxiliary: true,
+        }],
+      }],
     });
 
     const orderedIds = React.useMemo(() => getOrderedIds(ALL_FOLDER_ID) || [], []);
     useImperativeHandle(ref, () => ({
       addNewMessage,
     }));
+    useEffect(() => {
+      getGlobalSummaryPrompt().then((result) => {
+        setGlobalSummaryPrompt(result.prompt);
+        if (result.customizationTemplate) {
+          setCustomizationTemplate(result.customizationTemplate);
+        }
+      });
+    }, []);
+    useDidUpdateEffect(() => {
+      if (orderedIds?.length) {
+        initUnSummaryMessage();
+      }
+    }, [globalSummaryPrompt]);
     const startSummary = useCallback(async (messages: Record<string, ApiMessage[]>, prompt?: string) => {
       // eslint-disable-next-line no-console
-      console.log('开始总结', messages);
+      console.log('开始总结', messages, globalSummaryPrompt);
       const globalSummaryLastTime = await ChataiGeneralStore.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
       const summaryTime = new Date().getTime();
       if (!Object.keys(messages).length) return;
@@ -95,7 +120,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
               chatTitle: chat?.title ?? 'Unknown',
               chatType: isUserId(chatId) ? 'private' : 'group',
               senderId: message.senderId,
-              senderName: peer ? `${peer.firstName} ${peer.lastName}` : '',
+              senderName: peer ? `${peer.firstName || ''} ${peer.lastName || ''}` : '',
               date: message.date,
               messageId: Math.floor(message.id),
               content: message.content.text?.text ?? '',
@@ -111,12 +136,13 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       append({
         id: uuidv4(),
         role: 'user',
-        content: `${prompt || summaryPrompt}\n\n${JSON.stringify(summaryMessageContent)}`,
+        content: `${prompt || globalSummaryPrompt}\n\n${JSON.stringify(summaryMessageContent)}`,
         annotations: [{
           isAuxiliary: true,
           type: 'global-summary',
+          customizationTemplate: customizationTemplate || null,
           summaryInfo: {
-            summaryStartTime: globalSummaryLastTime,
+            summaryStartTime: globalSummaryLastTime || null,
             summaryEndTime: summaryTime,
             summaryMessageCount: summaryMessages.length,
             summaryChatIds: Object.keys(messages),
@@ -125,7 +151,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       });
       ChataiGeneralStore.set(GLOBAL_SUMMARY_LAST_TIME, new Date().getTime());
       setUnreadSummaryCount(unreadSummaryCount + 1);
-    }, [append, global, unreadSummaryCount]);
+    }, [append, customizationTemplate, global, globalSummaryPrompt, unreadSummaryCount]);
     useEffect(() => {
       const executeTask = () => {
         const currentTime = new Date();
@@ -165,9 +191,6 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           setLocalChatAiMessages(localChatAiMessages);
         }
       });
-      if (orderedIds?.length) {
-        initUnSummaryMessage();
-      }
       // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
     }, []);
 
@@ -255,8 +278,8 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         const chatId = message.chatId;
         const chat = selectChat(global, chatId);
         const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
-        if (!chatBot) {
-          if (chat?.membersCount && chat?.membersCount > 100) {
+        if (chat && !chatBot) {
+          if (chat.membersCount && chat?.membersCount > 100) {
             return;
           }
           setPendingSummaryMessages((messages) => {
@@ -351,7 +374,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             append={append}
             deleteMessage={deleteMessage}
           />
-          <Button type="primary" className="absolute right-[20px] bottom-[20px]" onClick={() => { setTestModalVisible(true); }}>
+          <Button type="primary" className="absolute left-[20px] bottom-[20px]" onClick={() => { setTestModalVisible(true); }}>
             测试入口
           </Button>
           <TestModal

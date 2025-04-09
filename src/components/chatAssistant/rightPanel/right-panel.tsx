@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import type { MessagePanelPayload } from './message-panel';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
+import CustomizationPromptPanel from './customization-prompt-panel';
 import MessagePanel from './message-panel';
 import PromptTemplatePanel from './prompt-template-panel';
 import RightHeader, { RightPanelKey } from './right-header';
@@ -39,6 +40,9 @@ export const RightPanel = (props: RightPanelProps) => {
         break;
       case RightPanelKey.PromptTemplate:
         setRightPanelContent(<PromptTemplatePanel />);
+        break;
+      case RightPanelKey.CustomizationPrompt:
+        setRightPanelContent(<CustomizationPromptPanel />);
         break;
     }
   }, [closeSummaryModal, rightPanelKey, rightPanelPayload]);

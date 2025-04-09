@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import type { Message } from 'ai';
 import copy from 'copy-to-clipboard';
+import { set } from 'idb-keyval';
 import { getActions, getGlobal } from '../../global';
 
 import type { GlobalState } from '../../global/types';
@@ -46,10 +47,10 @@ interface ISummaryInfo {
 }
 
 interface ISummaryTopicItem {
-  topic: string;
+  title: string;
   summaryChatIds: Array<string>;
   summaryItems: Array<{
-    title: string;
+    subtitle: string;
     relevantMessages: Array<{
       chatId: string;
       messageIds: Array<number>;
@@ -72,9 +73,9 @@ interface ISummaryGarbageItem {
 }
 
 const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTopicItem; index: number; global: GlobalState }) => {
-  const { topic, summaryItems, summaryChatIds } = topicItem;
+  const { title, summaryItems, summaryChatIds } = topicItem;
   if (!summaryItems.length) return undefined;
-  if (!topic) return undefined;
+  if (!title) return undefined;
   const showMessageDetail = (relevantMessages: Array<{ chatId: string; messageIds: number[] }>) => {
     if (!relevantMessages.length) return;
     eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
@@ -105,7 +106,7 @@ const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTop
   return (
     <div>
       <div className="flex flex-row items-center flex-wrap">
-        <span className="text-[16px] font-bold mr-[24px]">{index + 1}.{topic}</span>
+        <span className="text-[16px] font-bold mr-[24px]">{index + 1}.{title}</span>
         {summaryChatIds ? (
           <>
             {
@@ -118,15 +119,15 @@ const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTop
       </div>
       <ul className="list-disc pl-[28px] text-[16px]">
         {summaryItems.map((summaryItem: any) => {
-          const { title, relevantMessages } = summaryItem;
-          if (!title) return undefined;
+          const { subtitle, relevantMessages } = summaryItem;
+          if (!subtitle) return undefined;
           return (
             <li
               role="button"
               className="cursor-pointer"
               onClick={() => showMessageDetail(relevantMessages)}
             >
-              {title}
+              {subtitle}
             </li>
           );
         })}
@@ -269,20 +270,11 @@ const ActionsItems = ({
     </div>
   );
 };
-const MainSummaryContent = ({
-  summaryInfo,
-  mainTopic,
-  pendingMatters,
-  deleteMessage,
-}: {
-  summaryInfo: ISummaryInfo | null;
-  mainTopic: ISummaryTopicItem[];
-  pendingMatters: ISummaryPendingItem[];
-  deleteMessage: () => void;
-}) => {
+
+const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
   const global = getGlobal();
   return (
-    <div className="mx-auto w-[693px] rounded-[10px] bg-white pl-[82px] pr-[25px] pt-[20px] pb-[25px]">
+    <div>
       <div className="flex items-center gap-[8px]">
         <img className="w-[52px] h-[52px] rounded-full ml-[-60px]" src={SerenaLogoPath} alt="" />
         <div>
@@ -342,7 +334,44 @@ const MainSummaryContent = ({
           </div>
         </div>
       ) : null}
+    </div>
+  );
+};
 
+const MainSummaryContent = ({
+  customizationTemplate,
+  summaryInfo,
+  customizationTopic,
+  mainTopic,
+  pendingMatters,
+  deleteMessage,
+}: {
+  customizationTemplate:{ title:string;prompt:string } | null;
+  summaryInfo: ISummaryInfo | null;
+  customizationTopic: ISummaryTopicItem[];
+  mainTopic: ISummaryTopicItem[];
+  pendingMatters: ISummaryPendingItem[];
+  deleteMessage: () => void;
+}) => {
+  const global = getGlobal();
+  return (
+    <div className="mx-auto w-[693px] rounded-[10px] bg-white pl-[82px] pr-[25px] pt-[20px] pb-[25px]">
+      {/* summary info  */}
+      {summaryInfo && <SummaryInfoContent summaryInfo={summaryInfo} />}
+      {/* customization topic  */}
+      {customizationTopic.length > 0 && customizationTemplate && (
+        <div>
+          <p className="flex items-center gap-[8px] mb-[16px]">
+            <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
+            <span className="text-[18px] font-bold">{customizationTemplate.title}</span>
+          </p>
+          {customizationTopic.map((item, index) => (
+            <ErrorBoundary>
+              <SummaryTopicItem topicItem={item} global={global} index={index} />
+            </ErrorBoundary>
+          ))}
+        </div>
+      )}
       {/* maintopic  */}
       {mainTopic.length > 0 && (
         <div>
@@ -373,10 +402,18 @@ const MainSummaryContent = ({
   );
 };
 const SummaryContent = ({
-  summaryInfo, mainTopic, pendingMatters, garbageMessage, deleteMessage,
+  customizationTemplate,
+  summaryInfo,
+  customizationTopic,
+  mainTopic,
+  pendingMatters,
+  garbageMessage,
+  deleteMessage,
 }:
 {
+  customizationTemplate:{ title:string;prompt:string } | null;
   summaryInfo: ISummaryInfo | null;
+  customizationTopic: ISummaryTopicItem[];
   mainTopic: ISummaryTopicItem[];
   pendingMatters: ISummaryPendingItem[];
   garbageMessage: ISummaryGarbageItem[];
@@ -387,6 +424,8 @@ const SummaryContent = ({
     <>
       {(!mainTopic.length && !pendingMatters.length) ? undefined : (
         <MainSummaryContent
+          customizationTemplate={customizationTemplate}
+          customizationTopic={customizationTopic}
           summaryInfo={summaryInfo}
           mainTopic={mainTopic}
           pendingMatters={pendingMatters}
@@ -431,17 +470,18 @@ const GlobalSummaryMessage = (props: IProps) => {
     isLoading, message, prevMessage, deleteMessage,
   } = props;
   const [summaryInfo, setSummaryInfo] = useState<ISummaryInfo | null>(null);
+  const [customizationTemplate, setCustomizationTemplate] = useState<{ title:string;prompt:string } | null>(null);
+  const [customizationTopic, setCustomizationTopic] = useState<ISummaryTopicItem[]>([]);
   const [mainTopic, setMainTopic] = useState<ISummaryTopicItem[]>([]);
   const [pendingMatters, setPendingMatters] = useState<ISummaryPendingItem[]>([]);
   const [garbageMessage, setGarbageMessage] = useState<ISummaryGarbageItem[]>([]);
-  const extractContent = (content: string, codeId: string): ISummaryInfo | ISummaryTopicItem[] | ISummaryPendingItem[] | ISummaryGarbageItem[] | null => {
+  const extractContent = (content: string, codeId: string): ISummaryInfo | ISummaryTopicItem[] | ISummaryPendingItem[] | ISummaryGarbageItem[] | ISummaryTopicItem[] | null => {
     const regex = new RegExp(`<!--\\s*json-start:\\s*${codeId}\\s*-->([\\s\\S]*?)<!--\\s*json-end\\s*-->`, 's');
     const match = content.match(regex);
     if (match) {
       try {
         const result = validateAndFixJsonStructure(match[1].trim());
         if (result.valid) {
-          console.log('修复后的 JSON:', result.fixedJson);
           if (result.fixedJson) {
             return JSON.parse(result.fixedJson);
           } else {
@@ -461,13 +501,22 @@ const GlobalSummaryMessage = (props: IProps) => {
     const summaryInfo = message.annotations?.find((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-summary')?.summaryInfo;
     return summaryInfo;
   };
+  const getCustomizationTemplate = (message:Message) => {
+    const summaryInfo = message.annotations?.find((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-summary')?.customizationTemplate;
+    return summaryInfo;
+  };
   const parseMessage = useCallback((messageContent: string) => {
     const mainTopic = extractContent(messageContent, 'main-topic');
     const pendingMatters = extractContent(messageContent, 'pending-matters');
     const garbageMessage = extractContent(messageContent, 'garbage-message');
+    const customizationTopic = extractContent(messageContent, 'customization-topic');
+    console.log(customizationTopic, '-----customizationTopic');
     console.log(mainTopic, '-----mainTopic');
     console.log(pendingMatters, '-----pendingMatters');
     console.log(garbageMessage, '-----garbageMessage');
+    if (customizationTopic) {
+      setCustomizationTopic(customizationTopic as ISummaryTopicItem[]);
+    }
     if (mainTopic) {
       setMainTopic(mainTopic as ISummaryTopicItem[]);
     }
@@ -487,6 +536,10 @@ const GlobalSummaryMessage = (props: IProps) => {
         if (summaryInfo) {
           setSummaryInfo(summaryInfo as ISummaryInfo);
         }
+        const customizationTemplate = getCustomizationTemplate(prevMessage);
+        if (customizationTemplate) {
+          setCustomizationTemplate(customizationTemplate);
+        }
         parseMessage(message.content);
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -499,6 +552,8 @@ const GlobalSummaryMessage = (props: IProps) => {
   }
   return (
     <SummaryContent
+      customizationTopic={customizationTopic}
+      customizationTemplate={customizationTemplate}
       summaryInfo={summaryInfo}
       mainTopic={mainTopic}
       pendingMatters={pendingMatters}

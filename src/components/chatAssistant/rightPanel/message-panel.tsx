@@ -8,15 +8,14 @@ import { Skeleton } from 'antd';
 import VirtualList from 'rc-virtual-list';
 import { getActions, getGlobal } from '../../../global';
 
-import { type ApiMessage, type ApiUser, MESSAGE_DELETED } from '../../../api/types';
+import { type ApiMessage, MESSAGE_DELETED } from '../../../api/types';
 
-import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { updateChatMessage } from '../../../global/reducers/messages';
 import { selectChat, selectUser } from '../../../global/selectors';
 import { selectChatMessage } from '../../../global/selectors/messages';
 import { callApi } from '../../../api/gramjs';
-import { ArrowRightIcon, CloseIcon, SendIcon } from '../icons';
-import { smartReplyPrompt } from '../prompt';
+import { ArrowRightIcon, SendIcon } from '../icons';
+import { languagePrompt } from '../prompt';
 import { cn, formatTimestamp } from '../utils/util';
 
 import ErrorBoundary from '../ErrorBoundary';
@@ -39,7 +38,7 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
     initialMessages: [{
       id: '0',
       role: 'system',
-      content: smartReplyPrompt,
+      content: languagePrompt,
     }],
   });
   const { updateDraftReplyInfo, sendMessage, clearDraft } = getActions();
