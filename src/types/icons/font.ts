@@ -252,4 +252,5 @@ export type FontIconName =
   | 'webapp'
   | 'word-wrap'
   | 'zoom-in'
-  | 'zoom-out';
+  | 'zoom-out'
+  | 'ai-knowledge-editing';

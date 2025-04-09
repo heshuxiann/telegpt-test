@@ -374,6 +374,9 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             append={append}
             deleteMessage={deleteMessage}
           />
+          <Button type="primary" className="absolute left-[20px] bottom-[64px]" onClick={summaryAllUnreadMessages}>
+            总结所有未读
+          </Button>
           <Button type="primary" className="absolute left-[20px] bottom-[20px]" onClick={() => { setTestModalVisible(true); }}>
             测试入口
           </Button>

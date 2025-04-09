@@ -36,6 +36,7 @@ import Switcher from '../../ui/Switcher';
 import Toggle from '../../ui/Toggle';
 
 type OwnProps = {
+  onSelectAIKnowledge: NoneToVoidFunction;
   onSelectSettings: NoneToVoidFunction;
   onSelectContacts: NoneToVoidFunction;
   onSelectArchived: NoneToVoidFunction;
@@ -62,6 +63,7 @@ const LeftSideMenuItems = ({
   onSelectSettings,
   onBotMenuOpened,
   onBotMenuClosed,
+  onSelectAIKnowledge,
 }: OwnProps & StateProps) => {
   const {
     openChat,
@@ -137,6 +139,12 @@ const LeftSideMenuItems = ({
         onClick={handleSelectSaved}
       >
         {oldLang('SavedMessages')}
+      </MenuItem>
+      <MenuItem
+        customIcon={<i className="iconfont icon-ai-knowledge-editing" />}
+        onClick={onSelectAIKnowledge}
+      >
+        {oldLang('AI Knowledge Base')}
       </MenuItem>
       {archiveSettings.isHidden && (
         <MenuItem

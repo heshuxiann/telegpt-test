@@ -55,7 +55,7 @@ export const RightPanel = (props: RightPanelProps) => {
   return (
     <div className="right-panel-container w-[375px] h-full bg-white/50 flex flex-col">
       <RightHeader rightPanelKey={rightPanelKey} onClose={onClose} />
-      <div className="flex-1 overflow-y-scroll px-[18px]">
+      <div className="flex-1 overflow-y-scroll">
         {rightPanelContent}
       </div>
     </div>

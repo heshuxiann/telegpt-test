@@ -15,6 +15,7 @@ import { captureControlledSwipe } from '../../util/swipeController';
 import {
   IS_APP, IS_FIREFOX, IS_MAC_OS, IS_TOUCH_ENV, LAYERS_ANIMATION_NAME,
 } from '../../util/windowEnvironment';
+import AIKnowledge from './aiKnowledge/AIKnowledge.async';
 
 import useFoldersReducer from '../../hooks/reducers/useFoldersReducer';
 import { useHotkeys } from '../../hooks/useHotkeys';
@@ -63,6 +64,8 @@ enum ContentType {
   NewGroup,
   // eslint-disable-next-line no-shadow
   NewChannel,
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  AIKnowledge,
 }
 
 const RENDER_COUNT = Object.keys(ContentType).length / 2;
@@ -123,6 +126,8 @@ function LeftColumn({
     case LeftColumnContent.NewGroupStep2:
       contentType = ContentType.NewGroup;
       break;
+    case LeftColumnContent.AIKonwledge:
+      contentType = ContentType.AIKnowledge;
   }
 
   const handleReset = useLastCallback((forceReturnToChatList?: true | Event) => {
@@ -521,6 +526,10 @@ function LeftColumn({
             onContentChange={setContent}
             onReset={handleReset}
           />
+        );
+      case ContentType.AIKnowledge:
+        return (
+          <AIKnowledge onReset={handleReset} />
         );
       default:
         return (

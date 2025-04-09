@@ -42,7 +42,7 @@ const PromptTemplatePanel = () => {
     setLastTemplate(currentTemplate);
   }, [currentTemplate]);
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col px-[18px]">
       <h3 className="text-[18px] font-semibold">What are you curious about?</h3>
       <div className="flex flex-col gap-[10px]">
         {CustomizationTemplates.map((item) => {

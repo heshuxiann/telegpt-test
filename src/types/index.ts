@@ -259,6 +259,7 @@ export enum LeftColumnContent {
   NewChannelStep2,
   NewGroupStep1,
   NewGroupStep2,
+  AIKonwledge,
 }
 
 export enum GlobalSearchContent {

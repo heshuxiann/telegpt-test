@@ -188,7 +188,7 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
   };
 
   return (
-    <div className="right-panel-message-item pb-[20px] pt-[16px] border-solid border-b-[1px] border-[rgba(0,0,0,0.1)]">
+    <div className="right-panel-message-item pb-[20px] pt-[16px] border-solid border-b-[1px] border-[rgba(0,0,0,0.1)] px-[18px]">
       {message ? (
         renderMessage()
       ) : (
@@ -199,21 +199,21 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
 };
 
 const CustomVirtualList = ({
-  chatId, messageIds, height, closeSummaryModal,
+  relevantMessages, height, closeSummaryModal,
 }:
 {
-  chatId:string;
-  messageIds:number[];
+  relevantMessages: { chatId: string; messageIds: number[] }[];
   height:number;
   closeSummaryModal:()=>void;
 }) => {
+  const listData = relevantMessages.flatMap(({ chatId, messageIds }) => messageIds.map((messageId) => ({ chatId, messageId })));
   return (
     // eslint-disable-next-line react/jsx-no-bind
-    <VirtualList data={messageIds} height={height} itemHeight={50} itemKey={(item:number) => `${chatId}-${item}`}>
+    <VirtualList data={listData} height={height} itemHeight={50} itemKey={(item) => item.messageId}>
       {(item) => {
         return (
           <ErrorBoundary>
-            <Message chatId={chatId} messageId={item} closeSummaryModal={closeSummaryModal} />
+            <Message chatId={item.chatId} messageId={item.messageId} closeSummaryModal={closeSummaryModal} />
           </ErrorBoundary>
         );
       }}
@@ -239,13 +239,9 @@ const MessagePanel = ({ closeSummaryModal, relevantMessages }:MessagePanelProps)
 
   return (
     <div className="h-full" ref={containerRef}>
-      {relevantMessages.map((item) => {
-        const { chatId, messageIds } = item;
-        if (!messageIds || !chatId) return null;
-        return (
-          <CustomVirtualList chatId={chatId} messageIds={messageIds} height={height} closeSummaryModal={closeSummaryModal} />
-        );
-      })}
+      {relevantMessages.length > 0 && (
+        <CustomVirtualList relevantMessages={relevantMessages} height={height} closeSummaryModal={closeSummaryModal} />
+      )}
     </div>
   );
 };

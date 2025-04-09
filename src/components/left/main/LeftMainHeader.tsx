@@ -60,6 +60,7 @@ type OwnProps = {
   onSelectSettings: NoneToVoidFunction;
   onSelectContacts: NoneToVoidFunction;
   onSelectArchived: NoneToVoidFunction;
+  onSelectAIKnowledge: NoneToVoidFunction;
   onReset: NoneToVoidFunction;
 };
 
@@ -107,6 +108,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
   onSelectContacts,
   onSelectArchived,
   onReset,
+  onSelectAIKnowledge,
 }) => {
   const {
     setGlobalSearchDate,
@@ -273,6 +275,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
             onSelectArchived={onSelectArchived}
             onSelectContacts={onSelectContacts}
             onSelectSettings={onSelectSettings}
+            onSelectAIKnowledge={onSelectAIKnowledge}
             onBotMenuOpened={markBotMenuOpen}
             onBotMenuClosed={unmarkBotMenuOpen}
           />

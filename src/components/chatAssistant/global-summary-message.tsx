@@ -422,7 +422,7 @@ const SummaryContent = ({
   const global = getGlobal();
   return (
     <>
-      {(!mainTopic.length && !pendingMatters.length) ? undefined : (
+      {(!mainTopic.length && !pendingMatters.length && !customizationTopic.length) ? undefined : (
         <MainSummaryContent
           customizationTemplate={customizationTemplate}
           customizationTopic={customizationTopic}
