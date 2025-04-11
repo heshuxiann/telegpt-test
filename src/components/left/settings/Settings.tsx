@@ -17,6 +17,7 @@ import SettingsPasscode from './passcode/SettingsPasscode';
 import PrivacyMessages from './PrivacyMessages';
 import SettingsActiveSessions from './SettingsActiveSessions';
 import SettingsActiveWebsites from './SettingsActiveWebsites';
+import SettingsAutoTranslate from './SettingsAutoTranslate';
 import SettingsCustomEmoji from './SettingsCustomEmoji';
 import SettingsDataStorage from './SettingsDataStorage';
 import SettingsDoNotTranslate from './SettingsDoNotTranslate';
@@ -286,6 +287,10 @@ const Settings: FC<OwnProps> = ({
       case SettingsScreens.DoNotTranslate:
         return (
           <SettingsDoNotTranslate isActive={isScreenActive} onReset={handleReset} />
+        );
+      case SettingsScreens.AutoTranslate:
+        return (
+          <SettingsAutoTranslate isActive={isScreenActive} onReset={handleReset} />
         );
       case SettingsScreens.Stickers:
         return (

@@ -2078,8 +2078,11 @@ addActionHandler('forwardStory', (global, actions, payload): ActionReturnType =>
 });
 
 addActionHandler('requestMessageTranslation', (global, actions, payload): ActionReturnType => {
+  // const {
+  //   chatId, id, toLanguageCode = selectTranslationLanguage(global), tabId = getCurrentTabId(),
+  // } = payload;
   const {
-    chatId, id, toLanguageCode = selectTranslationLanguage(global), tabId = getCurrentTabId(),
+    chatId, id, toLanguageCode = global.settings.byKey.autoTranslateLanguage || 'en', tabId = getCurrentTabId(),
   } = payload;
 
   global = updateRequestedMessageTranslation(global, chatId, id, toLanguageCode, tabId);

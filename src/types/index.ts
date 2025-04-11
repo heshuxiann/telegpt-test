@@ -139,6 +139,8 @@ export interface ISettings extends NotifySettings, Record<string, any> {
   shouldDebugExportedSenders?: boolean;
   shouldWarnAboutSvg?: boolean;
   shouldSkipWebAppCloseConfirmation: boolean;
+  autoTranslate?: boolean;
+  autoTranslateLanguage?: string;
 }
 
 export type IAnchorPosition = {
@@ -242,6 +244,7 @@ export enum SettingsScreens {
   CustomEmoji,
   DoNotTranslate,
   FoldersShare,
+  AutoTranslate,
 }
 
 export type StickerSetOrReactionsSetOrRecent = Pick<ApiStickerSet, (
