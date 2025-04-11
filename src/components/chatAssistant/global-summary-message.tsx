@@ -5,7 +5,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import type { Message } from 'ai';
 import copy from 'copy-to-clipboard';
-import { set } from 'idb-keyval';
 import { getActions, getGlobal } from '../../global';
 
 import type { GlobalState } from '../../global/types';
@@ -27,10 +26,14 @@ import Avatar from './ui/Avatar';
 
 import ActionsIcon from './assets/actions.png';
 import CalendarIcon from './assets/calendar.png';
+import ChainTrendIcon from './assets/chain-trend.png';
 import CheckIcon from './assets/check.png';
+import KeyBusinessIcon from './assets/key-business.png';
 import MessageIcon from './assets/message.png';
 import SerenaLogoPath from './assets/serena.png';
 import UserIcon from './assets/user.png';
+import UserGroupIcon from './assets/user-group.png';
+import VectorIcon from './assets/vector.png';
 import WriteIcon from './assets/write.png';
 
 interface IProps {
@@ -71,6 +74,13 @@ interface ISummaryGarbageItem {
   level: 'high' | 'low';
   relevantMessageIds: number[];
 }
+
+const CustomizationTopicIcon = {
+  'Most Discussed Coins': VectorIcon,
+  'Most Active Users': UserGroupIcon,
+  'Key business updates': KeyBusinessIcon,
+  'On-Chain Trending Topics': ChainTrendIcon,
+};
 
 const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTopicItem; index: number; global: GlobalState }) => {
   const { title, summaryItems, summaryChatIds } = topicItem;
@@ -220,7 +230,7 @@ const ActionsItems = ({
   const handleCopy = () => {
     const { summaryStartTime, summaryEndTime } = summaryInfo || {};
     const timeRange = `${summaryStartTime ? `${formatTimestamp(summaryStartTime)}-` : ''}${summaryEndTime ? formatTimestamp(summaryEndTime) : ''}`;
-    const copyText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item) => `${item.topic}:\n ${item.summaryItems.map((subItem) => subItem.title).join(';\n ')}`).join('\n')}\n\nNext Actions:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}`;
+    const copyText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item) => `${item.topic}:\n ${item.summaryItems.map((subItem) => subItem.title).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}`;
     copy(copyText);
     showNotification({
       message: lang('TextCopied'),
@@ -229,7 +239,7 @@ const ActionsItems = ({
   const handleVoicePlay = () => {
     const { summaryStartTime, summaryEndTime } = summaryInfo || {};
     const timeRange = `${summaryStartTime ? `${formatTimestamp(summaryStartTime)}-` : ''}${summaryEndTime ? formatTimestamp(summaryEndTime) : ''}`;
-    const voiceText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item) => `${item.topic}:\n ${item.summaryItems.map((subItem) => subItem.title).join(';\n ')}`).join('\n')}\n\nNext Actions:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}`;
+    const voiceText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item) => `${item.topic}:\n ${item.summaryItems.map((subItem) => subItem.title).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}`;
     if (!window.speechSynthesis) {
       console.error('Text-to-Speech is not supported in this browser.');
       return;
@@ -362,7 +372,13 @@ const MainSummaryContent = ({
       {customizationTopic.length > 0 && customizationTemplate && (
         <div>
           <p className="flex items-center gap-[8px] mb-[16px]">
-            <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
+            {
+              CustomizationTopicIcon?.[customizationTemplate.title as keyof typeof CustomizationTopicIcon] ? (
+                <img className="w-[16px] h-[16px]" src={CustomizationTopicIcon?.[customizationTemplate.title as keyof typeof CustomizationTopicIcon]} alt="" />
+              ) : (
+                <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
+              )
+            }
             <span className="text-[18px] font-bold">{customizationTemplate.title}</span>
           </p>
           {customizationTopic.map((item, index) => (
@@ -391,7 +407,7 @@ const MainSummaryContent = ({
         <div>
           <p className="flex items-center gap-[8px] mb-[16px]">
             <img className="w-[16px] h-[16px]" src={ActionsIcon} alt="" />
-            <span className="text-[18px] font-bold">Next Actions</span>
+            <span className="text-[18px] font-bold">Actions Items</span>
           </p>
           {pendingMatters.map((item) => (<SummaryPenddingItem pendingItem={item} />))}
         </div>

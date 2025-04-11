@@ -4,12 +4,11 @@ import React from '../../../lib/teact/teact';
 
 import type { Signal } from '../../../util/signals';
 
-// import aiSdkService from './ChatApiService';
-import eventEmitter from '../../../lib/EventEmitter';
-
 import useFlag from '../../../hooks/useFlag';
 import useLastCallback from '../../../hooks/useLastCallback';
 
+// import aiSdkService from './ChatApiService';
+import eventEmitter from '../../chatAssistant/lib/EventEmitter';
 import Menu from '../../ui/Menu';
 import MenuItem from '../../ui/MenuItem';
 import generateChatgpt from './ChatApiGenerate';

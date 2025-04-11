@@ -8,7 +8,6 @@ import type { MethodArgs, MethodResponse, Methods } from '../methods/types';
 import type { OriginPayload, ThenArg, WorkerMessageEvent } from './types';
 
 import { DATA_BROADCAST_CHANNEL_NAME, DEBUG, IGNORE_UNHANDLED_ERRORS } from '../../../config';
-import eventEmitter, { Actions } from '../../../lib/EventEmitter';
 import { logDebugMessage } from '../../../util/debugConsole';
 import Deferred from '../../../util/Deferred';
 import { getCurrentTabId, subscribeToMasterChange } from '../../../util/establishMultitabRole';
@@ -16,6 +15,8 @@ import generateUniqueId from '../../../util/generateUniqueId';
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
 import { IS_MULTITAB_SUPPORTED } from '../../../util/windowEnvironment';
 import vectorStore from '../../../components/chatAssistant/vector-store';
+
+import eventEmitter, { Actions } from '../../../components/chatAssistant/lib/EventEmitter';
 
 type RequestState = {
   messageId: string;
@@ -279,20 +280,20 @@ function sendToAIAgent(data:ApiUpdate) {
     eventEmitter.emit(Actions.AddNewMessageToAiAssistant, {
       message: data.message,
     });
-    if (data.message.content?.text && data.message.content?.text.text) {
-      const {
-        date, id, senderId, chatId,
-      } = data.message;
-      const messageContent = data.message.content.text.text;
-      vectorStore.addText(JSON.stringify({
-        chatId,
-        timestamp: date,
-        date: date ? (new Date(date * 1000)).toISOString().split('T')[0] : '0',
-        senderId,
-        messageContent,
-        messageId: id,
-      }), { category: chatId });
-    }
+    // if (data.message.content?.text && data.message.content?.text.text) {
+    //   const {
+    //     date, id, senderId, chatId,
+    //   } = data.message;
+    //   const messageContent = data.message.content.text.text;
+    //   vectorStore.addText(JSON.stringify({
+    //     chatId,
+    //     timestamp: date,
+    //     date: date ? (new Date(date * 1000)).toISOString().split('T')[0] : '0',
+    //     senderId,
+    //     messageContent,
+    //     messageId: id,
+    //   }), { category: chatId });
+    // }
   }
 }
 function subscribeToWorker(onUpdate: OnApiUpdate) {

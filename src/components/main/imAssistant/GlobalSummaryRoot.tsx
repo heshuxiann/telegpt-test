@@ -11,12 +11,13 @@ import { withGlobal } from '../../../global';
 import type { ApiMessage } from '../../../api/types/messages';
 import type { GlobalSummaryRef } from '../../chatAssistant/globalSummary/global-summary';
 
-import eventEmitter, { Actions } from '../../../lib/EventEmitter';
 import { injectComponent } from '../../../lib/injectComponent';
 import { selectChat } from '../../../global/selectors';
 import GlobalSummary from '../../chatAssistant/globalSummary/global-summary';
 
 import useLastCallback from '../../../hooks/useLastCallback';
+
+import eventEmitter, { Actions } from '../../chatAssistant/lib/EventEmitter';
 
 const injectMessageAI = injectComponent(GlobalSummary);
 const GlobalSummaryRoot = () => {

@@ -85,7 +85,7 @@ const SummaryMessageItem = ({
 };
 const SummaryContent = ({ message }: { message: IParsedMessage }) => {
   const {
-    summaryMessageCount, summaryChatIds, summaryStartTime, summaryEndTime, mainTopic, pendingMatters, garbageMessage,
+    mainTopic, pendingMatters, garbageMessage,
   } = message;
   return (
     <div>

@@ -24,11 +24,11 @@ import {
   selectUser,
 } from '../../../global/selectors';
 import { getOrderedIds } from '../../../util/folderManager';
+import { globalAITask } from '../global-ai-task';
 import { useDidUpdateEffect } from '../hook/useDidUpdateEffect';
 import { CloseIcon, MoreIcon } from '../icons';
 import { Messages } from '../messages';
 import { MultimodalInput } from '../multimodal-input';
-import { languagePrompt } from '../prompt';
 import { RightPanelKey } from '../rightPanel/right-header';
 import { RightPanel } from '../rightPanel/right-panel';
 import {
@@ -77,14 +77,6 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     } = useChat({
       api: 'https://sdm-ai-api.vercel.app/chat',
       sendExtraMessageFields: true,
-      initialMessages: [{
-        id: '0',
-        role: 'system',
-        content: languagePrompt,
-        annotations: [{
-          isAuxiliary: true,
-        }],
-      }],
     });
 
     const orderedIds = React.useMemo(() => getOrderedIds(ALL_FOLDER_ID) || [], []);
@@ -282,6 +274,9 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           if (chat.membersCount && chat?.membersCount > 100) {
             return;
           }
+          if (!message.isOutgoing) {
+            globalAITask.addNewMessage(message);
+          }
           setPendingSummaryMessages((messages) => {
             if (messages[chatId]) {
               messages[chatId].push(message);
@@ -375,10 +370,10 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             deleteMessage={deleteMessage}
           />
           <Button type="primary" className="absolute left-[20px] bottom-[64px]" onClick={summaryAllUnreadMessages}>
-            总结所有未读
+            Summarize all unread
           </Button>
           <Button type="primary" className="absolute left-[20px] bottom-[20px]" onClick={() => { setTestModalVisible(true); }}>
-            测试入口
+            Test entry
           </Button>
           <TestModal
             visible={testModalVisable}

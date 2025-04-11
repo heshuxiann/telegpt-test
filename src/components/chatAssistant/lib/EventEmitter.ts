@@ -10,7 +10,9 @@ export enum Actions {
   ShowGlobalSummaryPanel = 'ShowGlobalSummaryPanel',
 }
 class EventEmitter {
-  events: { [key: string]: ((...args: any[]) => void)[] | undefined };
+  private static instance: EventEmitter;
+
+  private events: { [key: string]: ((...args: any[]) => void)[] | undefined };
 
   constructor() {
     this.events = {};
@@ -44,7 +46,14 @@ class EventEmitter {
     };
     this.on(event, onceListener);
   }
+
+  public static getInstance(): EventEmitter {
+    if (!EventEmitter.instance) {
+      EventEmitter.instance = new EventEmitter();
+    }
+    return EventEmitter.instance;
+  }
 }
 
-const eventEmitter = new EventEmitter();
+const eventEmitter = EventEmitter.getInstance();
 export default eventEmitter;

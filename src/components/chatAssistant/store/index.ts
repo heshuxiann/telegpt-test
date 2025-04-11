@@ -2,16 +2,9 @@ import { getGlobal } from '../../../global';
 
 import ContactStore from './contact-store';
 import GeneralStore from './general-store';
-// import { GENERAL_IDB_STORE } from './im-assistant-idb';
+import KnowledgeStore from './knowledge-store';
 import MessageStore from './messages-store';
 import UsersStore from './user-store';
-
-// export const CHATAI_STORE = {
-//   ContactStore,
-//   UsersStore,
-//   MessageStore,
-//   GENERAL_IDB_STORE,
-// };
 
 function getChataiDbname() {
   const global = getGlobal();
@@ -19,7 +12,7 @@ function getChataiDbname() {
   const DB_NAME = currentUserId ? `tt-chatai-${currentUserId}` : 'tt-chatai';
   return DB_NAME;
 }
-const dbVersion = 3;
+const dbVersion = 4;
 
 export const GLOBAL_SUMMARY_LAST_TIME = 'globalSummaryLastTime';
 export const GLOBAL_SUMMARY_READ_TIME = 'globalSummaryReadTime';
@@ -28,3 +21,4 @@ export const ChataiMessageStore = new MessageStore(getChataiDbname(), dbVersion)
 export const ChataiContactStore = new ContactStore(getChataiDbname(), dbVersion);
 export const ChataiUserStore = new UsersStore(getChataiDbname(), dbVersion);
 export const ChataiGeneralStore = new GeneralStore(getChataiDbname(), dbVersion);
+export const ChataiKnowledgelStore = new KnowledgeStore(getChataiDbname(), dbVersion);

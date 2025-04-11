@@ -1,9 +1,8 @@
 /* eslint-disable max-len */
-import React, { memo, useCallback, useState } from '../../../lib/teact/teact';
+import React, { memo, useCallback } from '../../../lib/teact/teact';
 
 import Icon from '../../common/icons/Icon';
 import Button from '../../ui/Button';
-import AddKnowledgeModal from './AddKnowledgeModal';
 
 import AIKnowledgeEmpty from '../../../assets/ai-knowledge-empty.png';
 
@@ -26,18 +25,67 @@ const AIKnowledgeEmptyContent = ({ onAdd }:{ onAdd:NoneToVoidFunction }) => {
     </div>
   );
 };
-const AIKnowledgeContent = () => {
-  const [showAddModal, setShowAddModal] = useState(false);
-  const handleCloseAddModal = useCallback(() => {
-    setShowAddModal(false);
-  }, []);
-  const handleShowAddModal = useCallback(() => {
-    setShowAddModal(true);
-  }, []);
+const AIKnowledgeList = ({ knowledgeList, onEdit, onDelete }:{
+  knowledgeList:any[];
+  onEdit:(knowledge:{ id:string;content:string })=>void;
+  onDelete:(id:string)=>void;
+}) => {
+  const handleEdit = useCallback((knowledge:{ id:string;content:string }) => {
+    onEdit(knowledge);
+  }, [onEdit]);
+  const handleDelete = useCallback((knowledge:{ id:string;content:string }) => {
+    onDelete(knowledge.id);
+  }, [onDelete]);
   return (
-    <div>
-      <AIKnowledgeEmptyContent onAdd={handleShowAddModal} />
-      <AddKnowledgeModal isOpen={showAddModal} onClose={handleCloseAddModal} />
+    <div className="px-[20px]">
+      {knowledgeList.map((item) => (
+        <div key={item.id} className="bg-[#F7F7F7] rounded-[12px] px-[16px] py-[15px] mb-[12px]">
+          <div className="white-space-pre-wrap line-clamp-3 overflow-hidden text-ellipsis">
+            {item.content}
+          </div>
+          <div className="flex justify-end gap-[8px] items-center">
+            <Button
+              round
+              size="smaller"
+              color="translucent"
+              // eslint-disable-next-line react/jsx-no-bind
+              onClick={() => handleEdit(item)}
+            >
+              <Icon name="edit" className="text-[14px]" />
+            </Button>
+            <Button
+              round
+              size="smaller"
+              color="translucent"
+              // eslint-disable-next-line react/jsx-no-bind
+              onClick={() => handleDelete(item)}
+            >
+              <Icon name="delete" className="text-[14px]" />
+            </Button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+const AIKnowledgeContent = ({
+  knowledgeList, onShowAddModal, onEdit, onDelete,
+}:{
+  knowledgeList:any[];
+  onShowAddModal:(type:'edit' | 'add')=>void ;
+  onEdit:(knowledge:{ id:string;content:string })=>void;
+  onDelete:(id:string)=>void;
+}) => {
+  const handleAdd = useCallback(() => {
+    onShowAddModal('add');
+  }, [onShowAddModal]);
+  return (
+    <div className="pt-[20px] h-full box-border">
+      {knowledgeList.length === 0 ? (
+        <AIKnowledgeEmptyContent onAdd={handleAdd} />
+      ) : (
+        <AIKnowledgeList knowledgeList={knowledgeList} onEdit={onEdit} onDelete={onDelete} />
+      )}
     </div>
   );
 };
