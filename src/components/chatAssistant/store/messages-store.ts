@@ -6,7 +6,7 @@ import type { StoreName } from './chatai-store';
 
 import ChataiDB from './chatai-store';
 
-interface StoreMessage extends Message {
+export interface StoreMessage extends Message {
   chatId: string;
   timestamp: number;
 }

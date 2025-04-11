@@ -7,6 +7,7 @@ import equal from 'fast-deep-equal';
 import GlobalSummaryMessage from './global-summary-message';
 import { PreviewMessage, ThinkingMessage } from './message';
 import SummaryMessage from './summary-message';
+import UrgentCheckMessage from './urgent-check-message';
 import { useScrollToBottom } from './use-scroll-to-bottom';
 
 import './messages.scss';
@@ -32,6 +33,9 @@ function PureMessages({
   const isGlobalSummary = (message:Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-summary') ?? false;
   };
+  const isUrgentCheck = (message:Message) => {
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'urgent-message-check') ?? false;
+  };
   const handleDeleteMessage = (message:Message, prevMessage:Message) => {
     deleteMessage?.(message.id);
     deleteMessage?.(prevMessage.id);
@@ -51,6 +55,15 @@ function PureMessages({
                 isLoading={isLoading}
                 message={message}
                 prevMessage={messages[index - 1]}
+                // eslint-disable-next-line react/jsx-no-bind
+                deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
+              />
+            );
+          } else if (index > 0 && isUrgentCheck(messages[index - 1])) {
+            return (
+              <UrgentCheckMessage
+                isLoading={isLoading}
+                message={message}
                 // eslint-disable-next-line react/jsx-no-bind
                 deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
               />

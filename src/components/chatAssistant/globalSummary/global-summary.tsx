@@ -29,6 +29,7 @@ import { useDidUpdateEffect } from '../hook/useDidUpdateEffect';
 import { CloseIcon, MoreIcon } from '../icons';
 import { Messages } from '../messages';
 import { MultimodalInput } from '../multimodal-input';
+import { UrgentMessageCheckPrompt } from '../prompt';
 import { RightPanelKey } from '../rightPanel/right-header';
 import { RightPanel } from '../rightPanel/right-panel';
 import {
@@ -37,6 +38,7 @@ import {
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
 import defaultSummaryPrompt, { getGlobalSummaryPrompt } from './summary-prompt';
+import UrgentNotification from './urgent-notification';
 
 import ErrorBoundary from '../ErrorBoundary';
 import { TestModal } from './TestModal';
@@ -72,7 +74,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const [testModalVisable, setTestModalVisible] = useState(false);
     const [globalSummaryPrompt, setGlobalSummaryPrompt] = useState(defaultSummaryPrompt);
     const [customizationTemplate, setCustomizationTemplate] = useState<{ title: string; prompt: string } | null>(null);
-    // const [notificationChecks, setNotificationChecks] = useState<ApiMessage[]>([]);
+    const [urgentChecks, setUrgentChecks] = useState<ApiMessage[]>([]);
     const {
       messages, setMessages, append, isLoading, input, setInput, stop, handleSubmit,
     } = useChat({
@@ -93,18 +95,39 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       });
     }, []);
     // 检测是否是紧急消息
-    // useEffect(() => {
-    //   const timer = setInterval(() => {
-    //     // eslint-disable-next-line no-console
-    //     console.log('notificationChecks----->', notificationChecks);
-    //     const chat = selectChat(global, '-1002203586699');
-    //     // eslint-disable-next-line no-console
-    //     console.log('chat', chat);
-    //   }, 1000);
-    //   return () => {
-    //     clearInterval(timer);
-    //   };
-    // }, [global, notificationChecks]);
+    useEffect(() => {
+      const timer = setInterval(() => {
+        // eslint-disable-next-line no-console
+        console.log('urgentChecks----->', urgentChecks);
+        const checkmsgs = urgentChecks.map((msg) => {
+          if (msg.content.text?.text) {
+            const peer = msg.senderId ? selectUser(global, msg.senderId) : undefined;
+            return {
+              chatId: msg.chatId,
+              messageId: msg.id,
+              senderName: peer ? `${peer.firstName || ''} ${peer.lastName || ''}` : '',
+              content: msg.content.text?.text || '',
+            };
+          }
+          return false;
+        }).filter(Boolean);
+        if (checkmsgs.length) {
+          append({
+            id: uuidv4(),
+            role: 'user',
+            content: `${JSON.stringify(checkmsgs)}\n\n${UrgentMessageCheckPrompt}`,
+            annotations: [{
+              isAuxiliary: true,
+              type: 'urgent-message-check',
+            }],
+          });
+          setUrgentChecks([]);
+        }
+      }, 10000);
+      return () => {
+        clearInterval(timer);
+      };
+    }, [append, global, urgentChecks]);
 
     useDidUpdateEffect(() => {
       if (orderedIds?.length) {
@@ -277,10 +300,6 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     };
 
     const addNewMessage = (message: ApiMessage) => {
-      // eslint-disable-next-line no-console
-      console.log('addNewMessage');
-      // eslint-disable-next-line no-console
-      console.log('chat---->', selectChat(global, message.chatId));
       if (message.content.text) {
         const chatId = message.chatId;
         const chat = selectChat(global, chatId);
@@ -290,11 +309,12 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             return;
           }
           // TODO 这里需要判断是否是紧急消息/知识库自动回复
-          if (!message.isOutgoing && !isChatGroup(chat)) {
+          const { isRestricted } = chat;
+          if (!message.isOutgoing && !isRestricted) {
             if (!isChatGroup(chat)) {
               globalAITask.addNewMessage(message);
             }
-            // setNotificationChecks((prev) => [...prev, message]);
+            setUrgentChecks((prev) => [...prev, message]);
           }
           setPendingSummaryMessages((messages) => {
             if (messages[chatId]) {
@@ -401,7 +421,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             handleReSummary={handleReSummary}
           />
         </Modal>
-
+        <UrgentNotification messages={messages} isLoading={isLoading} />
       </ErrorBoundary>
 
     );

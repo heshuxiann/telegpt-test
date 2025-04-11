@@ -1,3 +1,5 @@
+/* eslint-disable max-len */
+import type { Message } from 'ai';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -83,3 +85,7 @@ export function validateAndFixJsonStructure(jsonString:string) {
     return { valid: false, error };
   }
 }
+
+export const isUrgentCheckMessage = (message:Message) => {
+  return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'urgent-message-check') ?? false;
+};
