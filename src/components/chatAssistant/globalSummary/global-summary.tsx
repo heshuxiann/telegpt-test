@@ -18,7 +18,7 @@ import { type ApiMessage, MAIN_THREAD_ID } from '../../../api/types/messages';
 
 import { ALL_FOLDER_ID } from '../../../config';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
-import { isSystemBot, isUserId } from '../../../global/helpers';
+import { isChatGroup, isSystemBot, isUserId } from '../../../global/helpers';
 import {
   selectBot, selectChat, selectChatLastMessageId, selectFirstUnreadId,
   selectUser,
@@ -72,6 +72,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const [testModalVisable, setTestModalVisible] = useState(false);
     const [globalSummaryPrompt, setGlobalSummaryPrompt] = useState(defaultSummaryPrompt);
     const [customizationTemplate, setCustomizationTemplate] = useState<{ title: string; prompt: string } | null>(null);
+    // const [notificationChecks, setNotificationChecks] = useState<ApiMessage[]>([]);
     const {
       messages, setMessages, append, isLoading, input, setInput, stop, handleSubmit,
     } = useChat({
@@ -91,6 +92,20 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         }
       });
     }, []);
+    // 检测是否是紧急消息
+    // useEffect(() => {
+    //   const timer = setInterval(() => {
+    //     // eslint-disable-next-line no-console
+    //     console.log('notificationChecks----->', notificationChecks);
+    //     const chat = selectChat(global, '-1002203586699');
+    //     // eslint-disable-next-line no-console
+    //     console.log('chat', chat);
+    //   }, 1000);
+    //   return () => {
+    //     clearInterval(timer);
+    //   };
+    // }, [global, notificationChecks]);
+
     useDidUpdateEffect(() => {
       if (orderedIds?.length) {
         initUnSummaryMessage();
@@ -274,8 +289,12 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           if (chat.membersCount && chat?.membersCount > 100) {
             return;
           }
-          if (!message.isOutgoing) {
-            globalAITask.addNewMessage(message);
+          // TODO 这里需要判断是否是紧急消息/知识库自动回复
+          if (!message.isOutgoing && !isChatGroup(chat)) {
+            if (!isChatGroup(chat)) {
+              globalAITask.addNewMessage(message);
+            }
+            // setNotificationChecks((prev) => [...prev, message]);
           }
           setPendingSummaryMessages((messages) => {
             if (messages[chatId]) {
