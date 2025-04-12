@@ -108,6 +108,9 @@ const UrgentCheckMessage = (props:IProps) => {
       }
     }
   }, [isLoading, message]);
+  if (!urgentMessage || urgentMessage.length === 0) {
+    return null;
+  }
   return (
     <div className="mx-auto w-[693px] rounded-[10px] bg-[#FFF9F9] pl-[82px] pr-[25px] pt-[20px] pb-[25px] border-[1px] border-[#FFC7C7]">
       <div className="flex items-center gap-[8px]">

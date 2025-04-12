@@ -3,23 +3,9 @@ import { getActions } from '../../global';
 
 import type { ApiMessage } from '../../api/types/messages';
 
-import eventEmitter, { Actions } from './lib/EventEmitter';
 import { getIntelligentReplyByKnowledgePrompt } from './prompt';
 import { ChataiKnowledgelStore } from './store';
 
-export default function initGlobalAITask() {
-  const pendingMessages: ApiMessage[] = [];
-  eventEmitter.on(Actions.AddNewMessageToAiAssistant, (data: { message: ApiMessage }) => {
-    const { message } = data;
-    // eslint-disable-next-line no-console
-    console.log('收到新消息', message);
-    pendingMessages.push(message);
-  });
-  setInterval(() => {
-    // eslint-disable-next-line no-console
-    console.log('pendingMessages', pendingMessages);
-  }, 1000);
-}
 interface ChatProps {
   data: any;
   onResponse: (message: string) => void;
@@ -70,12 +56,10 @@ class GlobalAITask {
 
   initReplyTask() {
     setInterval(() => {
-      // eslint-disable-next-line no-console
-      console.log('pendingMessages', this.pendingMessages);
       if (this.pendingMessages.length && this.knowledgeData) {
         this.intelligentResponse();
       }
-    }, 1000);
+    }, 1000 * 60);
   }
 
   initAIKnowledgeBase():Promise<string> {
@@ -93,8 +77,6 @@ class GlobalAITask {
   }
 
   updateKnowledgeData() {
-    // eslint-disable-next-line no-console
-    console.log('更新知识库');
     this.initAIKnowledgeBase();
   }
 

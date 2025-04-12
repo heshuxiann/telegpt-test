@@ -97,8 +97,6 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     // 检测是否是紧急消息
     useEffect(() => {
       const timer = setInterval(() => {
-        // eslint-disable-next-line no-console
-        console.log('urgentChecks----->', urgentChecks);
         const checkmsgs = urgentChecks.map((msg) => {
           if (msg.content.text?.text) {
             const peer = msg.senderId ? selectUser(global, msg.senderId) : undefined;
@@ -123,7 +121,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           });
           setUrgentChecks([]);
         }
-      }, 10000);
+      }, 1000 * 60);
       return () => {
         clearInterval(timer);
       };
