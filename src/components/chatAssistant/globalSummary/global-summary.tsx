@@ -46,6 +46,7 @@ import './global-summary.scss';
 
 import AISummaryPath from '../assets/ai-summary.png';
 import SerenaPath from '../assets/serena.png';
+import { useDidUpdateEffect } from '../hook/useDidUpdateEffect';
 
 interface SummaryMessage {
   chatId: string;
@@ -195,6 +196,12 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       }
     };
 
+    useDidUpdateEffect(() => {
+      if (orderedIds?.length) {
+        initUnSummaryMessage();
+      }
+    }, [globalSummaryPrompt]);
+
     useEffect(() => {
       const executeTask = () => {
         const currentTime = new Date();
@@ -218,7 +225,6 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         if (hours >= 17 && hours < 23 && (hours - 17) % 2 === 0 && minutes === 0) {
           startSummary(pendingSummaryMessages);
         }
-        initUnSummaryMessage();
       };
 
       // 每分钟执行一次来检查时间段
