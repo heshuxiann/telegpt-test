@@ -317,24 +317,24 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
       >
         <img src={chatAILogoPath} alt="ai" />
       </Button> */}
-      {!isForForum && canTranslate && (
+      {/* {!isForForum && canTranslate && (
         <DropdownMenu
           className="stickers-more-menu with-menu-transitions"
           trigger={MoreMenuButton}
           positionX="right"
         >
-          {/* <MenuItem icon="language" onClick={handleTranslateClick}>
+          <MenuItem icon="language" onClick={handleTranslateClick}>
             {buttonText}
-          </MenuItem> */}
+          </MenuItem>
           <MenuItem icon="replace" onClick={handleChangeLanguage}>
             {lang('Chat.Translate.Menu.To')}
           </MenuItem>
           <MenuSeparator />
           {detectedChatLanguage
             && <MenuItem icon="hand-stop" onClick={handleDoNotTranslate}>{doNotTranslateText}</MenuItem>}
-          {/* <MenuItem icon="close-circle" onClick={handleHide}>{lang('Hide')}</MenuItem> */}
+          <MenuItem icon="close-circle" onClick={handleHide}>{lang('Hide')}</MenuItem>
         </DropdownMenu>
-      )}
+      )} */}
       {!isMobile && (
         <>
           {canExpandActions && !shouldSendJoinRequest && (canSubscribe || shouldJoinToSend) && (
