@@ -46,7 +46,6 @@ import './global-summary.scss';
 
 import AISummaryPath from '../assets/ai-summary.png';
 import SerenaPath from '../assets/serena.png';
-import { useDidUpdateEffect } from '../hook/useDidUpdateEffect';
 
 interface SummaryMessage {
   chatId: string;
@@ -196,11 +195,12 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       }
     };
 
-    useDidUpdateEffect(() => {
+    useEffect(() => {
       if (orderedIds?.length) {
         initUnSummaryMessage();
       }
-    }, [globalSummaryPrompt]);
+    // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
+    }, [globalSummaryPrompt, orderedIds?.length]);
 
     useEffect(() => {
       const executeTask = () => {
