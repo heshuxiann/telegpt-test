@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable no-null/no-null */
 import { ChataiGeneralStore } from '../store';
 
@@ -160,25 +161,29 @@ const chainTrendingPrompt = `
 `;
 export const CustomizationTemplates = [
   {
+    id: '5b8f8976-e07e-4372-b34d-e3e6d8bbaf88',
     title: 'Most Discussed Coins',
     prompt: coinsPrompt,
   },
   {
+    id: '9552310a-d8ff-43ac-8f61-6233fe1a3bca',
     title: 'Most Active Users',
     prompt: activeUserPrompt,
   },
   {
+    id: 'b0f0e9a8-c5d4-4e0f-b9c6-f8a8d8b9a8c8',
     title: 'Key business updates',
     prompt: keyBusinessPrompt,
   },
   {
+    id: 'fa303579-1c78-4be6-8792-bdf539482608',
     title: 'On-Chain Trending Topics',
     prompt: chainTrendingPrompt,
   },
 ];
 
 export const getGlobalSummaryPrompt = () => {
-  return new Promise<{ prompt:string;customizationTemplate:{ title:string;prompt:string } | null }>((resolve) => {
+  return new Promise<{ prompt:string;customizationTemplate:{ id:string;title:string;prompt:string } | null }>((resolve) => {
     ChataiGeneralStore.get('lastDefinedPrompt').then((selectTemp) => {
       if (selectTemp?.prompt) {
         const template = `

@@ -1,0 +1,10 @@
+.prompt-template-item{
+    .delete-icon{
+        display: none;
+    }
+    &:hover{
+        .delete-icon{
+            display: flex;
+        }
+    }
+}

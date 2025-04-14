@@ -1,5 +1,5 @@
 /* eslint-disable no-null/no-null */
-export type StoreName = 'message' | 'contact' | 'user' | 'general' | 'knowledge';
+export type StoreName = 'message' | 'contact' | 'user' | 'general' | 'knowledge' | 'summaryTemplate';
 
 type IndexConfig = [indexName: string, keyPath: string | string[]];
 
@@ -24,6 +24,7 @@ class ChataiDB {
     user: { keyPath: 'id', autoIncrement: true },
     general: { autoIncrement: true },
     knowledge: { keyPath: 'id', autoIncrement: true },
+    summaryTemplate: { keyPath: 'id', autoIncrement: true },
   };
 
   constructor(DB_NAME: string, VERSION: number) {

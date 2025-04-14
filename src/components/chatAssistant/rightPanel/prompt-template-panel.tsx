@@ -5,17 +5,22 @@ import React, {
 } from 'react';
 import cx from 'classnames';
 
+import type { CustomSummaryTemplate } from '../store/chatai-summary-template-store';
+
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { CustomizationTemplates } from '../globalSummary/summary-prompt';
-import { ChataiGeneralStore } from '../store';
+import { CloseIcon } from '../icons';
+import { ChataiGeneralStore, ChataiSummaryTemplateStore } from '../store';
 import { RightPanelKey } from './right-header';
 
+import './prompt-template-panel.scss';
+
 const PromptTemplatePanel = () => {
-  const [userDefinedTemplate, setUserDefinedTemplate] = useState<{ title: string;prompt: string }[]>([]);
-  const [lastTemplate, setLastTemplate] = useState<{ title: string;prompt: string } | undefined>(undefined);
-  const [currentTemplate, setCurrentTemplate] = useState<{ title: string;prompt: string } | undefined>(undefined);
+  const [userDefinedTemplate, setUserDefinedTemplate] = useState<CustomSummaryTemplate[]>([]);
+  const [lastTemplate, setLastTemplate] = useState<CustomSummaryTemplate | undefined>(undefined);
+  const [currentTemplate, setCurrentTemplate] = useState<CustomSummaryTemplate | undefined>(undefined);
   useEffect(() => {
-    ChataiGeneralStore.get('customizationPrompt').then((res) => {
+    ChataiSummaryTemplateStore.getAllSummaryTemplate().then((res) => {
       setUserDefinedTemplate(res || []);
     });
     ChataiGeneralStore.get('lastDefinedPrompt').then((res) => {
@@ -25,13 +30,19 @@ const PromptTemplatePanel = () => {
       }
     });
   }, []);
-  const actionsVisable = useMemo(() => currentTemplate?.title !== lastTemplate?.title, [currentTemplate, lastTemplate]);
+  const actionsVisable = useMemo(() => {
+    // eslint-disable-next-line no-console
+    console.log('currentTemplate', currentTemplate);
+    // eslint-disable-next-line no-console
+    console.log('lastTemplate', lastTemplate);
+    return currentTemplate && currentTemplate?.id !== lastTemplate?.id;
+  }, [currentTemplate, lastTemplate]);
   const handleCustomization = useCallback(() => {
     eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
       rightPanelKey: RightPanelKey.CustomizationPrompt,
     });
   }, []);
-  const handleTemplateSelect = useCallback((item: { title: string;prompt: string }) => {
+  const handleTemplateSelect = useCallback((item: CustomSummaryTemplate) => {
     setCurrentTemplate(item);
   }, []);
   const handleCancel = useCallback(() => {
@@ -40,7 +51,25 @@ const PromptTemplatePanel = () => {
   const handleSave = useCallback(() => {
     ChataiGeneralStore.set('lastDefinedPrompt', currentTemplate);
     setLastTemplate(currentTemplate);
+    eventEmitter.emit(Actions.GlobalSummaryTemplateUpdate);
   }, [currentTemplate]);
+  const handleDelete = useCallback((e: React.MouseEvent<HTMLDivElement>, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    ChataiSummaryTemplateStore.deleteSummaryTemplate(id).then(() => {
+      setUserDefinedTemplate((prev) => {
+        return prev.filter((item) => item.id !== id);
+      });
+    });
+    if (id === lastTemplate?.id) {
+      ChataiGeneralStore.delete('lastDefinedPrompt').then(() => {
+        setLastTemplate(undefined);
+      });
+    }
+    if (id === currentTemplate?.id) {
+      setCurrentTemplate(undefined);
+    }
+  }, [lastTemplate?.id, currentTemplate?.id]);
   return (
     <div className="h-full flex flex-col px-[18px]">
       <h3 className="text-[18px] font-semibold">What are you curious about?</h3>
@@ -51,7 +80,7 @@ const PromptTemplatePanel = () => {
               key={item.title}
               onClick={() => handleTemplateSelect(item)}
               className={cx('w-fit px-[20px] leading-[40px] border-[1px] border-[#B297FF] rounded-[20px] text-[15px] cursor-pointer', {
-                'bg-[#B297FF] text-white': currentTemplate?.title === item.title,
+                'bg-[#B297FF] text-white': currentTemplate?.id === item.id,
               })}
             >
               {item.title}
@@ -64,11 +93,17 @@ const PromptTemplatePanel = () => {
               <div
                 key={item.title}
                 onClick={() => handleTemplateSelect(item)}
-                className={cx('w-fit px-[20px] leading-[40px] border-[1px] border-[#B297FF] rounded-[20px] text-[15px] cursor-pointer', {
+                className={cx('prompt-template-item w-fit px-[20px] leading-[40px] border-[1px] border-[#B297FF] rounded-[20px] text-[15px] cursor-pointer flex items-center gap-[8px]', {
                   'bg-[#B297FF]': currentTemplate?.title === item.title,
                 })}
               >
-                {item.title}
+                <span>{item.title}</span>
+                <div
+                  className="delete-icon w-[20px] h-[20px] cursor-pointer flex items-center justify-center"
+                  onClick={(e) => handleDelete(e, item.id)}
+                >
+                  <CloseIcon />
+                </div>
               </div>
             );
           })

@@ -1,9 +1,10 @@
 /* eslint-disable max-len */
 import React, { useCallback, useState } from 'react';
 import { Input } from 'antd';
+import { v4 as uuidv4 } from 'uuid';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
-import { ChataiGeneralStore } from '../store';
+import { ChataiSummaryTemplateStore } from '../store';
 import { RightPanelKey } from './right-header';
 
 const { TextArea } = Input;
@@ -20,16 +21,13 @@ const CustomizationPromptPanel = () => {
     if (!title || !prompt) {
       return;
     }
-    ChataiGeneralStore.get('customizationPrompt').then((res) => {
-      const prompts = res || [];
-      prompts.push({
-        title,
-        prompt,
-      });
-      ChataiGeneralStore.set('customizationPrompt', prompts);
-      eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
-        rightPanelKey: RightPanelKey.PromptTemplate,
-      });
+    ChataiSummaryTemplateStore.addSummaryTemplate({
+      id: uuidv4(),
+      title,
+      prompt,
+    });
+    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
+      rightPanelKey: RightPanelKey.PromptTemplate,
     });
   }, [title, prompt]);
   const handleCancel = useCallback(() => {

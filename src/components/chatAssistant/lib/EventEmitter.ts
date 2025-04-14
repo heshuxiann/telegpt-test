@@ -8,6 +8,7 @@ export enum Actions {
   AddNewMessageToAiAssistant = 'AddNewMessageToAiAssistant',
   // global summary
   ShowGlobalSummaryPanel = 'ShowGlobalSummaryPanel',
+  GlobalSummaryTemplateUpdate = 'GlobalSummaryTemplateUpdate',
 }
 class EventEmitter {
   private static instance: EventEmitter;

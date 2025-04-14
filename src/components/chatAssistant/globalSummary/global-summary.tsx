@@ -25,7 +25,6 @@ import {
 } from '../../../global/selectors';
 import { getOrderedIds } from '../../../util/folderManager';
 import { globalAITask } from '../global-ai-task';
-import { useDidUpdateEffect } from '../hook/useDidUpdateEffect';
 import { CloseIcon, MoreIcon } from '../icons';
 import { Messages } from '../messages';
 import { MultimodalInput } from '../multimodal-input';
@@ -78,7 +77,8 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const {
       messages, setMessages, append, isLoading, input, setInput, stop, handleSubmit,
     } = useChat({
-      api: 'https://sdm-ai-api.vercel.app/chat',
+      // api: 'https://sdm-ai-api.vercel.app/chat',
+      api: 'https://telegpt-three.vercel.app/chat',
       sendExtraMessageFields: true,
     });
 
@@ -86,13 +86,22 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     useImperativeHandle(ref, () => ({
       addNewMessage,
     }));
-    useEffect(() => {
+    const initSummaryTemplate = () => {
       getGlobalSummaryPrompt().then((result) => {
         setGlobalSummaryPrompt(result.prompt);
         if (result.customizationTemplate) {
           setCustomizationTemplate(result.customizationTemplate);
         }
       });
+    };
+    useEffect(() => {
+      initSummaryTemplate();
+    }, []);
+    useEffect(() => {
+      eventEmitter.on(Actions.GlobalSummaryTemplateUpdate, initSummaryTemplate);
+      return () => {
+        eventEmitter.off(Actions.GlobalSummaryTemplateUpdate, initSummaryTemplate);
+      };
     }, []);
     // 检测是否是紧急消息
     useEffect(() => {
@@ -127,11 +136,6 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       };
     }, [append, global, urgentChecks]);
 
-    useDidUpdateEffect(() => {
-      if (orderedIds?.length) {
-        initUnSummaryMessage();
-      }
-    }, [globalSummaryPrompt]);
     const startSummary = useCallback(async (messages: Record<string, ApiMessage[]>, prompt?: string) => {
       // eslint-disable-next-line no-console
       console.log('开始总结', messages, globalSummaryPrompt);
@@ -180,6 +184,17 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       ChataiGeneralStore.set(GLOBAL_SUMMARY_LAST_TIME, new Date().getTime());
       setUnreadSummaryCount(unreadSummaryCount + 1);
     }, [append, customizationTemplate, global, globalSummaryPrompt, unreadSummaryCount]);
+
+    const initUnSummaryMessage = async () => {
+      const globalSummaryLastTime: number | undefined = await ChataiGeneralStore.get(GLOBAL_SUMMARY_LAST_TIME);
+      if (!globalSummaryLastTime) {
+        // TODO 总结所有的未读消息
+        summaryAllUnreadMessages();
+      } else if (globalSummaryLastTime < Date.now() - 1000 * 60 * 60 * 10) {
+        summaryMessageByDeadline(globalSummaryLastTime);
+      }
+    };
+
     useEffect(() => {
       const executeTask = () => {
         const currentTime = new Date();
@@ -203,12 +218,14 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         if (hours >= 17 && hours < 23 && (hours - 17) % 2 === 0 && minutes === 0) {
           startSummary(pendingSummaryMessages);
         }
+        initUnSummaryMessage();
       };
 
       // 每分钟执行一次来检查时间段
       const intervalId = setInterval(executeTask, 60000);
 
       return () => clearInterval(intervalId); // 清理定时器
+      // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
     }, [pendingSummaryMessages, startSummary]);
 
     useEffect(() => {
@@ -228,16 +245,6 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         ChataiMessageStore.storeMessages([...parsedMessage]);
       }
     }, [messages, isLoading]);
-
-    const initUnSummaryMessage = async () => {
-      const globalSummaryLastTime: number | undefined = await ChataiGeneralStore.get(GLOBAL_SUMMARY_LAST_TIME);
-      if (!globalSummaryLastTime || globalSummaryLastTime < Date.now() - 1000 * 60 * 60 * 12) {
-        // TODO 总结所有的未读消息
-        summaryAllUnreadMessages();
-      } else if (globalSummaryLastTime < Date.now() - 1000 * 60 * 60 * 10) {
-        summaryMessageByDeadline(globalSummaryLastTime);
-      }
-    };
 
     const summaryAllUnreadMessages = async () => {
       const unreadMap: Record<string, ApiMessage[]> = {};

@@ -8,6 +8,7 @@ import copy from 'copy-to-clipboard';
 import { getActions, getGlobal } from '../../global';
 
 import type { GlobalState } from '../../global/types';
+import type { CustomSummaryTemplate } from './store/chatai-summary-template-store';
 
 import eventEmitter, { Actions } from './lib/EventEmitter';
 import { isUserId } from '../../global/helpers';
@@ -356,7 +357,7 @@ const MainSummaryContent = ({
   pendingMatters,
   deleteMessage,
 }: {
-  customizationTemplate:{ title:string;prompt:string } | null;
+  customizationTemplate:CustomSummaryTemplate | null;
   summaryInfo: ISummaryInfo | null;
   customizationTopic: ISummaryTopicItem[];
   mainTopic: ISummaryTopicItem[];
@@ -427,7 +428,7 @@ const SummaryContent = ({
   deleteMessage,
 }:
 {
-  customizationTemplate:{ title:string;prompt:string } | null;
+  customizationTemplate:CustomSummaryTemplate | null;
   summaryInfo: ISummaryInfo | null;
   customizationTopic: ISummaryTopicItem[];
   mainTopic: ISummaryTopicItem[];
@@ -486,7 +487,7 @@ const GlobalSummaryMessage = (props: IProps) => {
     isLoading, message, prevMessage, deleteMessage,
   } = props;
   const [summaryInfo, setSummaryInfo] = useState<ISummaryInfo | null>(null);
-  const [customizationTemplate, setCustomizationTemplate] = useState<{ title:string;prompt:string } | null>(null);
+  const [customizationTemplate, setCustomizationTemplate] = useState<CustomSummaryTemplate | null>(null);
   const [customizationTopic, setCustomizationTopic] = useState<ISummaryTopicItem[]>([]);
   const [mainTopic, setMainTopic] = useState<ISummaryTopicItem[]>([]);
   const [pendingMatters, setPendingMatters] = useState<ISummaryPendingItem[]>([]);

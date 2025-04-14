@@ -1,18 +1,3 @@
-// import { USERINFO_IDB_STORE } from './im-assistant-idb';
-
-// export const addUser = (contact: UserInfo) => {
-//   USERINFO_IDB_STORE.set(contact.id, contact);
-// };
-// export const getUser = (id: string):Promise<UserInfo | undefined> => {
-//   return USERINFO_IDB_STORE.get(id);
-// };
-
-// export const updateUser = (id: string, updater: (oldValue: UserInfo | undefined) => UserInfo) => {
-//   return USERINFO_IDB_STORE.update(id, updater);
-// };
-
-// import { CONTACT_IDB_STORE } from './im-assistant-idb';
-
 import type { StoreName } from './chatai-store';
 
 import ChataiDB from './chatai-store';
@@ -29,7 +14,7 @@ class UserStore extends ChataiDB {
   private storeName: StoreName = 'user';
 
   async getUser(id: string): Promise<UserInfo | undefined> {
-    const db = await this.getDB(this.storeName);
+    const db = await this.getDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readonly');
       const store = tx.objectStore(this.storeName);
@@ -44,7 +29,7 @@ class UserStore extends ChataiDB {
   }
 
   async addUser(contact: UserInfo) {
-    const db = await this.getDB(this.storeName);
+    const db = await this.getDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readwrite');
       const store = tx.objectStore(this.storeName);

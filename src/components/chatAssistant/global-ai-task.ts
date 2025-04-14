@@ -12,7 +12,7 @@ interface ChatProps {
   onFinish?: () => void;
 }
 const generateChatgpt = (props:ChatProps) => {
-  fetch(`https://sdm-ai-api.vercel.app/generate?options=${JSON.stringify({ temperature: 0 })}`, {
+  fetch(`https://telegpt-three.vercel.app/generate?options=${JSON.stringify({ temperature: 0 })}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
