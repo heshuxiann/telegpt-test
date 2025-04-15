@@ -24,7 +24,8 @@ import {
   selectUser,
 } from '../../../global/selectors';
 import { getOrderedIds } from '../../../util/folderManager';
-import { globalAITask } from '../global-ai-task';
+import { intelligentReplyTask } from '../aiTask/intelligent-reply-task';
+import { useDidUpdateEffect } from '../hook/useDidUpdateEffect';
 import { CloseIcon, MoreIcon } from '../icons';
 import { Messages } from '../messages';
 import { MultimodalInput } from '../multimodal-input';
@@ -71,7 +72,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const [attachments, setAttachments] = useState<Array<Attachment>>([]);
     const [unreadSummaryCount, setUnreadSummaryCount] = useState(0);
     const [testModalVisable, setTestModalVisible] = useState(false);
-    const [globalSummaryPrompt, setGlobalSummaryPrompt] = useState(defaultSummaryPrompt);
+    const [globalSummaryPrompt, setGlobalSummaryPrompt] = useState('');
     const [customizationTemplate, setCustomizationTemplate] = useState<{ title: string; prompt: string } | null>(null);
     const [urgentChecks, setUrgentChecks] = useState<ApiMessage[]>([]);
     const {
@@ -88,9 +89,15 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     }));
     const initSummaryTemplate = () => {
       getGlobalSummaryPrompt().then((result) => {
-        setGlobalSummaryPrompt(result.prompt);
-        if (result.customizationTemplate) {
-          setCustomizationTemplate(result.customizationTemplate);
+        if (result) {
+          if (result.prompt) {
+            setGlobalSummaryPrompt(result.prompt);
+          } else {
+            setGlobalSummaryPrompt(defaultSummaryPrompt);
+          }
+          if (result.customizationTemplate) {
+            setCustomizationTemplate(result.customizationTemplate);
+          }
         }
       });
     };
@@ -168,7 +175,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       append({
         id: uuidv4(),
         role: 'user',
-        content: `${prompt || globalSummaryPrompt}\n\n${JSON.stringify(summaryMessageContent)}`,
+        content: `${prompt || globalSummaryPrompt || defaultSummaryPrompt}\n\n${JSON.stringify(summaryMessageContent)}`,
         annotations: [{
           isAuxiliary: true,
           type: 'global-summary',
@@ -195,11 +202,10 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       }
     };
 
-    useEffect(() => {
+    useDidUpdateEffect(() => {
       if (orderedIds?.length) {
         initUnSummaryMessage();
       }
-    // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
     }, [globalSummaryPrompt, orderedIds?.length]);
 
     useEffect(() => {
@@ -323,7 +329,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           const { isRestricted } = chat;
           if (!message.isOutgoing && !isRestricted) {
             if (!isChatGroup(chat)) {
-              globalAITask.addNewMessage(message);
+              intelligentReplyTask.addNewMessage(message);
             }
             setUrgentChecks((prev) => [...prev, message]);
           }

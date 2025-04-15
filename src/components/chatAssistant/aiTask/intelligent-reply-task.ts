@@ -1,10 +1,10 @@
 /* eslint-disable no-null/no-null */
-import { getActions } from '../../global';
+import { getActions } from '../../../global';
 
-import type { ApiMessage } from '../../api/types/messages';
+import type { ApiMessage } from '../../../api/types/messages';
 
-import { getIntelligentReplyByKnowledgePrompt } from './prompt';
-import { ChataiKnowledgelStore } from './store';
+import { getIntelligentReplyByKnowledgePrompt } from '../prompt';
+import { ChataiKnowledgelStore } from '../store';
 
 interface ChatProps {
   data: any;
@@ -40,8 +40,8 @@ const extractContent = (content: string) => {
   return null;
 };
 
-class GlobalAITask {
-  private static instance: GlobalAITask | undefined;
+class IntelligentReplyTask {
+  private static instance: IntelligentReplyTask | undefined;
 
   private knowledgeData: string = '';
 
@@ -163,11 +163,11 @@ class GlobalAITask {
   }
 
   public static getInstance() {
-    if (!GlobalAITask.instance) {
-      GlobalAITask.instance = new GlobalAITask();
+    if (!IntelligentReplyTask.instance) {
+      IntelligentReplyTask.instance = new IntelligentReplyTask();
     }
-    return GlobalAITask.instance;
+    return IntelligentReplyTask.instance;
   }
 }
 
-export const globalAITask = GlobalAITask.getInstance();
+export const intelligentReplyTask = IntelligentReplyTask.getInstance();

@@ -7,7 +7,7 @@ import React, {
 } from '../../../lib/teact/teact';
 
 import { LAYERS_ANIMATION_NAME } from '../../../util/windowEnvironment';
-import { globalAITask } from '../../chatAssistant/global-ai-task';
+import { intelligentReplyTask } from '../../chatAssistant/aiTask/intelligent-reply-task';
 import { ChataiKnowledgelStore } from '../../chatAssistant/store';
 
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -49,7 +49,7 @@ const AIKnowledge:FC<OwnProps> = ({ onReset }) => {
     setEditKnowledge(null);
     ChataiKnowledgelStore.getAllKnowledge().then((knowledge) => {
       setKnowledgeList(knowledge || []);
-      globalAITask.updateKnowledgeData();
+      intelligentReplyTask.updateKnowledgeData();
     });
   }, []);
   const handleDelete = useCallback((id:string) => {
@@ -57,7 +57,7 @@ const AIKnowledge:FC<OwnProps> = ({ onReset }) => {
       setKnowledgeList((prev) => {
         return prev.filter((item) => item.id !== id);
       });
-      globalAITask.updateKnowledgeData();
+      intelligentReplyTask.updateKnowledgeData();
     });
   }, []);
   function renderCurrentSection() {
