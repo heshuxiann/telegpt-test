@@ -105,7 +105,7 @@ class AiSdkService {
 
 // const aiSdkService = new AiSdkService('http://10.1.4.136:3000/chat');
 // const aiSdkService = new AiSdkService('https://ai-api-sdm.vercel.app/chat');
-const aiSdkService = new AiSdkService('https://ai-api-sdm.vercel.app/generate');
-// const aiSdkService = new AiSdkService('https://429d-35-221-126-189.ngrok-free.app/chat');
+// const aiSdkService = new AiSdkService('https://ai-api-sdm.vercel.app/generate');
+const aiSdkService = new AiSdkService('https://telegpt-three.vercel.app/generate');
 
 export default aiSdkService;

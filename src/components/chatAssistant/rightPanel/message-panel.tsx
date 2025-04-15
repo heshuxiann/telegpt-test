@@ -33,7 +33,7 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
   const [replyResponse, setReplyResponse] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { messages, append } = useChat({
-    api: 'https://ai-api-sdm.vercel.app/chat',
+    api: 'https://telegpt-three.vercel.app/chat',
     sendExtraMessageFields: true,
     initialMessages: [{
       id: '0',
