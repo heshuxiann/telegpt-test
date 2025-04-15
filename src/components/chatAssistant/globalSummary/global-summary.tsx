@@ -2,14 +2,15 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import type { Dispatch, SetStateAction } from 'react';
+// import type { Dispatch, SetStateAction } from 'react';
 import React, {
   forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState,
 } from 'react';
 import { useChat } from '@ai-sdk/react';
-import type {
-  Attachment, ChatRequestOptions, CreateMessage, Message,
-} from 'ai';
+// import type {
+//   Attachment, ChatRequestOptions, CreateMessage, Message,
+// } from 'ai';
+import type { Message } from 'ai';
 import { Button, Modal } from 'antd';
 import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
@@ -28,7 +29,7 @@ import { intelligentReplyTask } from '../aiTask/intelligent-reply-task';
 import { useDidUpdateEffect } from '../hook/useDidUpdateEffect';
 import { CloseIcon, MoreIcon } from '../icons';
 import { Messages } from '../messages';
-import { MultimodalInput } from '../multimodal-input';
+// import { MultimodalInput } from '../multimodal-input';
 import { UrgentMessageCheckPrompt } from '../prompt';
 import { RightPanelKey } from '../rightPanel/right-header';
 import { RightPanel } from '../rightPanel/right-panel';
@@ -69,17 +70,18 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const [pendingSummaryMessages, setPendingSummaryMessages] = useState<Record<string, ApiMessage[]>>({});
     const [localChatAiMessages, setLocalChatAiMessages] = useState<Message[]>([]);
     const [summaryModalVisible, setSummaryModalVisible] = useState(false);
-    const [attachments, setAttachments] = useState<Array<Attachment>>([]);
+    // const [attachments, setAttachments] = useState<Array<Attachment>>([]);
     const [unreadSummaryCount, setUnreadSummaryCount] = useState(0);
     const [testModalVisable, setTestModalVisible] = useState(false);
     const [globalSummaryPrompt, setGlobalSummaryPrompt] = useState('');
     const [customizationTemplate, setCustomizationTemplate] = useState<{ title: string; prompt: string } | null>(null);
     const [urgentChecks, setUrgentChecks] = useState<ApiMessage[]>([]);
+    // input, setInput, stop, handleSubmit,
     const {
-      messages, setMessages, append, isLoading, input, setInput, stop, handleSubmit,
+      messages, setMessages, append, isLoading,
     } = useChat({
-      api: 'https://sdm-ai-api.vercel.app/chat',
-      // api: 'https://telegpt-three.vercel.app/chat',
+      // api: 'https://sdm-ai-api.vercel.app/chat',
+      api: 'https://telegpt-three.vercel.app/chat',
       sendExtraMessageFields: true,
     });
 
@@ -413,16 +415,16 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           <SummaryModalContent
             localChatAiMessages={localChatAiMessages}
             messages={messages}
-            input={input}
-            setInput={setInput}
+            // input={input}
+            // setInput={setInput}
             isLoading={isLoading}
-            stop={stop}
-            attachments={attachments}
-            setAttachments={setAttachments}
+            // stop={stop}
+            // attachments={attachments}
+            // setAttachments={setAttachments}
             onClose={handleClose}
-            setMessages={setMessages}
-            handleSubmit={handleSubmit}
-            append={append}
+            // setMessages={setMessages}
+            // handleSubmit={handleSubmit}
+            // append={append}
             deleteMessage={deleteMessage}
           />
           <Button type="primary" className="absolute left-[20px] bottom-[64px]" onClick={summaryAllUnreadMessages}>
@@ -447,27 +449,28 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
 interface SummaryContentProps {
   localChatAiMessages: Message[];
   messages: Message[];
-  input: string;
-  setInput: (value: string) => void;
   isLoading: boolean;
-  stop: () => void;
-  attachments: Array<Attachment>;
-  setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
-  setMessages: Dispatch<SetStateAction<Array<Message>>>;
   deleteMessage: (messageId: string) => void;
-  handleSubmit: (
-    event?: {
-      preventDefault?: () => void;
-    },
-    chatRequestOptions?: ChatRequestOptions,
-  ) => void;
-  append: (message: Message | CreateMessage, chatRequestOptions?: ChatRequestOptions) => Promise<string | null | undefined>;
+  // input: string;
+  // setInput: (value: string) => void;
+  // stop: () => void;
+  // attachments: Array<Attachment>;
+  // setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
+  // setMessages: Dispatch<SetStateAction<Array<Message>>>;
+  // handleSubmit: (
+  //   event?: {
+  //     preventDefault?: () => void;
+  //   },
+  //   chatRequestOptions?: ChatRequestOptions,
+  // ) => void;
+  // append: (message: Message | CreateMessage, chatRequestOptions?: ChatRequestOptions) => Promise<string | null | undefined>;
   onClose: () => void;
 }
 
 const SummaryModalContent = (props: SummaryContentProps) => {
+  // input, setInput, handleSubmit, attachments, setAttachments, setMessages, append, stop,
   const {
-    localChatAiMessages, isLoading, messages, input, setInput, handleSubmit, attachments, setAttachments, setMessages, append, stop, onClose, deleteMessage,
+    localChatAiMessages, isLoading, messages, onClose, deleteMessage,
   } = props;
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const sentinelTopRef = useRef<HTMLDivElement>(null);
@@ -508,7 +511,7 @@ const SummaryModalContent = (props: SummaryContentProps) => {
             />
             <div ref={sentinelBottomRef} className="h-[1px]" />
           </div>
-          <form className="flex mx-auto px-4 pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
+          {/* <form className="flex mx-auto px-4 pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
             <MultimodalInput
               chatId={GLOBAL_SUMMARY_CHATID}
               input={input}
@@ -521,7 +524,7 @@ const SummaryModalContent = (props: SummaryContentProps) => {
               setMessages={setMessages}
               append={append}
             />
-          </form>
+          </form> */}
         </div>
         <RightPanel closeSummaryModal={onClose} />
 
