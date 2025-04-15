@@ -77,8 +77,8 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const {
       messages, setMessages, append, isLoading, input, setInput, stop, handleSubmit,
     } = useChat({
-      // api: 'https://sdm-ai-api.vercel.app/chat',
-      api: 'https://telegpt-three.vercel.app/chat',
+      api: 'https://sdm-ai-api.vercel.app/chat',
+      // api: 'https://telegpt-three.vercel.app/chat',
       sendExtraMessageFields: true,
     });
 
