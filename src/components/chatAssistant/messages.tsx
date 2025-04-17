@@ -5,6 +5,7 @@ import type { Message } from 'ai';
 import equal from 'fast-deep-equal';
 
 import GlobalSummaryMessage from './global-summary-message';
+import { GroupSearchMessage } from './group-search-message';
 import { PreviewMessage, ThinkingMessage } from './message';
 import SummaryMessage from './summary-message';
 import UrgentCheckMessage from './urgent-check-message';
@@ -35,6 +36,10 @@ function PureMessages({
   };
   const isUrgentCheck = (message:Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'urgent-message-check') ?? false;
+  };
+
+  const isGroupSearch = (message:Message) => {
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'group-search') ?? false;
   };
   const handleDeleteMessage = (message:Message, prevMessage:Message) => {
     deleteMessage?.(message.id);
@@ -67,6 +72,10 @@ function PureMessages({
                 // eslint-disable-next-line react/jsx-no-bind
                 deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
               />
+            );
+          } else if (isGroupSearch(message)) {
+            return (
+              <GroupSearchMessage message={message} />
             );
           } else {
             return (

@@ -4,7 +4,7 @@ interface ChatProps {
   onFinish?: () => void;
 }
 const generateChatgpt = (props:ChatProps) => {
-  fetch('https://telegpt-three.vercel.app/generate', {
+  fetch(`https://telegpt-three.vercel.app/generate?options=${JSON.stringify({ temperature: 0.1 })}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -15,5 +15,4 @@ const generateChatgpt = (props:ChatProps) => {
       props.onResponse(res.text);
     });
 };
-
 export default generateChatgpt;

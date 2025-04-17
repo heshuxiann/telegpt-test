@@ -23,7 +23,8 @@ export const IS_PACKAGED_ELECTRON = process.env.IS_PACKAGED_ELECTRON;
 export const DEBUG = process.env.APP_ENV !== 'production';
 export const DEBUG_MORE = false;
 export const DEBUG_LOG_FILENAME = 'tt-log.json';
-export const STRICTERDOM_ENABLED = DEBUG;
+// export const STRICTERDOM_ENABLED = DEBUG;
+export const STRICTERDOM_ENABLED = false;
 export const BOT_VERIFICATION_PEERS_LIMIT = 20;
 
 export const BETA_CHANGELOG_URL = 'https://telegra.ph/WebA-Beta-03-20';

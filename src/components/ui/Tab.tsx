@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import type { FC, TeactNode } from '../../lib/teact/teact';
 import React, { useEffect, useLayoutEffect, useRef } from '../../lib/teact/teact';
 
@@ -7,6 +8,7 @@ import { requestForcedReflow, requestMutation } from '../../lib/fasterdom/faster
 import buildClassName from '../../util/buildClassName';
 import forceReflow from '../../util/forceReflow';
 import { MouseButton } from '../../util/windowEnvironment';
+import AISearchTab from '../chatAssistant/assets/ai-search-tab.png';
 import renderText from '../common/helpers/renderText';
 
 import useContextMenuHandlers from '../../hooks/useContextMenuHandlers';
@@ -140,7 +142,11 @@ const Tab: FC<OwnProps> = ({
       ref={tabRef}
     >
       <span className="Tab_inner">
-        {typeof title === 'string' ? renderText(title) : title}
+        {typeof title === 'string' ? title === 'AI' ? (
+          <div className="flex items-center justify-center w-[30px] h-[24px]">
+            <img className="w-[30px] h-[16px]" src={AISearchTab} alt="ai" />
+          </div>
+        ) : renderText(title) : title}
         {Boolean(badgeCount) && (
           <span className={buildClassName('badge', isBadgeActive && classNames.badgeActive)}>{badgeCount}</span>
         )}

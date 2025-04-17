@@ -20,6 +20,7 @@ import useLastCallback from '../../../hooks/useLastCallback';
 
 import TabList from '../../ui/TabList';
 import Transition from '../../ui/Transition';
+import { AISearchWrapper } from './AISearchWrapper';
 import AudioResults from './AudioResults';
 import BotAppResults from './BotAppResults';
 import ChatMessageResults from './ChatMessageResults';
@@ -49,6 +50,7 @@ type TabInfo = {
 
 const TABS: TabInfo[] = [
   { type: GlobalSearchContent.ChatList, key: 'SearchTabChats' },
+  { type: GlobalSearchContent.AI, key: 'SearchTabAI' },
   { type: GlobalSearchContent.ChannelList, key: 'SearchTabChannels' },
   { type: GlobalSearchContent.BotApps, key: 'SearchTabApps' },
   { type: GlobalSearchContent.Media, key: 'SearchTabMedia' },
@@ -166,6 +168,10 @@ const LeftSearch: FC<OwnProps & StateProps> = ({
                   key="botApps"
                   searchQuery={searchQuery}
                 />
+              );
+            case GlobalSearchContent.AI:
+              return (
+                <AISearchWrapper />
               );
             default:
               return undefined;

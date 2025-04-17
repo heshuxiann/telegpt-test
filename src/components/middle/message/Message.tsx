@@ -161,7 +161,7 @@ import ReactionStaticEmoji from '../../common/reactions/ReactionStaticEmoji';
 import TopicChip from '../../common/TopicChip';
 import { animateSnap } from '../../main/visualEffects/SnapEffectContainer';
 import Button from '../../ui/Button';
-import MessageAIToolBar from '../chatgpt/MessageAIToolBar';
+// import MessageAIToolBar from '../chatgpt/MessageAIToolBar';
 import Album from './Album';
 import AnimatedCustomEmoji from './AnimatedCustomEmoji';
 import AnimatedEmoji from './AnimatedEmoji';
@@ -1699,7 +1699,7 @@ const Message: FC<OwnProps & StateProps> = ({
             tags={tags}
           />
         )}
-        {hasText && !isOwn && <MessageAIToolBar message={textMessage} />}
+        {/* {hasText && !isOwn && <MessageAIToolBar message={textMessage} />} */}
       </div>
       {contextMenuAnchor && (
         <ContextMenuContainer

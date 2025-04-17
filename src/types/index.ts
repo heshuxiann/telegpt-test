@@ -274,6 +274,7 @@ export enum GlobalSearchContent {
   Files,
   Music,
   Voice,
+  AI,
 }
 
 export enum RightColumnContent {

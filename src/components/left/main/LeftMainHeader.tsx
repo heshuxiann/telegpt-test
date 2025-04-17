@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import type { FC } from '../../../lib/teact/teact';
 import React, {
   memo, useEffect, useMemo, useRef,
@@ -6,7 +7,7 @@ import { getActions, withGlobal } from '../../../global';
 
 import type { GlobalState } from '../../../global/types';
 import type { ISettings } from '../../../types';
-import { LeftColumnContent, SettingsScreens } from '../../../types';
+import { GlobalSearchContent, LeftColumnContent, SettingsScreens } from '../../../types';
 
 import {
   APP_NAME,
@@ -69,6 +70,7 @@ type StateProps =
     searchQuery?: string;
     isLoading: boolean;
     globalSearchChatId?: string;
+    currentContent:GlobalSearchContent | undefined;
     searchDate?: number;
     theme: ISettings['theme'];
     isMessageListOpen: boolean;
@@ -93,6 +95,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
   isCurrentUserPremium,
   shouldSkipTransition,
   globalSearchChatId,
+  currentContent,
   searchDate,
   theme,
   connectionState,
@@ -280,32 +283,38 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
             onBotMenuClosed={unmarkBotMenuOpen}
           />
         </DropdownMenu>
-        <SearchInput
-          inputId="telegram-search-input"
-          resultsItemSelector=".LeftSearch .ListItem-button"
-          className={buildClassName(
-            (globalSearchChatId || searchDate) ? 'with-picker-item' : undefined,
-            shouldHideSearch && 'SearchInput--hidden',
-          )}
-          value={isClosingSearch ? undefined : (contactsFilter || searchQuery)}
-          focused={isSearchFocused}
-          isLoading={isLoading || connectionStatusPosition === 'minimized'}
-          spinnerColor={connectionStatusPosition === 'minimized' ? 'yellow' : undefined}
-          spinnerBackgroundColor={connectionStatusPosition === 'minimized' && theme === 'light' ? 'light' : undefined}
-          placeholder={searchInputPlaceholder}
-          autoComplete="off"
-          canClose={Boolean(globalSearchChatId || searchDate)}
-          onChange={onSearchQuery}
-          onReset={onReset}
-          onFocus={handleSearchFocus}
-          onSpinnerClick={connectionStatusPosition === 'minimized' ? toggleConnectionStatus : undefined}
-        >
-          {searchContent}
-          <StoryToggler
-            canShow={withStoryToggler}
-          />
-        </SearchInput>
-        <GlobalSummaryRoot />
+        {currentContent === GlobalSearchContent.AI ? (
+          <div className="text-[16px] font-semibold flex flex-row justify-center items-center flex-1">AI Search</div>
+        ) : (
+          <>
+            <SearchInput
+              inputId="telegram-search-input"
+              resultsItemSelector=".LeftSearch .ListItem-button"
+              className={buildClassName(
+                (globalSearchChatId || searchDate) ? 'with-picker-item' : undefined,
+                shouldHideSearch && 'SearchInput--hidden',
+              )}
+              value={isClosingSearch ? undefined : (contactsFilter || searchQuery)}
+              focused={isSearchFocused}
+              isLoading={isLoading || connectionStatusPosition === 'minimized'}
+              spinnerColor={connectionStatusPosition === 'minimized' ? 'yellow' : undefined}
+              spinnerBackgroundColor={connectionStatusPosition === 'minimized' && theme === 'light' ? 'light' : undefined}
+              placeholder={searchInputPlaceholder}
+              autoComplete="off"
+              canClose={Boolean(globalSearchChatId || searchDate)}
+              onChange={onSearchQuery}
+              onReset={onReset}
+              onFocus={handleSearchFocus}
+              onSpinnerClick={connectionStatusPosition === 'minimized' ? toggleConnectionStatus : undefined}
+            >
+              {searchContent}
+              <StoryToggler
+                canShow={withStoryToggler}
+              />
+            </SearchInput>
+            <GlobalSummaryRoot />
+          </>
+        )}
         {isCurrentUserPremium && <StatusButton />}
         {hasPasscode && (
           <Button
@@ -340,7 +349,7 @@ export default memo(withGlobal<OwnProps>(
   (global): StateProps => {
     const tabState = selectTabState(global);
     const {
-      query: searchQuery, fetchingStatus, chatId, minDate,
+      query: searchQuery, fetchingStatus, chatId, minDate, currentContent,
     } = tabState.globalSearch;
     const {
       connectionState, isSyncing, isFetchingDifference,
@@ -351,6 +360,7 @@ export default memo(withGlobal<OwnProps>(
       searchQuery,
       isLoading: fetchingStatus ? Boolean(fetchingStatus.chats || fetchingStatus.messages) : false,
       globalSearchChatId: chatId,
+      currentContent,
       searchDate: minDate,
       theme: selectTheme(global),
       connectionState,

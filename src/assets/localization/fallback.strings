@@ -1556,6 +1556,7 @@
 "SearchTabMusic" = "Music";
 "SearchTabVoice" = "Voice";
 "SearchTabMessages" = "Messages";
+"SearchTabAI" = "AI";
 "StarsTransactionsAll" = "All Transactions";
 "StarsTransactionsIncoming" = "Incoming";
 "StarsTransactionsOutgoing" = "Outgoing";

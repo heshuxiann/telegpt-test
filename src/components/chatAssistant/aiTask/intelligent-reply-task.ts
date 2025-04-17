@@ -3,26 +3,9 @@ import { getActions } from '../../../global';
 
 import type { ApiMessage } from '../../../api/types/messages';
 
+import generateChatgpt from '../lib/generate-chat';
 import { getIntelligentReplyByKnowledgePrompt } from '../prompt';
 import { ChataiKnowledgelStore } from '../store';
-
-interface ChatProps {
-  data: any;
-  onResponse: (message: string) => void;
-  onFinish?: () => void;
-}
-const generateChatgpt = (props:ChatProps) => {
-  fetch(`https://telegpt-three.vercel.app/generate?options=${JSON.stringify({ temperature: 0.1 })}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(props.data),
-  }).then((res) => res.json())
-    .then((res) => {
-      props.onResponse(res.text);
-    });
-};
 
 const extractContent = (content: string) => {
   const regex = /<!--\s*json-start\s*-->([\s\S]*?)<!--\s*json-end\s*-->/s;

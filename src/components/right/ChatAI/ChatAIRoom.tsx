@@ -49,7 +49,7 @@ const ChatAIRoom = (props: StateProps) => {
   const {
     messages, handleSubmit, setMessages, input, setInput, append, isLoading, stop,
   } = useChat({
-    api: 'https://ai-api-sdm.vercel.app/chat',
+    api: 'https://telegpt-three.vercel.app/chat',
     id: chatId,
     sendExtraMessageFields: true,
   });

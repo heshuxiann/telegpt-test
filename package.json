@@ -151,6 +151,7 @@
     "croppie": "^2.6.5",
     "emoji-data-ios": "git+https://github.com/korenskoy/emoji-data-ios#de1a69aff2c8eb7548df4e6bcf50c7d2304792fc",
     "framer-motion": "^12.4.10",
+    "idb": "^8.0.2",
     "idb-keyval": "^6.2.1",
     "lowlight": "^2.9.0",
     "mp4box": "^0.5.2",
@@ -168,8 +169,7 @@
     "tailwind-merge": "^3.0.2",
     "usehooks-ts": "^3.1.1",
     "uuid": "^11.1.0",
-    "v8-compile-cache": "^2.4.0",
-    "vector-storage": "^1.0.55"
+    "v8-compile-cache": "^2.4.0"
   },
   "optionalDependencies": {
     "dmg-license": "^1.0.11",
