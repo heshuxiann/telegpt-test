@@ -10,6 +10,7 @@ import { PreviewMessage, ThinkingMessage } from './message';
 import SummaryMessage from './summary-message';
 import UrgentCheckMessage from './urgent-check-message';
 import { useScrollToBottom } from './use-scroll-to-bottom';
+import { UserSearchMessage } from './user-search-message';
 
 import './messages.scss';
 
@@ -40,6 +41,9 @@ function PureMessages({
 
   const isGroupSearch = (message:Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'group-search') ?? false;
+  };
+  const isUserSearch = (message:Message) => {
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'user-search') ?? false;
   };
   const handleDeleteMessage = (message:Message, prevMessage:Message) => {
     deleteMessage?.(message.id);
@@ -76,6 +80,10 @@ function PureMessages({
           } else if (isGroupSearch(message)) {
             return (
               <GroupSearchMessage message={message} />
+            );
+          } else if (isUserSearch(message)) {
+            return (
+              <UserSearchMessage message={message} />
             );
           } else {
             return (

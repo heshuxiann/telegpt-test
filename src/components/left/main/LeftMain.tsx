@@ -121,6 +121,10 @@ const LeftMain: FC<OwnProps> = ({
     onContentChange(LeftColumnContent.AIKonwledge);
   });
 
+  const handleSelectAITranslate = useLastCallback(() => {
+    onContentChange(LeftColumnContent.AITranslate);
+  });
+
   const handleSelectContacts = useLastCallback(() => {
     onContentChange(LeftColumnContent.Contacts);
   });
@@ -183,6 +187,7 @@ const LeftMain: FC<OwnProps> = ({
         onSelectContacts={handleSelectContacts}
         onSelectArchived={handleSelectArchived}
         onSelectAIKnowledge={handleSelectAIKonwledge}
+        onSelectAITranslate={handleSelectAITranslate}
         onReset={onReset}
         shouldSkipTransition={shouldSkipTransition}
         isClosingSearch={isClosingSearch}

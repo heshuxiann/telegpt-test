@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import React, { memo, useMemo } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
@@ -21,9 +22,12 @@ import {
   INITIAL_PERFORMANCE_STATE_MIN,
 } from '../../../global/initialState';
 import { selectTabState, selectTheme } from '../../../global/selectors';
+import buildStyle from '../../../util/buildStyle';
 import { getPromptInstall } from '../../../util/installPrompt';
 import { switchPermanentWebVersion } from '../../../util/permanentWebVersion';
 import { IS_ELECTRON } from '../../../util/windowEnvironment';
+import AIKnowledgeIcon from '../../chatAssistant/assets/ai-knowledge.png';
+import AITranslateIcon from '../../chatAssistant/assets/ai-translate.png';
 
 import { useFolderManagerForUnreadCounters } from '../../../hooks/useFolderManager';
 import useLang from '../../../hooks/useLang';
@@ -37,6 +41,7 @@ import Toggle from '../../ui/Toggle';
 
 type OwnProps = {
   onSelectAIKnowledge: NoneToVoidFunction;
+  onSelectAITranslate: NoneToVoidFunction;
   onSelectSettings: NoneToVoidFunction;
   onSelectContacts: NoneToVoidFunction;
   onSelectArchived: NoneToVoidFunction;
@@ -64,6 +69,7 @@ const LeftSideMenuItems = ({
   onBotMenuOpened,
   onBotMenuClosed,
   onSelectAIKnowledge,
+  onSelectAITranslate,
 }: OwnProps & StateProps) => {
   const {
     openChat,
@@ -141,10 +147,16 @@ const LeftSideMenuItems = ({
         {oldLang('SavedMessages')}
       </MenuItem>
       <MenuItem
-        customIcon={<i className="iconfont icon-ai-knowledge-editing" />}
+        customIcon={<img className="icon" src={AIKnowledgeIcon} alt="ai-knowledge" style={buildStyle('width: 20px;height: 20px;')} />}
         onClick={onSelectAIKnowledge}
       >
         {oldLang('AI Knowledge Base')}
+      </MenuItem>
+      <MenuItem
+        customIcon={<img className="icon" src={AITranslateIcon} alt="ai-translate" style={buildStyle('width: 20px;height: 20px;')} />}
+        onClick={onSelectAITranslate}
+      >
+        {oldLang('AI Translate')}
       </MenuItem>
       {archiveSettings.isHidden && (
         <MenuItem

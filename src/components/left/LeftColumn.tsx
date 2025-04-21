@@ -7,7 +7,7 @@ import { getActions, withGlobal } from '../../global';
 import type { GlobalState } from '../../global/types';
 import type { FoldersActions } from '../../hooks/reducers/useFoldersReducer';
 import type { ReducerAction } from '../../hooks/useReducer';
-import { LeftColumnContent, SettingsScreens } from '../../types';
+import { GlobalSearchContent, LeftColumnContent, SettingsScreens } from '../../types';
 
 import { selectCurrentChat, selectIsForumPanelOpen, selectTabState } from '../../global/selectors';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
@@ -16,6 +16,7 @@ import {
   IS_APP, IS_FIREFOX, IS_MAC_OS, IS_TOUCH_ENV, LAYERS_ANIMATION_NAME,
 } from '../../util/windowEnvironment';
 import AIKnowledge from './aiKnowledge/AIKnowledge.async';
+import AITranslate from './aiTranslate/AITranslate.async';
 
 import useFoldersReducer from '../../hooks/reducers/useFoldersReducer';
 import { useHotkeys } from '../../hooks/useHotkeys';
@@ -51,6 +52,7 @@ type StateProps = {
   isForumPanelOpen?: boolean;
   forumPanelChatId?: string;
   isClosingSearch?: boolean;
+  currentContent?:GlobalSearchContent;
   archiveSettings: GlobalState['archiveSettings'];
   isArchivedStoryRibbonShown?: boolean;
 };
@@ -66,6 +68,8 @@ enum ContentType {
   NewChannel,
   // eslint-disable-next-line @typescript-eslint/no-shadow
   AIKnowledge,
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  AITranslate,
 }
 
 const RENDER_COUNT = Object.keys(ContentType).length / 2;
@@ -87,12 +91,14 @@ function LeftColumn({
   isForumPanelOpen,
   forumPanelChatId,
   isClosingSearch,
+  currentContent,
   archiveSettings,
   isArchivedStoryRibbonShown,
 }: OwnProps & StateProps) {
   const {
     setGlobalSearchQuery,
     setGlobalSearchClosing,
+    setGlobalSearchContent,
     setGlobalSearchChatId,
     resetChatCreation,
     setGlobalSearchDate,
@@ -128,6 +134,10 @@ function LeftColumn({
       break;
     case LeftColumnContent.AIKonwledge:
       contentType = ContentType.AIKnowledge;
+      break;
+    case LeftColumnContent.AITranslate:
+      contentType = ContentType.AITranslate;
+      break;
   }
 
   const handleReset = useLastCallback((forceReturnToChatList?: true | Event) => {
@@ -136,6 +146,9 @@ function LeftColumn({
       setSettingsScreen(SettingsScreens.Main);
       setContactsFilter('');
       setGlobalSearchClosing({ isClosing: true });
+      if (currentContent === GlobalSearchContent.AI) {
+        setGlobalSearchContent({ content: GlobalSearchContent.ChatList });
+      }
       resetChatCreation();
       setTimeout(() => {
         setGlobalSearchQuery({ query: '' });
@@ -531,6 +544,10 @@ function LeftColumn({
         return (
           <AIKnowledge onReset={handleReset} />
         );
+      case ContentType.AITranslate:
+        return (
+          <AITranslate onReset={handleReset} />
+        );
       default:
         return (
           <LeftMain
@@ -618,6 +635,7 @@ export default memo(withGlobal<OwnProps>(
       isForumPanelOpen,
       forumPanelChatId,
       isClosingSearch: tabState.globalSearch.isClosing,
+      currentContent: tabState.globalSearch.currentContent,
       archiveSettings,
       isArchivedStoryRibbonShown: isArchivedRibbonShown,
     };

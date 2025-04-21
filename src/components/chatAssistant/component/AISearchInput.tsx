@@ -17,6 +17,7 @@ import {
 import type {
   Attachment,
   ChatRequestOptions,
+  CreateMessage,
   Message,
 } from 'ai';
 import cx from 'classnames';
@@ -25,27 +26,29 @@ import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
 import { sanitizeUIMessages } from '../../../lib/utils';
-
-import { ArrowUpIcon, StopIcon } from '../../right/ChatAI/icons';
-import { PreviewAttachment } from '../../right/ChatAI/preview-attachment';
-import { Button } from '../../right/ChatAI/ui/button';
-import { Textarea } from '../../right/ChatAI/ui/textarea';
+import { StopIcon } from '../icons';
+import { PreviewAttachment } from '../preview-attachment';
+import { Button } from '../ui/button';
+import { Textarea } from '../ui/textarea';
 
 function PureMultimodalInput({
   input,
   isLoading,
   stop,
   setInput,
+  append,
   attachments,
   setAttachments,
   setMessages,
   handleSubmit,
+  toolsHitCheck,
   className,
 }: {
   input: string;
   isLoading: boolean;
   stop: () => void;
   setInput: (value: string) => void;
+  append:(message: Message | CreateMessage, chatRequestOptions?: ChatRequestOptions) => Promise<string | null | undefined>;
   attachments: Array<Attachment>;
   setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   setMessages: Dispatch<SetStateAction<Array<Message>>>;
@@ -55,6 +58,7 @@ function PureMultimodalInput({
     },
     chatRequestOptions?: ChatRequestOptions,
   ) => void;
+  toolsHitCheck:(inputValue:string)=>void;
   className?: string;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -84,6 +88,7 @@ function PureMultimodalInput({
     'input',
     '',
   );
+
   const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
@@ -91,7 +96,7 @@ function PureMultimodalInput({
       const domValue = textareaRef.current.value;
       // Prefer DOM value over localStorage to handle hydration
       const finalValue = domValue || localStorageInput || '';
-      setInput(finalValue);
+      // setInput(finalValue);
       setInputValue(finalValue);
       adjustHeight();
     }
@@ -100,11 +105,10 @@ function PureMultimodalInput({
   }, []);
 
   useEffect(() => {
-    setLocalStorageInput(input);
-  }, [input, setLocalStorageInput]);
+    setLocalStorageInput(inputValue);
+  }, [inputValue, setLocalStorageInput]);
 
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(event.target.value);
     setInputValue(event.target.value);
     adjustHeight();
   };
@@ -112,10 +116,27 @@ function PureMultimodalInput({
   const submitForm = useCallback(() => {
     // window.history.replaceState({}, '', `/chat/${chatId}`);
 
-    handleSubmit(undefined, {
-      experimental_attachments: attachments,
+    // handleSubmit(undefined, {
+    //   experimental_attachments: attachments,
+    // });
+    if (!inputValue) {
+      return;
+    }
+    setMessages((messages) => {
+      return [...messages, {
+        role: 'user',
+        content: inputValue,
+        id: Math.random().toString(),
+        createdAt: new Date(),
+      }];
     });
-
+    // append({
+    //   role: 'user',
+    //   content: inputValue,
+    //   id: Math.random().toString(),
+    // });
+    toolsHitCheck(inputValue);
+    setInputValue('');
     setAttachments([]);
     setLocalStorageInput('');
     resetHeight();
@@ -123,16 +144,10 @@ function PureMultimodalInput({
     if (width && width > 768) {
       textareaRef.current?.focus();
     }
-  }, [
-    attachments,
-    handleSubmit,
-    setAttachments,
-    setLocalStorageInput,
-    width,
-  ]);
+  }, [inputValue, setAttachments, setLocalStorageInput, setMessages, toolsHitCheck, width]);
 
   return (
-    <div className="relative w-full flex flex-col gap-4">
+    <div className="relative w-full mx-[22px] flex flex-col gap-4">
       {(attachments.length > 0) && (
         <div className="flex flex-row gap-2 overflow-x-scroll items-end">
           {attachments.map((attachment) => (
@@ -144,7 +159,7 @@ function PureMultimodalInput({
       <Textarea
         ref={textareaRef}
         placeholder="Send a message..."
-        value={input}
+        value={inputValue}
         onChange={handleInput}
         className={cx(
           'min-h-[24px] h-[76px] overflow-hidden resize-none rounded-2xl !text-base bg-muted pb-10 focus-visible:!ring-0 !ring-offset-0',
@@ -170,7 +185,7 @@ function PureMultimodalInput({
           <StopButton stop={stop} setMessages={setMessages} />
         ) : (
           <SendButton
-            input={input}
+            input={inputValue}
             submitForm={submitForm}
           />
         )}

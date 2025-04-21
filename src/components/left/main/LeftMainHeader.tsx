@@ -22,9 +22,11 @@ import {
   selectTheme,
 } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
+import buildStyle from '../../../util/buildStyle';
 import captureEscKeyListener from '../../../util/captureEscKeyListener';
 import { formatDateToString } from '../../../util/dates/dateFormat';
 import { IS_APP, IS_ELECTRON, IS_MAC_OS } from '../../../util/windowEnvironment';
+import AIMenuIcon from '../../chatAssistant/assets/ai-menu.png';
 
 import useAppLayout from '../../../hooks/useAppLayout';
 import useConnectionStatus from '../../../hooks/useConnectionStatus';
@@ -62,6 +64,7 @@ type OwnProps = {
   onSelectContacts: NoneToVoidFunction;
   onSelectArchived: NoneToVoidFunction;
   onSelectAIKnowledge: NoneToVoidFunction;
+  onSelectAITranslate: NoneToVoidFunction;
   onReset: NoneToVoidFunction;
 };
 
@@ -112,6 +115,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
   onSelectArchived,
   onReset,
   onSelectAIKnowledge,
+  onSelectAITranslate,
 }) => {
   const {
     setGlobalSearchDate,
@@ -174,12 +178,16 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
         onClick={hasMenu ? onTrigger : () => onReset()}
         ariaLabel={hasMenu ? oldLang('AccDescrOpenMenu2') : 'Return to chat list'}
       >
-        <div className={buildClassName(
-          'animated-menu-icon',
-          !hasMenu && 'state-back',
-          shouldSkipTransition && 'no-animation',
+        {hasMenu ? (
+          <img src={AIMenuIcon} alt="ai-menu" style={buildStyle('width: 24px;height: 24px;')} />
+        ) : (
+          <div className={buildClassName(
+            'animated-menu-icon',
+            !hasMenu && 'state-back',
+            shouldSkipTransition && 'no-animation',
+          )}
+          />
         )}
-        />
       </Button>
     );
   }, [hasMenu, isMobile, oldLang, onReset, shouldSkipTransition]);
@@ -279,11 +287,12 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
             onSelectContacts={onSelectContacts}
             onSelectSettings={onSelectSettings}
             onSelectAIKnowledge={onSelectAIKnowledge}
+            onSelectAITranslate={onSelectAITranslate}
             onBotMenuOpened={markBotMenuOpen}
             onBotMenuClosed={unmarkBotMenuOpen}
           />
         </DropdownMenu>
-        {currentContent === GlobalSearchContent.AI ? (
+        {currentContent === GlobalSearchContent.AI && !hasMenu ? (
           <div className="text-[16px] font-semibold flex flex-row justify-center items-center flex-1">AI Search</div>
         ) : (
           <>

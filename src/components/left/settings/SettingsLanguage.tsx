@@ -7,26 +7,26 @@ import { getActions, withGlobal } from '../../../global';
 
 import type { ApiLanguage } from '../../../api/types';
 import type { ISettings, LangCode } from '../../../types';
-import { SettingsScreens } from '../../../types';
 
+// import { SettingsScreens } from '../../../types';
 import { selectIsCurrentUserPremium } from '../../../global/selectors';
 import { oldSetLanguage } from '../../../util/oldLangProvider';
-import { IS_TRANSLATION_SUPPORTED } from '../../../util/windowEnvironment';
 
+// import { IS_TRANSLATION_SUPPORTED } from '../../../util/windowEnvironment';
 import useFlag from '../../../hooks/useFlag';
 import useHistoryBack from '../../../hooks/useHistoryBack';
 import useLastCallback from '../../../hooks/useLastCallback';
 import useOldLang from '../../../hooks/useOldLang';
 
 import ItemPicker, { type ItemPickerOption } from '../../common/pickers/ItemPicker';
-import Checkbox from '../../ui/Checkbox';
-import ListItem from '../../ui/ListItem';
+// import Checkbox from '../../ui/Checkbox';
+// import ListItem from '../../ui/ListItem';
 import Loading from '../../ui/Loading';
 
 type OwnProps = {
   isActive?: boolean;
   onReset: () => void;
-  onScreenSelect: (screen: SettingsScreens) => void;
+  // onScreenSelect: (screen: SettingsScreens) => void;
 };
 
 type StateProps = {
@@ -36,15 +36,15 @@ type StateProps = {
 
 const SettingsLanguage: FC<OwnProps & StateProps> = ({
   isActive,
-  isCurrentUserPremium,
+  // isCurrentUserPremium,
   languages,
   language,
-  canTranslate,
-  autoTranslate,
-  canTranslateChats,
-  doNotTranslate,
-  autoTranslateLanguage,
-  onScreenSelect,
+  // canTranslate,
+  // autoTranslate,
+  // canTranslateChats,
+  // doNotTranslate,
+  // autoTranslateLanguage,
+  // onScreenSelect,
   onReset,
 }) => {
   const {
@@ -95,9 +95,9 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
   // const handleShouldTranslateChange = useLastCallback((newValue: boolean) => {
   //   setSettingOption({ canTranslate: newValue });
   // });
-  const handleAutoTranslateChange = useLastCallback((newValue: boolean) => {
-    setSettingOption({ autoTranslate: newValue });
-  });
+  // const handleAutoTranslateChange = useLastCallback((newValue: boolean) => {
+  //   setSettingOption({ autoTranslate: newValue });
+  // });
 
   // const handleShouldTranslateChatsChange = useLastCallback((newValue: boolean) => {
   //   setSettingOption({ canTranslateChats: newValue });
@@ -128,9 +128,9 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
   //   onScreenSelect(SettingsScreens.DoNotTranslate);
   // });
 
-  const handleAutoTranslateSelectOpen = useLastCallback(() => {
-    onScreenSelect(SettingsScreens.AutoTranslate);
-  });
+  // const handleAutoTranslateSelectOpen = useLastCallback(() => {
+  //   onScreenSelect(SettingsScreens.AutoTranslate);
+  // });
 
   useHistoryBack({
     isActive,
@@ -139,27 +139,27 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
 
   return (
     <div className="settings-content settings-language custom-scroll">
-      {IS_TRANSLATION_SUPPORTED && (
+      {/* {IS_TRANSLATION_SUPPORTED && (
         <div className="settings-item">
-          {/* <Checkbox
+          <Checkbox
             label={lang('ShowTranslateButton')}
             checked={canTranslate}
             onCheck={handleShouldTranslateChange}
-          /> */}
+          />
           <Checkbox
             label={lang('Auto Translate')}
             checked={autoTranslate}
             onCheck={handleAutoTranslateChange}
           />
-          {/* <Checkbox
+          <Checkbox
             label={lang('ShowTranslateChatButton')}
             checked={canTranslateChatsEnabled}
             disabled={!isCurrentUserPremium}
             rightIcon={!isCurrentUserPremium ? 'lock' : undefined}
             onClickLabel={handleShouldTranslateChatsClick}
             onCheck={handleShouldTranslateChatsChange}
-          /> */}
-          {/* {(canTranslate || canTranslateChatsEnabled) && (
+          />
+          {(canTranslate || canTranslateChatsEnabled) && (
             <ListItem
               narrow
               onClick={handleDoNotSelectOpen}
@@ -167,7 +167,7 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
               {lang('DoNotTranslate')}
               <span className="settings-item__current-value">{doNotTranslateText}</span>
             </ListItem>
-          )} */}
+          )}
           {autoTranslate && (
             <ListItem
               narrow
@@ -179,11 +179,11 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
               ) : undefined}
             </ListItem>
           )}
-          {/* <p className="settings-item-description mb-0 mt-1">
+          <p className="settings-item-description mb-0 mt-1">
             {lang('lng_translate_settings_about')}
-          </p> */}
+          </p>
         </div>
-      )}
+      )} */}
       <div className="settings-item settings-item-picker">
         <h4 className="settings-item-header">
           {lang('Localization.InterfaceLanguage')}

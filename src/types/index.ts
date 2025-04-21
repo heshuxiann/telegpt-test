@@ -263,10 +263,12 @@ export enum LeftColumnContent {
   NewGroupStep1,
   NewGroupStep2,
   AIKonwledge,
+  AITranslate,
 }
 
 export enum GlobalSearchContent {
   ChatList,
+  AI,
   ChannelList,
   BotApps,
   Media,
@@ -274,7 +276,6 @@ export enum GlobalSearchContent {
   Files,
   Music,
   Voice,
-  AI,
 }
 
 export enum RightColumnContent {
