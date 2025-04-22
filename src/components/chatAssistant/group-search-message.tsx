@@ -45,7 +45,6 @@ export const GroupSearchMessage = ({ message }: { message: Message }) => {
           className="overlay-avatar inline-block cursor-pointer"
           size={44}
           peer={chat}
-          withStory
         />
         <div className="flex flex-col justify-center gap-[4px]">
           <span className="text-[15px] font-semibold text-black leading-[18px]">{title}</span>

@@ -2,11 +2,11 @@ export enum Actions {
   HideMenu = 'HideMenu',
   ShowMenu = 'ShowMenu',
   ShowTranslateModal = 'ShowTranslateModal',
-  ShowSummarizeModal = 'ShowSummarizeModal',
 
   // global ai assistant
   AddNewMessageToAiAssistant = 'AddNewMessageToAiAssistant',
   // global summary
+  HideGlobalSummaryModal = 'HideGlobalSummaryModal',
   ShowGlobalSummaryPanel = 'ShowGlobalSummaryPanel',
   GlobalSummaryTemplateUpdate = 'GlobalSummaryTemplateUpdate',
 }

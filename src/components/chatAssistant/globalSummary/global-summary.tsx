@@ -103,15 +103,22 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         }
       });
     };
+
+    const handleClose = React.useCallback(() => {
+      setSummaryModalVisible(false);
+    }, []);
+
     useEffect(() => {
       initSummaryTemplate();
     }, []);
     useEffect(() => {
       eventEmitter.on(Actions.GlobalSummaryTemplateUpdate, initSummaryTemplate);
+      eventEmitter.on(Actions.HideGlobalSummaryModal, handleClose);
       return () => {
         eventEmitter.off(Actions.GlobalSummaryTemplateUpdate, initSummaryTemplate);
+        eventEmitter.off(Actions.HideGlobalSummaryModal, handleClose);
       };
-    }, []);
+    }, [handleClose]);
     // 检测是否是紧急消息
     useEffect(() => {
       const timer = setInterval(() => {
@@ -346,9 +353,6 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         }
       }
     };
-    const handleClose = React.useCallback(() => {
-      setSummaryModalVisible(false);
-    }, []);
 
     const openGlobalSummaryModal = async () => {
       setSummaryModalVisible(true);

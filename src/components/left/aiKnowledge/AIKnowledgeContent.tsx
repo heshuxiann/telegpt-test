@@ -1,5 +1,7 @@
 /* eslint-disable max-len */
+import copy from 'copy-to-clipboard';
 import React, { memo, useCallback } from '../../../lib/teact/teact';
+import { getActions } from '../../../global';
 
 import Icon from '../../common/icons/Icon';
 import Button from '../../ui/Button';
@@ -30,6 +32,13 @@ const AIKnowledgeList = ({ knowledgeList, onEdit, onDelete }:{
   onEdit:(knowledge:{ id:string;content:string })=>void;
   onDelete:(id:string)=>void;
 }) => {
+  const { showNotification } = getActions();
+  const handleCopy = useCallback((knowledge:{ id:string;content:string }) => {
+    copy(knowledge.content);
+    showNotification({
+      message: 'TextCopied',
+    });
+  }, []);
   const handleEdit = useCallback((knowledge:{ id:string;content:string }) => {
     onEdit(knowledge);
   }, [onEdit]);
@@ -44,6 +53,15 @@ const AIKnowledgeList = ({ knowledgeList, onEdit, onDelete }:{
             {item.content}
           </div>
           <div className="flex justify-end gap-[8px] items-center">
+            <Button
+              round
+              size="smaller"
+              color="translucent"
+              // eslint-disable-next-line react/jsx-no-bind
+              onClick={() => handleCopy(item)}
+            >
+              <Icon name="copy" className="text-[14px]" />
+            </Button>
             <Button
               round
               size="smaller"

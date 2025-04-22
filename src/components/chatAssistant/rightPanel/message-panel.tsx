@@ -132,7 +132,6 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
             className="overlay-avatar"
             size={34}
             peer={peer}
-            withStory
           />
           <span className="text-[16px] font-semibold mr-[8px] ml-[12px]">{name}</span>
           <span className="text-[#979797] text-[13px]">{date}</span>

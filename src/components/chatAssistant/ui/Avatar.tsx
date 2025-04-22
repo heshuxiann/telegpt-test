@@ -5,14 +5,14 @@ import { getActions } from '../../../global';
 import type {
   ApiPeer, ApiPhoto, ApiWebDocument,
 } from '../../../api/types';
-import type { CustomPeer, StoryViewerOrigin } from '../../../types';
+import type { CustomPeer } from '../../../types';
 import { ApiMediaFormat } from '../../../api/types';
 
 import { IS_TEST } from '../../../config';
+import eventEmitter, { Actions } from '../lib/EventEmitter';
 import {
   getChatAvatarHash,
   getChatTitle,
-  getPeerStoryHtmlId,
   getUserFullName,
   getVideoProfilePhotoMediaHash,
   getWebDocumentHash,
@@ -24,7 +24,6 @@ import {
   isUserId,
 } from '../../../global/helpers';
 import buildClassName, { createClassNameBuilder } from '../../../util/buildClassName';
-// import buildStyle from '../../../util/buildStyle';
 import { getFirstLetters } from '../../../util/textFormat';
 import { REM } from '../../common/helpers/mediaDimensions';
 import { getPeerColorClass } from '../../common/helpers/peerColor';
@@ -73,16 +72,9 @@ type OwnProps = {
   isSavedMessages?: boolean;
   isSavedDialog?: boolean;
   withVideo?: boolean;
-  withStory?: boolean;
-  forPremiumPromo?: boolean;
-  withStoryGap?: boolean;
-  withStorySolid?: boolean;
-  forceFriendStorySolid?: boolean;
-  forceUnreadStorySolid?: boolean;
-  storyViewerOrigin?: StoryViewerOrigin;
-  storyViewerMode?: 'full' | 'single-peer' | 'disabled';
   loopIndefinitely?: boolean;
   noPersonalPhoto?: boolean;
+  clickOpenRoom?: boolean;
   onClick?: (e: ReactMouseEvent<HTMLDivElement, MouseEvent>, hasMedia: boolean) => void;
 };
 
@@ -101,19 +93,12 @@ const Avatar: FC<OwnProps> = ({
   isSavedMessages,
   isSavedDialog,
   withVideo,
-  withStory,
-  forPremiumPromo,
-  withStoryGap,
-  withStorySolid,
-  forceFriendStorySolid,
-  forceUnreadStorySolid,
-  storyViewerOrigin,
-  storyViewerMode = 'single-peer',
   loopIndefinitely,
   noPersonalPhoto,
+  clickOpenRoom = true,
   onClick,
 }) => {
-  const { openStoryViewer } = getActions();
+  const { openChat } = getActions();
 
   // eslint-disable-next-line no-null/no-null
   const ref = useRef<HTMLDivElement>(null);
@@ -125,7 +110,6 @@ const Avatar: FC<OwnProps> = ({
   const isDeleted = user && isDeletedUser(user);
   const isReplies = realPeer && isChatWithRepliesBot(realPeer.id);
   const isAnonymousForwards = realPeer && isAnonymousForwardsChat(realPeer.id);
-  const isForum = chat?.isForum;
   let imageHash: string | undefined;
   let videoHash: string | undefined;
 
@@ -244,8 +228,6 @@ const Avatar: FC<OwnProps> = ({
     content = getFirstLetters(text, 2);
   }
 
-  const isRoundedRect = (isCustomPeer && peer.isAvatarSquare)
-  || (isForum && !((withStory || withStorySolid) && realPeer?.hasStories));
   const isPremiumGradient = isCustomPeer && peer.withPremiumGradient;
   const customColor = isCustomPeer && peer.customPeerAvatarColor;
 
@@ -259,12 +241,7 @@ const Avatar: FC<OwnProps> = ({
     isDeleted && 'deleted-account',
     isReplies && 'replies-bot-account',
     isPremiumGradient && 'premium-gradient-bg',
-    isRoundedRect && 'forum',
     (photo || webPhoto) && 'force-fit',
-    ((withStory && realPeer?.hasStories) || forPremiumPromo) && 'with-story-circle',
-    withStorySolid && realPeer?.hasStories && 'with-story-solid',
-    withStorySolid && forceFriendStorySolid && 'close-friend',
-    withStorySolid && (realPeer?.hasUnreadStories || forceUnreadStorySolid) && 'has-unread-story',
     onClick && 'interactive',
     (!isSavedMessages && !imgBlobUrl) && 'no-photo',
   );
@@ -272,17 +249,10 @@ const Avatar: FC<OwnProps> = ({
   const hasMedia = Boolean(isSavedMessages || imgBlobUrl);
 
   const { handleClick, handleMouseDown } = useFastClick((e: ReactMouseEvent<HTMLDivElement, MouseEvent>) => {
-    if (withStory && storyViewerMode !== 'disabled' && realPeer?.hasStories) {
-      e.stopPropagation();
-
-      openStoryViewer({
-        peerId: realPeer.id,
-        isSinglePeer: storyViewerMode === 'single-peer',
-        origin: storyViewerOrigin,
-      });
-      return;
+    if (clickOpenRoom && realPeer?.id) {
+      eventEmitter.emit(Actions.HideGlobalSummaryModal);
+      openChat({ id: realPeer.id });
     }
-
     if (onClick) {
       onClick(e, hasMedia);
     }
@@ -298,7 +268,7 @@ const Avatar: FC<OwnProps> = ({
     <div
       ref={ref}
       className={fullClassName}
-      id={realPeer?.id && withStory ? getPeerStoryHtmlId(realPeer.id) : undefined}
+      id={realPeer?.id}
       data-peer-id={realPeer?.id}
       data-test-sender-id={IS_TEST ? realPeer?.id : undefined}
       aria-label={typeof content === 'string' ? author : undefined}
@@ -309,9 +279,6 @@ const Avatar: FC<OwnProps> = ({
       <div className="inner">
         {typeof content === 'string' ? renderText(content, [isBig ? 'hq_emoji' : 'emoji']) : content}
       </div>
-      {/* {withStory && realPeer?.hasStories && (
-        <AvatarStoryCircle peerId={realPeer.id} size={pxSize} withExtraGap={withStoryGap} />
-      )} */}
     </div>
   );
 };

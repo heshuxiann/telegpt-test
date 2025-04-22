@@ -7,14 +7,13 @@ import type { Message } from 'ai';
 import copy from 'copy-to-clipboard';
 import { getActions, getGlobal } from '../../global';
 
-import type { GlobalState } from '../../global/types';
 import type { CustomSummaryTemplate } from './store/chatai-summary-template-store';
 
 import eventEmitter, { Actions } from './lib/EventEmitter';
 import { isUserId } from '../../global/helpers';
 import { selectChat, selectUser } from '../../global/selectors';
 import { RightPanelKey } from './rightPanel/right-header';
-import { formatTimestamp, validateAndFixJsonStructure } from './utils/util';
+import { cn, formatTimestamp, validateAndFixJsonStructure } from './utils/util';
 import {
   CopyIcon, DeleteIcon, VoiceIcon,
   VoiceingIcon,
@@ -83,10 +82,33 @@ const CustomizationTopicIcon = {
   'On-Chain Trending Topics': ChainTrendIcon,
 };
 
-const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTopicItem; index: number; global: GlobalState }) => {
+const ChatAvatar = ({
+  chatId, classNames, size, style,
+}: { chatId: string; classNames?: string; size:number;style?: { [key:string]:string } }) => {
+  const global = getGlobal();
+  let peer;
+  if (isUserId(chatId)) {
+    peer = selectUser(global, chatId);
+  } else {
+    peer = selectChat(global, chatId);
+  }
+
+  return (
+    <Avatar
+      style={style}
+      key={chatId}
+      className={cn(classNames, 'overlay-avatar inline-block cursor-pointer')}
+      size={size}
+      peer={peer}
+    />
+  );
+};
+
+const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; index: number }) => {
   const { title, summaryItems, summaryChatIds } = topicItem;
   if (!summaryItems.length) return undefined;
   if (!title) return undefined;
+
   const showMessageDetail = (relevantMessages: Array<{ chatId: string; messageIds: number[] }>) => {
     if (!relevantMessages.length) return;
     eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
@@ -96,24 +118,6 @@ const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTop
       },
     });
   };
-
-  const renderChatAvatar = (chatId: string) => {
-    let peer;
-    if (isUserId(chatId)) {
-      peer = selectUser(global, chatId);
-    } else {
-      peer = selectChat(global, chatId);
-    }
-    return (
-      <Avatar
-        key={chatId}
-        className="overlay-avatar inline-block ml-[-4px] cursor-pointer"
-        size={20}
-        peer={peer}
-        withStory
-      />
-    );
-  };
   return (
     <div>
       <div className="flex flex-row items-center flex-wrap">
@@ -122,7 +126,9 @@ const SummaryTopicItem = ({ topicItem, index, global }: { topicItem: ISummaryTop
           <>
             {
               summaryChatIds.slice(0, 10).map((chatId: string) => {
-                return renderChatAvatar(chatId);
+                return (
+                  <ChatAvatar size={20} chatId={chatId} />
+                );
               })
             }
           </>
@@ -158,26 +164,21 @@ const SummaryPenddingItem = ({ pendingItem }: { pendingItem: ISummaryPendingItem
   };
   return (
     <div
-      className="flex items-center gap-[8px] my-[4px] cursor-pointer"
+      className="flex gap-[8px] my-[4px] cursor-pointer"
       key={pendingItem.chatId}
       onClick={showMessageDetail}
     >
       <img className="w-[18px] h-[18px]" src={CheckIcon} alt="" />
       <span>{pendingItem.summary}</span>
+      <ChatAvatar size={20} chatId={pendingItem.chatId} />
     </div>
   );
 };
 
-const SummaryGarbageItem = ({ garBageItem, global }: { garBageItem: ISummaryGarbageItem; global: GlobalState }) => {
+const SummaryGarbageItem = ({ garBageItem }: { garBageItem: ISummaryGarbageItem }) => {
   const {
     chatId, chatTitle, level, summary, relevantMessageIds,
   } = garBageItem;
-  let peer;
-  if (isUserId(chatId)) {
-    peer = selectUser(global, chatId);
-  } else {
-    peer = selectChat(global, chatId);
-  }
   const showMessageDetail = (chatId: string, relevantMessageIds: number[]) => {
     eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
       rightPanelKey: RightPanelKey.OriginalMessages,
@@ -192,13 +193,7 @@ const SummaryGarbageItem = ({ garBageItem, global }: { garBageItem: ISummaryGarb
       key={garBageItem.chatId}
       onClick={() => { showMessageDetail(chatId, relevantMessageIds); }}
     >
-      <Avatar
-        key={chatId}
-        className="overlay-avatar"
-        size={44}
-        peer={peer}
-        withStory
-      />
+      <ChatAvatar chatId={chatId} size={44} />
       <div>
         <p className="text-[16px] font-semibold leading-[20px] mb-[4px]">{chatTitle}</p>
         <div className="flex justify-start gap-[4px]">
@@ -231,7 +226,7 @@ const ActionsItems = ({
   const handleCopy = () => {
     const { summaryStartTime, summaryEndTime } = summaryInfo || {};
     const timeRange = `${summaryStartTime ? `${formatTimestamp(summaryStartTime)}-` : ''}${summaryEndTime ? formatTimestamp(summaryEndTime) : ''}`;
-    const copyText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item) => `${item.topic}:\n ${item.summaryItems.map((subItem) => subItem.title).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}`;
+    const copyText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.subtitle).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}`;
     copy(copyText);
     showNotification({
       message: lang('TextCopied'),
@@ -240,7 +235,7 @@ const ActionsItems = ({
   const handleVoicePlay = () => {
     const { summaryStartTime, summaryEndTime } = summaryInfo || {};
     const timeRange = `${summaryStartTime ? `${formatTimestamp(summaryStartTime)}-` : ''}${summaryEndTime ? formatTimestamp(summaryEndTime) : ''}`;
-    const voiceText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item) => `${item.topic}:\n ${item.summaryItems.map((subItem) => subItem.title).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}`;
+    const voiceText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.subtitle).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}`;
     if (!window.speechSynthesis) {
       console.error('Text-to-Speech is not supported in this browser.');
       return;
@@ -283,7 +278,6 @@ const ActionsItems = ({
 };
 
 const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
-  const global = getGlobal();
   return (
     <div>
       <div className="flex items-center gap-[8px]">
@@ -322,20 +316,12 @@ const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
           <span>聊天群组/人: </span>
           <div className="flex items-center">
             {summaryInfo.summaryChatIds.slice(0, 10).map((id: string, index: number) => {
-              let peer;
-              if (isUserId(id)) {
-                peer = selectUser(global, id);
-              } else {
-                peer = selectChat(global, id);
-              }
               return (
-                <Avatar
-                  key={id}
-                  style={{ zIndex: String(summaryInfo.summaryChatIds.length - index) }}
-                  className="summary-avatar-group !border-solid-[2px] !border-white ml-[-4px]"
+                <ChatAvatar
+                  style={{ zIndex: `${String(summaryInfo.summaryChatIds.length - index)};` }}
+                  chatId={id}
                   size={24}
-                  peer={peer}
-                  withStory
+                  classNames="summary-avatar-group !border-solid-[2px] !border-white ml-[-4px]"
                 />
               );
             })}
@@ -364,7 +350,6 @@ const MainSummaryContent = ({
   pendingMatters: ISummaryPendingItem[];
   deleteMessage: () => void;
 }) => {
-  const global = getGlobal();
   return (
     <div className="mx-auto w-[693px] rounded-[10px] bg-white pl-[82px] pr-[25px] pt-[20px] pb-[25px]">
       {/* summary info  */}
@@ -373,6 +358,7 @@ const MainSummaryContent = ({
       {customizationTopic.length > 0 && customizationTemplate && (
         <div>
           <p className="flex items-center gap-[8px] mb-[16px]">
+            <span className="text-[18px] font-bold">{customizationTemplate.title}</span>
             {
               CustomizationTopicIcon?.[customizationTemplate.title as keyof typeof CustomizationTopicIcon] ? (
                 <img className="w-[16px] h-[16px]" src={CustomizationTopicIcon?.[customizationTemplate.title as keyof typeof CustomizationTopicIcon]} alt="" />
@@ -380,11 +366,10 @@ const MainSummaryContent = ({
                 <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
               )
             }
-            <span className="text-[18px] font-bold">{customizationTemplate.title}</span>
           </p>
           {customizationTopic.map((item, index) => (
             <ErrorBoundary>
-              <SummaryTopicItem topicItem={item} global={global} index={index} />
+              <SummaryTopicItem topicItem={item} index={index} />
             </ErrorBoundary>
           ))}
         </div>
@@ -393,12 +378,12 @@ const MainSummaryContent = ({
       {mainTopic.length > 0 && (
         <div>
           <p className="flex items-center gap-[8px] mb-[16px]">
-            <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
             <span className="text-[18px] font-bold">Key Topics</span>
+            <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
           </p>
           {mainTopic.map((item, index) => (
             <ErrorBoundary>
-              <SummaryTopicItem topicItem={item} global={global} index={index} />
+              <SummaryTopicItem topicItem={item} index={index} />
             </ErrorBoundary>
           ))}
         </div>
@@ -407,8 +392,8 @@ const MainSummaryContent = ({
       {pendingMatters.length > 0 && (
         <div>
           <p className="flex items-center gap-[8px] mb-[16px]">
-            <img className="w-[16px] h-[16px]" src={ActionsIcon} alt="" />
             <span className="text-[18px] font-bold">Actions Items</span>
+            <img className="w-[16px] h-[16px]" src={ActionsIcon} alt="" />
           </p>
           {pendingMatters.map((item) => (<SummaryPenddingItem pendingItem={item} />))}
         </div>
@@ -436,7 +421,6 @@ const SummaryContent = ({
   garbageMessage: ISummaryGarbageItem[];
   deleteMessage: () => void;
 }) => {
-  const global = getGlobal();
   return (
     <>
       {(!mainTopic.length && !pendingMatters.length && !customizationTopic.length) ? undefined : (
@@ -476,7 +460,7 @@ const SummaryContent = ({
               </div>
             </p>
           </div>
-          {garbageMessage.map((item) => (<SummaryGarbageItem garBageItem={item} global={global} />))}
+          {garbageMessage.map((item) => (<SummaryGarbageItem garBageItem={item} />))}
         </div>
       )}
     </>
@@ -514,23 +498,30 @@ const GlobalSummaryMessage = (props: IProps) => {
     }
     return null;
   };
-  const getSummaryInfo = (message:Message) => {
-    const summaryInfo = message.annotations?.find((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-summary')?.summaryInfo;
-    return summaryInfo;
+  const extractAnnotationByKey = (message:any, type:string, key:string) => {
+    if (typeof key !== 'string' || !key.trim()) {
+      console.error('Invalid key provided');
+      return null;
+    }
+
+    const annotations = Array.isArray(message?.annotations) ? message.annotations : [];
+    const annotation = annotations.find((a:any) => a?.type === type);
+
+    return annotation?.[key] || null;
   };
-  const getCustomizationTemplate = (message:Message) => {
-    const summaryInfo = message.annotations?.find((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-summary')?.customizationTemplate;
+  const getSummaryInfo = useCallback((message:Message) => {
+    const summaryInfo = extractAnnotationByKey(message, 'global-summary', 'summaryInfo');
     return summaryInfo;
-  };
+  }, []);
+  const getCustomizationTemplate = useCallback((message:Message) => {
+    const customizationTemplate = extractAnnotationByKey(message, 'global-summary', 'customizationTemplate');
+    return customizationTemplate;
+  }, []);
   const parseMessage = useCallback((messageContent: string) => {
     const mainTopic = extractContent(messageContent, 'main-topic');
     const pendingMatters = extractContent(messageContent, 'pending-matters');
     const garbageMessage = extractContent(messageContent, 'garbage-message');
     const customizationTopic = extractContent(messageContent, 'customization-topic');
-    console.log(customizationTopic, '-----customizationTopic');
-    console.log(mainTopic, '-----mainTopic');
-    console.log(pendingMatters, '-----pendingMatters');
-    console.log(garbageMessage, '-----garbageMessage');
     if (customizationTopic) {
       setCustomizationTopic(customizationTopic as ISummaryTopicItem[]);
     }
@@ -547,8 +538,6 @@ const GlobalSummaryMessage = (props: IProps) => {
   useEffect(() => {
     if (!isLoading) {
       try {
-        // const messageContent = JSON.parse(message.content.replace(/^```json\n?/, '').replace(/```\n?$/, ''));
-        // setParsedMessage(messageContent);
         const summaryInfo = getSummaryInfo(prevMessage);
         if (summaryInfo) {
           setSummaryInfo(summaryInfo as ISummaryInfo);
@@ -563,7 +552,7 @@ const GlobalSummaryMessage = (props: IProps) => {
         console.error(error);
       }
     }
-  }, [isLoading, message, parseMessage, prevMessage]);
+  }, [getCustomizationTemplate, getSummaryInfo, isLoading, message, parseMessage, prevMessage]);
   if (!summaryInfo) {
     return null;
   }
