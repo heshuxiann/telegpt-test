@@ -1,3 +1,5 @@
+import { getGlobal } from '../../../../global';
+
 import type { ApiMessage, StatefulMediaContent } from '../../../../api/types';
 import type { IconName } from '../../../../types/icons';
 import { ApiMediaFormat } from '../../../../api/types';
@@ -13,6 +15,7 @@ import {
   hasMediaLocalBlobUrl,
 } from '../../../../global/helpers';
 import { getMessageTextWithSpoilers } from '../../../../global/helpers/messageSummary';
+import { selectChatTranslations } from '../../../../global/selectors';
 import {
   CLIPBOARD_ITEM_SUPPORTED,
   copyHtmlToClipboard,
@@ -23,6 +26,7 @@ import getMessageIdsForSelectedText from '../../../../util/getMessageIdsForSelec
 import * as mediaLoader from '../../../../util/mediaLoader';
 import { IS_SAFARI } from '../../../../util/windowEnvironment';
 import { renderMessageText } from '../../../common/helpers/renderMessageText';
+import copy from 'copy-to-clipboard';
 
 type ICopyOptions = {
   label: string;
@@ -81,31 +85,52 @@ export function getMessageCopyOptions(
       && selection.toString().replace(/(?:\r\n|\r|\n)/g, '') !== ''
       && checkMessageHasSelection(message)
     ));
-
-    options.push({
-      label: getCopyLabel(hasSelection),
-      icon: 'copy',
-      handler: () => {
-        const messageIds = getMessageIdsForSelectedText();
-        if (messageIds?.length && onCopyMessages) {
-          onCopyMessages(messageIds);
-        } else if (hasSelection) {
-          document.execCommand('copy');
-        } else {
-          const clipboardText = renderMessageText(
-            { message, shouldRenderAsHtml: true },
-          );
-          if (clipboardText) {
-            copyHtmlToClipboard(
-              clipboardText.join(''),
-              getMessageTextWithSpoilers(message, statefulContent)!,
-            );
+    const global = getGlobal();
+    const { id: messageId, chatId } = message;
+    const chatTranslations = selectChatTranslations(global, chatId);
+    const { autoTranslateLanguage } = global.settings.byKey;
+    const messageTranslation = autoTranslateLanguage && messageId
+      ? chatTranslations?.byLangCode[autoTranslateLanguage]?.[messageId] : undefined;
+    const { isPending, text: translatedText } = messageTranslation || {};
+    if (translatedText && !isPending) {
+      options.push({
+        label: getCopyLabel(hasSelection),
+        icon: 'copy',
+        handler: () => {
+          if (hasSelection) {
+            document.execCommand('copy');
+          } else {
+            copy(translatedText.text);
           }
-        }
+          afterEffect?.();
+        },
+      });
+    } else {
+      options.push({
+        label: getCopyLabel(hasSelection),
+        icon: 'copy',
+        handler: () => {
+          const messageIds = getMessageIdsForSelectedText();
+          if (messageIds?.length && onCopyMessages) {
+            onCopyMessages(messageIds);
+          } else if (hasSelection) {
+            document.execCommand('copy');
+          } else {
+            const clipboardText = renderMessageText(
+              { message, shouldRenderAsHtml: true },
+            );
+            if (clipboardText) {
+              copyHtmlToClipboard(
+                clipboardText.join(''),
+                getMessageTextWithSpoilers(message, statefulContent)!,
+              );
+            }
+          }
 
-        afterEffect?.();
-      },
-    });
+          afterEffect?.();
+        },
+      });
+    }
   }
 
   if (onCopyLink) {

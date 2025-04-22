@@ -827,7 +827,7 @@ export default memo(withGlobal<OwnProps>(
     const hasTranslation = translationRequestLanguage
       ? Boolean(selectMessageTranslations(global, message.chatId, translationRequestLanguage)[message.id]?.text)
       : undefined;
-    const canTranslate = !hasTranslation && selectCanTranslateMessage(global, message, detectedLanguage);
+    // const canTranslate = !hasTranslation && selectCanTranslateMessage(global, message, detectedLanguage);
     const isChatTranslated = selectRequestedChatTranslationLanguage(global, message.chatId);
 
     const isInSavedMessages = selectIsChatWithSelf(global, message.chatId);
@@ -879,7 +879,8 @@ export default memo(withGlobal<OwnProps>(
       customEmojiSetsInfo,
       customEmojiSets,
       canScheduleUntilOnline: selectCanScheduleUntilOnline(global, message.chatId),
-      canTranslate,
+      // canTranslate,
+      canTranslate: !hasTranslation,
       // canShowOriginal: hasTranslation && !isChatTranslated,
       canShowOriginal: hasTranslation,
       canSelectLanguage: hasTranslation && !isChatTranslated,
