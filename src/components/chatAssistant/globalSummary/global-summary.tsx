@@ -355,9 +355,9 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         const chat = selectChat(global, chatId);
         const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
         if (chat && chat.unreadCount && !chatBot) {
-          // if (chat?.membersCount && chat?.membersCount > 100) {
-          //   continue;
-          // }
+          if (chat?.membersCount && chat?.membersCount > 100) {
+            continue;
+          }
           const firstUnreadId = selectFirstUnreadId(global, chatId, MAIN_THREAD_ID) || chat.lastReadInboxMessageId;
           const roomUnreadMsgs = await fetchChatUnreadMessage({
             chat,
