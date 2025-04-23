@@ -13,6 +13,26 @@ export interface StoreMessage extends Message {
 class MessageStore extends ChataiDB {
   private storeName: StoreName = 'message';
 
+  async storeMessage(message: StoreMessage): Promise<void> {
+    const db = await this.getDB();
+
+    const transaction = db.transaction([this.storeName], 'readwrite');
+    const store = transaction.objectStore(this.storeName);
+
+    const request = store.put(message);
+
+    request.onsuccess = () => {
+      console.log(`Message ${message.id} stored successfully`);
+    };
+
+    request.onerror = (event: Event) => {
+      console.error(
+        `Error storing message ${message.id}:`,
+        (event.target as IDBRequest).error,
+      );
+    };
+  }
+
   async storeMessages(messages: StoreMessage[]): Promise<void> {
     const db = await this.getDB();
 
@@ -51,7 +71,7 @@ class MessageStore extends ChataiDB {
     chatId: string,
     lastTime: number | undefined,
     pageSize: number,
-  ): Promise<{ messages: any[]; lastTime: number | undefined }> {
+  ): Promise<{ messages: any[]; lastTime: number | undefined ;hasMore:boolean }> {
     const db = await this.getDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readonly');
@@ -72,11 +92,11 @@ class MessageStore extends ChataiDB {
         const cursor = (event.target as IDBRequest).result;
         if (cursor && count < pageSize) {
           messages.unshift(cursor.value);
-          newLastTime = cursor.value.time; // 记录最后一条的时间
+          newLastTime = cursor.value.timestamp; // 记录最后一条的时间
           count++;
           cursor.continue();
         } else {
-          resolve({ messages, lastTime: newLastTime });
+          resolve({ messages, lastTime: newLastTime, hasMore: count === pageSize });
         }
       };
 

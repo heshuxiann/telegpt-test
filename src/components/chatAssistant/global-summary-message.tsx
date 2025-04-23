@@ -13,7 +13,7 @@ import eventEmitter, { Actions } from './lib/EventEmitter';
 import { isUserId } from '../../global/helpers';
 import { selectChat, selectUser } from '../../global/selectors';
 import { RightPanelKey } from './rightPanel/right-header';
-import { cn, formatTimestamp, validateAndFixJsonStructure } from './utils/util';
+import { cn, formatTimestamp } from './utils/util';
 import {
   CopyIcon, DeleteIcon, VoiceIcon,
   VoiceingIcon,
@@ -37,9 +37,7 @@ import VectorIcon from './assets/vector.png';
 import WriteIcon from './assets/write.png';
 
 interface IProps {
-  isLoading: boolean;
   message: Message;
-  prevMessage: Message;
   deleteMessage: () => void;
 }
 interface ISummaryInfo {
@@ -467,61 +465,18 @@ const SummaryContent = ({
   );
 };
 const GlobalSummaryMessage = (props: IProps) => {
-  const {
-    isLoading, message, prevMessage, deleteMessage,
-  } = props;
+  const { message, deleteMessage } = props;
   const [summaryInfo, setSummaryInfo] = useState<ISummaryInfo | null>(null);
   const [customizationTemplate, setCustomizationTemplate] = useState<CustomSummaryTemplate | null>(null);
   const [customizationTopic, setCustomizationTopic] = useState<ISummaryTopicItem[]>([]);
   const [mainTopic, setMainTopic] = useState<ISummaryTopicItem[]>([]);
   const [pendingMatters, setPendingMatters] = useState<ISummaryPendingItem[]>([]);
   const [garbageMessage, setGarbageMessage] = useState<ISummaryGarbageItem[]>([]);
-  const extractContent = (content: string, codeId: string): ISummaryInfo | ISummaryTopicItem[] | ISummaryPendingItem[] | ISummaryGarbageItem[] | ISummaryTopicItem[] | null => {
-    const regex = new RegExp(`<!--\\s*json-start:\\s*${codeId}\\s*-->([\\s\\S]*?)<!--\\s*json-end\\s*-->`, 's');
-    const match = content.match(regex);
-    if (match) {
-      try {
-        const result = validateAndFixJsonStructure(match[1].trim());
-        if (result.valid) {
-          if (result.fixedJson) {
-            return JSON.parse(result.fixedJson);
-          } else {
-            console.error('JSON 修复失败:', result.error);
-          }
-        } else {
-          console.error('JSON 修复失败:', result.error);
-        }
-      } catch (error) {
-        console.error('JSON 解析错误:', error);
-        return null;
-      }
-    }
-    return null;
-  };
-  const extractAnnotationByKey = (message:any, type:string, key:string) => {
-    if (typeof key !== 'string' || !key.trim()) {
-      console.error('Invalid key provided');
-      return null;
-    }
-
-    const annotations = Array.isArray(message?.annotations) ? message.annotations : [];
-    const annotation = annotations.find((a:any) => a?.type === type);
-
-    return annotation?.[key] || null;
-  };
-  const getSummaryInfo = useCallback((message:Message) => {
-    const summaryInfo = extractAnnotationByKey(message, 'global-summary', 'summaryInfo');
-    return summaryInfo;
-  }, []);
-  const getCustomizationTemplate = useCallback((message:Message) => {
-    const customizationTemplate = extractAnnotationByKey(message, 'global-summary', 'customizationTemplate');
-    return customizationTemplate;
-  }, []);
   const parseMessage = useCallback((messageContent: string) => {
-    const mainTopic = extractContent(messageContent, 'main-topic');
-    const pendingMatters = extractContent(messageContent, 'pending-matters');
-    const garbageMessage = extractContent(messageContent, 'garbage-message');
-    const customizationTopic = extractContent(messageContent, 'customization-topic');
+    const messageObj = JSON.parse(messageContent);
+    const {
+      mainTopic, pendingMatters, garbageMessage, customizationTopic, summaryInfo, customizationTemplate,
+    } = messageObj;
     if (customizationTopic) {
       setCustomizationTopic(customizationTopic as ISummaryTopicItem[]);
     }
@@ -534,25 +489,21 @@ const GlobalSummaryMessage = (props: IProps) => {
     if (garbageMessage) {
       setGarbageMessage(garbageMessage as ISummaryGarbageItem[]);
     }
+    if (summaryInfo) {
+      setSummaryInfo(summaryInfo as ISummaryInfo);
+    }
+    if (customizationTemplate) {
+      setCustomizationTemplate(customizationTemplate);
+    }
   }, []);
   useEffect(() => {
-    if (!isLoading) {
-      try {
-        const summaryInfo = getSummaryInfo(prevMessage);
-        if (summaryInfo) {
-          setSummaryInfo(summaryInfo as ISummaryInfo);
-        }
-        const customizationTemplate = getCustomizationTemplate(prevMessage);
-        if (customizationTemplate) {
-          setCustomizationTemplate(customizationTemplate);
-        }
-        parseMessage(message.content);
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error(error);
-      }
+    try {
+      parseMessage(message.content);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(error);
     }
-  }, [getCustomizationTemplate, getSummaryInfo, isLoading, message, parseMessage, prevMessage]);
+  }, [message, parseMessage]);
   if (!summaryInfo) {
     return null;
   }

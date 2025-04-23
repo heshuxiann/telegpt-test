@@ -25,7 +25,7 @@ function PureMessages({
   messages,
   deleteMessage,
 }: MessagesProps) {
-  const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
+  // const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
   const isAuxiliary = (message:Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'isAuxiliary' in item && item.isAuxiliary === true) ?? false;
   };
@@ -51,27 +51,24 @@ function PureMessages({
   };
   return (
     <div
-      ref={messagesContainerRef}
       className="flex flex-col min-w-0 gap-[10px] flex-1 overflow-y-scroll pt-4 ai-message-container"
     >
       {messages.map((message, index) => {
         if (!isAuxiliary(message)) {
-          if (index > 0 && isSummary(messages[index - 1])) {
-            return <SummaryMessage isLoading={isLoading} message={message} />;
-          } else if (index > 0 && isGlobalSummary(messages[index - 1])) {
+          // if (index > 0 && isSummary(messages[index - 1])) {
+          //   return <SummaryMessage isLoading={isLoading} message={message} />;
+          // }
+          if (isGlobalSummary(message)) {
             return (
               <GlobalSummaryMessage
-                isLoading={isLoading}
                 message={message}
-                prevMessage={messages[index - 1]}
                 // eslint-disable-next-line react/jsx-no-bind
                 deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
               />
             );
-          } else if (index > 0 && isUrgentCheck(messages[index - 1])) {
+          } else if (isUrgentCheck(message)) {
             return (
               <UrgentCheckMessage
-                isLoading={isLoading}
                 message={message}
                 // eslint-disable-next-line react/jsx-no-bind
                 deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
@@ -103,10 +100,10 @@ function PureMessages({
         && messages.length > 0
         && messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
 
-      <div
+      {/* <div
         ref={messagesEndRef}
         className="shrink-0 min-w-[24px] min-h-[24px]"
-      />
+      /> */}
     </div>
   );
 }

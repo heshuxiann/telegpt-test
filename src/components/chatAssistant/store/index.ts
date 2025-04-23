@@ -13,7 +13,7 @@ function getChataiDbname() {
   const DB_NAME = currentUserId ? `tt-chatai-${currentUserId}` : 'tt-chatai';
   return DB_NAME;
 }
-const dbVersion = 5;
+const dbVersion = 6;
 
 export const GLOBAL_SUMMARY_LAST_TIME = 'globalSummaryLastTime';
 export const GLOBAL_SUMMARY_READ_TIME = 'globalSummaryReadTime';

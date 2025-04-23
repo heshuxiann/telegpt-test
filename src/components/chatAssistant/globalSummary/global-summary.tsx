@@ -6,15 +6,12 @@
 import React, {
   forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState,
 } from 'react';
-import { useChat } from '@ai-sdk/react';
-// import type {
-//   Attachment, ChatRequestOptions, CreateMessage, Message,
-// } from 'ai';
 import type { Message } from 'ai';
 import { Button, Modal } from 'antd';
 import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
 
+import type { StoreMessage } from '../store/messages-store';
 import { type ApiMessage, MAIN_THREAD_ID } from '../../../api/types/messages';
 
 import { ALL_FOLDER_ID } from '../../../config';
@@ -36,12 +33,14 @@ import { RightPanel } from '../rightPanel/right-panel';
 import {
   ChataiGeneralStore, ChataiMessageStore, GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME,
 } from '../store';
-import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
+import { parseStoreMessage2Message } from '../store/messages-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
+import { formatSummaryText, formatUrgentCheckText } from './formate-summary-text';
 import defaultSummaryPrompt, { getGlobalSummaryPrompt } from './summary-prompt';
 import UrgentNotification from './urgent-notification';
 
 import ErrorBoundary from '../ErrorBoundary';
+import { InfiniteScroll } from './InfiniteScroll';
 import { TestModal } from './TestModal';
 
 import './global-summary.scss';
@@ -69,26 +68,36 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const global = getGlobal();
     const [pendingSummaryMessages, setPendingSummaryMessages] = useState<Record<string, ApiMessage[]>>({});
     const [localChatAiMessages, setLocalChatAiMessages] = useState<Message[]>([]);
+    const [messageList, setMessageList] = useState<Message[]>([]);
     const [summaryModalVisible, setSummaryModalVisible] = useState(false);
-    // const [attachments, setAttachments] = useState<Array<Attachment>>([]);
+    const [notificationMessage, setNotificationMessage] = useState<Message | null>(null);
     const [unreadSummaryCount, setUnreadSummaryCount] = useState(0);
     const [testModalVisable, setTestModalVisible] = useState(false);
     const [globalSummaryPrompt, setGlobalSummaryPrompt] = useState('');
     const [customizationTemplate, setCustomizationTemplate] = useState<{ title: string; prompt: string } | null>(null);
     const [urgentChecks, setUrgentChecks] = useState<ApiMessage[]>([]);
-    // input, setInput, stop, handleSubmit,
-    const {
-      messages, setMessages, append, isLoading,
-    } = useChat({
-      // api: 'https://sdm-ai-api.vercel.app/chat',
-      api: 'https://telegpt-three.vercel.app/chat',
-      sendExtraMessageFields: true,
-    });
-
+    const [isLoading, setIsLoading] = useState(false);
+    const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
     const orderedIds = React.useMemo(() => getOrderedIds(ALL_FOLDER_ID) || [], []);
     useImperativeHandle(ref, () => ({
       addNewMessage,
     }));
+
+    const handleLoadMore = useCallback(() => {
+      return new Promise<void>((resolve) => {
+        ChataiMessageStore.getMessages(GLOBAL_SUMMARY_CHATID, pageInfo?.lastTime, 10)?.then((res) => {
+          if (res.messages) {
+            const localChatAiMessages = parseStoreMessage2Message(res.messages);
+            setLocalChatAiMessages((prev) => [...localChatAiMessages, ...prev]);
+          }
+          setPageInfo({
+            lastTime: res.lastTime,
+            hasMore: res.hasMore,
+          });
+          resolve();
+        });
+      });
+    }, [pageInfo?.lastTime]);
     const initSummaryTemplate = () => {
       getGlobalSummaryPrompt().then((result) => {
         if (result) {
@@ -107,6 +116,86 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const handleClose = React.useCallback(() => {
       setSummaryModalVisible(false);
     }, []);
+
+    const handleSummary = (
+      {
+        messages,
+        summaryInfo,
+        customizationTemplate,
+      }:{
+        messages: Message[];
+        summaryInfo:{};
+        customizationTemplate:{ title: string; prompt: string } | null;
+      },
+    ) => {
+      setIsLoading(true);
+      fetch('https://telegpt-three.vercel.app/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages,
+        }),
+      })
+        .then((res) => res.json())
+        .then((res) => {
+          setIsLoading(false);
+          const formatResponse = formatSummaryText(res.text);
+          if (formatResponse) {
+            const content = {
+              ...formatResponse,
+              summaryInfo,
+              customizationTemplate,
+            };
+            const newMessage:StoreMessage = {
+              chatId: GLOBAL_SUMMARY_CHATID,
+              timestamp: new Date().getTime(),
+              content: JSON.stringify(content),
+              id: uuidv4(),
+              createdAt: new Date(),
+              role: 'assistant',
+              annotations: [{
+                type: 'global-summary',
+              }],
+            };
+            ChataiMessageStore.storeMessage(newMessage);
+            setMessageList((prev) => [...prev, newMessage]);
+          }
+        });
+    };
+
+    const handleUrgentMessageCheck = (messages: Message[]) => {
+      fetch('https://telegpt-three.vercel.app/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages,
+        }),
+      })
+        .then((res) => res.json())
+        .then((res) => {
+          const formatResponse = formatUrgentCheckText(res.text);
+          if (formatResponse) {
+            const newMessage:StoreMessage = {
+              chatId: GLOBAL_SUMMARY_CHATID,
+              timestamp: new Date().getTime(),
+              content: JSON.stringify(formatResponse),
+              id: uuidv4(),
+              createdAt: new Date(),
+              role: 'assistant',
+              annotations: [{
+                type: 'urgent-message-check',
+              }],
+            };
+            ChataiMessageStore.storeMessage(newMessage);
+            setMessageList((prev) => [...prev, newMessage]);
+            setNotificationMessage(newMessage);
+          }
+        });
+    };
 
     useEffect(() => {
       initSummaryTemplate();
@@ -135,22 +224,20 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           return false;
         }).filter(Boolean);
         if (checkmsgs.length) {
-          append({
-            id: uuidv4(),
-            role: 'user',
-            content: `${JSON.stringify(checkmsgs)}\n\n${UrgentMessageCheckPrompt}`,
-            annotations: [{
-              isAuxiliary: true,
-              type: 'urgent-message-check',
-            }],
-          });
+          handleUrgentMessageCheck([
+            {
+              id: uuidv4(),
+              role: 'user',
+              content: `${JSON.stringify(checkmsgs)}\n\n${UrgentMessageCheckPrompt}`,
+            },
+          ]);
           setUrgentChecks([]);
         }
       }, 1000 * 60);
       return () => {
         clearInterval(timer);
       };
-    }, [append, global, urgentChecks]);
+    }, [global, urgentChecks]);
 
     const startSummary = useCallback(async (messages: Record<string, ApiMessage[]>, prompt?: string) => {
       // eslint-disable-next-line no-console
@@ -181,25 +268,23 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       const summaryMessageContent = {
         messageList: summaryMessages,
       };
-      append({
-        id: uuidv4(),
-        role: 'user',
-        content: `${prompt || globalSummaryPrompt || defaultSummaryPrompt}\n\n${JSON.stringify(summaryMessageContent)}`,
-        annotations: [{
-          isAuxiliary: true,
-          type: 'global-summary',
-          customizationTemplate: customizationTemplate || null,
-          summaryInfo: {
-            summaryStartTime: globalSummaryLastTime || null,
-            summaryEndTime: summaryTime,
-            summaryMessageCount: summaryMessages.length,
-            summaryChatIds: Object.keys(messages),
-          },
+      handleSummary({
+        messages: [{
+          id: uuidv4(),
+          role: 'user',
+          content: `${prompt || globalSummaryPrompt || defaultSummaryPrompt}\n\n${JSON.stringify(summaryMessageContent)}`,
         }],
+        summaryInfo: {
+          summaryStartTime: globalSummaryLastTime || null,
+          summaryEndTime: summaryTime,
+          summaryMessageCount: summaryMessages.length,
+          summaryChatIds: Object.keys(messages),
+        },
+        customizationTemplate,
       });
       ChataiGeneralStore.set(GLOBAL_SUMMARY_LAST_TIME, new Date().getTime());
       setUnreadSummaryCount(unreadSummaryCount + 1);
-    }, [append, customizationTemplate, global, globalSummaryPrompt, unreadSummaryCount]);
+    }, [customizationTemplate, global, globalSummaryPrompt, unreadSummaryCount]);
 
     const initUnSummaryMessage = async () => {
       const globalSummaryLastTime: number | undefined = await ChataiGeneralStore.get(GLOBAL_SUMMARY_LAST_TIME);
@@ -256,17 +341,13 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           const localChatAiMessages = parseStoreMessage2Message(res.messages);
           setLocalChatAiMessages(localChatAiMessages);
         }
+        setPageInfo({
+          lastTime: res.lastTime,
+          hasMore: res.hasMore,
+        });
       });
       // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
     }, []);
-
-    useEffect(() => {
-      if (messages.length > 0 && !isLoading) {
-        const parsedMessage = parseMessage2StoreMessage(GLOBAL_SUMMARY_CHATID, messages);
-        ChataiMessageStore.storeMessages([...parsedMessage]);
-      }
-    }, [messages, isLoading]);
-
     const summaryAllUnreadMessages = async () => {
       const unreadMap: Record<string, ApiMessage[]> = {};
       for (let i = 0; i < orderedIds.length; i++) {
@@ -274,9 +355,9 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         const chat = selectChat(global, chatId);
         const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
         if (chat && chat.unreadCount && !chatBot) {
-          if (chat?.membersCount && chat?.membersCount > 100) {
-            continue;
-          }
+          // if (chat?.membersCount && chat?.membersCount > 100) {
+          //   continue;
+          // }
           const firstUnreadId = selectFirstUnreadId(global, chatId, MAIN_THREAD_ID) || chat.lastReadInboxMessageId;
           const roomUnreadMsgs = await fetchChatUnreadMessage({
             chat,
@@ -368,9 +449,9 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const deleteMessage = useCallback((messageId: string) => {
       ChataiMessageStore.delMessage(messageId).then(() => {
         setLocalChatAiMessages((prev) => prev.filter((message) => message.id !== messageId));
-        setMessages((prev) => prev.filter((message) => message.id !== messageId));
+        setMessageList((prev) => prev.filter((message) => message.id !== messageId));
       });
-    }, [setMessages]);
+    }, []);
 
     const handleReSummary = useCallback(async (prompt: string) => {
       const unreadMap: Record<string, ApiMessage[]> = {};
@@ -418,18 +499,12 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         >
           <SummaryModalContent
             localChatAiMessages={localChatAiMessages}
-            messages={messages}
-            // input={input}
-            // setInput={setInput}
+            messages={messageList}
             isLoading={isLoading}
-            // stop={stop}
-            // attachments={attachments}
-            // setAttachments={setAttachments}
             onClose={handleClose}
-            // setMessages={setMessages}
-            // handleSubmit={handleSubmit}
-            // append={append}
             deleteMessage={deleteMessage}
+            loadMore={handleLoadMore}
+            hasMore={pageInfo?.hasMore}
           />
           <Button type="primary" className="absolute left-[20px] bottom-[64px]" onClick={summaryAllUnreadMessages}>
             Summarize all unread
@@ -444,46 +519,48 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             handleReSummary={handleReSummary}
           />
         </Modal>
-        <UrgentNotification messages={messages} isLoading={isLoading} />
+        <UrgentNotification message={notificationMessage} />
       </ErrorBoundary>
 
     );
   },
 );
 interface SummaryContentProps {
+  loadMore: () => Promise<void>;
+  hasMore: boolean;
   localChatAiMessages: Message[];
   messages: Message[];
   isLoading: boolean;
   deleteMessage: (messageId: string) => void;
-  // input: string;
-  // setInput: (value: string) => void;
-  // stop: () => void;
-  // attachments: Array<Attachment>;
-  // setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
-  // setMessages: Dispatch<SetStateAction<Array<Message>>>;
-  // handleSubmit: (
-  //   event?: {
-  //     preventDefault?: () => void;
-  //   },
-  //   chatRequestOptions?: ChatRequestOptions,
-  // ) => void;
-  // append: (message: Message | CreateMessage, chatRequestOptions?: ChatRequestOptions) => Promise<string | null | undefined>;
   onClose: () => void;
 }
 
 const SummaryModalContent = (props: SummaryContentProps) => {
   // input, setInput, handleSubmit, attachments, setAttachments, setMessages, append, stop,
   const {
-    localChatAiMessages, isLoading, messages, onClose, deleteMessage,
+    localChatAiMessages, isLoading, messages, onClose, deleteMessage, loadMore, hasMore,
   } = props;
   const messageContainerRef = useRef<HTMLDivElement>(null);
-  const sentinelTopRef = useRef<HTMLDivElement>(null);
-  const sentinelBottomRef = useRef<HTMLDivElement>(null);
   const handleShowTemplate = useCallback(() => {
     eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
       rightPanelKey: RightPanelKey.PromptTemplate,
     });
   }, []);
+  useEffect(() => {
+    const container = messageContainerRef.current;
+    const handleScroll = () => {
+      const scrollTop = container?.scrollTop;
+      console.log('scrollTop---->', scrollTop);
+      if (scrollTop === 0 && hasMore) {
+      // eslint-disable-next-line no-console
+        console.log('分页加载');
+        loadMore();
+      }
+    };
+    // 添加滚动监听
+    container?.addEventListener('scroll', handleScroll);
+    return () => container?.removeEventListener('scroll', handleScroll);
+  }, [hasMore, loadMore]);
   return (
     <div className="globa-summary-container flex flex-col w-full h-full">
       <div className="h-[56px] w-full px-[20px] flex items-center bg-white/50">
@@ -501,34 +578,21 @@ const SummaryModalContent = (props: SummaryContentProps) => {
       <div className="flex flex-1 flex-row overflow-hidden">
         <div className="flex-1 flex flex-col">
           <div
-            className="chat-ai-output-wrapper flex-1 overflow-auto"
+            className="chat-ai-output-wrapper flex-1 h-full"
             ref={messageContainerRef}
           >
-            <div ref={sentinelTopRef} className="h-[1px]" />
-            {localChatAiMessages && (
-              <Messages isLoading={false} messages={localChatAiMessages} deleteMessage={deleteMessage} />
-            )}
-            <Messages
-              isLoading={isLoading}
-              messages={messages}
-              deleteMessage={deleteMessage}
-            />
-            <div ref={sentinelBottomRef} className="h-[1px]" />
+            <InfiniteScroll loadMore={loadMore} hasMore={hasMore}>
+              {localChatAiMessages && (
+                <Messages isLoading={false} messages={localChatAiMessages} deleteMessage={deleteMessage} />
+              )}
+              <Messages
+                isLoading={isLoading}
+                messages={messages}
+                deleteMessage={deleteMessage}
+              />
+            </InfiniteScroll>
+
           </div>
-          {/* <form className="flex mx-auto px-4 pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
-            <MultimodalInput
-              chatId={GLOBAL_SUMMARY_CHATID}
-              input={input}
-              setInput={setInput}
-              handleSubmit={handleSubmit}
-              isLoading={isLoading}
-              stop={stop}
-              attachments={attachments}
-              setAttachments={setAttachments}
-              setMessages={setMessages}
-              append={append}
-            />
-          </form> */}
         </div>
         <RightPanel closeSummaryModal={onClose} />
 

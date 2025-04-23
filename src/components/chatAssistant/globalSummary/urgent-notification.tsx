@@ -6,30 +6,13 @@ import React, { useEffect } from 'react';
 import type { Message } from 'ai';
 import { notification } from 'antd';
 
-import { isUrgentCheckMessage } from '../utils/util';
-
 import DangerIcon from '../assets/danger.png';
 import SerenaLogoPath from '../assets/serena.png';
 
-const UrgentNotification = ({ messages, isLoading }:{ messages:Message[];isLoading:boolean }) => {
+const UrgentNotification = ({ message }:{ message:Message | null }) => {
   const [api, contextHolder] = notification.useNotification();
-  const extractContent = (content: string) => {
-    const regex = /<!--\s*json-start\s*-->([\s\S]*?)<!--\s*json-end\s*-->/s;
-    const match = content.match(regex);
-    if (match) {
-      try {
-        const result = JSON.parse(match[1].trim());
-        return result;
-      } catch (error) {
-        console.error('JSON 解析错误:', error);
-        return null;
-      }
-    }
-    return null;
-  };
-
-  const notificationUrgentMessage = (message: Message) => {
-    const parsedMessage = extractContent(message.content);
+  const notificationUrgentMessage = (msg: Message) => {
+    const parsedMessage = JSON.parse(msg.content);
     if (parsedMessage && typeof parsedMessage === 'object' && parsedMessage.length > 0) {
       parsedMessage.forEach((item:any) => {
         api.open({
@@ -52,15 +35,11 @@ const UrgentNotification = ({ messages, isLoading }:{ messages:Message[];isLoadi
   };
 
   useEffect(() => {
-    if (!isLoading) {
-      const lastMessage = messages[messages.length - 1];
-      const prevMessage = messages[messages.length - 2];
-      if (isUrgentCheckMessage(prevMessage)) {
-        notificationUrgentMessage(lastMessage);
-      }
+    if (message) {
+      notificationUrgentMessage(message);
     }
   // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
-  }, [messages, isLoading]);
+  }, [message]);
   return (
     <>
       { contextHolder }

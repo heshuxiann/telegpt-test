@@ -17,7 +17,6 @@ import DangerIcon from './assets/danger.png';
 import SerenaLogoPath from './assets/serena.png';
 
 interface IProps {
-  isLoading: boolean;
   message: Message;
   deleteMessage: () => void;
 }
@@ -84,30 +83,14 @@ const ActionsItems = ({
   );
 };
 const UrgentCheckMessage = (props:IProps) => {
-  const { isLoading, message, deleteMessage } = props;
+  const { message, deleteMessage } = props;
   const [urgentMessage, setUrgentMessage] = useState<UrgentMessage[]>([]);
-  const extractContent = (content: string) => {
-    const regex = /<!--\s*json-start\s*-->([\s\S]*?)<!--\s*json-end\s*-->/s;
-    const match = content.match(regex);
-    if (match) {
-      try {
-        const result = JSON.parse(match[1].trim());
-        return result;
-      } catch (error) {
-        console.error('JSON 解析错误:', error);
-        return null;
-      }
-    }
-    return null;
-  };
   useEffect(() => {
-    if (!isLoading) {
-      const parsedMessage = extractContent(message.content);
-      if (parsedMessage && typeof parsedMessage === 'object' && parsedMessage.length > 0) {
-        setUrgentMessage(parsedMessage);
-      }
+    const parsedMessage = JSON.parse(message.content);
+    if (parsedMessage && typeof parsedMessage === 'object' && parsedMessage.length > 0) {
+      setUrgentMessage(parsedMessage);
     }
-  }, [isLoading, message]);
+  }, [message]);
   if (!urgentMessage || urgentMessage.length === 0) {
     return null;
   }
