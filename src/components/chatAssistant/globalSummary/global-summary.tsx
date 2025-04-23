@@ -7,7 +7,7 @@ import React, {
   forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState,
 } from 'react';
 import type { Message } from 'ai';
-import { Button, Modal } from 'antd';
+import { Modal } from 'antd';
 import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
 
@@ -38,6 +38,7 @@ import { parseStoreMessage2Message } from '../store/messages-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
 import { formatSummaryText, formatUrgentCheckText } from './formate-summary-text';
 import defaultSummaryPrompt, { getGlobalSummaryPrompt } from './summary-prompt';
+import TestActions from './test-actions';
 import UrgentNotification from './urgent-notification';
 
 import ErrorBoundary from '../ErrorBoundary';
@@ -183,6 +184,15 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             };
             ChataiMessageStore.storeMessage(newMessage);
             setMessageList((prev) => [...prev, newMessage]);
+            // 通知
+            window.Notification.requestPermission().then((permission) => {
+              if (permission === 'granted') {
+                const notification = new Notification('消息总结提醒', {
+                  body: '您收到一条新的消息总结',
+                });
+                setTimeout(() => notification.close(), 5000);
+              }
+            });
           }
         });
     };
@@ -431,9 +441,6 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     };
 
     const addNewMessage = useCallback((message: ApiMessage) => {
-      if (summaryChats.current.length > 0 && !summaryChats.current.includes(message.chatId)) {
-        return;
-      }
       if (message.content.text) {
         const chatId = message.chatId;
         const chat = selectChat(global, chatId);
@@ -450,14 +457,16 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             }
             setUrgentChecks((prev) => [...prev, message]);
           }
-          setPendingSummaryMessages((messages) => {
-            if (messages[chatId]) {
-              messages[chatId].push(message);
-            } else {
-              messages[chatId] = [message];
-            }
-            return messages;
-          });
+          if (summaryChats.current.length === 0 || summaryChats.current.includes(message.chatId)) {
+            setPendingSummaryMessages((messages) => {
+              if (messages[chatId]) {
+                messages[chatId].push(message);
+              } else {
+                messages[chatId] = [message];
+              }
+              return messages;
+            });
+          }
         }
       }
     }, [global, summaryChats]);
@@ -533,12 +542,12 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             loadMore={handleLoadMore}
             hasMore={pageInfo?.hasMore}
           />
-          <Button type="primary" className="absolute left-[20px] bottom-[64px]" onClick={summaryAllUnreadMessages}>
-            Summarize all unread
-          </Button>
-          <Button type="primary" className="absolute left-[20px] bottom-[20px]" onClick={() => { setTestModalVisible(true); }}>
-            Test entry
-          </Button>
+          <TestActions
+            // eslint-disable-next-line react/jsx-no-bind
+            summaryAllUnreadMessages={summaryAllUnreadMessages}
+            // eslint-disable-next-line react/jsx-no-bind
+            showTestModalVisible={() => { setTestModalVisible(true); }}
+          />
           <TestModal
             visible={testModalVisable}
             // eslint-disable-next-line react/jsx-no-bind

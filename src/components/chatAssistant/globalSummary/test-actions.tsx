@@ -1,0 +1,36 @@
+import React from 'react';
+import { Button } from 'antd';
+
+interface IProps {
+  summaryAllUnreadMessages: () => Promise<void>;
+  showTestModalVisible: () => void;
+}
+const TestActions = (props: IProps) => {
+  const { summaryAllUnreadMessages, showTestModalVisible } = props;
+  const handleNotification = () => {
+    window.Notification.requestPermission().then((permission) => {
+      if (permission === 'granted') {
+        const notification = new Notification('通知标题：', {
+          body: '通知内容',
+          icon: 'https://pic1.zhuanstatic.com/zhuanzh/50b6ffe4-c7e3-4317-bc59-b2ec4931f325.png',
+        });
+        setTimeout(() => notification.close(), 5000);
+      }
+    });
+  };
+  return (
+    <div className="absolute left-[20px] bottom-[20px] flex flex-col gap-[12px]">
+      <Button type="primary" onClick={summaryAllUnreadMessages}>
+        Summarize all unread
+      </Button>
+      <Button type="primary" onClick={showTestModalVisible}>
+        Test entry
+      </Button>
+      <Button type="primary" onClick={handleNotification}>
+        Notification
+      </Button>
+    </div>
+  );
+};
+
+export default TestActions;
