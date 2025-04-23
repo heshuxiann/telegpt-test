@@ -1,0 +1,182 @@
+/* eslint-disable react/jsx-no-bind */
+/* eslint-disable max-len */
+/* eslint-disable no-console */
+import React, {
+  useCallback, useEffect, useMemo, useState,
+} from 'react';
+import { Checkbox, Input } from 'antd';
+import { getGlobal } from '../../../global';
+
+import type { ApiChatType, ApiPeer } from '../../../api/types';
+import type { CustomPeer } from '../../../types';
+
+import eventEmitter, { Actions } from '../lib/EventEmitter';
+import {
+  getCanPostInChat, getChatTitle, getGroupStatus, getUserFullName, getUserStatus, isDeletedUser,
+  isPeerUser,
+} from '../../../global/helpers';
+import { filterPeersByQuery, isApiPeerChat } from '../../../global/helpers/peers';
+import {
+  filterChatIdsByType, selectChat, selectChatFullInfo, selectPeer, selectUser,
+  selectUserStatus,
+} from '../../../global/selectors';
+import { unique } from '../../../util/iteratees';
+import sortChatIds from '../../common/helpers/sortChatIds';
+import { ChataiGeneralStore } from '../store';
+import { SUMMARY_CHATS } from '../store/general-store';
+import { RightPanelKey } from './right-header';
+
+import useOldLang from '../../../hooks/useOldLang';
+
+import Avatar from '../ui/Avatar';
+
+const ChatPickerPanel = () => {
+  const global = getGlobal();
+  const {
+    chats: {
+      listIds,
+    },
+    currentUserId,
+  } = global;
+  const activeListIds = listIds.active;
+  const archivedListIds = listIds.archived;
+  const contactIds = global.contactList?.userIds;
+  const [selected, setSelected] = useState<string[]>([]);
+  const [search, setSearch] = useState('');
+  const filter:ApiChatType[] = useMemo(() => ['channels', 'chats', 'users', 'groups'], []);
+  const lang = useOldLang();
+  useEffect(() => {
+    ChataiGeneralStore.get(SUMMARY_CHATS).then((res) => {
+      setSelected(res || []);
+    });
+  }, []);
+  const ids = useMemo(() => {
+    const peerIds = [
+      ...(activeListIds || []),
+      ...((search && archivedListIds) || []),
+    ].filter((id) => {
+      const chat = selectChat(global, id);
+      const user = selectUser(global, id);
+      if (user && !isDeletedUser(user)) return true;
+      if (chat) {
+        const { membersCount } = chat;
+        if (membersCount && membersCount > 100) return false;
+      }
+
+      const chatFullInfo = selectChatFullInfo(global, id);
+
+      return chat && (!chatFullInfo || getCanPostInChat(chat, undefined, undefined, chatFullInfo));
+    });
+
+    const sorted = sortChatIds(
+      filterPeersByQuery({
+        ids: unique([
+          ...peerIds,
+          ...(contactIds || []),
+        ]),
+        query: search,
+      }),
+      undefined,
+    );
+
+    return filterChatIdsByType(global, sorted, filter);
+  }, [activeListIds, search, archivedListIds, contactIds, global, filter]);
+
+  const renderChatItem = (id: string) => {
+    const peer:ApiPeer | undefined = selectPeer(global, id);
+    if (!peer) {
+      return undefined;
+    }
+
+    const isSelf = peer && !isApiPeerChat(peer) ? peer.isSelf : undefined;
+    const customPeer = 'isCustomPeer' in peer ? peer : undefined;
+    const realPeer = 'id' in peer ? peer : undefined;
+    const isUser = realPeer && isPeerUser(realPeer);
+    const title = realPeer && (isUser ? getUserFullName(realPeer) : getChatTitle(lang, realPeer));
+    function getSubtitle() {
+      if (!peer) return undefined;
+      if (peer.id === currentUserId) return [lang('SavedMessagesInfo')];
+      if (isApiPeerChat(peer)) {
+        return [getGroupStatus(lang, peer)];
+      }
+
+      const userStatus = selectUserStatus(global, peer.id);
+      return getUserStatus(lang, peer, userStatus);
+    }
+
+    function getTitle() {
+      if (customPeer) {
+        return (customPeer as CustomPeer)?.title || lang((customPeer as CustomPeer)?.titleKey!);
+      }
+
+      if (isSelf) {
+        return lang('SavedMessages');
+      }
+
+      return title;
+    }
+
+    const subtitle = getSubtitle() || '';
+    const specialTitle = getTitle();
+    return (
+      <Checkbox value={id}>
+        <div className="flex-1 flex flex-row items-center gap-[12px] px-[12px] py-[10px] hover:bg-[#F4F4F5] rounded-[12px]">
+          <Avatar
+            peer={peer}
+            isSavedMessages={isSelf}
+            size="medium"
+          />
+          <div className="flex flex-col gap-[4px] justify-center">
+            <div className="overflow-hidden overflow-ellipsis whitespace-nowrap">{specialTitle}</div>
+            <div>{subtitle}</div>
+          </div>
+        </div>
+      </Checkbox>
+    );
+  };
+  const onChange = useCallback((checkedValues: string[]) => {
+    console.log('checked = ', checkedValues);
+    setSelected(checkedValues);
+  }, []);
+  const handleClose = () => {
+    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
+      rightPanelKey: RightPanelKey.PromptTemplate,
+    });
+  };
+  const handleCancel = useCallback(() => {
+    handleClose();
+  }, []);
+  const handleSave = useCallback(() => {
+    ChataiGeneralStore.set(SUMMARY_CHATS, selected);
+    eventEmitter.emit(Actions.UpdateSummaryChats, { chats: selected });
+    handleClose();
+  }, [selected]);
+  return (
+    <div className="h-full px-[20px] flex flex-col">
+      <Input placeholder="Search" onChange={(e) => setSearch(e.target.value)} />
+      <div className="flex-1 overflow-y-auto">
+        <Checkbox.Group onChange={onChange} value={selected}>
+          <div className="flex flex-col gap-[12px]">
+            {ids.map((id) => renderChatItem(id))}
+          </div>
+        </Checkbox.Group>
+      </div>
+      <div className="flex flex-row justify-center gap-[14px] mt-auto pb-[24px] pt-[12px]">
+        <button
+          className="w-[158px] h-[40px] border-[1px] border-[#8C42F0] rounded-[20px]"
+          onClick={handleCancel}
+        >
+          Cancel
+        </button>
+        <button
+          className="w-[158px] h-[40px] border-[1px] border-[#8C42F0] bg-[#8C42F0] rounded-[20px] text-white"
+          onClick={handleSave}
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default ChatPickerPanel;

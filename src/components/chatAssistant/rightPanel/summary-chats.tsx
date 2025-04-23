@@ -1,0 +1,123 @@
+/* eslint-disable max-len */
+import React, { useCallback, useEffect, useState } from 'react';
+import { getGlobal } from '../../../global';
+
+import type { ApiPeer } from '../../../api/types';
+import type { CustomPeer } from '../../../types';
+
+import eventEmitter, { Actions } from '../lib/EventEmitter';
+import {
+  getChatTitle, getGroupStatus, getUserFullName, getUserStatus, isPeerUser,
+} from '../../../global/helpers';
+import { isApiPeerChat } from '../../../global/helpers/peers';
+import { selectPeer, selectUserStatus } from '../../../global/selectors';
+import { ChataiGeneralStore } from '../store';
+import { SUMMARY_CHATS } from '../store/general-store';
+import { RightPanelKey } from './right-header';
+
+import useOldLang from '../../../hooks/useOldLang';
+
+import Icon from '../component/Icon';
+import Avatar from '../ui/Avatar';
+
+import './summary-chats.scss';
+
+export const SummaryChats = () => {
+  const [selected, setSelected] = useState<string[]>([]);
+  const lang = useOldLang();
+  const global = getGlobal();
+  const handleChatPicker = useCallback(() => {
+    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
+      rightPanelKey: RightPanelKey.ChatPicker,
+    });
+  }, []);
+  useEffect(() => {
+    ChataiGeneralStore.get(SUMMARY_CHATS).then((res) => {
+      setSelected(res || []);
+    });
+  }, []);
+
+  const removeChat = useCallback((id: string) => {
+    const newSelected = selected.filter((item) => item !== id);
+    setSelected(newSelected);
+    ChataiGeneralStore.set(SUMMARY_CHATS, newSelected);
+    eventEmitter.emit(Actions.UpdateSummaryChats, { chats: newSelected });
+  }, [selected]);
+  const renderChatItem = (id: string) => {
+    const peer:ApiPeer | undefined = selectPeer(global, id);
+    if (!peer) {
+      return undefined;
+    }
+
+    const isSelf = peer && !isApiPeerChat(peer) ? peer.isSelf : undefined;
+    const customPeer = 'isCustomPeer' in peer ? peer : undefined;
+    const realPeer = 'id' in peer ? peer : undefined;
+    const isUser = realPeer && isPeerUser(realPeer);
+    const title = realPeer && (isUser ? getUserFullName(realPeer) : getChatTitle(lang, realPeer));
+    function getSubtitle() {
+      if (!peer) return undefined;
+      if (isApiPeerChat(peer)) {
+        return [getGroupStatus(lang, peer)];
+      }
+
+      const userStatus = selectUserStatus(global, peer.id);
+      return getUserStatus(lang, peer, userStatus);
+    }
+
+    function getTitle() {
+      if (customPeer) {
+        return (customPeer as CustomPeer)?.title || lang((customPeer as CustomPeer)?.titleKey!);
+      }
+
+      if (isSelf) {
+        return lang('SavedMessages');
+      }
+
+      return title;
+    }
+
+    const subtitle = getSubtitle() || '';
+    const specialTitle = getTitle();
+    return (
+      <div className="chat-picker-item flex-1 flex flex-row items-center gap-[12px] px-[12px] py-[10px] hover:bg-[#F4F4F5] rounded-[12px]">
+        <Avatar
+          peer={peer}
+          isSavedMessages={isSelf}
+          size="medium"
+        />
+        <div className="flex flex-col gap-[4px] justify-center flex-1">
+          <div className="overflow-hidden overflow-ellipsis whitespace-nowrap">{specialTitle}</div>
+          <div>{subtitle}</div>
+        </div>
+        <Icon
+          name="delete"
+          className="chat-picker-del ml-auto cursor-pointer text-[18px] text-[#FF4D4F]"
+          // eslint-disable-next-line react/jsx-no-bind
+          onClick={() => { removeChat(id); }}
+        />
+      </div>
+    );
+  };
+  return (
+    <div className="mt-[40px]">
+      <h3 className="text-[18px] font-semibold">Which chats do you care about？</h3>
+      {selected.length > 0 && (
+        <>
+          {selected.map((id) => renderChatItem(id))}
+        </>
+      )}
+      <div
+        className="flex cursor-pointer items-center gap-[8px] mt-[20px] px-[12px] py-[10px] hover:bg-[#F4F4F5] rounded-[12px]"
+        onClick={handleChatPicker}
+      >
+        <div
+          className="flex items-center justify-center w-[40px] h-[40px] rounded-full bg-[#8C42F0] text-white"
+        >
+          <Icon name="add" />
+        </div>
+        <span>Add Chats</span>
+      </div>
+
+    </div>
+  );
+};

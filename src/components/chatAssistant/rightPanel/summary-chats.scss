@@ -1,0 +1,10 @@
+.chat-picker-item{
+    .chat-picker-del{
+        display: none;
+    }
+    &:hover{
+        .chat-picker-del{
+            display: block;
+        }
+    }
+}

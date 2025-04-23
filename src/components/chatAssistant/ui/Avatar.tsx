@@ -35,9 +35,9 @@ import useMedia from '../../../hooks/useMedia';
 import useMediaTransitionDeprecated from '../../../hooks/useMediaTransitionDeprecated';
 import useOldLang from '../../../hooks/useOldLang';
 
-// import AvatarStoryCircle from '../../common/AvatarStoryCircle';
-import Icon from '../../common/icons/Icon';
 import OptimizedVideo from '../../ui/OptimizedVideo';
+// import AvatarStoryCircle from '../../common/AvatarStoryCircle';
+import Icon from '../component/Icon';
 
 import '../../common/Avatar.scss';
 

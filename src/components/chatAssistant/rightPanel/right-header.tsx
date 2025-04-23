@@ -9,6 +9,7 @@ export enum RightPanelKey {
   OriginalMessages = 'OriginalMessages',
   PromptTemplate = 'PromptTemplate',
   CustomizationPrompt = 'CustomizationPrompt',
+  ChatPicker = 'ChatPicker',
 }
 
 interface Props {

@@ -12,6 +12,7 @@ import { CustomizationTemplates } from '../globalSummary/summary-prompt';
 import { CloseIcon } from '../icons';
 import { ChataiGeneralStore, ChataiSummaryTemplateStore } from '../store';
 import { RightPanelKey } from './right-header';
+import { SummaryChats } from './summary-chats';
 
 import './prompt-template-panel.scss';
 
@@ -131,7 +132,7 @@ const PromptTemplatePanel = () => {
           </button>
         </div>
       ) : null}
-
+      <SummaryChats />
     </div>
   );
 };

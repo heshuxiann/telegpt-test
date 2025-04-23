@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import type { MessagePanelPayload } from './message-panel';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
+import ChatPickerPanel from './chat-picker-panel';
 import CustomizationPromptPanel from './customization-prompt-panel';
 import MessagePanel from './message-panel';
 import PromptTemplatePanel from './prompt-template-panel';
@@ -43,6 +44,9 @@ export const RightPanel = (props: RightPanelProps) => {
         break;
       case RightPanelKey.CustomizationPrompt:
         setRightPanelContent(<CustomizationPromptPanel />);
+        break;
+      case RightPanelKey.ChatPicker:
+        setRightPanelContent(<ChatPickerPanel />);
         break;
     }
   }, [closeSummaryModal, rightPanelKey, rightPanelPayload]);

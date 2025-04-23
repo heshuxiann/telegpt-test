@@ -9,6 +9,8 @@ export enum Actions {
   HideGlobalSummaryModal = 'HideGlobalSummaryModal',
   ShowGlobalSummaryPanel = 'ShowGlobalSummaryPanel',
   GlobalSummaryTemplateUpdate = 'GlobalSummaryTemplateUpdate',
+  // summary chats
+  UpdateSummaryChats = 'UpdateSummaryChats',
 }
 class EventEmitter {
   private static instance: EventEmitter;

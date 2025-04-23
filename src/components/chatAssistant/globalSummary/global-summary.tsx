@@ -33,6 +33,7 @@ import { RightPanel } from '../rightPanel/right-panel';
 import {
   ChataiGeneralStore, ChataiMessageStore, GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME,
 } from '../store';
+import { SUMMARY_CHATS } from '../store/general-store';
 import { parseStoreMessage2Message } from '../store/messages-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
 import { formatSummaryText, formatUrgentCheckText } from './formate-summary-text';
@@ -78,11 +79,16 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const [urgentChecks, setUrgentChecks] = useState<ApiMessage[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
+    const summaryChats = useRef<string[]>([]);
     const orderedIds = React.useMemo(() => getOrderedIds(ALL_FOLDER_ID) || [], []);
     useImperativeHandle(ref, () => ({
       addNewMessage,
     }));
-
+    useEffect(() => {
+      ChataiGeneralStore.get(SUMMARY_CHATS).then((res) => {
+        summaryChats.current = res || [];
+      });
+    }, []);
     const handleLoadMore = useCallback(() => {
       return new Promise<void>((resolve) => {
         ChataiMessageStore.getMessages(GLOBAL_SUMMARY_CHATID, pageInfo?.lastTime, 10)?.then((res) => {
@@ -113,6 +119,22 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       });
     };
 
+    const handleSummaryChatsUpdate = (payload: any) => {
+      const { chats } = payload;
+      if (chats) {
+        summaryChats.current = chats || [];
+        setPendingSummaryMessages((prev) => {
+          const newPendingSummaryMessages: Record<string, ApiMessage[]> = {};
+          Object.keys(prev).forEach((chatId) => {
+            if (chats.includes(chatId)) {
+              newPendingSummaryMessages[chatId] = prev[chatId];
+            }
+          });
+          return newPendingSummaryMessages;
+        });
+      }
+    };
+
     const handleClose = React.useCallback(() => {
       setSummaryModalVisible(false);
     }, []);
@@ -122,10 +144,10 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         messages,
         summaryInfo,
         customizationTemplate,
-      }:{
+      }: {
         messages: Message[];
-        summaryInfo:{};
-        customizationTemplate:{ title: string; prompt: string } | null;
+        summaryInfo: {};
+        customizationTemplate: { title: string; prompt: string } | null;
       },
     ) => {
       setIsLoading(true);
@@ -148,7 +170,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
               summaryInfo,
               customizationTemplate,
             };
-            const newMessage:StoreMessage = {
+            const newMessage: StoreMessage = {
               chatId: GLOBAL_SUMMARY_CHATID,
               timestamp: new Date().getTime(),
               content: JSON.stringify(content),
@@ -179,7 +201,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         .then((res) => {
           const formatResponse = formatUrgentCheckText(res.text);
           if (formatResponse) {
-            const newMessage:StoreMessage = {
+            const newMessage: StoreMessage = {
               chatId: GLOBAL_SUMMARY_CHATID,
               timestamp: new Date().getTime(),
               content: JSON.stringify(formatResponse),
@@ -203,9 +225,11 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     useEffect(() => {
       eventEmitter.on(Actions.GlobalSummaryTemplateUpdate, initSummaryTemplate);
       eventEmitter.on(Actions.HideGlobalSummaryModal, handleClose);
+      eventEmitter.on(Actions.UpdateSummaryChats, handleSummaryChatsUpdate);
       return () => {
         eventEmitter.off(Actions.GlobalSummaryTemplateUpdate, initSummaryTemplate);
         eventEmitter.off(Actions.HideGlobalSummaryModal, handleClose);
+        eventEmitter.off(Actions.UpdateSummaryChats, handleSummaryChatsUpdate);
       };
     }, [handleClose]);
     // 检测是否是紧急消息
@@ -406,7 +430,10 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       }
     };
 
-    const addNewMessage = (message: ApiMessage) => {
+    const addNewMessage = useCallback((message: ApiMessage) => {
+      if (summaryChats.current.length > 0 && !summaryChats.current.includes(message.chatId)) {
+        return;
+      }
       if (message.content.text) {
         const chatId = message.chatId;
         const chat = selectChat(global, chatId);
@@ -433,7 +460,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           });
         }
       }
-    };
+    }, [global, summaryChats]);
 
     const openGlobalSummaryModal = async () => {
       setSummaryModalVisible(true);
@@ -550,9 +577,8 @@ const SummaryModalContent = (props: SummaryContentProps) => {
     const container = messageContainerRef.current;
     const handleScroll = () => {
       const scrollTop = container?.scrollTop;
-      console.log('scrollTop---->', scrollTop);
       if (scrollTop === 0 && hasMore) {
-      // eslint-disable-next-line no-console
+        // eslint-disable-next-line no-console
         console.log('分页加载');
         loadMore();
       }
