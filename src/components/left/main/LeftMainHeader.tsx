@@ -303,6 +303,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
                 (globalSearchChatId || searchDate) ? 'with-picker-item' : undefined,
                 shouldHideSearch && 'SearchInput--hidden',
               )}
+              withAIIcon
               value={isClosingSearch ? undefined : (contactsFilter || searchQuery)}
               focused={isSearchFocused}
               isLoading={isLoading || connectionStatusPosition === 'minimized'}

@@ -17,6 +17,8 @@ import vectorStore from '../vector-store';
 
 import { AISearchInput } from './AISearchInput';
 
+import SerenaIcon from '../assets/serena.png';
+
 const GLOBAL_SEARCH_CHATID = '777889';
 
 const getChatToolsHit = (message: UIMessage) => {
@@ -213,6 +215,26 @@ export const AISearch = () => {
       <div
         className="chat-ai-output-wrapper flex-1 overflow-auto"
       >
+        <div className="flex flex-col mx-[22px]">
+          <img className="w-[52px] h-[52px] rounded-full" src={SerenaIcon} alt="" />
+          <span className="font-bold text-[24px]">AI Search</span>
+          <span className="mb-[12px] text-[14px]">Intelligent deep search experience.</span>
+          <div className="px-[10px] py-[6px] mb-[8px] rounded-[8px] bg-[#F8F2FF] text-[14px]">
+            Who is interested in early investments in GameFi projects?
+          </div>
+          <div className="px-[10px] py-[6px] mb-[8px] rounded-[8px] bg-[#F8F2FF] text-[14px]">
+            Which meme KOLs are worth following?
+          </div>
+          <div className="px-[10px] py-[6px] mb-[8px] rounded-[8px] bg-[#F8F2FF] text-[14px]">
+            Which of my contacts interacts with Paulo the most?
+          </div>
+          <div className="px-[10px] py-[6px] mb-[8px] rounded-[8px] bg-[#F8F2FF] text-[14px]">
+            Which friends do Paulo and I share?
+          </div>
+          <div className="px-[10px] py-[6px] mb-[8px] rounded-[8px] bg-[#F8F2FF] text-[14px]">
+            Find messages about Twitter Space collaboration.
+          </div>
+        </div>
         {localMessages.length > 0 && (
           <Messages
             isLoading={false}

@@ -141,22 +141,22 @@ const LeftSideMenuItems = ({
   return (
     <>
       <MenuItem
-        icon="saved-messages"
-        onClick={handleSelectSaved}
-      >
-        {oldLang('SavedMessages')}
-      </MenuItem>
-      <MenuItem
-        customIcon={<img className="icon" src={AIKnowledgeIcon} alt="ai-knowledge" style={buildStyle('width: 20px;height: 20px;')} />}
+        customIcon={<img className="icon" src={AIKnowledgeIcon} alt="ai-knowledge" style={buildStyle('width: 24px;height: 24px;max-width: 24px;')} />}
         onClick={onSelectAIKnowledge}
       >
         {oldLang('AI Knowledge Base')}
       </MenuItem>
       <MenuItem
-        customIcon={<img className="icon" src={AITranslateIcon} alt="ai-translate" style={buildStyle('width: 20px;height: 20px;')} />}
+        customIcon={<img className="icon" src={AITranslateIcon} alt="ai-translate" style={buildStyle('width: 24px;height: 24px;max-width: 24px;')} />}
         onClick={onSelectAITranslate}
       >
         {oldLang('AI Translate')}
+      </MenuItem>
+      <MenuItem
+        icon="saved-messages"
+        onClick={handleSelectSaved}
+      >
+        {oldLang('SavedMessages')}
       </MenuItem>
       {archiveSettings.isHidden && (
         <MenuItem

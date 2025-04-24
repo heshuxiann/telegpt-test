@@ -5,6 +5,8 @@ import React, {
 } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
+import buildStyle from '../../util/buildStyle';
+import AISearchIcon from '../chatAssistant/assets/ai-search.png';
 
 import useFlag from '../../hooks/useFlag';
 import useInputFocusOnOpen from '../../hooks/useInputFocusOnOpen';
@@ -39,6 +41,7 @@ type OwnProps = {
   hasDownButton?: boolean;
   teactExperimentControlled?: boolean;
   withBackIcon?: boolean;
+  withAIIcon?: boolean;
   onChange: (value: string) => void;
   onStartBackspace?: NoneToVoidFunction;
   onReset?: NoneToVoidFunction;
@@ -70,6 +73,7 @@ const SearchInput: FC<OwnProps> = ({
   hasDownButton,
   teactExperimentControlled,
   withBackIcon,
+  withAIIcon,
   onChange,
   onStartBackspace,
   onReset,
@@ -151,7 +155,9 @@ const SearchInput: FC<OwnProps> = ({
         className="icon-container-left"
         slideClassName="icon-container-slide"
       >
-        {isLoading && !withBackIcon ? (
+        {withAIIcon ? (
+          <img src={AISearchIcon} style={buildStyle('width: 24px;height: 24px;max-width: 24px;')} alt="" />
+        ) : isLoading && !withBackIcon ? (
           <Loading color={spinnerColor} backgroundColor={spinnerBackgroundColor} onClick={onSpinnerClick} />
         ) : withBackIcon ? (
           <Icon name="arrow-left" className="back-icon" onClick={onReset} />
