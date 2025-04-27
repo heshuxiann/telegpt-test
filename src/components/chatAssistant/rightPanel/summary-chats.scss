@@ -2,9 +2,12 @@
     .chat-picker-del{
         display: none;
     }
+    transition: padding 0.2s ease-in-out;
     &:hover{
         .chat-picker-del{
             display: block;
         }
+        padding-left: 12px;
+        padding-right: 12px;
     }
 }

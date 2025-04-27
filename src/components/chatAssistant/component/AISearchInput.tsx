@@ -15,50 +15,28 @@ import {
   useRef,
 } from 'react';
 import type {
-  Attachment,
-  ChatRequestOptions,
-  CreateMessage,
   Message,
 } from 'ai';
 import cx from 'classnames';
-import equal from 'fast-deep-equal';
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
 import { sanitizeUIMessages } from '../../../lib/utils';
 import { StopIcon } from '../icons';
-import { PreviewAttachment } from '../preview-attachment';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 
 function PureMultimodalInput({
-  input,
   isLoading,
   stop,
-  setInput,
-  append,
-  attachments,
-  setAttachments,
   setMessages,
-  handleSubmit,
-  toolsHitCheck,
+  handleSearch,
   className,
 }: {
-  input: string;
   isLoading: boolean;
   stop: () => void;
-  setInput: (value: string) => void;
-  append:(message: Message | CreateMessage, chatRequestOptions?: ChatRequestOptions) => Promise<string | null | undefined>;
-  attachments: Array<Attachment>;
-  setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   setMessages: Dispatch<SetStateAction<Array<Message>>>;
-  handleSubmit: (
-    event?: {
-      preventDefault?: () => void;
-    },
-    chatRequestOptions?: ChatRequestOptions,
-  ) => void;
-  toolsHitCheck:(inputValue:string)=>void;
+  handleSearch: (inputValue:string)=>void;
   className?: string;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -114,48 +92,21 @@ function PureMultimodalInput({
   };
 
   const submitForm = useCallback(() => {
-    // window.history.replaceState({}, '', `/chat/${chatId}`);
-
-    // handleSubmit(undefined, {
-    //   experimental_attachments: attachments,
-    // });
     if (!inputValue) {
       return;
     }
-    setMessages((messages) => {
-      return [...messages, {
-        role: 'user',
-        content: inputValue,
-        id: Math.random().toString(),
-        createdAt: new Date(),
-      }];
-    });
-    // append({
-    //   role: 'user',
-    //   content: inputValue,
-    //   id: Math.random().toString(),
-    // });
-    toolsHitCheck(inputValue);
+    handleSearch(inputValue);
     setInputValue('');
-    setAttachments([]);
     setLocalStorageInput('');
     resetHeight();
 
     if (width && width > 768) {
       textareaRef.current?.focus();
     }
-  }, [inputValue, setAttachments, setLocalStorageInput, setMessages, toolsHitCheck, width]);
+  }, [handleSearch, inputValue, setLocalStorageInput, width]);
 
   return (
     <div className="relative w-full mx-[22px] flex flex-col gap-4">
-      {(attachments.length > 0) && (
-        <div className="flex flex-row gap-2 overflow-x-scroll items-end">
-          {attachments.map((attachment) => (
-            <PreviewAttachment key={attachment.url} attachment={attachment} />
-          ))}
-        </div>
-      )}
-
       <Textarea
         ref={textareaRef}
         placeholder="Send a message..."
@@ -197,9 +148,7 @@ function PureMultimodalInput({
 export const AISearchInput = memo(
   PureMultimodalInput,
   (prevProps, nextProps) => {
-    if (prevProps.input !== nextProps.input) return false;
     if (prevProps.isLoading !== nextProps.isLoading) return false;
-    if (!equal(prevProps.attachments, nextProps.attachments)) return false;
 
     return true;
   },

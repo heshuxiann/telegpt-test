@@ -79,7 +79,7 @@ export const SummaryChats = () => {
     const subtitle = getSubtitle() || '';
     const specialTitle = getTitle();
     return (
-      <div className="chat-picker-item flex-1 flex flex-row items-center gap-[12px] px-[12px] py-[10px] hover:bg-[#F4F4F5] rounded-[12px]">
+      <div className="chat-picker-item flex-1 flex flex-row items-center gap-[12px] py-[10px] hover:bg-[#F4F4F5] rounded-[12px]">
         <Avatar
           peer={peer}
           isSavedMessages={isSelf}
@@ -101,13 +101,8 @@ export const SummaryChats = () => {
   return (
     <div className="mt-[40px]">
       <h3 className="text-[18px] font-semibold">Which chats do you care about？</h3>
-      {selected.length > 0 && (
-        <>
-          {selected.map((id) => renderChatItem(id))}
-        </>
-      )}
       <div
-        className="flex cursor-pointer items-center gap-[8px] mt-[20px] px-[12px] py-[10px] hover:bg-[#F4F4F5] rounded-[12px]"
+        className="chat-picker-item flex cursor-pointer items-center gap-[8px] py-[10px] hover:bg-[#F4F4F5] rounded-[12px]"
         onClick={handleChatPicker}
       >
         <div
@@ -117,7 +112,11 @@ export const SummaryChats = () => {
         </div>
         <span>Add Chats</span>
       </div>
-
+      {selected.length > 0 && (
+        <>
+          {selected.map((id) => renderChatItem(id))}
+        </>
+      )}
     </div>
   );
 };

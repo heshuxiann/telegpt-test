@@ -24,7 +24,7 @@ import {
 import { getOrderedIds } from '../../../util/folderManager';
 import { intelligentReplyTask } from '../aiTask/intelligent-reply-task';
 import { useDidUpdateEffect } from '../hook/useDidUpdateEffect';
-import { CloseIcon, MoreIcon } from '../icons';
+import { CloseIcon, SettingIcon } from '../icons';
 import { Messages } from '../messages';
 // import { MultimodalInput } from '../multimodal-input';
 import { UrgentMessageCheckPrompt } from '../prompt';
@@ -602,8 +602,9 @@ const SummaryModalContent = (props: SummaryContentProps) => {
         <img className="w-[40px] h-[40px] rounded-full mr-[12px]" src={SerenaPath} alt="Serena" />
         <span className="text-[15px] font-semibold">Serena AI</span>
         <div className="flex items-center ml-auto gap-[20px]">
-          <div className="cursor-pointer text-black" onClick={handleShowTemplate}>
-            <MoreIcon />
+          <div className="cursor-pointer text-black flex flex-row gap-[6px] items-center" onClick={handleShowTemplate}>
+            <SettingIcon />
+            <span className="text-[16px] font-semibold">Personalize</span>
           </div>
           <div className="cursor-pointer text-black" onClick={onClose}>
             <CloseIcon />

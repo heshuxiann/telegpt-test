@@ -16,22 +16,12 @@ import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/m
 import vectorStore from '../vector-store';
 
 import { AISearchInput } from './AISearchInput';
+import AISearchSugesstions from './AISearchSugesstions';
 
 import SerenaIcon from '../assets/serena.png';
 
 const GLOBAL_SEARCH_CHATID = '777889';
 
-const getChatToolsHit = (message: UIMessage) => {
-  if (message?.toolInvocations) {
-    return message?.toolInvocations.map((tool) => {
-      return {
-        toolName: tool.toolName,
-        queryContext: 'result' in tool && tool.result ? tool.result.queryContext : undefined,
-      };
-    });
-  }
-  return [];
-};
 export const AISearch = () => {
   const global = getGlobal();
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
@@ -210,32 +200,25 @@ export const AISearch = () => {
       });
   }, [searchGroup, searchMessage, searchUser]);
 
+  const handleSearch = useCallback((query: string) => {
+    setMessages((messages) => {
+      return [...messages, {
+        role: 'user',
+        content: query,
+        id: Math.random().toString(),
+        createdAt: new Date(),
+      }];
+    });
+    toolsHitCheck(query);
+  }, [setMessages, toolsHitCheck]);
+
   return (
-    <div className="py-[28px] flex-1 flex flex-col h-full">
+    <div className="py-[28px] flex-1 flex flex-col h-full gap-[8px]">
       <div
         className="chat-ai-output-wrapper flex-1 overflow-auto"
       >
         {localMessages.length < 10 && (
-          <div className="flex flex-col mx-[22px]">
-            <img className="w-[52px] h-[52px] rounded-full" src={SerenaIcon} alt="" />
-            <span className="font-bold text-[24px]">AI Search</span>
-            <span className="mb-[12px] text-[14px]">Intelligent deep search experience.</span>
-            <div className="px-[10px] py-[6px] mb-[8px] rounded-[8px] bg-[#F8F2FF] text-[14px]">
-              Who is interested in early investments in GameFi projects?
-            </div>
-            <div className="px-[10px] py-[6px] mb-[8px] rounded-[8px] bg-[#F8F2FF] text-[14px]">
-              Which meme KOLs are worth following?
-            </div>
-            <div className="px-[10px] py-[6px] mb-[8px] rounded-[8px] bg-[#F8F2FF] text-[14px]">
-              Which of my contacts interacts with Paulo the most?
-            </div>
-            <div className="px-[10px] py-[6px] mb-[8px] rounded-[8px] bg-[#F8F2FF] text-[14px]">
-              Which friends do Paulo and I share?
-            </div>
-            <div className="px-[10px] py-[6px] mb-[8px] rounded-[8px] bg-[#F8F2FF] text-[14px]">
-              Find messages about Twitter Space collaboration.
-            </div>
-          </div>
+          <AISearchSugesstions handleSearch={handleSearch} />
         )}
         {localMessages.length > 0 && (
           <Messages
@@ -250,16 +233,10 @@ export const AISearch = () => {
       </div>
       <form className="flex mx-auto gap-2 w-full">
         <AISearchInput
-          input={input}
-          append={append}
-          handleSubmit={handleSubmit}
           isLoading={isLoading}
           stop={stop}
-          setInput={setInput}
-          attachments={attachments}
-          setAttachments={setAttachments}
           setMessages={setMessages}
-          toolsHitCheck={toolsHitCheck}
+          handleSearch={handleSearch}
         />
       </form>
     </div>
