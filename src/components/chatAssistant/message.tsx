@@ -61,8 +61,8 @@ const PurePreviewMessage = ({
             {(message.content || message.reasoning) && (
               <div className="flex flex-row gap-2 items-start w-full">
                 <div
-                  className={cn('w-full flex flex-col gap-4 bg-[#fff] px-3 py-2 rounded-xl', {
-                    'bg-primary text-primary-foreground ml-auto':
+                  className={cn('w-auto flex flex-col gap-4 bg-[#fff] px-3 py-2 rounded-xl', {
+                    'bg-[#E8D7FF] text-black ml-auto':
                       message.role === 'user',
                   })}
                 >

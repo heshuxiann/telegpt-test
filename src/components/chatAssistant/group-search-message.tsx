@@ -63,7 +63,7 @@ export const GroupSearchMessage = ({ message }: { message: Message }) => {
     }
   }, [message]);
   if (chatIds.length === 0) {
-    return null;
+    return <span>未找到相关群组</span>;
   }
   return (
     <div className="p-[10px] mx-[22px] rounded-[16px] border-[1px] border-[#D9D9D9]">

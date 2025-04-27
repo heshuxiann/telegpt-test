@@ -12,6 +12,8 @@ import UrgentCheckMessage from './urgent-check-message';
 import { useScrollToBottom } from './use-scroll-to-bottom';
 import { UserSearchMessage } from './user-search-message';
 
+import ErrorBoundary from './ErrorBoundary';
+
 import './messages.scss';
 
 interface MessagesProps {
@@ -60,11 +62,13 @@ function PureMessages({
           // }
           if (isGlobalSummary(message)) {
             return (
-              <GlobalSummaryMessage
-                message={message}
-                // eslint-disable-next-line react/jsx-no-bind
-                deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
-              />
+              <ErrorBoundary>
+                <GlobalSummaryMessage
+                  message={message}
+                  // eslint-disable-next-line react/jsx-no-bind
+                  deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
+                />
+              </ErrorBoundary>
             );
           } else if (isUrgentCheck(message)) {
             return (

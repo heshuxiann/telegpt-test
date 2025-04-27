@@ -104,6 +104,20 @@ class MessageStore extends ChataiDB {
     });
   }
 
+  async getAllMessages(): Promise<StoreMessage[]> {
+    const db = await this.getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(this.storeName, 'readonly');
+      const store = tx.objectStore(this.storeName);
+      const request = store.getAll();
+
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+      request.onerror = () => reject(new Error('Failed to fetch messages'));
+    });
+  }
+
   async delMessage(id: string): Promise<void> {
     const db = await this.getDB();
     return new Promise((resolve, reject) => {

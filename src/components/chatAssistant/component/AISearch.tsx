@@ -18,8 +18,6 @@ import vectorStore from '../vector-store';
 import { AISearchInput } from './AISearchInput';
 import AISearchSugesstions from './AISearchSugesstions';
 
-import SerenaIcon from '../assets/serena.png';
-
 const GLOBAL_SEARCH_CHATID = '777889';
 
 export const AISearch = () => {
@@ -71,17 +69,37 @@ export const AISearch = () => {
       },
     });
     const similarItems = vectorSearchResults.similarItems;
+    let searchResult = null;
     if (similarItems.length > 0) {
-      const chatIds = Array.from(new Set(similarItems.map((item) => (item?.metadata as { chatId: string })?.chatId).filter(Boolean)));
+      const chatIds = Array.from(new Set(similarItems.map((item) => {
+        if (item.score > 0.7) {
+          return (item?.metadata as { chatId: string })?.chatId;
+        }
+        return undefined;
+      }).filter(Boolean)));
+      if (chatIds.length > 0) {
+        searchResult = JSON.stringify(chatIds);
+      }
+    }
+    if (searchResult) {
       const message: UIMessage = {
         id: uuidv4(),
         role: 'assistant',
-        content: JSON.stringify(chatIds),
+        content: searchResult,
         createdAt: new Date(),
         parts: [],
         annotations: [{
           type: 'group-search',
         }],
+      };
+      setMessages((prev) => [...prev, message]);
+    } else {
+      const message: UIMessage = {
+        id: uuidv4(),
+        role: 'assistant',
+        content: 'No relevant group was found',
+        createdAt: new Date(),
+        parts: [],
       };
       setMessages((prev) => [...prev, message]);
     }
@@ -100,19 +118,37 @@ export const AISearch = () => {
       },
     });
     const similarItems = vectorSearchResults.similarItems;
-    // eslint-disable-next-line no-console
-    console.log('similarItems------>', similarItems);
+    let searchResult = null;
     if (similarItems.length > 0) {
-      const senderIds = Array.from(new Set(similarItems.map((item) => (item?.metadata as { senderId: string })?.senderId).filter(Boolean)));
+      const senderIds = Array.from(new Set(similarItems.map((item) => {
+        if (item.score > 0.7) {
+          return (item?.metadata as { senderId: string })?.senderId;
+        }
+        return undefined;
+      }).filter(Boolean)));
+      if (senderIds.length > 0) {
+        searchResult = JSON.stringify(senderIds);
+      }
+    }
+    if (searchResult) {
       const message: UIMessage = {
         id: uuidv4(),
         role: 'assistant',
-        content: JSON.stringify(senderIds),
+        content: searchResult,
         createdAt: new Date(),
         parts: [],
         annotations: [{
           type: 'user-search',
         }],
+      };
+      setMessages((prev) => [...prev, message]);
+    } else {
+      const message: UIMessage = {
+        id: uuidv4(),
+        role: 'assistant',
+        content: 'No relevant users was found',
+        createdAt: new Date(),
+        parts: [],
       };
       setMessages((prev) => [...prev, message]);
     }
@@ -123,8 +159,6 @@ export const AISearch = () => {
       k: 100,
     });
     const similarItems = vectorSearchResults.similarItems;
-    // eslint-disable-next-line no-console
-    console.log('similarItems------>', similarItems);
     if (similarItems.length > 0) {
       const messageList = similarItems.map((item) => {
         const { chatId, senderId } = item.metadata as { chatId:string;senderId:string };
@@ -187,13 +221,13 @@ export const AISearch = () => {
         if (toolResults && toolResults.length > 0) {
           toolResults.forEach((toolCall: any) => {
             if (toolCall.toolName === 'checkIsSearchGroup') {
-              searchGroup(inputValue);
+              searchGroup(toolCall.result.keyword);
             } else if (toolCall.toolName === 'checkIsSearchUser') {
-              searchUser(inputValue);
+              searchUser(toolCall.result.keyword);
             } else if (toolCall.toolName === 'nullTool') {
               // eslint-disable-next-line no-console
               console.log('没有命中工具');
-              searchMessage(inputValue);
+              searchMessage(toolCall.result.keyword);
             }
           });
         }
