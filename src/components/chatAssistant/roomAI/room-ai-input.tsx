@@ -15,73 +15,32 @@ import {
   useRef,
 } from 'react';
 import type {
-  Attachment,
-  ChatRequestOptions,
   Message,
 } from 'ai';
-import type { MenuProps } from 'antd';
-import { Dropdown } from 'antd';
 import cx from 'classnames';
-import equal from 'fast-deep-equal';
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
 import { sanitizeUIMessages } from '../../../lib/utils';
-import { Button } from './ui/button';
-import { Textarea } from './ui/textarea';
-import { ArrowUpIcon, MoreIcon, StopIcon } from './icons';
-import { PreviewAttachment } from './preview-attachment';
+import { StopIcon } from '../icons';
+import { Button } from '../ui/button';
+import { Textarea } from '../ui/textarea';
 
 function PureMultimodalInput({
-  chatId,
-  input,
-  setInput,
   isLoading,
   stop,
-  attachments,
-  setAttachments,
   setMessages,
-  handleSubmit,
+  handleInputSubmit,
   className,
-  summaryTodayMessages,
-  summaryUnreadMessage,
-  showUnreadSummary,
 }: {
-  chatId: string;
-  input: string;
-  setInput: (value: string) => void;
   isLoading: boolean;
   stop: () => void;
-  attachments: Array<Attachment>;
-  setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   setMessages: Dispatch<SetStateAction<Array<Message>>>;
-  handleSubmit: (
-    event?: {
-      preventDefault?: () => void;
-    },
-    chatRequestOptions?: ChatRequestOptions,
-  ) => void;
+  handleInputSubmit: (inputValue:string)=>void;
   className?: string;
-  summaryTodayMessages: () => void;
-  summaryUnreadMessage: () => void;
-  showUnreadSummary?:boolean;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
-  const [actionItems, setActionItems] = useState<MenuProps['items']>([]);
-
-  useEffect(() => {
-    setActionItems([
-      {
-        key: '1',
-        label: "Summarize today's messages",
-      },
-      showUnreadSummary && {
-        key: '2',
-        label: 'Summarize unread messages',
-      },
-    ].filter(Boolean));
-  }, [showUnreadSummary]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -108,12 +67,15 @@ function PureMultimodalInput({
     '',
   );
 
+  const [inputValue, setInputValue] = useState('');
+
   useEffect(() => {
     if (textareaRef.current) {
       const domValue = textareaRef.current.value;
       // Prefer DOM value over localStorage to handle hydration
       const finalValue = domValue || localStorageInput || '';
-      setInput(finalValue);
+      // setInput(finalValue);
+      setInputValue(finalValue);
       adjustHeight();
     }
     // Only run once after hydration
@@ -121,63 +83,37 @@ function PureMultimodalInput({
   }, []);
 
   useEffect(() => {
-    setLocalStorageInput(input);
-  }, [input, setLocalStorageInput]);
+    setLocalStorageInput(inputValue);
+  }, [inputValue, setLocalStorageInput]);
 
-  const handleActionsClick: MenuProps['onClick'] = (item) => {
-    // TODO: Implement actions
-    console.log(item);
-    if (item.key === '1') {
-      summaryTodayMessages();
-    } else if (item.key === '2') {
-      summaryUnreadMessage();
-    }
-  };
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(event.target.value);
+    setInputValue(event.target.value);
     adjustHeight();
   };
 
   const submitForm = useCallback(() => {
-    window.history.replaceState({}, '', `/chat/${chatId}`);
-
-    handleSubmit(undefined, {
-      experimental_attachments: attachments,
-    });
-
-    setAttachments([]);
+    if (!inputValue) {
+      return;
+    }
+    handleInputSubmit(inputValue);
+    setInputValue('');
     setLocalStorageInput('');
     resetHeight();
 
     if (width && width > 768) {
       textareaRef.current?.focus();
     }
-  }, [
-    attachments,
-    handleSubmit,
-    setAttachments,
-    setLocalStorageInput,
-    width,
-    chatId,
-  ]);
+  }, [handleInputSubmit, inputValue, setLocalStorageInput, width]);
 
   return (
-    <div className="relative w-full flex flex-col gap-4">
-      {(attachments.length > 0) && (
-        <div className="flex flex-row gap-2 overflow-x-scroll items-end">
-          {attachments.map((attachment) => (
-            <PreviewAttachment key={attachment.url} attachment={attachment} />
-          ))}
-        </div>
-      )}
-
+    <div className="relative w-full mx-[22px] flex flex-col gap-4">
       <Textarea
         ref={textareaRef}
         placeholder="Send a message..."
-        value={input}
+        value={inputValue}
         onChange={handleInput}
         className={cx(
-          'min-h-[24px] h-[76px] overflow-hidden resize-none rounded-2xl !text-base bg-muted pb-10 dark:border-zinc-700',
+          'min-h-[24px] h-[76px] overflow-hidden resize-none rounded-2xl !text-base bg-muted pb-10 focus-visible:!ring-0 !ring-offset-0',
           className,
         )}
         rows={2}
@@ -196,16 +132,11 @@ function PureMultimodalInput({
       />
 
       <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-col justify-end">
-        <Dropdown menu={{ items: actionItems, onClick: handleActionsClick }} placement="top" arrow trigger={['click']}>
-          <Button className="!bg-transparent p-1.5 h-fit text-[#e5e7eb]">
-            <MoreIcon />
-          </Button>
-        </Dropdown>
         {isLoading ? (
           <StopButton stop={stop} setMessages={setMessages} />
         ) : (
           <SendButton
-            input={input}
+            input={inputValue}
             submitForm={submitForm}
           />
         )}
@@ -214,13 +145,10 @@ function PureMultimodalInput({
   );
 }
 
-export const MultimodalInput = memo(
+export const RoomAIInput = memo(
   PureMultimodalInput,
   (prevProps, nextProps) => {
-    if (prevProps.input !== nextProps.input) return false;
     if (prevProps.isLoading !== nextProps.isLoading) return false;
-    if (prevProps.showUnreadSummary !== nextProps.showUnreadSummary) return false;
-    if (!equal(prevProps.attachments, nextProps.attachments)) return false;
 
     return true;
   },
@@ -258,14 +186,15 @@ function PureSendButton({
 }) {
   return (
     <Button
-      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
+      className="!px-0 !py-0 !w-[24px] !h-[24px] !bg-transparent "
       onClick={(event) => {
         event.preventDefault();
         submitForm();
       }}
       disabled={input.length === 0}
     >
-      <ArrowUpIcon size={14} />
+      {/* <ArrowUpIcon size={14} /> */}
+      <i className="icon icon-send text-[#B27AFF] text-[24px]" />
     </Button>
   );
 }

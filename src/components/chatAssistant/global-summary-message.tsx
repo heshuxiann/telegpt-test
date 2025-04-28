@@ -104,9 +104,8 @@ const ChatAvatar = ({
 
 const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; index: number }) => {
   const { title, summaryItems, summaryChatIds } = topicItem;
-  if (!summaryItems.length) return undefined;
-  if (!title) return undefined;
-
+  if (!summaryItems.length) return null;
+  if (!title) return null;
   const showMessageDetail = (relevantMessages: Array<{ chatId: string; messageIds: number[] }>) => {
     if (!relevantMessages.length) return;
     eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
@@ -117,37 +116,39 @@ const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; 
     });
   };
   return (
-    <div>
-      <div className="flex flex-row items-center flex-wrap">
-        <span className="text-[16px] font-bold mr-[24px]">{index + 1}.{title}</span>
-        {summaryChatIds ? (
-          <>
-            {
-              summaryChatIds.slice(0, 10).map((chatId: string) => {
-                return (
-                  <ChatAvatar size={20} chatId={chatId} />
-                );
-              })
-            }
-          </>
-        ) : null}
+    <ErrorBoundary>
+      <div>
+        <div className="flex flex-row items-center flex-wrap">
+          <span className="text-[16px] font-bold mr-[24px]">{index + 1}.{title}</span>
+          {summaryChatIds ? (
+            <>
+              {
+                summaryChatIds.slice(0, 10).map((chatId: string) => {
+                  return (
+                    <ChatAvatar size={20} chatId={chatId} />
+                  );
+                })
+              }
+            </>
+          ) : null}
+        </div>
+        <ul className="list-disc pl-[28px] text-[16px]">
+          {summaryItems.map((summaryItem: any) => {
+            const { subtitle, relevantMessages } = summaryItem;
+            if (!subtitle) return null;
+            return (
+              <li
+                role="button"
+                className="cursor-pointer"
+                onClick={() => showMessageDetail(relevantMessages)}
+              >
+                {subtitle}
+              </li>
+            );
+          })}
+        </ul>
       </div>
-      <ul className="list-disc pl-[28px] text-[16px]">
-        {summaryItems.map((summaryItem: any) => {
-          const { subtitle, relevantMessages } = summaryItem;
-          if (!subtitle) return undefined;
-          return (
-            <li
-              role="button"
-              className="cursor-pointer"
-              onClick={() => showMessageDetail(relevantMessages)}
-            >
-              {subtitle}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+    </ErrorBoundary>
   );
 };
 
@@ -161,15 +162,17 @@ const SummaryPenddingItem = ({ pendingItem }: { pendingItem: ISummaryPendingItem
     });
   };
   return (
-    <div
-      className="flex gap-[8px] my-[4px] cursor-pointer"
-      key={pendingItem.chatId}
-      onClick={showMessageDetail}
-    >
-      <img className="w-[18px] h-[18px]" src={CheckIcon} alt="" />
-      <span>{pendingItem.summary}</span>
-      <ChatAvatar size={20} chatId={pendingItem.chatId} />
-    </div>
+    <ErrorBoundary>
+      <div
+        className="flex gap-[8px] my-[4px] cursor-pointer"
+        key={pendingItem.chatId}
+        onClick={showMessageDetail}
+      >
+        <img className="w-[18px] h-[18px]" src={CheckIcon} alt="" />
+        <span>{pendingItem.summary}</span>
+        <ChatAvatar size={20} chatId={pendingItem.chatId} />
+      </div>
+    </ErrorBoundary>
   );
 };
 
@@ -186,24 +189,26 @@ const SummaryGarbageItem = ({ garBageItem }: { garBageItem: ISummaryGarbageItem 
     });
   };
   return (
-    <div
-      className="flex justify-start gap-[8px] my-[16px]"
-      key={garBageItem.chatId}
-      onClick={() => { showMessageDetail(chatId, relevantMessageIds); }}
-    >
-      <ChatAvatar chatId={chatId} size={44} />
-      <div>
-        <p className="text-[16px] font-semibold leading-[20px] mb-[4px]">{chatTitle}</p>
-        <div className="flex justify-start gap-[4px]">
-          {level === 'high' ? (
-            <span className="text-[#FF543D] text-[14px] whitespace-nowrap">🔴 High-Risk</span>
-          ) : (
-            <span className="text-[#FF9B05] text-[14px] whitespace-nowrap">🟡 Low-Risk</span>
-          )}
-          <span className="text-[14px] text-[#5E6272]">{summary}</span>
+    <ErrorBoundary>
+      <div
+        className="flex justify-start gap-[8px] my-[16px]"
+        key={garBageItem.chatId}
+        onClick={() => { showMessageDetail(chatId, relevantMessageIds); }}
+      >
+        <ChatAvatar chatId={chatId} size={44} />
+        <div>
+          <p className="text-[16px] font-semibold leading-[20px] mb-[4px]">{chatTitle}</p>
+          <div className="flex justify-start gap-[4px]">
+            {level === 'high' ? (
+              <span className="text-[#FF543D] text-[14px] whitespace-nowrap">🔴 High-Risk</span>
+            ) : (
+              <span className="text-[#FF9B05] text-[14px] whitespace-nowrap">🟡 Low-Risk</span>
+            )}
+            <span className="text-[14px] text-[#5E6272]">{summary}</span>
+          </div>
         </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 };
 
@@ -277,59 +282,62 @@ const ActionsItems = ({
 
 const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
   return (
-    <div>
-      <div className="flex items-center gap-[8px]">
-        <img className="w-[52px] h-[52px] rounded-full ml-[-60px]" src={SerenaLogoPath} alt="" />
-        <div>
-          <p className="text-[16px] font-semibold">Serena</p>
-          {summaryInfo?.summaryEndTime ? (
-            <p className="text-[14px] text-[#A8A6AC]">{formatTimestamp(summaryInfo.summaryEndTime)}</p>
-          ) : null}
-        </div>
-      </div>
-      <p className="text-[22px] font-bold mb-[16px]">Chat Summary</p>
-      <div className="flex items-center gap-[20px]">
-        <p className="flex items-center gap-[8px]">
-          <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
-          <div className="flex items-center">
-            <span className="mr-[4px]">时间范围:</span>
-            {summaryInfo?.summaryStartTime ? (
-              <span>{formatTimestamp(summaryInfo.summaryStartTime)} - </span>
-            ) : undefined}
+    <ErrorBoundary>
+      <div>
+        <div className="flex items-center gap-[8px]">
+          <img className="w-[52px] h-[52px] rounded-full ml-[-60px]" src={SerenaLogoPath} alt="" />
+          <div>
+            <p className="text-[16px] font-semibold">Serena</p>
             {summaryInfo?.summaryEndTime ? (
-              <span>{formatTimestamp(summaryInfo?.summaryEndTime)}</span>
+              <p className="text-[14px] text-[#A8A6AC]">{formatTimestamp(summaryInfo.summaryEndTime)}</p>
             ) : null}
           </div>
-        </p>
-        <p className="flex items-center gap-[8px]">
-          <img className="w-[16px] h-[16px]" src={MessageIcon} alt="" />
-          {summaryInfo?.summaryMessageCount ? (
-            <span>{summaryInfo?.summaryMessageCount}</span>
-          ) : null}
-        </p>
-      </div>
-      {summaryInfo?.summaryChatIds ? (
-        <div className="flex items-center gap-[8px] mb-[18px]">
-          <img className="w-[16px] h-[16px]" src={UserIcon} alt="" />
-          <span>聊天群组/人: </span>
-          <div className="flex items-center">
-            {summaryInfo.summaryChatIds.slice(0, 10).map((id: string, index: number) => {
-              return (
-                <ChatAvatar
-                  style={{ zIndex: `${String(summaryInfo.summaryChatIds.length - index)};` }}
-                  chatId={id}
-                  size={24}
-                  classNames="summary-avatar-group !border-solid-[2px] !border-white ml-[-4px]"
-                />
-              );
-            })}
-            {summaryInfo.summaryChatIds.length > 10 ? (
-              <div className="w-[24px] h-[24px] rounded-full bg-[#979797] text-[12px] whitespace-nowrap flex items-center justify-center">{summaryInfo.summaryChatIds.length - 10}+</div>
-            ) : undefined}
-          </div>
         </div>
-      ) : null}
-    </div>
+        <p className="text-[22px] font-bold mb-[16px]">Chat Summary</p>
+        <div className="flex items-center gap-[20px]">
+          <p className="flex items-center gap-[8px]">
+            <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
+            <div className="flex items-center">
+              <span className="mr-[4px]">时间范围:</span>
+              {summaryInfo?.summaryStartTime ? (
+                <span>{formatTimestamp(summaryInfo.summaryStartTime)} - </span>
+              ) : null}
+              {summaryInfo?.summaryEndTime ? (
+                <span>{formatTimestamp(summaryInfo?.summaryEndTime)}</span>
+              ) : null}
+            </div>
+          </p>
+          <p className="flex items-center gap-[8px]">
+            <img className="w-[16px] h-[16px]" src={MessageIcon} alt="" />
+            {summaryInfo?.summaryMessageCount ? (
+              <span>{summaryInfo?.summaryMessageCount}</span>
+            ) : null}
+          </p>
+        </div>
+        {summaryInfo?.summaryChatIds ? (
+          <div className="flex items-center gap-[8px] mb-[18px]">
+            <img className="w-[16px] h-[16px]" src={UserIcon} alt="" />
+            <span>聊天群组/人: </span>
+            <div className="flex items-center">
+              {summaryInfo.summaryChatIds.slice(0, 10).map((id: string, index: number) => {
+                return (
+                  <ChatAvatar
+                    style={{ zIndex: `${String(summaryInfo.summaryChatIds.length - index)};` }}
+                    chatId={id}
+                    size={24}
+                    classNames="summary-avatar-group !border-solid-[2px] !border-white ml-[-4px]"
+                    key={id}
+                  />
+                );
+              })}
+              {summaryInfo.summaryChatIds.length > 10 ? (
+                <div className="w-[24px] h-[24px] rounded-full bg-[#979797] text-[12px] whitespace-nowrap flex items-center justify-center">{summaryInfo.summaryChatIds.length - 10}+</div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </ErrorBoundary>
   );
 };
 
@@ -366,9 +374,7 @@ const MainSummaryContent = ({
             }
           </p>
           {customizationTopic.map((item, index) => (
-            <ErrorBoundary>
-              <SummaryTopicItem topicItem={item} index={index} />
-            </ErrorBoundary>
+            <SummaryTopicItem topicItem={item} index={index} />
           ))}
         </div>
       )}
@@ -380,9 +386,7 @@ const MainSummaryContent = ({
             <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
           </p>
           {mainTopic.map((item, index) => (
-            <ErrorBoundary>
-              <SummaryTopicItem topicItem={item} index={index} />
-            </ErrorBoundary>
+            <SummaryTopicItem topicItem={item} index={index} />
           ))}
         </div>
       )}
@@ -421,7 +425,7 @@ const SummaryContent = ({
 }) => {
   return (
     <>
-      {(!mainTopic.length && !pendingMatters.length && !customizationTopic.length) ? undefined : (
+      {(!mainTopic.length && !pendingMatters.length && !customizationTopic.length) ? null : (
         <MainSummaryContent
           customizationTemplate={customizationTemplate}
           customizationTopic={customizationTopic}
@@ -451,7 +455,7 @@ const SummaryContent = ({
                 <span className="mr-[4px]">时间范围:</span>
                 {summaryInfo?.summaryStartTime ? (
                   <span>{formatTimestamp(summaryInfo.summaryStartTime)} - </span>
-                ) : undefined}
+                ) : null}
                 {summaryInfo?.summaryEndTime ? (
                   <span>{formatTimestamp(summaryInfo?.summaryEndTime)}</span>
                 ) : null}

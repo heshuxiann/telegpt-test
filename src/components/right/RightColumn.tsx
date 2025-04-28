@@ -24,9 +24,9 @@ import useLastCallback from '../../hooks/useLastCallback';
 import useLayoutEffectWithPrevDeps from '../../hooks/useLayoutEffectWithPrevDeps';
 import useWindowSize from '../../hooks/window/useWindowSize';
 
+import RoomAIWrapper from '../chatAssistant/roomAI/RoomAIWrapper';
 import Transition from '../ui/Transition';
 import AddChatMembers from './AddChatMembers';
-import ChatAI from './ChatAI/ChatAI';
 import CreateTopic from './CreateTopic.async';
 import EditTopic from './EditTopic.async';
 import GifSearch from './GifSearch.async';
@@ -357,8 +357,8 @@ const RightColumn: FC<OwnProps & StateProps> = ({
         return <CreateTopic onClose={close} isActive={isOpen && isActive} />;
       case RightColumnContent.EditTopic:
         return <EditTopic onClose={close} isActive={isOpen && isActive} />;
-      // case RightColumnContent.ChatAI:
-      //   return <ChatAI chatId={chatId} threadId={threadId} onClose={close} />;
+      case RightColumnContent.ChatAI:
+        return <RoomAIWrapper chatId={chatId} threadId={threadId} onClose={close} />;
     }
 
     return undefined; // Unreachable

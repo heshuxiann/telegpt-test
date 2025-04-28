@@ -26,12 +26,11 @@ import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
 import { sanitizeUIMessages } from '../../lib/utils';
+import { Button } from './ui/button';
+import { Textarea } from './ui/textarea';
+import { ArrowUpIcon, StopIcon } from './icons';
+import { PreviewAttachment } from './preview-attachment';
 import vectorStore from './vector-store';
-
-import { ArrowUpIcon, StopIcon } from '../right/ChatAI/icons';
-import { PreviewAttachment } from '../right/ChatAI/preview-attachment';
-import { Button } from '../right/ChatAI/ui/button';
-import { Textarea } from '../right/ChatAI/ui/textarea';
 
 function PureMultimodalInput({
   chatId,
