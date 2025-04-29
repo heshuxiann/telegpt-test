@@ -151,6 +151,7 @@
     "croppie": "^2.6.5",
     "emoji-data-ios": "git+https://github.com/korenskoy/emoji-data-ios#de1a69aff2c8eb7548df4e6bcf50c7d2304792fc",
     "framer-motion": "^12.4.10",
+    "gapi-script": "^1.2.0",
     "idb": "^8.0.2",
     "idb-keyval": "^6.2.1",
     "lowlight": "^2.9.0",

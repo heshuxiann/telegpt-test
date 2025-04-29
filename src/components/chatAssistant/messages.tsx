@@ -5,6 +5,8 @@ import type { Message } from 'ai';
 import equal from 'fast-deep-equal';
 
 import GlobalSummaryMessage from './global-summary-message';
+import GoogleEventCreateMessage from './google-event-create-messages';
+import GoogleLoginAuthMessage from './google-login-auth-message';
 import { GroupSearchMessage } from './group-search-message';
 import { PreviewMessage, ThinkingMessage } from './message';
 import SummaryMessage from './summary-message';
@@ -47,6 +49,12 @@ function PureMessages({
   const isUserSearch = (message:Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'user-search') ?? false;
   };
+  const isGoogleAuth = (message:Message) => {
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'google-auth') ?? false;
+  };
+  const isGoogleEventInsert = (message:Message) => {
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'google-event-insert') ?? false;
+  };
   const handleDeleteMessage = (message:Message, prevMessage:Message) => {
     deleteMessage?.(message.id);
     deleteMessage?.(prevMessage.id);
@@ -86,6 +94,10 @@ function PureMessages({
             return (
               <UserSearchMessage message={message} />
             );
+          } else if (isGoogleAuth(message)) {
+            return (<GoogleLoginAuthMessage key={message.id} />);
+          } else if (isGoogleEventInsert(message)) {
+            return (<GoogleEventCreateMessage />);
           } else {
             return (
               <PreviewMessage
