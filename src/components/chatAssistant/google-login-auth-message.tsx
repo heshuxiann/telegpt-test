@@ -39,6 +39,7 @@ const GoogleLoginAuthMessage = ({ message }:{ message:Message }) => {
     auth2.attachClickHandler(element, {}, (googleUser:any) => {
       updateUser(googleUser);
       updateToken(googleUser);
+      eventEmitter.emit(Actions.GoogleAuthSuccess);
     }, (error:any) => {
       console.log(JSON.stringify(error));
     });

@@ -88,6 +88,18 @@ const ChatAIRoom = (props: StateProps) => {
     }]);
   }, [setMessages]);
 
+  const addInsertGoogleEventMessage = useCallback(() => {
+    setMessages((prev) => [...prev, {
+      role: 'assistant',
+      id: uuidv4(),
+      createdAt: new Date(),
+      content: '',
+      annotations: [{
+        type: 'google-event-insert',
+      }],
+    }]);
+  }, [setMessages]);
+
   const handleCreateCalendarSuccess = useCallback((payload: any) => {
     const { message, response } = payload;
     if (response?.error) {
@@ -122,6 +134,9 @@ const ChatAIRoom = (props: StateProps) => {
       setMessages(mergeMesssage as UIMessage[]);
     }
   }, [addAuthMessage, messages, setMessages]);
+  const handleGoogleAuthSuccess = useCallback(() => {
+    addInsertGoogleEventMessage();
+  }, [addInsertGoogleEventMessage]);
   const updateToken = useCallback((payload:{ message:Message;token:string }) => {
     const { message, token } = payload;
     tokenRef.current = token;
@@ -134,11 +149,13 @@ const ChatAIRoom = (props: StateProps) => {
   useEffect(() => {
     eventEmitter.on(Actions.CreateCalendarSuccess, handleCreateCalendarSuccess);
     eventEmitter.on(Actions.UpdateGoogleToken, updateToken);
+    eventEmitter.on(Actions.GoogleAuthSuccess, handleGoogleAuthSuccess);
     return () => {
       eventEmitter.off(Actions.CreateCalendarSuccess, handleCreateCalendarSuccess);
       eventEmitter.off(Actions.UpdateGoogleToken, updateToken);
+      eventEmitter.off(Actions.GoogleAuthSuccess, handleGoogleAuthSuccess);
     };
-  }, [handleCreateCalendarSuccess, updateToken]);
+  }, [handleCreateCalendarSuccess, handleGoogleAuthSuccess, updateToken]);
 
   useEffect(() => {
     if (!isLoading && chatId) {
@@ -169,15 +186,7 @@ const ChatAIRoom = (props: StateProps) => {
               if (!tokenRef.current) {
                 addAuthMessage();
               } else {
-                setMessages((prev) => [...prev, {
-                  role: 'assistant',
-                  id: uuidv4(),
-                  createdAt: new Date(),
-                  content: '',
-                  annotations: [{
-                    type: 'google-event-insert',
-                  }],
-                }]);
+                addInsertGoogleEventMessage();
               }
             } else if (toolCall.toolName === 'nullTool') {
               // eslint-disable-next-line no-console
