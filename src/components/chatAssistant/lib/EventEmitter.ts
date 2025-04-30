@@ -11,6 +11,10 @@ export enum Actions {
   GlobalSummaryTemplateUpdate = 'GlobalSummaryTemplateUpdate',
   // summary chats
   UpdateSummaryChats = 'UpdateSummaryChats',
+  // google
+  CreateCalendarSuccess = 'CreateCalendarSuccess',
+  GoogleAuthSuccess = 'GoogleAuthSuccess',
+  UpdateGoogleToken = 'UpdateGoogleToken',
 }
 class EventEmitter {
   private static instance: EventEmitter;

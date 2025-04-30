@@ -7,9 +7,12 @@ import React, {
 } from 'react';
 import { loadAuth2, loadGapiInsideDOM } from 'gapi-script';
 
+import eventEmitter, { Actions } from './lib/EventEmitter';
+import { CHATAI_IDB_STORE } from '../../util/browser/idb';
+
 import GoogleIcon from './assets/google.png';
 
-const GoogleLoginAuthMessage = () => {
+const GoogleLoginAuthMessage = ({ message }:{ message:Message }) => {
   const GOOGLE_APP_CLIENT_ID = useRef('847573679345-qq64ofbqhv7gg61e04dbrk8b92djf1fb.apps.googleusercontent.com');
   const [gapi, setGapi] = useState(null);
   const [user, setUser] = useState<any>(null);
@@ -67,6 +70,11 @@ const GoogleLoginAuthMessage = () => {
   const updateToken = (currentUser: any) => {
     const token = currentUser.getAuthResponse().access_token;
     console.log(token);
+    CHATAI_IDB_STORE.set('google-token', token);
+    eventEmitter.emit(Actions.UpdateGoogleToken, {
+      message,
+      token,
+    });
   };
   return (
     <div className="px-[12px]">

@@ -10,13 +10,16 @@ import React, {
 } from 'react';
 import type { Message } from '@ai-sdk/react';
 import { useChat } from '@ai-sdk/react';
-import { loadAuth2, loadGapiInsideDOM } from 'gapi-script';
+import type { UIMessage } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
+import { getActions } from '../../../global';
 
 import type { ApiChat } from '../../../api/types';
 import type { ApiMessage } from '../../../api/types/messages';
 import type { ThreadId } from '../../../types';
 
+import eventEmitter, { Actions } from '../lib/EventEmitter';
+import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import { Messages } from '../messages';
 import { ChataiMessageStore } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
@@ -38,15 +41,12 @@ interface StateProps {
   onClose?: () => void;
 }
 const ChatAIRoom = (props: StateProps) => {
+  const { showNotification } = getActions();
   const { chatId } = props;
-  const [localChatAiMessages, setLocalChatAiMessages] = useState<Message[]>([]);
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
-  const [gapi, setGapi] = useState(null);
-  const [user, setUser] = useState<any>(null);
-  const tokenRef = useRef(null);
-  const GOOGLE_APP_CLIENT_ID = useRef('847573679345-qq64ofbqhv7gg61e04dbrk8b92djf1fb.apps.googleusercontent.com');
+  const tokenRef = useRef<string | null>(null);
   const {
-    messages, handleSubmit, setMessages, input, setInput, append, isLoading, stop,
+    messages, setMessages, append, isLoading, stop,
   } = useChat({
     api: 'https://telegpt-three.vercel.app/chat',
     id: chatId,
@@ -54,11 +54,19 @@ const ChatAIRoom = (props: StateProps) => {
   });
 
   useEffect(() => {
+    CHATAI_IDB_STORE.get('google-token').then((token) => {
+      if (token) {
+        tokenRef.current = token as string;
+      }
+    });
+  }, []);
+
+  useEffect(() => {
     if (chatId) {
       ChataiMessageStore.getMessages(chatId, undefined, 10)?.then((res) => {
         if (res.messages) {
           const localChatAiMessages = parseStoreMessage2Message(res.messages);
-          setLocalChatAiMessages(localChatAiMessages);
+          setMessages((prev) => [...prev, ...localChatAiMessages]);
         }
         setPageInfo({
           lastTime: res.lastTime,
@@ -66,42 +74,71 @@ const ChatAIRoom = (props: StateProps) => {
         });
       });
     }
-  }, [chatId]);
+  }, [chatId, setMessages]);
 
-  const updateUser = (currentUser: any) => {
-    const name = currentUser.getBasicProfile().getName();
-    const profileImg = currentUser.getBasicProfile().getImageUrl();
-    setUser({
-      name,
-      profileImg,
-    });
-  };
+  const addAuthMessage = useCallback(() => {
+    setMessages((prev) => [...prev, {
+      role: 'assistant',
+      id: uuidv4(),
+      createdAt: new Date(),
+      content: 'Please login first',
+      annotations: [{
+        type: 'google-auth',
+      }],
+    }]);
+  }, [setMessages]);
 
-  const updateToken = (currentUser: any) => {
-    const token = currentUser.getAuthResponse().access_token;
-    // setToken(token);
-    tokenRef.current = token;
-  };
-
-  useEffect(() => {
-    const loadGapi = async () => {
-      const newGapi = await loadGapiInsideDOM();
-      setGapi(newGapi);
-    };
-    loadGapi();
-  }, []);
-
-  useEffect(() => {
-    if (!gapi) return;
-    const setAuth2 = async () => {
-      const auth2 = await loadAuth2(gapi, GOOGLE_APP_CLIENT_ID.current, 'https://www.googleapis.com/auth/calendar');
-      if (auth2.isSignedIn.get()) {
-        updateUser(auth2.currentUser.get());
-        updateToken(auth2.currentUser.get());
+  const handleCreateCalendarSuccess = useCallback((payload: any) => {
+    const { message, response } = payload;
+    if (response?.error) {
+      if (response.error?.code === 401) {
+        addAuthMessage();
+        return;
       }
+      showNotification({
+        message: response.error?.message || 'Create Calendar Failed',
+      });
+    } else {
+      ChataiMessageStore.delMessage(message?.id);
+      const newMessage = messages.filter((item) => item.id !== message?.id);
+      const appendMessage = [
+        {
+          id: uuidv4(),
+          role: 'assistant',
+          content: 'I\'ll send the meeting invitation shortly. Please check your inbox in the next few minutes.',
+          createdAt: new Date(),
+          parts: [],
+        }, {
+          id: uuidv4(),
+          role: 'assistant',
+          content: JSON.stringify(response),
+          createdAt: new Date(),
+          annotations: [{
+            type: 'google-event-detail',
+          }],
+        },
+      ];
+      const mergeMesssage = [...newMessage, ...appendMessage];
+      setMessages(mergeMesssage as UIMessage[]);
+    }
+  }, [addAuthMessage, messages, setMessages]);
+  const updateToken = useCallback((payload:{ message:Message;token:string }) => {
+    const { message, token } = payload;
+    tokenRef.current = token;
+    if (message) {
+      ChataiMessageStore.delMessage(message.id);
+      setMessages((prev) => prev.filter((item) => item.id !== message.id));
+    }
+  }, [setMessages]);
+
+  useEffect(() => {
+    eventEmitter.on(Actions.CreateCalendarSuccess, handleCreateCalendarSuccess);
+    eventEmitter.on(Actions.UpdateGoogleToken, updateToken);
+    return () => {
+      eventEmitter.off(Actions.CreateCalendarSuccess, handleCreateCalendarSuccess);
+      eventEmitter.off(Actions.UpdateGoogleToken, updateToken);
     };
-    setAuth2();
-  }, [gapi]);
+  }, [handleCreateCalendarSuccess, updateToken]);
 
   useEffect(() => {
     if (!isLoading && chatId) {
@@ -111,7 +148,7 @@ const ChatAIRoom = (props: StateProps) => {
   }, [messages, isLoading, chatId]);
 
   const toolsHitCheck = (inputValue: string) => {
-    fetch('http://10.1.4.120:3001/api/toolcheck', {
+    fetch('https://telegpt-three.vercel.app/tool-check', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -130,15 +167,7 @@ const ChatAIRoom = (props: StateProps) => {
             if (toolCall.toolName === 'checkIsCreateMeet') {
               // TODO createMeet
               if (!tokenRef.current) {
-                setMessages((prev) => [...prev, {
-                  role: 'assistant',
-                  id: uuidv4(),
-                  createdAt: new Date(),
-                  content: 'Please login first',
-                  annotations: [{
-                    type: 'google-auth',
-                  }],
-                }]);
+                addAuthMessage();
               } else {
                 setMessages((prev) => [...prev, {
                   role: 'assistant',
@@ -181,7 +210,6 @@ const ChatAIRoom = (props: StateProps) => {
         {/* {messages.map((message) => {
           return <StatusResponse content={message.content} />;
         })} */}
-        {localChatAiMessages && <Messages isLoading messages={localChatAiMessages} />}
         <Messages
           isLoading={isLoading}
           messages={messages}

@@ -1,7 +1,9 @@
+/* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
 import React, { useCallback, useEffect, useState } from 'react';
+import type { Message } from 'ai';
 import {
   Button, DatePicker, Input,
 } from 'antd';
@@ -9,14 +11,17 @@ import type { RangePickerProps } from 'antd/es/date-picker';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 
-import { DeltaIcon } from './icons';
+import eventEmitter, { Actions } from './lib/EventEmitter';
+import { CHATAI_IDB_STORE } from '../../util/browser/idb';
+import { CloseIcon } from './icons';
 
 import CalendarIcon from './assets/calendar.png';
 import DefaultAvatar from './assets/default-avatar.png';
+import GoogleMeetIcon from './assets/google-meet.png';
 import UserIcon from './assets/user.png';
 import WriteIcon from './assets/write.png';
 
-const FormLabel = (props:{ lable:'title' | 'time' | 'guests' }) => {
+export const FormLabel = (props:{ lable:'title' | 'time' | 'guests' | 'meet' }) => {
   const [title, setTitle] = useState('');
   const [icon, setIcon] = useState('');
   const { lable: label } = props;
@@ -34,6 +39,10 @@ const FormLabel = (props:{ lable:'title' | 'time' | 'guests' }) => {
         setIcon(UserIcon);
         setTitle('Guests');
         break;
+      case 'meet':
+        setIcon(GoogleMeetIcon);
+        setTitle('Meeting link');
+        break;
     }
   }, [label]);
   return (
@@ -50,18 +59,21 @@ const ErrorTip = ({ message }:{ message:string }) => {
   );
 };
 
-const EmailItem = ({ email }:{ email:string }) => {
+const EmailItem = ({ email, onDelete }:{ email:string;onDelete:(email:string)=>void }) => {
   return (
     <div className="flex items-center gap-[8px] py-[10px]">
       <img className="w-[24px] h-[24px] rounded-full" src={DefaultAvatar} alt="" />
       <span className="text-[14px] text-black">{email}</span>
-      <div className="ml-auto">
-        <DeltaIcon />
+      <div
+        className="ml-auto cursor-pointer w-[20px] h-[20px] rounded-full text-[#979797] bg-[#F3F3F3] flex items-center justify-center"
+        onClick={() => onDelete(email)}
+      >
+        <CloseIcon size={14} />
       </div>
     </div>
   );
 };
-const GoogleEventCreateMessage = () => {
+const GoogleEventCreateMessage = ({ message }:{ message:Message }) => {
   const disabledDate: RangePickerProps['disabledDate'] = useCallback((current: dayjs.Dayjs) => {
     // Can not select days before today and today
     return current && current < dayjs().startOf('day');
@@ -99,6 +111,10 @@ const GoogleEventCreateMessage = () => {
   }, []);
   const handleEmailComplete = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const emailStr = e.target.value;
+    if (!emailStr) {
+      setEmail('');
+      return;
+    }
     if (validateEmail(emailStr)) {
       setEmails((prev) => [...prev, emailStr]);
       setEmail('');
@@ -109,6 +125,10 @@ const GoogleEventCreateMessage = () => {
   }, []);
   const handleEmailEnter = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     const emailStr = e.currentTarget.value;
+    if (!emailStr) {
+      setEmail('');
+      return;
+    }
     if (validateEmail(emailStr)) {
       setEmails((prev) => [...prev, emailStr]);
       setEmail('');
@@ -117,7 +137,10 @@ const GoogleEventCreateMessage = () => {
       setEmailError('Please enter the correct email address');
     }
   }, []);
-  const handleSubmit = useCallback(() => {
+  const handleDeleteEmail = useCallback((email:string) => {
+    setEmails((prev) => prev.filter((item) => item !== email));
+  }, []);
+  const handleSubmit = useCallback(async () => {
     if (!title) {
       setTitleError('Please enter the title');
       return;
@@ -125,10 +148,57 @@ const GoogleEventCreateMessage = () => {
     if (!startDate || !endDate) {
       setDateError('Please select the date');
     }
-  }, [endDate, startDate, title]);
+    const googleToken = await CHATAI_IDB_STORE.get('google-token');
+    const attendees:{ email:string }[] = [];
+    if (emails.length) {
+      emails.forEach((email) => {
+        attendees.push({
+          email,
+        });
+      });
+    }
+    const event = {
+      summary: title,
+      start: { dateTime: new Date(startDate), timeZone: 'Asia/Shanghai' },
+      end: { dateTime: new Date(endDate), timeZone: 'Asia/Shanghai' },
+      attendees,
+      reminders: {
+        useDefault: false,
+        overrides: [
+          { method: 'email', minutes: 30 },
+          { method: 'popup', minutes: 10 },
+        ],
+      },
+      conferenceData: {
+        createRequest: {
+          requestId: `test-${Date.now()}`,
+          conferenceSolutionKey: { type: 'hangoutsMeet' },
+        },
+      },
+    };
+    try {
+      fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&alt=json&key=AIzaSyAtEl_iCCVN7Gv-xs1kfpcGCfD9IYO-UhU', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${googleToken}`,
+        },
+        body: JSON.stringify(event),
+      }).then((response) => response.json()).then((res) => {
+        console.log(res, '------创建日历');
+        eventEmitter.emit(Actions.CreateCalendarSuccess, {
+          message,
+          response: res,
+        });
+      }).catch((err) => {
+        console.log(err, '------创建日历失败');
+      });
+    } catch (err) {
+      console.log(err, '------创建日历失败');
+    }
+  }, [emails, endDate, message, startDate, title]);
   return (
     <div className="google-event-create-message px-[12px]">
-      <div className="p-[10px] border-solid border-[#D9D9D9] rounded-[16px] bg-white w-[326px]">
+      <div className="p-[10px] border border-solid border-[#D9D9D9] rounded-[16px] bg-white w-[326px]">
         <span className="text-[14px] font-semibold mb-[16px]">Please tell me the event details. </span>
         <div className="flex flex-col gap-[8px] mb-[12px]">
           <FormLabel lable="title" />
@@ -164,7 +234,7 @@ const GoogleEventCreateMessage = () => {
           {emailError && <ErrorTip message={emailError} />}
           {emails.length > 0 && (
             emails.map((email) => (
-              <EmailItem email={email} key={email} />
+              <EmailItem email={email} key={email} onDelete={handleDeleteEmail} />
             ))
           )}
         </div>

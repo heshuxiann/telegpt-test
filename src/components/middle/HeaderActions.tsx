@@ -305,7 +305,7 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
 
   return (
     <div className="HeaderActions">
-      {/* <Button
+      <Button
         className="chat-ai-button"
         round
         ripple={!isMobile}
@@ -316,7 +316,7 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
         onClick={handleChatAIOpen}
       >
         <img src={chatAILogoPath} alt="ai" />
-      </Button> */}
+      </Button>
       {/* {!isForForum && canTranslate && (
         <DropdownMenu
           className="stickers-more-menu with-menu-transitions"

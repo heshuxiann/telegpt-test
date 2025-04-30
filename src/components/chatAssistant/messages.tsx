@@ -6,6 +6,7 @@ import equal from 'fast-deep-equal';
 
 import GlobalSummaryMessage from './global-summary-message';
 import GoogleEventCreateMessage from './google-event-create-messages';
+import GoogleEventDetailMessage from './google-event-detail-message';
 import GoogleLoginAuthMessage from './google-login-auth-message';
 import { GroupSearchMessage } from './group-search-message';
 import { PreviewMessage, ThinkingMessage } from './message';
@@ -29,7 +30,7 @@ function PureMessages({
   messages,
   deleteMessage,
 }: MessagesProps) {
-  // const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
+  const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
   const isAuxiliary = (message:Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'isAuxiliary' in item && item.isAuxiliary === true) ?? false;
   };
@@ -55,12 +56,16 @@ function PureMessages({
   const isGoogleEventInsert = (message:Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'google-event-insert') ?? false;
   };
+  const isGoogleEventDetail = (message:Message) => {
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'google-event-detail') ?? false;
+  };
   const handleDeleteMessage = (message:Message, prevMessage:Message) => {
     deleteMessage?.(message.id);
     deleteMessage?.(prevMessage.id);
   };
   return (
     <div
+      ref={messagesContainerRef}
       className="flex flex-col min-w-0 gap-[10px] flex-1 overflow-y-scroll pt-4 ai-message-container"
     >
       {messages.map((message, index) => {
@@ -95,9 +100,11 @@ function PureMessages({
               <UserSearchMessage message={message} />
             );
           } else if (isGoogleAuth(message)) {
-            return (<GoogleLoginAuthMessage key={message.id} />);
+            return (<GoogleLoginAuthMessage key={message.id} message={message} />);
           } else if (isGoogleEventInsert(message)) {
-            return (<GoogleEventCreateMessage />);
+            return (<GoogleEventCreateMessage key={message.id} message={message} />);
+          } else if (isGoogleEventDetail(message)) {
+            return (<GoogleEventDetailMessage key={message.id} message={message} />);
           } else {
             return (
               <PreviewMessage
@@ -116,10 +123,10 @@ function PureMessages({
         && messages.length > 0
         && messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
 
-      {/* <div
+      <div
         ref={messagesEndRef}
         className="shrink-0 min-w-[24px] min-h-[24px]"
-      /> */}
+      />
     </div>
   );
 }
