@@ -2082,7 +2082,7 @@ addActionHandler('requestMessageTranslation', (global, actions, payload): Action
   //   chatId, id, toLanguageCode = selectTranslationLanguage(global), tabId = getCurrentTabId(),
   // } = payload;
   const {
-    chatId, id, toLanguageCode = global.settings.byKey.autoTranslateLanguage || 'en', tabId = getCurrentTabId(),
+    chatId, id, toLanguageCode = 'en', tabId = getCurrentTabId(),
   } = payload;
 
   global = updateRequestedMessageTranslation(global, chatId, id, toLanguageCode, tabId);

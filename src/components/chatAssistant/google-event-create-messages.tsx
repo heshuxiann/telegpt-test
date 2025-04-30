@@ -238,8 +238,8 @@ const GoogleEventCreateMessage = ({ message }:{ message:Message }) => {
             ))
           )}
         </div>
-        <Button type="primary" htmlType="submit" className="w-full" onClick={handleSubmit}>
-          创建会议
+        <Button type="primary" className="!bg-[#8C42F0] w-full" htmlType="submit" onClick={handleSubmit}>
+          Confirm
         </Button>
       </div>
     </div>

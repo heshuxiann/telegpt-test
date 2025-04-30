@@ -5,6 +5,7 @@
 import React, {
   useCallback, useEffect, useRef, useState,
 } from 'react';
+import type { Message } from 'ai';
 import { loadAuth2, loadGapiInsideDOM } from 'gapi-script';
 
 import eventEmitter, { Actions } from './lib/EventEmitter';
@@ -24,6 +25,16 @@ const GoogleLoginAuthMessage = ({ message }:{ message:Message }) => {
     loadGapi();
   }, []);
 
+  const updateToken = useCallback((currentUser: any) => {
+    const token = currentUser.getAuthResponse().access_token;
+    console.log(token);
+    CHATAI_IDB_STORE.set('google-token', token);
+    eventEmitter.emit(Actions.UpdateGoogleToken, {
+      message,
+      token,
+    });
+  }, [message]);
+
   const attachSignin = useCallback((element:any, auth2:any) => {
     auth2.attachClickHandler(element, {}, (googleUser:any) => {
       updateUser(googleUser);
@@ -31,7 +42,7 @@ const GoogleLoginAuthMessage = ({ message }:{ message:Message }) => {
     }, (error:any) => {
       console.log(JSON.stringify(error));
     });
-  }, []);
+  }, [updateToken]);
 
   useEffect(() => {
     if (!gapi) return;
@@ -46,7 +57,7 @@ const GoogleLoginAuthMessage = ({ message }:{ message:Message }) => {
       }
     };
     setAuth2();
-  }, [attachSignin, gapi]);
+  }, [attachSignin, gapi, updateToken]);
 
   useEffect(() => {
     if (!gapi) return;
@@ -67,15 +78,6 @@ const GoogleLoginAuthMessage = ({ message }:{ message:Message }) => {
     setUser({ name, profileImg });
   };
 
-  const updateToken = (currentUser: any) => {
-    const token = currentUser.getAuthResponse().access_token;
-    console.log(token);
-    CHATAI_IDB_STORE.set('google-token', token);
-    eventEmitter.emit(Actions.UpdateGoogleToken, {
-      message,
-      token,
-    });
-  };
   return (
     <div className="px-[12px]">
       <div className="p-[10px] border-solid border-[#D9D9D9] rounded-[16px] bg-white w-[316px]">

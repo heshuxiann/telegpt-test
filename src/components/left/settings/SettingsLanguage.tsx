@@ -32,7 +32,7 @@ type OwnProps = {
 type StateProps = {
   isCurrentUserPremium: boolean;
   languages?: ApiLanguage[];
-} & Pick<ISettings, | 'language' | 'canTranslate' | 'canTranslateChats' | 'doNotTranslate' | 'autoTranslate' | 'autoTranslateLanguage'>;
+} & Pick<ISettings, | 'language' | 'canTranslate' | 'canTranslateChats' | 'doNotTranslate'>;
 
 const SettingsLanguage: FC<OwnProps & StateProps> = ({
   isActive,
@@ -40,10 +40,8 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
   languages,
   language,
   // canTranslate,
-  // autoTranslate,
   // canTranslateChats,
   // doNotTranslate,
-  // autoTranslateLanguage,
   // onScreenSelect,
   onReset,
 }) => {
@@ -95,9 +93,6 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
   // const handleShouldTranslateChange = useLastCallback((newValue: boolean) => {
   //   setSettingOption({ canTranslate: newValue });
   // });
-  // const handleAutoTranslateChange = useLastCallback((newValue: boolean) => {
-  //   setSettingOption({ autoTranslate: newValue });
-  // });
 
   // const handleShouldTranslateChatsChange = useLastCallback((newValue: boolean) => {
   //   setSettingOption({ canTranslateChats: newValue });
@@ -128,10 +123,6 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
   //   onScreenSelect(SettingsScreens.DoNotTranslate);
   // });
 
-  // const handleAutoTranslateSelectOpen = useLastCallback(() => {
-  //   onScreenSelect(SettingsScreens.AutoTranslate);
-  // });
-
   useHistoryBack({
     isActive,
     onBack: onReset,
@@ -145,11 +136,6 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
             label={lang('ShowTranslateButton')}
             checked={canTranslate}
             onCheck={handleShouldTranslateChange}
-          />
-          <Checkbox
-            label={lang('Auto Translate')}
-            checked={autoTranslate}
-            onCheck={handleAutoTranslateChange}
           />
           <Checkbox
             label={lang('ShowTranslateChatButton')}
@@ -166,17 +152,6 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
             >
               {lang('DoNotTranslate')}
               <span className="settings-item__current-value">{doNotTranslateText}</span>
-            </ListItem>
-          )}
-          {autoTranslate && (
-            <ListItem
-              narrow
-              onClick={handleAutoTranslateSelectOpen}
-            >
-              {lang('Choose Language')}
-              {autoTranslateLanguage ? (
-                <span className="settings-item__current-value">{new Intl.DisplayNames([autoTranslateLanguage], { type: 'language' }).of(autoTranslateLanguage)}</span>
-              ) : undefined}
             </ListItem>
           )}
           <p className="settings-item-description mb-0 mt-1">
@@ -208,7 +183,7 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
 export default memo(withGlobal<OwnProps>(
   (global): StateProps => {
     const {
-      language, canTranslate, canTranslateChats, doNotTranslate, autoTranslate, autoTranslateLanguage,
+      language, canTranslate, canTranslateChats, doNotTranslate
     } = global.settings.byKey;
     const languages = global.settings.languages;
 
@@ -219,10 +194,8 @@ export default memo(withGlobal<OwnProps>(
       languages,
       language,
       canTranslate,
-      autoTranslate,
       canTranslateChats,
       doNotTranslate,
-      autoTranslateLanguage: autoTranslateLanguage || 'en',
     };
   },
 )(SettingsLanguage));

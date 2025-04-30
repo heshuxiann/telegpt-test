@@ -27,6 +27,7 @@ import {
   selectUser,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import SerenaLogoPath from '../chatAssistant/assets/serena.png';
 
 import useAppLayout from '../../hooks/useAppLayout';
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
@@ -47,8 +48,6 @@ import SearchInput from '../ui/SearchInput';
 import Transition from '../ui/Transition';
 
 import './RightHeader.scss';
-
-import AILogoPath from '../../assets/chat-ai-logo-purple.png';
 
 type OwnProps = {
   chatId?: string;
@@ -595,8 +594,8 @@ const RightHeader: FC<OwnProps & StateProps> = ({
       case HeaderContent.ChatAI:
         return (
           <div className="header chat-ai-header">
-            <img src={AILogoPath} alt="VoyAI" />
-            <h3 className="title">{oldLang('VoyAI')}</h3>
+            <img className="rounded-full" src={SerenaLogoPath} alt="Serena AI" />
+            <h3 className="title">{oldLang('Serena AI')}</h3>
           </div>
         );
       default:

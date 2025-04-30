@@ -1,12 +1,11 @@
 /* eslint-disable max-len */
 import type { FC } from '../../../lib/teact/teact';
 import React, {
-  memo,
+  useEffect, useState,
 } from '../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../global';
+import { getActions } from '../../../global';
 
-import type { ApiLanguage } from '../../../api/types';
-import type { ISettings } from '../../../types';
+import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 
 import useHistoryBack from '../../../hooks/useHistoryBack';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -20,24 +19,26 @@ type OwnProps = {
   onReset: () => void;
 };
 
-type StateProps = {
-  languages?: ApiLanguage[];
-} & Pick<ISettings, | 'autoTranslate' | 'autoTranslateLanguage'>;
-
-const AITranslateContent: FC<OwnProps & StateProps> = ({
+const AITranslateContent: FC<OwnProps> = ({
   isActive,
-  autoTranslate,
-  autoTranslateLanguage,
   onReset,
 }) => {
   const {
     setSettingOption,
     // openPremiumModal,
   } = getActions();
-
   const lang = useOldLang();
 
+  const [autoTranslate, setAutoTranslate] = useState(false);
+
+  useEffect(() => {
+    CHATAI_IDB_STORE.get('auto-translate').then((value) => {
+      setAutoTranslate(value as boolean || false);
+    });
+  }, []);
+
   const handleAutoTranslateChange = useLastCallback((newValue: boolean) => {
+    CHATAI_IDB_STORE.set('auto-translate', newValue);
     setSettingOption({ autoTranslate: newValue });
   });
 
@@ -65,12 +66,4 @@ const AITranslateContent: FC<OwnProps & StateProps> = ({
   );
 };
 
-export default memo(withGlobal<OwnProps>(
-  (global): StateProps => {
-    const { autoTranslate, autoTranslateLanguage } = global.settings.byKey;
-    return {
-      autoTranslate,
-      autoTranslateLanguage: autoTranslateLanguage || 'en',
-    };
-  },
-)(AITranslateContent));
+export default AITranslateContent;

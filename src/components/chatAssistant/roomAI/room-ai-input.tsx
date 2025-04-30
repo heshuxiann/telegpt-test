@@ -106,7 +106,7 @@ function PureMultimodalInput({
   }, [handleInputSubmit, inputValue, setLocalStorageInput, width]);
 
   return (
-    <div className="relative w-full mx-[22px] flex flex-col gap-4">
+    <div className="relative w-full flex flex-col gap-4">
       <Textarea
         ref={textareaRef}
         placeholder="Send a message..."

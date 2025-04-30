@@ -32,6 +32,7 @@ import {
   selectUserFullInfo,
 } from '../../global/selectors';
 import { ARE_CALLS_SUPPORTED, IS_APP } from '../../util/windowEnvironment';
+import chatAILogoPath from '../chatAssistant/assets/cgat-ai-logo.png';
 
 import { useHotkeys } from '../../hooks/useHotkeys';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -43,8 +44,6 @@ import DropdownMenu from '../ui/DropdownMenu';
 import MenuItem from '../ui/MenuItem';
 import MenuSeparator from '../ui/MenuSeparator';
 import HeaderMenuContainer from './HeaderMenuContainer.async';
-
-import chatAILogoPath from '../../assets/cgat-ai-logo.png';
 
 interface OwnProps {
   chatId: string;

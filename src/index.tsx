@@ -22,6 +22,7 @@ import { checkAndAssignPermanentWebVersion } from './util/permanentWebVersion';
 import { onBeforeUnload } from './util/schedulers';
 import updateWebmanifest from './util/updateWebmanifest';
 import { IS_MULTITAB_SUPPORTED } from './util/windowEnvironment';
+import { initChatAIData } from './components/chatAssistant/utils/init';
 
 import App from './components/App';
 
@@ -68,6 +69,7 @@ async function init() {
   const global = getGlobal();
 
   initLocalization(global.settings.byKey.language, true);
+  initChatAIData();
 
   if (IS_MULTITAB_SUPPORTED) {
     subscribeToMasterChange((isMasterTab) => {

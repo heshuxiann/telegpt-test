@@ -4,6 +4,8 @@ import React from '../../../lib/teact/teact';
 
 import type { Signal } from '../../../util/signals';
 
+import chatAILogoPath from '../../chatAssistant/assets/cgat-ai-logo.png';
+
 import useFlag from '../../../hooks/useFlag';
 import useLastCallback from '../../../hooks/useLastCallback';
 
@@ -17,8 +19,6 @@ import Translate from './Icon/Translate';
 
 // import { THOUGHT_REGEX_COMPLETE } from './StatusResponse';
 import './InputAIMenu.scss';
-
-import chatAILogoPath from '../../../assets/cgat-ai-logo.png';
 
 const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
   const [isAIToolMenuOpen, openAIToolMenu, closeAIToolMenu] = useFlag();

@@ -247,7 +247,7 @@ export const AISearch = () => {
   }, [setMessages, toolsHitCheck]);
 
   return (
-    <div className="py-[28px] flex-1 flex flex-col h-full gap-[8px]">
+    <div className="pb-[28px] flex-1 flex flex-col h-full gap-[8px]">
       <div
         className="chat-ai-output-wrapper flex-1 overflow-auto"
       >
