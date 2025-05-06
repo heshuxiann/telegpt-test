@@ -11,6 +11,7 @@ import { Modal } from 'antd';
 import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
 
+import type { InfiniteScrollRef } from '../component/InfiniteScroll';
 import type { StoreMessage } from '../store/messages-store';
 import { type ApiMessage, MAIN_THREAD_ID } from '../../../api/types/messages';
 
@@ -41,8 +42,8 @@ import defaultSummaryPrompt, { getGlobalSummaryPrompt } from './summary-prompt';
 import TestActions from './test-actions';
 import UrgentNotification from './urgent-notification';
 
+import { InfiniteScroll } from '../component/InfiniteScroll';
 import ErrorBoundary from '../ErrorBoundary';
-import { InfiniteScroll } from './InfiniteScroll';
 import { TestModal } from './TestModal';
 
 import './global-summary.scss';
@@ -69,7 +70,6 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
   (_, ref) => {
     const global = getGlobal();
     const [pendingSummaryMessages, setPendingSummaryMessages] = useState<Record<string, ApiMessage[]>>({});
-    const [localChatAiMessages, setLocalChatAiMessages] = useState<Message[]>([]);
     const [messageList, setMessageList] = useState<Message[]>([]);
     const [summaryModalVisible, setSummaryModalVisible] = useState(false);
     const [notificationMessage, setNotificationMessage] = useState<Message | null>(null);
@@ -95,7 +95,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         ChataiMessageStore.getMessages(GLOBAL_SUMMARY_CHATID, pageInfo?.lastTime, 10)?.then((res) => {
           if (res.messages) {
             const localChatAiMessages = parseStoreMessage2Message(res.messages);
-            setLocalChatAiMessages((prev) => [...localChatAiMessages, ...prev]);
+            setMessageList((prev) => [...localChatAiMessages, ...prev]);
           }
           setPageInfo({
             lastTime: res.lastTime,
@@ -373,7 +373,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       ChataiMessageStore.getMessages(GLOBAL_SUMMARY_CHATID, undefined, 10)?.then((res) => {
         if (res.messages) {
           const localChatAiMessages = parseStoreMessage2Message(res.messages);
-          setLocalChatAiMessages(localChatAiMessages);
+          setMessageList((prev) => [...localChatAiMessages, ...prev]);
         }
         setPageInfo({
           lastTime: res.lastTime,
@@ -484,7 +484,6 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
 
     const deleteMessage = useCallback((messageId: string) => {
       ChataiMessageStore.delMessage(messageId).then(() => {
-        setLocalChatAiMessages((prev) => prev.filter((message) => message.id !== messageId));
         setMessageList((prev) => prev.filter((message) => message.id !== messageId));
       });
     }, []);
@@ -534,7 +533,6 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           wrapClassName="global-summary-modal-wrap"
         >
           <SummaryModalContent
-            localChatAiMessages={localChatAiMessages}
             messages={messageList}
             isLoading={isLoading}
             onClose={handleClose}
@@ -564,7 +562,6 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
 interface SummaryContentProps {
   loadMore: () => Promise<void>;
   hasMore: boolean;
-  localChatAiMessages: Message[];
   messages: Message[];
   isLoading: boolean;
   deleteMessage: (messageId: string) => void;
@@ -574,28 +571,14 @@ interface SummaryContentProps {
 const SummaryModalContent = (props: SummaryContentProps) => {
   // input, setInput, handleSubmit, attachments, setAttachments, setMessages, append, stop,
   const {
-    localChatAiMessages, isLoading, messages, onClose, deleteMessage, loadMore, hasMore,
+    isLoading, messages, onClose, deleteMessage, loadMore, hasMore,
   } = props;
-  const messageContainerRef = useRef<HTMLDivElement>(null);
+  const messageListRef = useRef<InfiniteScrollRef | null>(null);
   const handleShowTemplate = useCallback(() => {
     eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
       rightPanelKey: RightPanelKey.PromptTemplate,
     });
   }, []);
-  useEffect(() => {
-    const container = messageContainerRef.current;
-    const handleScroll = () => {
-      const scrollTop = container?.scrollTop;
-      if (scrollTop === 0 && hasMore) {
-        // eslint-disable-next-line no-console
-        console.log('分页加载');
-        loadMore();
-      }
-    };
-    // 添加滚动监听
-    container?.addEventListener('scroll', handleScroll);
-    return () => container?.removeEventListener('scroll', handleScroll);
-  }, [hasMore, loadMore]);
   return (
     <div className="globa-summary-container flex flex-col w-full h-full">
       <div className="h-[56px] w-full px-[20px] flex items-center bg-white/50">
@@ -612,23 +595,20 @@ const SummaryModalContent = (props: SummaryContentProps) => {
         </div>
       </div>
       <div className="flex flex-1 flex-row overflow-hidden">
-        <div className="flex-1 flex flex-col">
-          <div
-            className="chat-ai-output-wrapper flex-1 h-full"
-            ref={messageContainerRef}
+        <div className="chat-ai-output-wrapper flex-1 h-full">
+          <InfiniteScroll
+            className="chat-ai-output-wrapper"
+            loadMore={loadMore}
+            hasMore={hasMore}
+            ref={messageListRef}
           >
-            <InfiniteScroll loadMore={loadMore} hasMore={hasMore}>
-              {localChatAiMessages && (
-                <Messages isLoading={false} messages={localChatAiMessages} deleteMessage={deleteMessage} />
-              )}
-              <Messages
-                isLoading={isLoading}
-                messages={messages}
-                deleteMessage={deleteMessage}
-              />
-            </InfiniteScroll>
+            <Messages
+              isLoading={isLoading}
+              messages={messages}
+              deleteMessage={deleteMessage}
+            />
+          </InfiniteScroll>
 
-          </div>
         </div>
         <RightPanel closeSummaryModal={onClose} />
 

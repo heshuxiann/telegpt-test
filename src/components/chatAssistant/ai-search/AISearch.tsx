@@ -2,11 +2,15 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  useCallback, useEffect, useRef, useState,
+} from 'react';
 import { useChat } from '@ai-sdk/react';
 import type { Attachment, Message, UIMessage } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
+
+import type { InfiniteScrollRef } from '../component/InfiniteScroll';
 
 import generateChatgpt from '../lib/generate-chat';
 import { selectChat, selectUser } from '../../../global/selectors';
@@ -15,6 +19,7 @@ import { ChataiMessageStore } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import vectorStore from '../vector-store';
 
+import { InfiniteScroll } from '../component/InfiniteScroll';
 import { AISearchInput } from './AISearchInput';
 import AISearchSugesstions from './AISearchSugesstions';
 
@@ -22,8 +27,9 @@ const GLOBAL_SEARCH_CHATID = '777889';
 
 export const AISearch = () => {
   const global = getGlobal();
+  const messageListRef = useRef<InfiniteScrollRef | null>(null);
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
-  const [localMessages, setLocalMessages] = useState<Message[]>([]);
+  const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
   const {
     messages, setMessages, append, isLoading, input, setInput, stop, handleSubmit,
   } = useChat({
@@ -34,11 +40,15 @@ export const AISearch = () => {
   });
 
   useEffect(() => {
-    ChataiMessageStore.getMessages(GLOBAL_SEARCH_CHATID, undefined, 10)?.then((res) => {
+    ChataiMessageStore.getMessages(GLOBAL_SEARCH_CHATID, undefined, 20)?.then((res) => {
       if (res.messages) {
         const localChatAiMessages = parseStoreMessage2Message(res.messages);
-        setLocalMessages(localChatAiMessages);
+        setMessages((prev) => [...localChatAiMessages, ...prev]);
       }
+      setPageInfo({
+        lastTime: res.lastTime,
+        hasMore: res.hasMore,
+      });
     });
     // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, []);
@@ -48,6 +58,22 @@ export const AISearch = () => {
       ChataiMessageStore.storeMessages([...parsedMessage]);
     }
   }, [isLoading, messages]);
+
+  const handleLoadMore = useCallback(() => {
+    return new Promise<void>((resolve) => {
+      ChataiMessageStore.getMessages(GLOBAL_SEARCH_CHATID, pageInfo?.lastTime, 20)?.then((res) => {
+        if (res.messages) {
+          const localChatAiMessages = parseStoreMessage2Message(res.messages);
+          setMessages((prev) => [...localChatAiMessages, ...prev]);
+        }
+        setPageInfo({
+          lastTime: res.lastTime,
+          hasMore: res.hasMore,
+        });
+        resolve();
+      });
+    });
+  }, [pageInfo?.lastTime, setMessages]);
 
   //   const deleteMessage = useCallback((messageId: string) => {
   //     ChataiMessageStore.delMessage(messageId).then(() => {
@@ -227,7 +253,7 @@ export const AISearch = () => {
             } else if (toolCall.toolName === 'nullTool') {
               // eslint-disable-next-line no-console
               console.log('没有命中工具');
-              searchMessage(toolCall.result.keyword);
+              searchMessage(inputValue);
             }
           });
         }
@@ -244,27 +270,25 @@ export const AISearch = () => {
       }];
     });
     toolsHitCheck(query);
+    messageListRef.current?.scrollToBottom();
   }, [setMessages, toolsHitCheck]);
 
   return (
-    <div className="pb-[28px] flex-1 flex flex-col h-full gap-[8px]">
-      <div
-        className="chat-ai-output-wrapper flex-1 overflow-auto"
+    <div className="pb-[28px] flex-1 flex flex-col h-full gap-[8px] overflow-hidden">
+      <InfiniteScroll
+        className="chat-ai-output-wrapper flex-1"
+        loadMore={handleLoadMore}
+        hasMore={pageInfo.hasMore}
+        ref={messageListRef}
       >
-        {localMessages.length < 10 && (
+        {!pageInfo.hasMore && (
           <AISearchSugesstions handleSearch={handleSearch} />
-        )}
-        {localMessages.length > 0 && (
-          <Messages
-            isLoading={false}
-            messages={localMessages}
-          />
         )}
         <Messages
           isLoading={isLoading}
           messages={messages}
         />
-      </div>
+      </InfiniteScroll>
       <form className="flex mx-auto gap-2 w-full">
         <AISearchInput
           isLoading={isLoading}

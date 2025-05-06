@@ -2,7 +2,7 @@
 import React, { useEffect, useRef } from '../../../lib/teact/teact';
 
 import { injectComponent } from '../../../lib/injectComponent';
-import { AISearch } from '../../chatAssistant/component/AISearch';
+import { AISearch } from '../../chatAssistant/ai-search/AISearch';
 
 const injectMessageAI = injectComponent(AISearch);
 export const AISearchWrapper = () => {

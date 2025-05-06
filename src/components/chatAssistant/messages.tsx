@@ -10,9 +10,9 @@ import GoogleEventDetailMessage from './google-event-detail-message';
 import GoogleLoginAuthMessage from './google-login-auth-message';
 import { GroupSearchMessage } from './group-search-message';
 import { PreviewMessage, ThinkingMessage } from './message';
-import SummaryMessage from './summary-message';
+// import SummaryMessage from './summary-message';
 import UrgentCheckMessage from './urgent-check-message';
-import { useScrollToBottom } from './use-scroll-to-bottom';
+// import { useScrollToBottom } from './use-scroll-to-bottom';
 import { UserSearchMessage } from './user-search-message';
 
 import ErrorBoundary from './ErrorBoundary';
@@ -30,7 +30,7 @@ function PureMessages({
   messages,
   deleteMessage,
 }: MessagesProps) {
-  const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
+  // const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
   const isAuxiliary = (message:Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'isAuxiliary' in item && item.isAuxiliary === true) ?? false;
   };
@@ -65,55 +65,44 @@ function PureMessages({
   };
   return (
     <div
-      ref={messagesContainerRef}
-      className="flex flex-col min-w-0 gap-[10px] flex-1 overflow-y-scroll pt-4 ai-message-container"
+      className="flex flex-col min-w-0 gap-[10px] flex-1 pt-4 ai-message-container"
     >
       {messages.map((message, index) => {
         if (!isAuxiliary(message)) {
-          // if (index > 0 && isSummary(messages[index - 1])) {
-          //   return <SummaryMessage isLoading={isLoading} message={message} />;
-          // }
-          if (isGlobalSummary(message)) {
-            return (
-              <ErrorBoundary>
-                <GlobalSummaryMessage
+          return (
+            <div data-message-id={message.id} key={message.id}>
+              {isGlobalSummary(message) ? (
+                <ErrorBoundary>
+                  <GlobalSummaryMessage
+                    message={message}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
+                  />
+                </ErrorBoundary>
+              ) : isUrgentCheck(message) ? (
+                <UrgentCheckMessage
                   message={message}
                   // eslint-disable-next-line react/jsx-no-bind
                   deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
                 />
-              </ErrorBoundary>
-            );
-          } else if (isUrgentCheck(message)) {
-            return (
-              <UrgentCheckMessage
-                message={message}
-                // eslint-disable-next-line react/jsx-no-bind
-                deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
-              />
-            );
-          } else if (isGroupSearch(message)) {
-            return (
-              <GroupSearchMessage message={message} />
-            );
-          } else if (isUserSearch(message)) {
-            return (
-              <UserSearchMessage message={message} />
-            );
-          } else if (isGoogleAuth(message)) {
-            return (<GoogleLoginAuthMessage key={message.id} message={message} />);
-          } else if (isGoogleEventInsert(message)) {
-            return (<GoogleEventCreateMessage key={message.id} message={message} />);
-          } else if (isGoogleEventDetail(message)) {
-            return (<GoogleEventDetailMessage key={message.id} message={message} />);
-          } else {
-            return (
-              <PreviewMessage
-                key={message.id}
-                message={message}
-                isLoading={isLoading && messages.length - 1 === index}
-              />
-            );
-          }
+              ) : isGroupSearch(message) ? (
+                <GroupSearchMessage message={message} />
+              ) : isUserSearch(message) ? (
+                <UserSearchMessage message={message} />
+              ) : isGoogleAuth(message) ? (
+                <GoogleLoginAuthMessage message={message} />
+              ) : isGoogleEventInsert(message) ? (
+                <GoogleEventCreateMessage message={message} />
+              ) : isGoogleEventDetail(message) ? (
+                <GoogleEventDetailMessage message={message} />
+              ) : (
+                <PreviewMessage
+                  message={message}
+                  isLoading={isLoading && messages.length - 1 === index}
+                />
+              )}
+            </div>
+          );
         } else {
           return null;
         }
@@ -122,11 +111,6 @@ function PureMessages({
       {isLoading
         && messages.length > 0
         && messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
-
-      <div
-        ref={messagesEndRef}
-        className="shrink-0 min-w-[24px] min-h-[24px]"
-      />
     </div>
   );
 }
