@@ -13,7 +13,7 @@ import eventEmitter, { Actions } from './lib/EventEmitter';
 import { isUserId } from '../../global/helpers';
 import { selectChat, selectUser } from '../../global/selectors';
 import { RightPanelKey } from './rightPanel/right-header';
-import { cn, formatTimestamp } from './utils/util';
+import { cn, formatTimestamp, formatTimestampRange } from './utils/util';
 import {
   CopyIcon, DeleteIcon, VoiceIcon,
   VoiceingIcon,
@@ -119,7 +119,7 @@ const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; 
     <ErrorBoundary>
       <div>
         <div className="flex flex-row items-center flex-wrap">
-          <span className="text-[16px] font-bold mr-[24px]">{index + 1}.{title}</span>
+          <span className="text-[16px] font-bold mr-[24px]">{index + 1}. {title}</span>
           {summaryChatIds ? (
             <>
               {
@@ -132,14 +132,14 @@ const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; 
             </>
           ) : null}
         </div>
-        <ul className="list-disc pl-[28px] text-[16px]">
+        <ul className="list-disc pl-[2px] text-[16px] list-inside">
           {summaryItems.map((summaryItem: any) => {
             const { subtitle, relevantMessages } = summaryItem;
             if (!subtitle) return null;
             return (
               <li
                 role="button"
-                className="cursor-pointer"
+                className="cursor-pointer text-[15px]"
                 onClick={() => showMessageDetail(relevantMessages)}
               >
                 {subtitle}
@@ -168,8 +168,8 @@ const SummaryPenddingItem = ({ pendingItem }: { pendingItem: ISummaryPendingItem
         key={pendingItem.chatId}
         onClick={showMessageDetail}
       >
-        <img className="w-[18px] h-[18px]" src={CheckIcon} alt="" />
-        <span>{pendingItem.summary}</span>
+        <img className="w-[18px] h-[18px] mt-[2px]" src={CheckIcon} alt="" />
+        <span className="text-[15px]">{pendingItem.summary}</span>
         <ChatAvatar size={20} chatId={pendingItem.chatId} />
       </div>
     </ErrorBoundary>
@@ -228,7 +228,7 @@ const ActionsItems = ({
   const [voicePlaying, setVoicePlaying] = useState(false);
   const handleCopy = () => {
     const { summaryStartTime, summaryEndTime } = summaryInfo || {};
-    const timeRange = `${summaryStartTime ? `${formatTimestamp(summaryStartTime)}-` : ''}${summaryEndTime ? formatTimestamp(summaryEndTime) : ''}`;
+    const timeRange = formatTimestampRange(summaryStartTime, summaryEndTime);
     const copyText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.subtitle).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}`;
     copy(copyText);
     showNotification({
@@ -237,7 +237,7 @@ const ActionsItems = ({
   };
   const handleVoicePlay = () => {
     const { summaryStartTime, summaryEndTime } = summaryInfo || {};
-    const timeRange = `${summaryStartTime ? `${formatTimestamp(summaryStartTime)}-` : ''}${summaryEndTime ? formatTimestamp(summaryEndTime) : ''}`;
+    const timeRange = formatTimestampRange(summaryStartTime, summaryEndTime);
     const voiceText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.subtitle).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}`;
     if (!window.speechSynthesis) {
       console.error('Text-to-Speech is not supported in this browser.');
@@ -297,27 +297,25 @@ const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
         <div className="flex items-center gap-[20px]">
           <p className="flex items-center gap-[8px]">
             <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
-            <div className="flex items-center">
-              <span className="mr-[4px]">时间范围:</span>
-              {summaryInfo?.summaryStartTime ? (
-                <span>{formatTimestamp(summaryInfo.summaryStartTime)} - </span>
-              ) : null}
-              {summaryInfo?.summaryEndTime ? (
-                <span>{formatTimestamp(summaryInfo?.summaryEndTime)}</span>
-              ) : null}
+            <div className="flex items-center gap-[4px]">
+              <span className="mr-[4px] font-bold text-[14px]">Time range:</span>
+              {formatTimestampRange(summaryInfo?.summaryStartTime, summaryInfo?.summaryEndTime)}
             </div>
           </p>
           <p className="flex items-center gap-[8px]">
             <img className="w-[16px] h-[16px]" src={MessageIcon} alt="" />
-            {summaryInfo?.summaryMessageCount ? (
-              <span>{summaryInfo?.summaryMessageCount}</span>
-            ) : null}
+            <div className="flex items-center gap-[4px]">
+              <span className="font-bold text-[14px]">Messages:</span>
+              {summaryInfo?.summaryMessageCount ? (
+                <span>{summaryInfo?.summaryMessageCount}</span>
+              ) : null}
+            </div>
           </p>
         </div>
         {summaryInfo?.summaryChatIds ? (
           <div className="flex items-center gap-[8px] mb-[18px]">
             <img className="w-[16px] h-[16px]" src={UserIcon} alt="" />
-            <span>聊天群组/人: </span>
+            <span className="font-bold text-[14px]">Groups/friends: </span>
             <div className="flex items-center">
               {summaryInfo.summaryChatIds.slice(0, 10).map((id: string, index: number) => {
                 return (
@@ -453,12 +451,7 @@ const SummaryContent = ({
               <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
               <div className="flex items-center">
                 <span className="mr-[4px]">时间范围:</span>
-                {summaryInfo?.summaryStartTime ? (
-                  <span>{formatTimestamp(summaryInfo.summaryStartTime)} - </span>
-                ) : null}
-                {summaryInfo?.summaryEndTime ? (
-                  <span>{formatTimestamp(summaryInfo?.summaryEndTime)}</span>
-                ) : null}
+                {formatTimestampRange(summaryInfo?.summaryStartTime, summaryInfo?.summaryEndTime)}
               </div>
             </p>
           </div>

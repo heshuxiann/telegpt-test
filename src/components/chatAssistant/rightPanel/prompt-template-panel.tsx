@@ -72,52 +72,55 @@ const PromptTemplatePanel = () => {
     }
   }, [lastTemplate?.id, currentTemplate?.id]);
   return (
-    <div className="h-full flex flex-col px-[18px]">
-      <h3 className="text-[18px] font-semibold">What are you curious about?</h3>
-      <div className="flex flex-col gap-[10px]">
-        {CustomizationTemplates.map((item) => {
-          return (
-            <div
-              key={item.title}
-              onClick={() => handleTemplateSelect(item)}
-              className={cx('w-fit px-[20px] leading-[40px] border-[1px] border-[#B297FF] rounded-[20px] text-[15px] cursor-pointer', {
-                'bg-[#B297FF] text-white': currentTemplate?.id === item.id,
-              })}
-            >
-              {item.title}
-            </div>
-          );
-        })}
-        {userDefinedTemplate.length > 0 && (
-          userDefinedTemplate.map((item) => {
+    <div className="h-full overflow-hidden relative">
+      <div className="h-full flex flex-col px-[18px] overflow-auto">
+        <h3 className="text-[18px] font-semibold">What are you curious about?</h3>
+        <div className="flex flex-col gap-[10px]">
+          {CustomizationTemplates.map((item) => {
             return (
               <div
                 key={item.title}
                 onClick={() => handleTemplateSelect(item)}
-                className={cx('prompt-template-item w-fit px-[20px] leading-[40px] border-[1px] border-[#B297FF] rounded-[20px] text-[15px] cursor-pointer flex items-center gap-[8px]', {
-                  'bg-[#B297FF]': currentTemplate?.title === item.title,
+                className={cx('w-fit px-[20px] leading-[40px] border-[1px] border-[#B297FF] rounded-[20px] text-[15px] cursor-pointer', {
+                  'bg-[#B297FF] text-white': currentTemplate?.id === item.id,
                 })}
               >
-                <span>{item.title}</span>
-                <div
-                  className="delete-icon w-[20px] h-[20px] cursor-pointer flex items-center justify-center"
-                  onClick={(e) => handleDelete(e, item.id)}
-                >
-                  <CloseIcon />
-                </div>
+                {item.title}
               </div>
             );
-          })
-        )}
-        <div
-          className="w-[144px] whitespace-nowrap px-[20px] leading-[40px] border-[1px] border-[#B297FF] rounded-[20px] text-[15px] cursor-pointer text-[#8C42F0] font-medium"
-          onClick={handleCustomization}
-        >
-          + Customization
+          })}
+          {userDefinedTemplate.length > 0 && (
+            userDefinedTemplate.map((item) => {
+              return (
+                <div
+                  key={item.title}
+                  onClick={() => handleTemplateSelect(item)}
+                  className={cx('prompt-template-item w-fit px-[20px] leading-[40px] border-[1px] border-[#B297FF] rounded-[20px] text-[15px] cursor-pointer flex items-center gap-[8px]', {
+                    'bg-[#B297FF]': currentTemplate?.title === item.title,
+                  })}
+                >
+                  <span>{item.title}</span>
+                  <div
+                    className="delete-icon w-[20px] h-[20px] cursor-pointer flex items-center justify-center"
+                    onClick={(e) => handleDelete(e, item.id)}
+                  >
+                    <CloseIcon />
+                  </div>
+                </div>
+              );
+            })
+          )}
+          <div
+            className="w-[144px] whitespace-nowrap px-[20px] leading-[40px] border-[1px] border-[#B297FF] rounded-[20px] text-[15px] cursor-pointer text-[#8C42F0] font-medium"
+            onClick={handleCustomization}
+          >
+            + Customization
+          </div>
         </div>
+        <SummaryChats />
       </div>
       {actionsVisable ? (
-        <div className="flex flex-row justify-center gap-[14px] mt-auto mb-[24px]">
+        <div className="flex flex-row justify-center gap-[14px] py-[24px] w-full z-10 bg-white absolute bottom-0 left-0">
           <button
             className="w-[158px] h-[40px] border-[1px] border-[#8C42F0] rounded-[20px]"
             onClick={handleCancel}
@@ -132,7 +135,6 @@ const PromptTemplatePanel = () => {
           </button>
         </div>
       ) : null}
-      <SummaryChats />
     </div>
   );
 };

@@ -6,7 +6,7 @@ const defaultSummaryPrompt = `
             你是一个专业的聊天记录分析师,请总结以下聊天内容,并根据不同的数据类型填充到相应的 JSON 模板中。
             总结规则:
             # 格式要求
-                ## 去除所有空格和换行符,确保 JSON 结构紧凑
+                ## 去除所有换行符,确保 JSON 结构紧凑
                 ## 代码块应使用 Markdown 代码块包裹
                 ## 校验JSON结构,确保所有JSON数据都有 <!-- json-start --> 和 <!-- json-end --> 标记
                 ## 严格遵从JSON规范,确保所有的JSON数据正确
@@ -192,7 +192,7 @@ export const getGlobalSummaryPrompt = () => {
                 你是一个专业的聊天记录分析师,请总结以下聊天内容,并根据不同的数据类型填充到相应的 JSON 模板中。
                 总结规则:
                 # 格式要求
-                    ## 去除所有空格和换行符,确保 JSON 结构紧凑
+                    ## 去除所有换行符,确保 JSON 结构紧凑
                     ## 代码块应使用 Markdown 代码块包裹
                     ## 校验JSON结构,确保所有JSON数据都有 <!-- json-start --> 和 <!-- json-end --> 标记
                     ## 严格遵从JSON规范,确保所有的JSON数据正确

@@ -187,8 +187,8 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             // 通知
             window.Notification.requestPermission().then((permission) => {
               if (permission === 'granted') {
-                const notification = new Notification('消息总结提醒', {
-                  body: '您收到一条新的消息总结',
+                const notification = new Notification('Chat Summary', {
+                  body: 'You have received a new Chat Summary',
                 });
                 setTimeout(() => notification.close(), 5000);
               }
