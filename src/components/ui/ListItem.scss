@@ -43,8 +43,12 @@
       left: 3.25rem;
     }
 
+    &.narrow::after {
+      left: 4.1875rem;
+    }
+
     &.no-icon::after {
-      left: 0;
+      left: 1rem;
     }
   }
 
@@ -178,6 +182,16 @@
   &.destructive {
     .ListItem-button {
       color: var(--color-error);
+
+      .ListItem-main-icon {
+        color: inherit;
+      }
+    }
+  }
+
+  &.primary {
+    .ListItem-button {
+      color: var(--color-primary);
 
       .ListItem-main-icon {
         color: inherit;

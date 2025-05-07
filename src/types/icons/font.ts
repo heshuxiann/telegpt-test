@@ -77,8 +77,8 @@ export type FontIconName =
   | 'enter'
   | 'expand-modal'
   | 'expand'
-  | 'eye-closed-outline'
-  | 'eye-closed'
+  | 'eye-crossed-outline'
+  | 'eye-crossed'
   | 'eye-outline'
   | 'eye'
   | 'favorite-filled'
@@ -91,6 +91,7 @@ export type FontIconName =
   | 'forums'
   | 'forward'
   | 'fragment'
+  | 'frozen-time'
   | 'fullscreen'
   | 'gifs'
   | 'gift'
@@ -252,5 +253,4 @@ export type FontIconName =
   | 'webapp'
   | 'word-wrap'
   | 'zoom-in'
-  | 'zoom-out'
-  | 'ai-knowledge-editing';
+  | 'zoom-out';

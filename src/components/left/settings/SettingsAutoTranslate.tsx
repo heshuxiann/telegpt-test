@@ -100,6 +100,7 @@ const SettingsAutoTranslate: FC<OwnProps & StateProps> = ({
     setDisplayedOptions(newSelectedIds);
     setSettingOption({
       autoTranslateLanguage: newSelectedIds,
+      translationLanguage: newSelectedIds,
     });
   });
 

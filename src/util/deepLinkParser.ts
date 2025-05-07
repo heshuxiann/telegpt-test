@@ -2,10 +2,10 @@ import type { ThreadId } from '../types';
 
 import { RE_TG_LINK, RE_TME_LINK } from '../config';
 import { toChannelId } from '../global/helpers';
+import { IS_BAD_URL_PARSER } from './browser/globalEnvironment';
+import { ensureProtocol } from './browser/url';
 import { parseTimestampDuration } from './dates/timestamp';
-import { ensureProtocol } from './ensureProtocol';
 import { isUsernameValid } from './username';
-import { IS_BAD_URL_PARSER } from './windowEnvironment';
 
 export type DeepLinkMethod = 'resolve' | 'login' | 'passport' | 'settings' | 'join' | 'addstickers' | 'addemoji' |
 'setlanguage' | 'addtheme' | 'confirmphone' | 'socks' | 'proxy' | 'privatepost' | 'bg' | 'share' | 'msg' | 'msg_url' |
@@ -145,6 +145,14 @@ export function tryParseDeepLink(link: string): DeepLink | undefined {
   } catch (err) {
     return undefined;
   }
+}
+
+export function getUsernameFromDeepLink(url: string) {
+  const deepLink = tryParseDeepLink(url);
+  if (deepLink?.type === 'publicUsernameOrBotLink') {
+    return deepLink.username;
+  }
+  return undefined;
 }
 
 function parseDeepLink(url: string) {

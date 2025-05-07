@@ -6,7 +6,7 @@ import React, {
   memo,
 } from '../../../lib/teact/teact';
 
-import { LAYERS_ANIMATION_NAME } from '../../../util/windowEnvironment';
+import { LAYERS_ANIMATION_NAME } from '../../../util/browser/windowEnvironment';
 
 import Transition from '../../ui/Transition';
 import AITranslateContent from './AITranslateContent';

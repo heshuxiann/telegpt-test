@@ -9,8 +9,8 @@ import type { SettingsScreens } from '../../../types';
 import { LeftColumnContent } from '../../../types';
 
 import { PRODUCTION_URL } from '../../../config';
+import { IS_ELECTRON, IS_TOUCH_ENV } from '../../../util/browser/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
-import { IS_ELECTRON, IS_TOUCH_ENV } from '../../../util/windowEnvironment';
 
 import useForumPanelRender from '../../../hooks/useForumPanelRender';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -43,6 +43,7 @@ type OwnProps = {
   onContentChange: (content: LeftColumnContent) => void;
   onSettingsScreenSelect: (screen: SettingsScreens) => void;
   onTopicSearch: NoneToVoidFunction;
+  isAccountFrozen?: boolean;
   onReset: () => void;
 };
 
@@ -67,6 +68,7 @@ const LeftMain: FC<OwnProps> = ({
   onSettingsScreenSelect,
   onReset,
   onTopicSearch,
+  isAccountFrozen,
 }) => {
   const { closeForumPanel } = getActions();
   const [isNewChatButtonShown, setIsNewChatButtonShown] = useState(IS_TOUCH_ENV);
@@ -253,6 +255,7 @@ const LeftMain: FC<OwnProps> = ({
         onNewPrivateChat={handleSelectContacts}
         onNewChannel={handleSelectNewChannel}
         onNewGroup={handleSelectNewGroup}
+        isAccountFrozen={isAccountFrozen}
       />
     </div>
   );

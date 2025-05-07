@@ -44,9 +44,6 @@ mac:
       - arm64
   entitlements: public/electron-entitlements.mac.plist
   icon: public/icon-electron-macos.icns
-  identity: null   
-  hardenedRuntime: false
-  gatekeeperAssess: false 
   notarize:
     teamId: Y54Z4K69Z9
 dmg:

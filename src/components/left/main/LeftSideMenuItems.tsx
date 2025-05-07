@@ -2,6 +2,7 @@
 import React, { memo, useMemo } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
+import type { ApiUser } from '../../../api/types';
 import type { GlobalState } from '../../../global/types';
 import type { AnimationLevel, ThemeKey } from '../../../types';
 
@@ -21,11 +22,14 @@ import {
   INITIAL_PERFORMANCE_STATE_MID,
   INITIAL_PERFORMANCE_STATE_MIN,
 } from '../../../global/initialState';
-import { selectTabState, selectTheme } from '../../../global/selectors';
+import { selectTabState, selectTheme, selectUser } from '../../../global/selectors';
+import { selectPremiumLimit } from '../../../global/selectors/limits';
+import { selectSharedSettings } from '../../../global/selectors/sharedState';
+import { IS_MULTIACCOUNT_SUPPORTED } from '../../../util/browser/globalEnvironment';
+import { IS_ELECTRON } from '../../../util/browser/windowEnvironment';
 import buildStyle from '../../../util/buildStyle';
 import { getPromptInstall } from '../../../util/installPrompt';
 import { switchPermanentWebVersion } from '../../../util/permanentWebVersion';
-import { IS_ELECTRON } from '../../../util/windowEnvironment';
 import AIKnowledgeIcon from '../../chatAssistant/assets/ai-knowledge.png';
 import AITranslateIcon from '../../chatAssistant/assets/ai-translate.png';
 
@@ -36,8 +40,10 @@ import useOldLang from '../../../hooks/useOldLang';
 
 import AttachBotItem from '../../middle/composer/AttachBotItem';
 import MenuItem from '../../ui/MenuItem';
+import MenuSeparator from '../../ui/MenuSeparator';
 import Switcher from '../../ui/Switcher';
 import Toggle from '../../ui/Toggle';
+import AccountMenuItems from './AccountMenuItems';
 
 type OwnProps = {
   onSelectAIKnowledge: NoneToVoidFunction;
@@ -54,6 +60,8 @@ type StateProps = {
   theme: ThemeKey;
   canInstall?: boolean;
   attachBots: GlobalState['attachMenu']['bots'];
+  currentUser?: ApiUser;
+  accountsTotalLimit: number;
 } & Pick<GlobalState, 'currentUserId' | 'archiveSettings'>;
 
 const LeftSideMenuItems = ({
@@ -63,6 +71,8 @@ const LeftSideMenuItems = ({
   theme,
   canInstall,
   attachBots,
+  currentUser,
+  accountsTotalLimit,
   onSelectArchived,
   onSelectContacts,
   onSelectSettings,
@@ -73,7 +83,7 @@ const LeftSideMenuItems = ({
 }: OwnProps & StateProps) => {
   const {
     openChat,
-    setSettingOption,
+    setSharedSettingOption,
     updatePerformanceSettings,
     openChatByUsername,
     openUrl,
@@ -99,8 +109,8 @@ const LeftSideMenuItems = ({
     e.stopPropagation();
     const newTheme = theme === 'light' ? 'dark' : 'light';
 
-    setSettingOption({ theme: newTheme });
-    setSettingOption({ shouldUseSystemTheme: false });
+    setSharedSettingOption({ theme: newTheme });
+    setSharedSettingOption({ shouldUseSystemTheme: false });
   });
 
   const handleAnimationLevelChange = useLastCallback((e: React.SyntheticEvent<HTMLElement>) => {
@@ -114,7 +124,7 @@ const LeftSideMenuItems = ({
       ? INITIAL_PERFORMANCE_STATE_MIN
       : (newLevel === ANIMATION_LEVEL_MAX ? INITIAL_PERFORMANCE_STATE_MAX : INITIAL_PERFORMANCE_STATE_MID);
 
-    setSettingOption({ animationLevel: newLevel as AnimationLevel });
+    setSharedSettingOption({ animationLevel: newLevel as AnimationLevel });
     updatePerformanceSettings(performanceSettings);
   });
 
@@ -140,6 +150,16 @@ const LeftSideMenuItems = ({
 
   return (
     <>
+      {IS_MULTIACCOUNT_SUPPORTED && currentUser && (
+        <>
+          <AccountMenuItems
+            currentUser={currentUser}
+            totalLimit={accountsTotalLimit}
+            onSelectCurrent={onSelectSettings}
+          />
+          <MenuSeparator />
+        </>
+      )}
       <MenuItem
         customIcon={<img className="icon" src={AIKnowledgeIcon} alt="ai-knowledge" style={buildStyle('width: 24px;height: 24px;max-width: 24px;')} />}
         onClick={onSelectAIKnowledge}
@@ -264,16 +284,18 @@ export default memo(withGlobal<OwnProps>(
     const {
       currentUserId, archiveSettings,
     } = global;
-    const { animationLevel } = global.settings.byKey;
+    const { animationLevel } = selectSharedSettings(global);
     const attachBots = global.attachMenu.bots;
 
     return {
       currentUserId,
+      currentUser: selectUser(global, currentUserId!),
       theme: selectTheme(global),
       animationLevel,
       canInstall: Boolean(tabState.canInstall),
       archiveSettings,
       attachBots,
+      accountsTotalLimit: selectPremiumLimit(global, 'moreAccounts'),
     };
   },
 )(LeftSideMenuItems));

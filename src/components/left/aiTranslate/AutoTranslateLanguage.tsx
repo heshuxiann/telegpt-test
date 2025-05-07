@@ -87,6 +87,7 @@ const AutoTranslateLanguage: FC = () => {
     CHATAI_IDB_STORE.set('auto-translate-language', newSelectedIds);
     setSettingOption({
       autoTranslateLanguage: newSelectedIds,
+      translationLanguage: newSelectedIds,
     });
   });
 

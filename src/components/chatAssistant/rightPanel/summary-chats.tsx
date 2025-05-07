@@ -7,9 +7,9 @@ import type { CustomPeer } from '../../../types';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import {
-  getChatTitle, getGroupStatus, getUserFullName, getUserStatus, isPeerUser,
+  getChatTitle, getGroupStatus, getUserFullName, getUserStatus,
 } from '../../../global/helpers';
-import { isApiPeerChat } from '../../../global/helpers/peers';
+import { isApiPeerChat, isApiPeerUser } from '../../../global/helpers/peers';
 import { selectPeer, selectUserStatus } from '../../../global/selectors';
 import { ChataiGeneralStore } from '../store';
 import { SUMMARY_CHATS } from '../store/general-store';
@@ -52,7 +52,7 @@ export const SummaryChats = () => {
     const isSelf = peer && !isApiPeerChat(peer) ? peer.isSelf : undefined;
     const customPeer = 'isCustomPeer' in peer ? peer : undefined;
     const realPeer = 'id' in peer ? peer : undefined;
-    const isUser = realPeer && isPeerUser(realPeer);
+    const isUser = realPeer && isApiPeerUser(realPeer);
     const title = realPeer && (isUser ? getUserFullName(realPeer) : getChatTitle(lang, realPeer));
     function getSubtitle() {
       if (!peer) return undefined;

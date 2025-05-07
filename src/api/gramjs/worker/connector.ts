@@ -1,23 +1,17 @@
 import type { Api } from '../../../lib/gramjs';
-import type { TypedBroadcastChannel } from '../../../util/multitab';
-import type {
-  ApiInitialArgs, ApiOnProgress, ApiUpdate, OnApiUpdate,
-} from '../../types';
+import type { TypedBroadcastChannel } from '../../../util/browser/multitab';
+import type { ApiInitialArgs, ApiOnProgress, OnApiUpdate } from '../../types';
 import type { LocalDb } from '../localDb';
 import type { MethodArgs, MethodResponse, Methods } from '../methods/types';
 import type { OriginPayload, ThenArg, WorkerMessageEvent } from './types';
 
-import { DATA_BROADCAST_CHANNEL_NAME, DEBUG, IGNORE_UNHANDLED_ERRORS } from '../../../config';
-import { isUserId } from '../../../global/helpers';
+import { DEBUG, IGNORE_UNHANDLED_ERRORS } from '../../../config';
 import { logDebugMessage } from '../../../util/debugConsole';
 import Deferred from '../../../util/Deferred';
 import { getCurrentTabId, subscribeToMasterChange } from '../../../util/establishMultitabRole';
 import generateUniqueId from '../../../util/generateUniqueId';
+import { ACCOUNT_SLOT, DATA_BROADCAST_CHANNEL_NAME } from '../../../util/multiaccount';
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
-import { IS_MULTITAB_SUPPORTED } from '../../../util/windowEnvironment';
-import vectorStore from '../../../components/chatAssistant/vector-store';
-
-import eventEmitter, { Actions } from '../../../components/chatAssistant/lib/EventEmitter';
 
 type RequestState = {
   messageId: string;
@@ -54,9 +48,7 @@ subscribeToMasterChange((isMasterTabNew) => {
   isMasterTab = isMasterTabNew;
 });
 
-const channel = IS_MULTITAB_SUPPORTED
-  ? new BroadcastChannel(DATA_BROADCAST_CHANNEL_NAME) as TypedBroadcastChannel
-  : undefined;
+const channel = new BroadcastChannel(DATA_BROADCAST_CHANNEL_NAME) as TypedBroadcastChannel;
 
 const postMessagesOnTickEnd = throttleWithTickEnd(() => {
   const payloads = pendingPayloads;
@@ -70,8 +62,6 @@ function postMessageOnTickEnd(payload: OriginPayload) {
 }
 
 export function initApiOnMasterTab(initialArgs: ApiInitialArgs) {
-  if (!channel) return;
-
   channel.postMessage({
     type: 'initApi',
     token: getCurrentTabId(),
@@ -99,7 +89,14 @@ export function initApi(onUpdate: OnApiUpdate, initialArgs: ApiInitialArgs) {
       console.log('>>> START LOAD WORKER');
     }
 
-    worker = new Worker(new URL('./worker.ts', import.meta.url));
+    const params = new URLSearchParams();
+    if (ACCOUNT_SLOT) {
+      params.set('account', String(ACCOUNT_SLOT));
+    }
+
+    worker = new Worker(new URL('./worker.ts', import.meta.url), {
+      name: params.toString(),
+    });
     subscribeToWorker(onUpdate);
 
     if (initialArgs.platform === 'iOS') {
@@ -138,8 +135,6 @@ export function updateFullLocalDb(initial: LocalDb) {
 }
 
 export function callApiOnMasterTab(payload: any) {
-  if (!channel) return;
-
   channel.postMessage({
     type: 'callApi',
     token: getCurrentTabId(),
@@ -260,8 +255,6 @@ export function cancelApiProgress(progressCallback: ApiOnProgress) {
   if (isMasterTab) {
     cancelApiProgressMaster(messageId);
   } else {
-    if (!channel) return;
-
     channel.postMessage({
       type: 'cancelApiProgress',
       token: getCurrentTabId(),
@@ -276,30 +269,7 @@ export function cancelApiProgressMaster(messageId: string) {
     messageId,
   });
 }
-function sendToAIAgent(data:ApiUpdate) {
-  if (data['@type'] === 'newMessage') {
-    eventEmitter.emit(Actions.AddNewMessageToAiAssistant, {
-      message: data.message,
-    });
-    if (data.message.content?.text && data.message.content?.text.text) {
-      const {
-        date, id, senderId, chatId,
-      } = data.message;
-      const messageContent = data.message.content.text.text;
-      if (chatId) {
-        const chatType = isUserId(chatId) ? 'private' : 'group';
-        vectorStore.addText(messageContent, {
-          chatId,
-          senderId,
-          messageId: id,
-          timestamp: date,
-          chatType,
-          date: date ? (new Date(date * 1000)).toISOString().split('T')[0] : '0',
-        });
-      }
-    }
-  }
-}
+
 function subscribeToWorker(onUpdate: OnApiUpdate) {
   worker?.addEventListener('message', ({ data }: WorkerMessageEvent) => {
     data?.payloads.forEach((payload) => {
@@ -311,7 +281,6 @@ function subscribeToWorker(onUpdate: OnApiUpdate) {
         }
 
         payload.updates.forEach(onUpdate);
-        payload.updates.forEach(sendToAIAgent);
 
         if (DEBUG) {
           const duration = performance.now() - DEBUG_startAt!;

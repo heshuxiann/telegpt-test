@@ -7,22 +7,26 @@ import { getActions, getGlobal, withGlobal } from '../../../global';
 import type { ApiChatFolder, ApiChatlistExportedInvite, ApiSession } from '../../../api/types';
 import type { GlobalState } from '../../../global/types';
 import type { FolderEditDispatch } from '../../../hooks/reducers/useFoldersReducer';
-import type { LeftColumnContent, SettingsScreens } from '../../../types';
+import type { LeftColumnContent } from '../../../types';
 import type { MenuItemContextAction } from '../../ui/ListItem';
 import type { TabWithProperties } from '../../ui/TabList';
+import { SettingsScreens } from '../../../types';
 
 import { ALL_FOLDER_ID } from '../../../config';
-import { selectCanShareFolder, selectTabState } from '../../../global/selectors';
+import { selectCanShareFolder, selectIsCurrentUserFrozen, selectTabState } from '../../../global/selectors';
 import { selectCurrentLimit } from '../../../global/selectors/limits';
+import { IS_TOUCH_ENV } from '../../../util/browser/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
 import captureEscKeyListener from '../../../util/captureEscKeyListener';
 import { captureEvents, SwipeDirection } from '../../../util/captureEvents';
 import { MEMO_EMPTY_ARRAY } from '../../../util/memo';
-import { IS_TOUCH_ENV } from '../../../util/windowEnvironment';
 import { renderTextWithEntities } from '../../common/helpers/renderTextWithEntities';
 
 import useDerivedState from '../../../hooks/useDerivedState';
-import { useFolderManagerForUnreadCounters } from '../../../hooks/useFolderManager';
+import {
+  useFolderManagerForUnreadChatsByFolder,
+  useFolderManagerForUnreadCounters,
+} from '../../../hooks/useFolderManager';
 import useHistoryBack from '../../../hooks/useHistoryBack';
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -56,6 +60,7 @@ type StateProps = {
   archiveSettings: GlobalState['archiveSettings'];
   isStoryRibbonShown?: boolean;
   sessions?: Record<string, ApiSession>;
+  isAccountFrozen?: boolean;
 };
 
 const SAVED_MESSAGES_HOTKEY = '0';
@@ -81,6 +86,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   archiveSettings,
   isStoryRibbonShown,
   sessions,
+  isAccountFrozen,
 }) => {
   const {
     loadChatFolders,
@@ -90,6 +96,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     openDeleteChatFolderModal,
     openEditChatFolder,
     openLimitReachedModal,
+    markChatMessagesRead,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -111,6 +118,14 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     withShouldRender: true,
   });
   const isStoryRibbonClosing = useDerivedState(getIsStoryRibbonClosing);
+
+  const scrollToTop = useLastCallback(() => {
+    const activeList = ref.current?.querySelector<HTMLElement>('.chat-list.Transition_slide-active');
+    activeList?.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  });
 
   const allChatsFolder: ApiChatFolder = useMemo(() => {
     return {
@@ -136,6 +151,16 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   const allChatsFolderIndex = displayedFolders?.findIndex((folder) => folder.id === ALL_FOLDER_ID);
   const isInAllChatsFolder = allChatsFolderIndex === activeChatFolder;
   const isInFirstFolder = FIRST_FOLDER_INDEX === activeChatFolder;
+
+  const folderUnreadChatsCountersById = useFolderManagerForUnreadChatsByFolder();
+  const handleReadAllChats = useLastCallback((folderId: number) => {
+    const unreadChatIds = folderUnreadChatsCountersById[folderId];
+    if (!unreadChatIds?.length) return;
+
+    unreadChatIds.forEach((chatId) => {
+      markChatMessagesRead({ id: chatId });
+    });
+  });
 
   const folderCountersById = useFolderManagerForUnreadCounters();
   const folderTabs = useMemo(() => {
@@ -177,17 +202,41 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
         });
       }
 
-      if (id !== ALL_FOLDER_ID) {
+      if (id === ALL_FOLDER_ID) {
         contextActions.push({
-          title: lang('FilterEdit'),
+          title: lang('FilterEditFolders'),
+          icon: 'edit',
+          handler: () => {
+            onSettingsScreenSelect(SettingsScreens.Folders);
+          },
+        });
+
+        if (folderUnreadChatsCountersById[id]?.length) {
+          contextActions.push({
+            title: lang('ChatListMarkAllAsRead'),
+            icon: 'readchats',
+            handler: () => handleReadAllChats(folder.id),
+          });
+        }
+      } else {
+        contextActions.push({
+          title: lang('EditFolder'),
           icon: 'edit',
           handler: () => {
             openEditChatFolder({ folderId: id });
           },
         });
 
+        if (folderUnreadChatsCountersById[id]?.length) {
+          contextActions.push({
+            title: lang('ChatListMarkAllAsRead'),
+            icon: 'readchats',
+            handler: () => handleReadAllChats(folder.id),
+          });
+        }
+
         contextActions.push({
-          title: lang('FilterDelete'),
+          title: lang('FilterMenuDelete'),
           icon: 'delete',
           destructive: true,
           handler: () => {
@@ -211,11 +260,14 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     });
   }, [
     displayedFolders, maxFolders, folderCountersById, lang, chatFoldersById, maxChatLists, folderInvitesById,
-    maxFolderInvites,
+    maxFolderInvites, folderUnreadChatsCountersById, onSettingsScreenSelect,
   ]);
 
   const handleSwitchTab = useLastCallback((index: number) => {
     setActiveChatFolder({ activeChatFolder: index }, { forceOnHeavyAnimation: true });
+    if (activeChatFolder === index) {
+      scrollToTop();
+    }
   });
 
   // Prevent `activeTab` pointing at non-existing folder after update
@@ -318,6 +370,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
         canDisplayArchive={(hasArchivedChats || hasArchivedStories) && !archiveSettings.isHidden}
         archiveSettings={archiveSettings}
         sessions={sessions}
+        isAccountFrozen={isAccountFrozen}
       />
     );
   }
@@ -382,6 +435,7 @@ export default memo(withGlobal<OwnProps>(
     } = global;
     const { shouldSkipHistoryAnimations, activeChatFolder } = selectTabState(global);
     const { storyViewer: { isRibbonShown: isStoryRibbonShown } } = selectTabState(global);
+    const isAccountFrozen = selectIsCurrentUserFrozen(global);
 
     return {
       chatFoldersById,
@@ -398,6 +452,7 @@ export default memo(withGlobal<OwnProps>(
       archiveSettings,
       isStoryRibbonShown,
       sessions,
+      isAccountFrozen,
     };
   },
 )(ChatFolders));

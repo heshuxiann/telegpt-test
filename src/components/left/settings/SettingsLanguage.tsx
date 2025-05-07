@@ -1,60 +1,60 @@
-/* eslint-disable max-len */
 import type { FC } from '../../../lib/teact/teact';
 import React, {
   memo, useEffect, useMemo, useState,
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
-import type { ApiLanguage } from '../../../api/types';
-import type { ISettings, LangCode } from '../../../types';
+import type { AccountSettings, LangCode, SharedSettings } from '../../../types';
+import { SettingsScreens } from '../../../types';
 
-// import { SettingsScreens } from '../../../types';
 import { selectIsCurrentUserPremium } from '../../../global/selectors';
+import { selectSharedSettings } from '../../../global/selectors/sharedState';
+import { IS_TRANSLATION_SUPPORTED } from '../../../util/browser/windowEnvironment';
 import { oldSetLanguage } from '../../../util/oldLangProvider';
 
-// import { IS_TRANSLATION_SUPPORTED } from '../../../util/windowEnvironment';
 import useFlag from '../../../hooks/useFlag';
 import useHistoryBack from '../../../hooks/useHistoryBack';
 import useLastCallback from '../../../hooks/useLastCallback';
 import useOldLang from '../../../hooks/useOldLang';
 
 import ItemPicker, { type ItemPickerOption } from '../../common/pickers/ItemPicker';
-// import Checkbox from '../../ui/Checkbox';
-// import ListItem from '../../ui/ListItem';
+import Checkbox from '../../ui/Checkbox';
+import ListItem from '../../ui/ListItem';
 import Loading from '../../ui/Loading';
 
 type OwnProps = {
   isActive?: boolean;
   onReset: () => void;
-  // onScreenSelect: (screen: SettingsScreens) => void;
+  onScreenSelect: (screen: SettingsScreens) => void;
 };
 
 type StateProps = {
   isCurrentUserPremium: boolean;
-  languages?: ApiLanguage[];
-} & Pick<ISettings, | 'language' | 'canTranslate' | 'canTranslateChats' | 'doNotTranslate'>;
+} & Pick<AccountSettings, 'canTranslate' | 'canTranslateChats' | 'doNotTranslate'>
+& Pick<SharedSettings, 'language' | 'languages'>;
 
 const SettingsLanguage: FC<OwnProps & StateProps> = ({
   isActive,
-  // isCurrentUserPremium,
+  isCurrentUserPremium,
   languages,
   language,
-  // canTranslate,
-  // canTranslateChats,
-  // doNotTranslate,
-  // onScreenSelect,
+  canTranslate,
+  canTranslateChats,
+  doNotTranslate,
+  onScreenSelect,
   onReset,
 }) => {
   const {
     loadLanguages,
     setSettingOption,
-    // openPremiumModal,
+    setSharedSettingOption,
+    openPremiumModal,
   } = getActions();
 
   const [selectedLanguage, setSelectedLanguage] = useState<string>(language);
   const [isLoading, markIsLoading, unmarkIsLoading] = useFlag();
 
-  // const canTranslateChatsEnabled = isCurrentUserPremium && canTranslateChats;
+  const canTranslateChatsEnabled = isCurrentUserPremium && canTranslateChats;
 
   const lang = useOldLang();
 
@@ -71,7 +71,7 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
     void oldSetLanguage(langCode as LangCode, () => {
       unmarkIsLoading();
 
-      setSettingOption({ language: langCode as LangCode });
+      setSharedSettingOption({ language: langCode as LangCode });
     });
   });
 
@@ -90,38 +90,38 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
     });
   }, [isLoading, languages, selectedLanguage]);
 
-  // const handleShouldTranslateChange = useLastCallback((newValue: boolean) => {
-  //   setSettingOption({ canTranslate: newValue });
-  // });
+  const handleShouldTranslateChange = useLastCallback((newValue: boolean) => {
+    setSettingOption({ canTranslate: newValue });
+  });
 
-  // const handleShouldTranslateChatsChange = useLastCallback((newValue: boolean) => {
-  //   setSettingOption({ canTranslateChats: newValue });
-  // });
+  const handleShouldTranslateChatsChange = useLastCallback((newValue: boolean) => {
+    setSettingOption({ canTranslateChats: newValue });
+  });
 
-  // const handleShouldTranslateChatsClick = useLastCallback(() => {
-  //   if (!isCurrentUserPremium) {
-  //     openPremiumModal({
-  //       initialSection: 'translations',
-  //     });
-  //   }
-  // });
+  const handleShouldTranslateChatsClick = useLastCallback(() => {
+    if (!isCurrentUserPremium) {
+      openPremiumModal({
+        initialSection: 'translations',
+      });
+    }
+  });
 
-  // const doNotTranslateText = useMemo(() => {
-  //   if (!IS_TRANSLATION_SUPPORTED || !doNotTranslate.length) {
-  //     return undefined;
-  //   }
+  const doNotTranslateText = useMemo(() => {
+    if (!IS_TRANSLATION_SUPPORTED || !doNotTranslate.length) {
+      return undefined;
+    }
 
-  //   if (doNotTranslate.length === 1) {
-  //     const originalNames = new Intl.DisplayNames([language], { type: 'language' });
-  //     return originalNames.of(doNotTranslate[0])!;
-  //   }
+    if (doNotTranslate.length === 1) {
+      const originalNames = new Intl.DisplayNames([language], { type: 'language' });
+      return originalNames.of(doNotTranslate[0])!;
+    }
 
-  //   return lang('Languages', doNotTranslate.length);
-  // }, [doNotTranslate, lang, language]);
+    return lang('Languages', doNotTranslate.length);
+  }, [doNotTranslate, lang, language]);
 
-  // const handleDoNotSelectOpen = useLastCallback(() => {
-  //   onScreenSelect(SettingsScreens.DoNotTranslate);
-  // });
+  const handleDoNotSelectOpen = useLastCallback(() => {
+    onScreenSelect(SettingsScreens.DoNotTranslate);
+  });
 
   useHistoryBack({
     isActive,
@@ -130,7 +130,7 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
 
   return (
     <div className="settings-content settings-language custom-scroll">
-      {/* {IS_TRANSLATION_SUPPORTED && (
+      {IS_TRANSLATION_SUPPORTED && (
         <div className="settings-item">
           <Checkbox
             label={lang('ShowTranslateButton')}
@@ -158,7 +158,7 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
             {lang('lng_translate_settings_about')}
           </p>
         </div>
-      )} */}
+      )}
       <div className="settings-item settings-item-picker">
         <h4 className="settings-item-header">
           {lang('Localization.InterfaceLanguage')}
@@ -183,9 +183,9 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
 export default memo(withGlobal<OwnProps>(
   (global): StateProps => {
     const {
-      language, canTranslate, canTranslateChats, doNotTranslate
+      canTranslate, canTranslateChats, doNotTranslate,
     } = global.settings.byKey;
-    const languages = global.settings.languages;
+    const { language, languages } = selectSharedSettings(global);
 
     const isCurrentUserPremium = selectIsCurrentUserPremium(global);
 

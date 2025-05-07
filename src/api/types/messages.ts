@@ -8,8 +8,8 @@ import type { ApiPeerColor } from './chats';
 import type { ApiMessageAction } from './messageActions';
 import type {
   ApiLabeledPrice,
-  ApiStarGiftUnique,
 } from './payments';
+import type { ApiStarGiftUnique } from './stars';
 import type {
   ApiMessageStoryData, ApiStory, ApiWebPageStickerData, ApiWebPageStoryData,
 } from './stories';
@@ -365,6 +365,7 @@ export interface ApiMessageReplyInfo {
   isForumTopic?: true;
   isQuote?: true;
   quoteText?: ApiFormattedText;
+  quoteOffset?: number;
 }
 
 export interface ApiStoryReplyInfo {
@@ -379,7 +380,7 @@ export interface ApiInputMessageReplyInfo {
   replyToTopId?: number;
   replyToPeerId?: string;
   quoteText?: ApiFormattedText;
-  chatId?: string;
+  quoteOffset?: number;
 }
 
 export interface ApiInputStoryReplyInfo {
@@ -458,6 +459,7 @@ export type ApiMessageEntityCustomEmoji = {
   documentId: string;
 };
 
+// Local entities
 export type ApiMessageEntityTimestamp = {
   type: ApiMessageEntityTypes.Timestamp;
   offset: number;
@@ -465,8 +467,15 @@ export type ApiMessageEntityTimestamp = {
   timestamp: number;
 };
 
+export type ApiMessageEntityQuoteFocus = {
+  type: 'quoteFocus';
+  offset: number;
+  length: number;
+};
+
 export type ApiMessageEntity = ApiMessageEntityDefault | ApiMessageEntityPre | ApiMessageEntityTextUrl |
-ApiMessageEntityMentionName | ApiMessageEntityCustomEmoji | ApiMessageEntityBlockquote | ApiMessageEntityTimestamp;
+ApiMessageEntityMentionName | ApiMessageEntityCustomEmoji | ApiMessageEntityBlockquote | ApiMessageEntityTimestamp |
+ApiMessageEntityQuoteFocus;
 
 export enum ApiMessageEntityTypes {
   Bold = 'MessageEntityBold',
@@ -488,6 +497,7 @@ export enum ApiMessageEntityTypes {
   Spoiler = 'MessageEntitySpoiler',
   CustomEmoji = 'MessageEntityCustomEmoji',
   Timestamp = 'MessageEntityTimestamp',
+  QuoteFocus = 'MessageEntityQuoteFocus',
   Unknown = 'MessageEntityUnknown',
 }
 
@@ -586,6 +596,7 @@ export interface ApiMessage {
   isVideoProcessingPending?: true;
   areReactionsPossible?: true;
   reportDeliveryUntilDate?: number;
+  paidMessageStars?: number;
 }
 
 export interface ApiReactions {

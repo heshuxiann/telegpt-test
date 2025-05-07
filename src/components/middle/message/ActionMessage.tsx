@@ -6,6 +6,7 @@ import { getActions, withGlobal } from '../../../global';
 import type { ApiMessageAction } from '../../../api/types/messageActions';
 import type {
   FocusDirection,
+  ScrollTargetPosition,
   ThreadId,
 } from '../../../types';
 import type { Signal } from '../../../util/signals';
@@ -18,6 +19,7 @@ import { getMessageReplyInfo } from '../../../global/helpers/replies';
 import {
   selectChat,
   selectChatMessage,
+  selectIsCurrentUserFrozen,
   selectIsCurrentUserPremium,
   selectIsInSelectMode,
   selectIsMessageFocused,
@@ -25,10 +27,10 @@ import {
   selectTabState,
   selectTheme,
 } from '../../../global/selectors';
+import { IS_ANDROID, IS_ELECTRON, IS_FLUID_BACKGROUND_SUPPORTED } from '../../../util/browser/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
 import { isLocalMessageId } from '../../../util/keys/messageKey';
 import { isElementInViewport } from '../../../util/visibility/isElementInViewport';
-import { IS_ANDROID, IS_ELECTRON, IS_FLUID_BACKGROUND_SUPPORTED } from '../../../util/windowEnvironment';
 import { preventMessageInputBlur } from '../helpers/preventMessageInputBlur';
 
 import useAppLayout from '../../../hooks/useAppLayout';
@@ -82,6 +84,9 @@ type StateProps = {
   isCurrentUserPremium?: boolean;
   isInSelectMode?: boolean;
   hasUnreadReaction?: boolean;
+  isResizingContainer?: boolean;
+  scrollTargetPosition?: ScrollTargetPosition;
+  isAccountFrozen?: boolean;
 };
 
 const SINGLE_LINE_ACTIONS: Set<ApiMessageAction['type']> = new Set([
@@ -111,10 +116,13 @@ const ActionMessage = ({
   isCurrentUserPremium,
   isInSelectMode,
   hasUnreadReaction,
+  isResizingContainer,
+  scrollTargetPosition,
   onIntersectPinnedMessage,
   observeIntersectionForBottom,
   observeIntersectionForLoading,
   observeIntersectionForPlaying,
+  isAccountFrozen,
 }: OwnProps & StateProps) => {
   const {
     requestConfetti,
@@ -162,11 +170,13 @@ const ActionMessage = ({
   );
   useFocusMessage({
     elementRef: ref,
-    chatId: message.chatId,
+    chatId,
     isFocused,
     focusDirection,
     noFocusHighlight,
+    isResizingContainer,
     isJustAdded,
+    scrollTargetPosition,
   });
 
   useUnmountCleanup(() => {
@@ -181,7 +191,7 @@ const ActionMessage = ({
     handleContextMenuClose, handleContextMenuHide,
   } = useContextMenuHandlers(
     ref,
-    isTouchScreen && isInSelectMode,
+    (isTouchScreen && isInSelectMode) || isAccountFrozen,
     !IS_ELECTRON,
     IS_ANDROID,
     getIsMessageListReady,
@@ -220,9 +230,9 @@ const ActionMessage = ({
     }
 
     if (message.hasUnreadMention) {
-      markMentionsRead({ messageIds: [id] });
+      markMentionsRead({ chatId, messageIds: [id] });
     }
-  }, [hasUnreadReaction, id, animateUnreadReaction, message.hasUnreadMention]);
+  }, [hasUnreadReaction, chatId, id, animateUnreadReaction, message.hasUnreadMention]);
 
   useEffect(() => {
     if (action.type !== 'giftPremium') return;
@@ -389,6 +399,7 @@ const ActionMessage = ({
       id={getMessageHtmlId(id)}
       className={buildClassName(
         'ActionMessage',
+        'message-list-item',
         styles.root,
         isSingleLine && styles.singleLine,
         isFluidMultiline && styles.fluidMultiline,
@@ -439,6 +450,7 @@ const ActionMessage = ({
           threadId={threadId}
           observeIntersection={observeIntersectionForPlaying}
           isCurrentUserPremium={isCurrentUserPremium}
+          isAccountFrozen={isAccountFrozen}
         />
       )}
     </div>
@@ -447,8 +459,9 @@ const ActionMessage = ({
 
 export default memo(withGlobal<OwnProps>(
   (global, { message, threadId }): StateProps => {
-    const { settings: { themes } } = global;
     const tabState = selectTabState(global);
+    const { themes } = global.settings;
+
     const chat = selectChat(global, message.chatId);
 
     const sender = selectSender(global, message);
@@ -463,11 +476,13 @@ export default memo(withGlobal<OwnProps>(
     const {
       direction: focusDirection,
       noHighlight: noFocusHighlight,
+      isResizingContainer, scrollTargetPosition,
     } = (isFocused && tabState.focusedMessage) || {};
 
     const isCurrentUserPremium = selectIsCurrentUserPremium(global);
 
     const hasUnreadReaction = chat?.unreadReactions?.includes(message.id);
+    const isAccountFrozen = selectIsCurrentUserFrozen(global);
 
     return {
       sender,
@@ -481,6 +496,9 @@ export default memo(withGlobal<OwnProps>(
       isInSelectMode: selectIsInSelectMode(global),
       patternColor: themes[selectTheme(global)]?.patternColor,
       hasUnreadReaction,
+      isResizingContainer,
+      scrollTargetPosition,
+      isAccountFrozen,
     };
   },
 )(ActionMessage));

@@ -3,15 +3,13 @@ import React, { memo, useMemo } from '../../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../../global';
 
 import type {
-  ApiEmojiStatusCollectible,
   ApiEmojiStatusType,
   ApiPeer,
 } from '../../../../api/types';
 import type { TabState } from '../../../../global/types';
 
-import { DEFAULT_STATUS_ICON_ID, TME_LINK_PREFIX } from '../../../../config';
-import { getHasAdminRight, getPeerTitle } from '../../../../global/helpers';
-import { isApiPeerChat } from '../../../../global/helpers/peers';
+import { getHasAdminRight } from '../../../../global/helpers';
+import { getPeerTitle, isApiPeerChat } from '../../../../global/helpers/peers';
 import { selectPeer, selectUser } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { copyTextToClipboard } from '../../../../util/clipboard';
@@ -32,13 +30,13 @@ import useOldLang from '../../../../hooks/useOldLang';
 import AnimatedIconFromSticker from '../../../common/AnimatedIconFromSticker';
 import Avatar from '../../../common/Avatar';
 import BadgeButton from '../../../common/BadgeButton';
+import GiftMenuItems from '../../../common/gift/GiftMenuItems';
 import Icon from '../../../common/icons/Icon';
 import SafeLink from '../../../common/SafeLink';
 import Button from '../../../ui/Button';
 import ConfirmDialog from '../../../ui/ConfirmDialog';
 import DropdownMenu from '../../../ui/DropdownMenu';
 import Link from '../../../ui/Link';
-import MenuItem from '../../../ui/MenuItem';
 import TableInfoModal, { type TableData } from '../../common/TableInfoModal';
 import UniqueGiftHeader from '../UniqueGiftHeader';
 
@@ -80,10 +78,6 @@ const GiftInfoModal = ({
     focusMessage,
     openGiftUpgradeModal,
     showNotification,
-    openChatWithDraft,
-    openGiftStatusInfoModal,
-    setEmojiStatus,
-    openGiftTransferModal,
   } = getActions();
 
   const [isConvertConfirmOpen, openConvertConfirm, closeConvertConfirm] = useFlag();
@@ -111,27 +105,10 @@ const GiftInfoModal = ({
   const giftSticker = gift && getStickerFromGift(gift);
   const hasConvertOption = canConvertDifference > 0 && Boolean(savedGift?.starsToConvert);
 
-  const currenUniqueEmojiStatusSlug = currentUserEmojiStatus?.type === 'collectible'
-    ? currentUserEmojiStatus.slug : undefined;
-
-  const starGiftUniqueSlug = gift?.type === 'starGiftUnique' ? gift.slug : undefined;
-  const starGiftUniqueLink = useMemo(() => {
-    if (!starGiftUniqueSlug) return undefined;
-    return `${TME_LINK_PREFIX}nft/${starGiftUniqueSlug}`;
-  }, [starGiftUniqueSlug]);
-  const userCollectibleStatus = useMemo(() => {
-    if (!starGiftUniqueSlug) return undefined;
-    return collectibleEmojiStatuses?.find((
-      status,
-    ) => status.type === 'collectible' && status.slug === starGiftUniqueSlug) as ApiEmojiStatusCollectible | undefined;
-  }, [starGiftUniqueSlug, collectibleEmojiStatuses]);
-
   const isGiftUnique = gift && gift.type === 'starGiftUnique';
-  const canTakeOff = isGiftUnique && currenUniqueEmojiStatusSlug === gift.slug;
-  const canWear = userCollectibleStatus && !canTakeOff;
 
   const canFocusUpgrade = Boolean(savedGift?.upgradeMsgId);
-  const canUpdate = !canFocusUpgrade && savedGift?.inputGift && (
+  const canManage = !canFocusUpgrade && savedGift?.inputGift && (
     isTargetChat ? hasAdminRights : renderingTargetPeer?.id === currentUserId
   );
 
@@ -139,42 +116,11 @@ const GiftInfoModal = ({
     closeGiftInfoModal();
   });
 
-  const handleCopyLink = useLastCallback(() => {
-    if (!starGiftUniqueLink) return;
-    copyTextToClipboard(starGiftUniqueLink);
-    showNotification({
-      message: lang('LinkCopied'),
-    });
-  });
-
-  const handleLinkShare = useLastCallback(() => {
-    if (!starGiftUniqueLink) return;
-    openChatWithDraft({ text: { text: starGiftUniqueLink } });
-    handleClose();
-  });
-
-  const handleTransfer = useLastCallback(() => {
-    if (savedGift?.gift.type !== 'starGiftUnique') return;
-    openGiftTransferModal({ gift: savedGift });
-  });
-
-  const handleWear = useLastCallback(() => {
-    if (gift?.type !== 'starGiftUnique' || !userCollectibleStatus) return;
-    openGiftStatusInfoModal({ emojiStatus: userCollectibleStatus });
-  });
-
-  const handleTakeOff = useLastCallback(() => {
-    if (canTakeOff) {
-      setEmojiStatus({
-        emojiStatus: { type: 'regular', documentId: DEFAULT_STATUS_ICON_ID },
-      });
-    }
-  });
-
   const handleFocusUpgraded = useLastCallback(() => {
-    if (!savedGift?.upgradeMsgId || !renderingTargetPeer) return;
+    const giftChat = isSender ? renderingTargetPeer : renderingFromPeer;
+    if (!savedGift?.upgradeMsgId || !giftChat) return;
     const { upgradeMsgId } = savedGift;
-    focusMessage({ chatId: renderingTargetPeer.id, messageId: upgradeMsgId! });
+    focusMessage({ chatId: giftChat.id, messageId: upgradeMsgId! });
     handleClose();
   });
 
@@ -224,7 +170,7 @@ const GiftInfoModal = ({
       );
     }
 
-    if (canUpdate && savedGift?.alreadyPaidUpgradeStars && !savedGift.upgradeMsgId) {
+    if (canManage && savedGift?.alreadyPaidUpgradeStars && !savedGift.upgradeMsgId) {
       return (
         <Button size="smaller" isShiny onClick={handleOpenUpgradeModal}>
           {lang('GiftInfoUpgradeForFree')}
@@ -238,6 +184,22 @@ const GiftInfoModal = ({
       </Button>
     );
   });
+
+  const saleDateInfo = useMemo(() => {
+    if (!gift) return undefined;
+    let text = '';
+    if (gift.type === 'starGift') {
+      if (gift.firstSaleDate) {
+        text += `${lang('GiftInfoFirstSale')} ${formatDateTimeToString(gift.firstSaleDate * 1000, lang.code, true)}`;
+      }
+      if (gift.lastSaleDate) {
+        text += '\n';
+        text += `${lang('GiftInfoLastSale')} ${formatDateTimeToString(gift.lastSaleDate * 1000, lang.code, true)}`;
+      }
+    }
+
+    return text;
+  }, [gift, lang]);
 
   const modalData = useMemo(() => {
     if (!typeGift || !gift) {
@@ -257,13 +219,13 @@ const GiftInfoModal = ({
 
       if (savedGift.upgradeMsgId) return lang('GiftInfoDescriptionUpgraded');
       if (savedGift.canUpgrade && savedGift.alreadyPaidUpgradeStars) {
-        return canUpdate
+        return canManage
           ? lang('GiftInfoDescriptionFreeUpgrade')
           : lang('GiftInfoPeerDescriptionFreeUpgradeOut', { peer: getPeerTitle(lang, renderingTargetPeer!)! });
       }
-      if (!canUpdate && !isSender) return undefined;
+      if (!canManage && !isSender) return undefined;
       if (isConverted && canConvert) {
-        return canUpdate
+        return canManage
           ? lang('GiftInfoDescriptionConverted', {
             amount: starsToConvert,
           }, {
@@ -281,7 +243,7 @@ const GiftInfoModal = ({
           });
       }
 
-      if (savedGift.canUpgrade && canUpdate) {
+      if (savedGift.canUpgrade && canManage) {
         if (canConvert) {
           return lang('GiftInfoDescriptionUpgrade', {
             amount: starsToConvert,
@@ -295,7 +257,7 @@ const GiftInfoModal = ({
         return lang('GiftInfoDescriptionUpgradeRegular');
       }
 
-      if (canUpdate) {
+      if (canManage) {
         if (canConvert) {
           return lang('GiftInfoDescription', {
             amount: starsToConvert,
@@ -327,7 +289,7 @@ const GiftInfoModal = ({
       if (isGiftUnique) return gift.title;
       if (!savedGift) return lang('GiftInfoSoldOutTitle');
 
-      return canUpdate ? lang('GiftInfoReceived') : lang('GiftInfoTitle');
+      return canManage ? lang('GiftInfoReceived') : lang('GiftInfoTitle');
     }
 
     const uniqueGiftContextMenu = (
@@ -336,27 +298,13 @@ const GiftInfoModal = ({
         trigger={SettingsMenuButton}
         positionX="right"
       >
-        <MenuItem icon="link-badge" onClick={handleCopyLink}>
-          {lang('CopyLink')}
-        </MenuItem>
-        <MenuItem icon="forward" onClick={handleLinkShare}>
-          {lang('Share')}
-        </MenuItem>
-        {canUpdate && isGiftUnique && (
-          <MenuItem icon="diamond" onClick={handleTransfer}>
-            {lang('GiftInfoTransfer')}
-          </MenuItem>
-        )}
-        {canWear && (
-          <MenuItem icon="crown-wear" onClick={handleWear}>
-            {lang('GiftInfoWear')}
-          </MenuItem>
-        )}
-        {canTakeOff && (
-          <MenuItem icon="crown-take-off" onClick={handleTakeOff}>
-            {lang('GiftInfoTakeOff')}
-          </MenuItem>
-        )}
+        <GiftMenuItems
+          peerId={renderingModal!.peerId!}
+          gift={typeGift}
+          canManage={canManage}
+          collectibleEmojiStatuses={collectibleEmojiStatuses}
+          currentUserEmojiStatus={currentUserEmojiStatus}
+        />
       </DropdownMenu>
     );
 
@@ -427,18 +375,18 @@ const GiftInfoModal = ({
       if (savedGift?.date) {
         tableData.push([
           lang('GiftInfoDate'),
-          formatDateTimeToString(savedGift.date * 1000, lang.code, true),
+          <span title={saleDateInfo}>{formatDateTimeToString(savedGift.date * 1000, lang.code, true)}</span>,
         ]);
       }
 
-      if (gift.firstSaleDate) {
+      if (gift.firstSaleDate && !savedGift) {
         tableData.push([
           lang('GiftInfoFirstSale'),
           formatDateTimeToString(gift.firstSaleDate * 1000, lang.code, true),
         ]);
       }
 
-      if (gift.lastSaleDate) {
+      if (gift.lastSaleDate && !savedGift) {
         tableData.push([
           lang('GiftInfoLastSale'),
           formatDateTimeToString(gift.lastSaleDate * 1000, lang.code, true),
@@ -451,7 +399,7 @@ const GiftInfoModal = ({
         lang('GiftInfoValue'),
         <div className={styles.giftValue}>
           {formatStarsAsIcon(lang, starsValue, { className: styles.starAmountIcon })}
-          {canUpdate && hasConvertOption && Boolean(starsToConvert) && (
+          {canManage && hasConvertOption && Boolean(starsToConvert) && (
             <BadgeButton onClick={openConvertConfirm}>
               {lang('GiftInfoConvert', { amount: starsToConvert }, { pluralValue: starsToConvert })}
             </BadgeButton>
@@ -476,7 +424,7 @@ const GiftInfoModal = ({
           lang('GiftInfoStatus'),
           <div className={styles.giftValue}>
             {lang('GiftInfoStatusNonUnique')}
-            {canUpdate && <BadgeButton onClick={handleOpenUpgradeModal}>{lang('GiftInfoUpgradeBadge')}</BadgeButton>}
+            {canManage && <BadgeButton onClick={handleOpenUpgradeModal}>{lang('GiftInfoUpgradeBadge')}</BadgeButton>}
           </div>,
         ]);
       }
@@ -626,7 +574,7 @@ const GiftInfoModal = ({
 
     const footer = (
       <div className={styles.footer}>
-        {(canUpdate || tonLink) && (
+        {(canManage || tonLink) && (
           <div className={styles.footerDescription}>
             {tonLink && (
               <div>
@@ -635,7 +583,7 @@ const GiftInfoModal = ({
                 }, { withNodes: true })}
               </div>
             )}
-            {canUpdate && (
+            {canManage && (
               <div>
                 {lang(`GiftInfo${isTargetChat ? 'Channel' : ''}${isUnsaved ? 'Hidden' : 'Saved'}`, {
                   link: (
@@ -667,9 +615,10 @@ const GiftInfoModal = ({
     };
   }, [
     typeGift, savedGift, renderingTargetPeer, giftSticker, lang,
-    canUpdate, hasConvertOption, isSender, oldLang, tonExplorerUrl,
+    canManage, hasConvertOption, isSender, oldLang, tonExplorerUrl,
     gift, giftAttributes, renderFooterButton, isTargetChat,
-    SettingsMenuButton, isOpen, isGiftUnique, canWear, canTakeOff,
+    SettingsMenuButton, isOpen, isGiftUnique, renderingModal,
+    collectibleEmojiStatuses, currentUserEmojiStatus, saleDateInfo,
   ]);
 
   return (

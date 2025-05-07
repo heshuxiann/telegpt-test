@@ -13,18 +13,19 @@ export const PRODUCTION_HOSTNAME = 'web.telegram.org';
 export const PRODUCTION_URL = 'https://web.telegram.org/a';
 export const WEB_VERSION_BASE = 'https://web.telegram.org/'; // Used to redirect to other versions
 export const BASE_URL = process.env.BASE_URL;
+export const ACCOUNT_QUERY = 'account';
 
 export const IS_MOCKED_CLIENT = process.env.APP_MOCKED_CLIENT === '1';
 export const IS_TEST = process.env.APP_ENV === 'test';
 export const IS_PERF = process.env.APP_ENV === 'perf';
 export const IS_BETA = process.env.APP_ENV === 'staging';
 export const IS_PACKAGED_ELECTRON = process.env.IS_PACKAGED_ELECTRON;
+export const PAID_MESSAGES_PURPOSE = 'paid_messages';
 
 export const DEBUG = process.env.APP_ENV !== 'production';
 export const DEBUG_MORE = false;
 export const DEBUG_LOG_FILENAME = 'tt-log.json';
-// export const STRICTERDOM_ENABLED = DEBUG;
-export const STRICTERDOM_ENABLED = false;
+export const STRICTERDOM_ENABLED = DEBUG;
 export const BOT_VERIFICATION_PEERS_LIMIT = 20;
 
 export const BETA_CHANGELOG_URL = 'https://telegra.ph/WebA-Beta-03-20';
@@ -38,11 +39,14 @@ export const INACTIVE_MARKER = '[Inactive]';
 
 export const DEBUG_PAYMENT_SMART_GLOCAL = false;
 
-export const SESSION_USER_KEY = 'user_auth';
+export const SESSION_LEGACY_USER_KEY = 'user_auth';
+export const SESSION_ACCOUNT_PREFIX = 'account';
 export const LEGACY_PASSCODE_CACHE_NAME = 'tt-passcode';
 
+export const MULTIACCOUNT_MAX_SLOTS = 6;
 export const GLOBAL_STATE_CACHE_DISABLED = false;
-export const GLOBAL_STATE_CACHE_KEY = 'tt-global-state';
+export const GLOBAL_STATE_CACHE_PREFIX = 'tt-global-state';
+export const SHARED_STATE_CACHE_KEY = 'tt-shared-state';
 export const GLOBAL_STATE_CACHE_USER_LIST_LIMIT = 500;
 export const GLOBAL_STATE_CACHE_CHAT_LIST_LIMIT = 200;
 export const GLOBAL_STATE_CACHE_ARCHIVED_CHAT_LIST_LIMIT = 10;
@@ -60,9 +64,10 @@ export const CUSTOM_BG_CACHE_NAME = 'tt-custom-bg';
 export const LANG_CACHE_NAME = 'tt-lang-packs-v49';
 export const ASSET_CACHE_NAME = 'tt-assets';
 export const AUTODOWNLOAD_FILESIZE_MB_LIMITS = [1, 5, 10, 50, 100, 500];
-export const DATA_BROADCAST_CHANNEL_NAME = 'tt-global';
-export const ESTABLISH_BROADCAST_CHANNEL_NAME = 'tt-establish';
-export const MULTITAB_LOCALSTORAGE_KEY = 'tt-multitab';
+export const DATA_BROADCAST_CHANNEL_PREFIX = 'tt-global';
+export const ESTABLISH_BROADCAST_CHANNEL_PREFIX = 'tt-establish';
+export const MULTITAB_LOCALSTORAGE_KEY_PREFIX = 'tt-multitab';
+export const DC_IDS = [1, 2, 3, 4, 5] as const;
 
 export const DOWNLOAD_WORKERS = 16;
 export const UPLOAD_WORKERS = 16;
@@ -122,6 +127,10 @@ export const TOP_CHAT_MESSAGES_PRELOAD_LIMIT = 20;
 
 export const SPONSORED_MESSAGE_CACHE_MS = 300000; // 5 min
 
+export const DEFAULT_CHARGE_FOR_MESSAGES = 250;
+export const MINIMUM_CHARGE_FOR_MESSAGES = 1;
+export const DEFAULT_MAXIMUM_CHARGE_FOR_MESSAGES = 10000;
+
 export const DEFAULT_VOLUME = 1;
 export const DEFAULT_PLAYBACK_RATE = 1;
 export const PLAYBACK_RATE_FOR_AUDIO_MIN_DURATION = 20 * 60; // 20 min
@@ -155,6 +164,7 @@ export const EDITABLE_STORY_INPUT_CSS_SELECTOR = `#${EDITABLE_STORY_INPUT_ID}`;
 export const CUSTOM_APPENDIX_ATTRIBUTE = 'data-has-custom-appendix';
 export const MESSAGE_CONTENT_CLASS_NAME = 'message-content';
 export const MESSAGE_CONTENT_SELECTOR = '.message-content';
+export const VIEW_TRANSITION_CLASS_NAME = 'active-view-transition';
 
 export const RESIZE_HANDLE_CLASS_NAME = 'resizeHandle';
 export const RESIZE_HANDLE_SELECTOR = `.${RESIZE_HANDLE_CLASS_NAME}`;
@@ -177,6 +187,7 @@ export const TMP_CHAT_ID = '0';
 export const ANIMATION_END_DELAY = 100;
 export const ANIMATION_WAVE_MIN_INTERVAL = 200;
 export const MESSAGE_APPEARANCE_DELAY = 10;
+export const PAID_SEND_DELAY = 5000;
 
 export const SCROLL_MIN_DURATION = 300;
 export const SCROLL_MAX_DURATION = 600;
@@ -203,7 +214,7 @@ export const STICKER_SIZE_AUTH_MOBILE = 120;
 export const STICKER_SIZE_PICKER = 72;
 export const EMOJI_SIZE_PICKER = 36;
 export const COMPOSER_EMOJI_SIZE_PICKER = 32;
-export const STICKER_SIZE_GENERAL_SETTINGS = 48;
+export const STICKER_SIZE_GENERAL_SETTINGS = 40;
 export const STICKER_SIZE_PICKER_HEADER = 32;
 export const STICKER_PICKER_MAX_SHARED_COVERS = 20;
 export const STICKER_SIZE_SEARCH = 72;
@@ -321,7 +332,6 @@ export const HEART_REACTION: ApiReactionEmoji = {
 };
 
 // MTProto constants
-export const SERENA_USER_ID = '777888';
 export const SERVICE_NOTIFICATIONS_USER_ID = '777000';
 export const REPLIES_USER_ID = '1271266957'; // TODO For Test connection ID must be equal to 708513
 export const VERIFICATION_CODES_USER_ID = '489000';
@@ -387,6 +397,7 @@ export const DEFAULT_LIMITS: Record<ApiLimitType, readonly [number, number]> = {
   chatlistJoined: [2, 20],
   recommendedChannels: [10, 100],
   savedDialogsPinned: [5, 100],
+  moreAccounts: [3, MULTIACCOUNT_MAX_SLOTS],
 };
 export const DEFAULT_MAX_MESSAGE_LENGTH = 4096;
 
@@ -439,6 +450,7 @@ export const PREMIUM_LIMITS_ORDER: ApiLimitTypeForPromo[] = [
   'captionLength',
   'dialogFilters',
   'dialogFiltersChats',
+  'moreAccounts',
   'recommendedChannels',
 ];
 

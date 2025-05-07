@@ -6,7 +6,7 @@ import React, {
 import { getActions, withGlobal } from '../../../global';
 
 import type { GlobalState } from '../../../global/types';
-import type { ISettings } from '../../../types';
+import type { ThemeKey } from '../../../types';
 import { GlobalSearchContent, LeftColumnContent, SettingsScreens } from '../../../types';
 
 import {
@@ -21,11 +21,12 @@ import {
   selectTabState,
   selectTheme,
 } from '../../../global/selectors';
+import { selectSharedSettings } from '../../../global/selectors/sharedState';
+import { IS_APP, IS_ELECTRON, IS_MAC_OS } from '../../../util/browser/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
 import buildStyle from '../../../util/buildStyle';
 import captureEscKeyListener from '../../../util/captureEscKeyListener';
 import { formatDateToString } from '../../../util/dates/dateFormat';
-import { IS_APP, IS_ELECTRON, IS_MAC_OS } from '../../../util/windowEnvironment';
 import AIMenuIcon from '../../chatAssistant/assets/ai-menu.png';
 
 import useAppLayout from '../../../hooks/useAppLayout';
@@ -75,10 +76,10 @@ type StateProps =
     globalSearchChatId?: string;
     currentContent:GlobalSearchContent | undefined;
     searchDate?: number;
-    theme: ISettings['theme'];
+    theme: ThemeKey;
     isMessageListOpen: boolean;
     isCurrentUserPremium?: boolean;
-    isConnectionStatusMinimized: ISettings['isConnectionStatusMinimized'];
+    isConnectionStatusMinimized?:boolean;
     areChatsLoaded?: boolean;
     hasPasscode?: boolean;
     canSetPasscode?: boolean;
@@ -118,8 +119,8 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
   onSelectAITranslate,
 }) => {
   const {
+    setSharedSettingOption,
     setGlobalSearchDate,
-    setSettingOption,
     setGlobalSearchChatId,
     lockScreen,
     requestNextSettingsScreen,
@@ -199,7 +200,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
   });
 
   const toggleConnectionStatus = useLastCallback(() => {
-    setSettingOption({ isConnectionStatusMinimized: !isConnectionStatusMinimized });
+    setSharedSettingOption({ isConnectionStatusMinimized: !isConnectionStatusMinimized });
   });
 
   const handleLockScreen = useLastCallback(() => {
@@ -364,7 +365,7 @@ export default memo(withGlobal<OwnProps>(
     const {
       connectionState, isSyncing, isFetchingDifference,
     } = global;
-    const { isConnectionStatusMinimized } = global.settings.byKey;
+    const { isConnectionStatusMinimized } = selectSharedSettings(global);
 
     return {
       searchQuery,

@@ -14,13 +14,13 @@ import {
   getMessageIsSpoiler,
   getMessageMediaHash,
   getMessageRoundVideo,
-  getPeerTitle,
   isChatChannel,
   isChatGroup,
   isMessageTranslatable,
   isUserId,
 } from '../../../global/helpers';
 import { getMediaContentTypeDescription } from '../../../global/helpers/messageSummary';
+import { getPeerTitle } from '../../../global/helpers/peers';
 import buildClassName from '../../../util/buildClassName';
 import freezeWhenClosed from '../../../util/hoc/freezeWhenClosed';
 import { getPictogramDimensions } from '../helpers/mediaDimensions';
@@ -222,7 +222,7 @@ const EmbeddedMessage: FC<OwnProps> = ({
   return (
     <PeerColorWrapper
       peer={sender}
-      emojiIconClassName=' className="EmbeddedMessage--background-icons"'
+      emojiIconClassName="EmbeddedMessage--background-icons"
       ref={ref}
       shouldReset
       noUserColors={noUserColors}
@@ -231,6 +231,7 @@ const EmbeddedMessage: FC<OwnProps> = ({
         className,
         isQuote && 'is-quote',
         mediaThumbnail && 'with-thumb',
+        'no-selection',
       )}
       dir={lang.isRtl ? 'rtl' : undefined}
       onClick={handleClick}

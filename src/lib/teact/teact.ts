@@ -1,7 +1,5 @@
-// @ts-nocheck
 import type { ReactElement } from 'react';
 
-// import * as OriginalReact from 'react-original';
 import { DEBUG, DEBUG_MORE } from '../../config';
 import { logUnequalProps } from '../../util/arePropsShallowEqual';
 import { incrementOverlayCounter } from '../../util/debugOverlay';
@@ -12,29 +10,6 @@ import { createSignal, isSignal, type Signal } from '../../util/signals';
 import { requestMeasure, requestMutation } from '../fasterdom/fasterdom';
 import { getIsBlockingAnimating } from './heavyAnimation';
 
-// eslint-disable-next-line no-console
-// console.warn(OriginalReact, '-----OriginalReact');
-export function useId() {}
-export function useContext() {}
-export function useDebugValue() {}
-export function useInsertionEffect() {}
-
-export function isValidReactElement<T extends keyof JSX.IntrinsicElements | React.JSXElementConstructor<any>>(
-  node: TeactNode,
-  type?: T,
-): node is ReactElement {
-  if (!React.isValidElement(node)) return false;
-  return type ? node.type === type : true;
-}
-
-export function forwardRef<T, P = {}>(
-  render: (props: P, ref: React.Ref<T>) => React.ReactElement | null,
-) {
-  return React.forwardRef(render);
-}
-
-// export const useContext = OriginalReact.useContext;
-// export const useDebugValue = OriginalReact.useDebugValue;
 export { getIsHeavyAnimating, beginHeavyAnimation, onFullyIdle } from './heavyAnimation';
 
 export type Props = AnyLiteral;
@@ -51,8 +26,6 @@ export enum VirtualType {
   Component,
   Fragment,
 }
-
-export const Component = VirtualType.Component;
 
 interface VirtualElementEmpty {
   type: VirtualType.Empty;
@@ -93,7 +66,7 @@ export interface RefObject<T = any> {
 }
 
 export enum MountState {
-  New,
+  Mounting,
   Mounted,
   Unmounted,
 }
@@ -172,7 +145,7 @@ export type Context<T> = {
   Provider: FC<{ value: T; children: TeactNode }>;
 };
 
-export const Fragment = Symbol('Fragment');
+const Fragment = Symbol('Fragment');
 
 const DEBUG_RENDER_THRESHOLD = 7;
 const DEBUG_EFFECT_THRESHOLD = 7;
@@ -191,7 +164,7 @@ export function isParentElement($element: VirtualElement): $element is VirtualEl
   );
 }
 
-export function createElement(
+function createElement(
   source: string | FC | typeof Fragment,
   props: Props,
   ...children: any[]
@@ -223,7 +196,7 @@ function createComponentInstance(Component: FC, props: Props, children: any[]): 
     Component,
     name: Component.name,
     props,
-    mountState: MountState.New,
+    mountState: MountState.Unmounted,
   };
 
   componentInstance.$element = buildComponentElement(componentInstance);
@@ -478,11 +451,13 @@ export function renderComponent(componentInstance: ComponentInstance) {
         incrementOverlayCounter(`${componentName} duration`, duration);
       }
     }
-  }, () => {
-    // eslint-disable-next-line no-console
-    console.error(`[Teact] Error while rendering component ${componentInstance.name}`, componentInstance);
+  }, {
+    rescue: () => {
+      // eslint-disable-next-line no-console
+      console.error(`[Teact] Error while rendering component ${componentInstance.name}`, componentInstance);
 
-    newRenderedValue = componentInstance.renderedValue;
+      newRenderedValue = componentInstance.renderedValue;
+    },
   });
 
   if (componentInstance.mountState === MountState.Mounted && newRenderedValue === componentInstance.renderedValue) {
@@ -490,14 +465,8 @@ export function renderComponent(componentInstance: ComponentInstance) {
   }
 
   componentInstance.renderedValue = newRenderedValue;
-
   const children = Array.isArray(newRenderedValue) ? newRenderedValue : [newRenderedValue];
-
-  if (componentInstance.mountState === MountState.New) {
-    componentInstance.$element.children = buildChildren(children, true);
-  } else {
-    componentInstance.$element = buildComponentElement(componentInstance, children);
-  }
+  componentInstance.$element = buildComponentElement(componentInstance, children);
 
   return componentInstance.$element;
 }
@@ -524,13 +493,14 @@ export function hasElementChanged($old: VirtualElement, $new: VirtualElement) {
 
 export function mountComponent(componentInstance: ComponentInstance) {
   componentInstance.id = ++lastComponentId;
+  componentInstance.mountState = MountState.Mounting;
   renderComponent(componentInstance);
   componentInstance.mountState = MountState.Mounted;
   return componentInstance.$element;
 }
 
 export function unmountComponent(componentInstance: ComponentInstance) {
-  if (componentInstance.mountState !== MountState.Mounted) {
+  if (componentInstance.mountState === MountState.Unmounted) {
     return;
   }
 
@@ -592,13 +562,11 @@ function helpGc(componentInstance: ComponentInstance) {
   componentInstance.hooks = undefined as any;
   componentInstance.$element = undefined as any;
   componentInstance.renderedValue = undefined;
-  componentInstance.Component = undefined as any;
-  componentInstance.props = undefined as any;
   componentInstance.onUpdate = undefined;
 }
 
 function prepareComponentForFrame(componentInstance: ComponentInstance) {
-  if (componentInstance.mountState !== MountState.Mounted) {
+  if (componentInstance.mountState === MountState.Unmounted) {
     return;
   }
 
@@ -610,7 +578,7 @@ function prepareComponentForFrame(componentInstance: ComponentInstance) {
 }
 
 function forceUpdateComponent(componentInstance: ComponentInstance) {
-  if (componentInstance.mountState !== MountState.Mounted || !componentInstance.onUpdate) {
+  if (componentInstance.mountState === MountState.Unmounted || !componentInstance.onUpdate) {
     return;
   }
 
@@ -800,11 +768,15 @@ function scheduleEffect(
           );
         }
       }
-    }, () => {
-      // eslint-disable-next-line no-console, max-len
-      console.error(`[Teact] Error in effect cleanup at cursor #${cursor} in ${componentInstance.name}`, componentInstance);
-    }, () => {
-      byCursor[cursor].cleanup = undefined;
+    }, {
+      rescue: () => {
+        // eslint-disable-next-line no-console, max-len
+        console.error(`[Teact] Error in effect cleanup at cursor #${cursor} in ${componentInstance.name}`,
+          componentInstance);
+      },
+      always: () => {
+        byCursor[cursor].cleanup = undefined;
+      },
     });
 
     cleanupsContainer.set(effectId, runEffectCleanup);
@@ -834,9 +806,11 @@ function scheduleEffect(
         console.warn(`[Teact] Slow effect at cursor #${cursor}: ${componentName}, ${Math.round(duration)} ms`);
       }
     }
-  }, () => {
-    // eslint-disable-next-line no-console
-    console.error(`[Teact] Error in effect at cursor #${cursor} in ${componentInstance.name}`, componentInstance);
+  }, {
+    rescue: () => {
+      // eslint-disable-next-line no-console
+      console.error(`[Teact] Error in effect at cursor #${cursor} in ${componentInstance.name}`, componentInstance);
+    },
   });
 
   effectsContainer.set(effectId, runEffect);

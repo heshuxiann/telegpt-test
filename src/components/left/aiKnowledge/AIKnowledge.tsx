@@ -6,7 +6,7 @@ import React, {
   memo, useCallback, useEffect, useState,
 } from '../../../lib/teact/teact';
 
-import { LAYERS_ANIMATION_NAME } from '../../../util/windowEnvironment';
+import { LAYERS_ANIMATION_NAME } from '../../../util/browser/windowEnvironment';
 import { intelligentReplyTask } from '../../chatAssistant/aiTask/intelligent-reply-task';
 import { ChataiKnowledgelStore } from '../../chatAssistant/store';
 

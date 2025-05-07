@@ -256,10 +256,23 @@ addActionHandler('apiUpdate', (global, actions, update): ActionReturnType => {
 
     case 'updateMessage': {
       const {
-        chatId, id, message, poll,
+        chatId, id, message, poll, shouldCreateMessageIfNeeded, shouldForceReply,
       } = update;
 
       const currentMessage = selectChatMessage(global, chatId, id);
+
+      if (shouldCreateMessageIfNeeded && !currentMessage) {
+        actions.apiUpdate({
+          '@type': 'newMessage',
+          id: update.id,
+          chatId: update.chatId,
+          message: update.message,
+          poll: update.poll,
+          shouldForceReply,
+        });
+        return;
+      }
+
       const chat = selectChat(global, chatId);
 
       global = updateWithLocalMedia(global, chatId, id, message);
@@ -544,8 +557,15 @@ addActionHandler('apiUpdate', (global, actions, update): ActionReturnType => {
 
       const chat = selectChat(global, chatId);
       const currentThreadInfo = selectThreadInfo(global, chatId, threadId);
-      if (chat?.isForum && threadInfo.lastReadInboxMessageId !== currentThreadInfo?.lastReadInboxMessageId) {
-        actions.loadTopicById({ chatId, topicId: Number(threadId) });
+      const topic = selectTopic(global, chatId, threadId);
+      if (chat?.isForum) {
+        if (!topic || topic.lastMessageId !== currentThreadInfo?.lastReadInboxMessageId) {
+          actions.loadTopicById({ chatId, topicId: Number(threadId) });
+        } else {
+          global = updateTopic(global, chatId, Number(threadId), {
+            unreadCount: 0,
+          });
+        }
       }
 
       // Update reply thread last read message id if already read in main thread

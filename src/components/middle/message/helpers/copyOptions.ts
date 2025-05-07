@@ -1,3 +1,4 @@
+import copy from 'copy-to-clipboard';
 import { getGlobal } from '../../../../global';
 
 import type { ApiMessage, StatefulMediaContent } from '../../../../api/types';
@@ -16,6 +17,7 @@ import {
 } from '../../../../global/helpers';
 import { getMessageTextWithSpoilers } from '../../../../global/helpers/messageSummary';
 import { selectChatTranslations } from '../../../../global/selectors';
+import { IS_SAFARI } from '../../../../util/browser/windowEnvironment';
 import {
   CLIPBOARD_ITEM_SUPPORTED,
   copyHtmlToClipboard,
@@ -24,9 +26,7 @@ import {
 } from '../../../../util/clipboard';
 import getMessageIdsForSelectedText from '../../../../util/getMessageIdsForSelectedText';
 import * as mediaLoader from '../../../../util/mediaLoader';
-import { IS_SAFARI } from '../../../../util/windowEnvironment';
 import { renderMessageText } from '../../../common/helpers/renderMessageText';
-import copy from 'copy-to-clipboard';
 
 type ICopyOptions = {
   label: string;

@@ -7,8 +7,8 @@ import type { GlobalState, TabArgs } from '../types';
 import {
   ALL_FOLDER_ID, ARCHIVED_FOLDER_ID, MEMBERS_LOAD_SLICE, SAVED_FOLDER_ID, SERVICE_NOTIFICATIONS_USER_ID,
 } from '../../config';
+import { IS_TRANSLATION_SUPPORTED } from '../../util/browser/windowEnvironment';
 import { getCurrentTabId } from '../../util/establishMultitabRole';
-import { IS_TRANSLATION_SUPPORTED } from '../../util/windowEnvironment';
 import {
   getHasAdminRight,
   getPrivateChatUserId,
@@ -296,15 +296,15 @@ export function selectCanTranslateChat<T extends GlobalState>(
   const chat = selectChat(global, chatId);
   if (!chat) return false;
   return true;
-  const requestedTranslation = selectRequestedChatTranslationLanguage(global, chatId, tabId);
-  if (requestedTranslation) return true; // Prevent translation dropping on reevaluation
+  // const requestedTranslation = selectRequestedChatTranslationLanguage(global, chatId, tabId);
+  // if (requestedTranslation) return true; // Prevent translation dropping on reevaluation
 
-  const isLanguageDetectable = selectShouldDetectChatLanguage(global, chatId);
-  const detectedLanguage = chat.detectedLanguage;
+  // const isLanguageDetectable = selectShouldDetectChatLanguage(global, chatId);
+  // const detectedLanguage = chat.detectedLanguage;
 
-  const { doNotTranslate } = global.settings.byKey;
+  // const { doNotTranslate } = global.settings.byKey;
 
-  return Boolean(isLanguageDetectable && detectedLanguage && !doNotTranslate.includes(detectedLanguage));
+  // return Boolean(isLanguageDetectable && detectedLanguage && !doNotTranslate.includes(detectedLanguage));
 }
 
 export function selectRequestedChatTranslationLanguage<T extends GlobalState>(

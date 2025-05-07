@@ -7,6 +7,7 @@ import {
   BASE_URL, IS_PACKAGED_ELECTRON, RE_LINK_TEMPLATE, RE_MENTION_TEMPLATE,
 } from '../../../config';
 import EMOJI_REGEX from '../../../lib/twemojiRegex';
+import { IS_EMOJI_SUPPORTED } from '../../../util/browser/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
 import { isDeepLink } from '../../../util/deepLinkParser';
 import {
@@ -16,14 +17,13 @@ import {
 } from '../../../util/emoji/emoji';
 import fixNonStandardEmoji from '../../../util/emoji/fixNonStandardEmoji';
 import { compact } from '../../../util/iteratees';
-import { IS_EMOJI_SUPPORTED } from '../../../util/windowEnvironment';
 
 import MentionLink from '../../middle/message/MentionLink';
 import SafeLink from '../SafeLink';
 
 export type TextFilter = (
   'escape_html' | 'hq_emoji' | 'emoji' | 'emoji_html' | 'br' | 'br_html' | 'highlight' | 'links' |
-  'simple_markdown' | 'simple_markdown_html' | 'quote' | 'tg_links'
+  'simple_markdown' | 'simple_markdown_html' | 'tg_links'
   );
 
 const SIMPLE_MARKDOWN_REGEX = /(\*\*|__).+?\1/g;
@@ -31,7 +31,10 @@ const SIMPLE_MARKDOWN_REGEX = /(\*\*|__).+?\1/g;
 export default function renderText(
   part: TextPart,
   filters: Array<TextFilter> = ['emoji'],
-  params?: { highlight?: string; quote?: string; markdownPostProcessor?: (part: string) => TeactNode },
+  params?: {
+    highlight?: string;
+    markdownPostProcessor?: (part: string) => TeactNode;
+  },
 ): TeactNode[] {
   if (typeof part !== 'string') {
     return [part];
@@ -190,7 +193,7 @@ function addLineBreaks(textParts: TextPart[], type: 'jsx' | 'html'): TextPart[] 
   }, []);
 }
 
-function addHighlight(textParts: TextPart[], highlight: string | undefined, isQuote?: true): TextPart[] {
+function addHighlight(textParts: TextPart[], highlight: string | undefined): TextPart[] {
   return textParts.reduce<TextPart[]>((result, part) => {
     if (typeof part !== 'string' || !highlight) {
       result.push(part);

@@ -1,6 +1,7 @@
 import { Api as GramJs } from '../../../lib/gramjs';
 
 import type {
+  ApiDisallowedGiftsSettings,
   ApiInputSavedStarGift,
   ApiSavedStarGift,
   ApiStarGift,
@@ -131,7 +132,7 @@ export function buildApiStarGiftAttribute(attribute: GramJs.TypeStarGiftAttribut
 export function buildApiSavedStarGift(userStarGift: GramJs.SavedStarGift, peerId: string): ApiSavedStarGift {
   const {
     gift, date, convertStars, fromId, message, msgId, nameHidden, unsaved, upgradeStars, transferStars, canUpgrade,
-    savedId, canExportAt,
+    savedId, canExportAt, pinnedToTop,
   } = userStarGift;
 
   const inputGift: ApiInputSavedStarGift | undefined = savedId && peerId
@@ -153,5 +154,24 @@ export function buildApiSavedStarGift(userStarGift: GramJs.SavedStarGift, peerId
     inputGift,
     savedId: savedId?.toString(),
     canExportAt,
+    isPinned: pinnedToTop,
+  };
+}
+
+export function buildApiDisallowedGiftsSettings(
+  result: GramJs.TypeDisallowedGiftsSettings,
+): ApiDisallowedGiftsSettings {
+  const {
+    disallowUnlimitedStargifts,
+    disallowLimitedStargifts,
+    disallowUniqueStargifts,
+    disallowPremiumGifts,
+  } = result;
+
+  return {
+    shouldDisallowUnlimitedStarGifts: disallowUnlimitedStargifts,
+    shouldDisallowLimitedStarGifts: disallowLimitedStargifts,
+    shouldDisallowUniqueStarGifts: disallowUniqueStargifts,
+    shouldDisallowPremiumGifts: disallowPremiumGifts,
   };
 }

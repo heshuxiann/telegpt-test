@@ -23,6 +23,7 @@ import {
   selectChatFullInfo,
   selectIsChatBotNotStarted,
   selectIsChatWithSelf,
+  selectIsCurrentUserFrozen,
   selectIsInSelectMode,
   selectIsRightColumnShown,
   selectIsUserBlocked,
@@ -31,7 +32,7 @@ import {
   selectTranslationLanguage,
   selectUserFullInfo,
 } from '../../global/selectors';
-import { ARE_CALLS_SUPPORTED, IS_APP } from '../../util/windowEnvironment';
+import { ARE_CALLS_SUPPORTED, IS_APP } from '../../util/browser/windowEnvironment';
 import chatAILogoPath from '../chatAssistant/assets/cgat-ai-logo.png';
 
 import { useHotkeys } from '../../hooks/useHotkeys';
@@ -40,9 +41,9 @@ import useOldLang from '../../hooks/useOldLang';
 
 import Icon from '../common/icons/Icon';
 import Button from '../ui/Button';
-import DropdownMenu from '../ui/DropdownMenu';
-import MenuItem from '../ui/MenuItem';
-import MenuSeparator from '../ui/MenuSeparator';
+// import DropdownMenu from '../ui/DropdownMenu';
+// import MenuItem from '../ui/MenuItem';
+// import MenuSeparator from '../ui/MenuSeparator';
 import HeaderMenuContainer from './HeaderMenuContainer.async';
 
 interface OwnProps {
@@ -83,6 +84,7 @@ interface StateProps {
   language: string;
   detectedChatLanguage?: string;
   doNotTranslate: string[];
+  isAccountFrozen?: boolean;
 }
 
 // Chrome breaks layout when focusing input during transition
@@ -115,13 +117,14 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
   shouldJoinToSend,
   shouldSendJoinRequest,
   noAnimation,
-  canTranslate,
+  // canTranslate,
   // isTranslating,
   // translationLanguage,
-  language,
-  detectedChatLanguage,
-  doNotTranslate,
+  // language,
+  // detectedChatLanguage,
+  // doNotTranslate,
   onTopicSearch,
+  isAccountFrozen,
 }) => {
   const {
     joinChannel,
@@ -132,13 +135,14 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     requestNextManagementScreen,
     showNotification,
     openChat,
-    requestChatTranslation,
+    // requestChatTranslation,
     // togglePeerTranslations,
-    openChatLanguageModal,
-    setSettingOption,
+    // openChatLanguageModal,
+    // setSettingOption,
     unblockUser,
     setViewForumAsMessages,
     openChatAIWithInfo,
+    // openFrozenAccountModal,
   } = getActions();
   // eslint-disable-next-line no-null/no-null
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -225,6 +229,10 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
   });
 
   const handleRequestCall = useLastCallback(() => {
+    if (isAccountFrozen) {
+      // openFrozenAccountModal();
+      return;
+    }
     requestMasterAndRequestCall({ userId: chatId });
   });
 
@@ -237,18 +245,18 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     handleSearchClick();
   });
 
-  const getTextWithLanguage = useLastCallback((langKey: string, langCode: string) => {
-    const simplified = langCode.split('-')[0];
-    const translationKey = `TranslateLanguage${simplified.toUpperCase()}`;
-    const name = lang(translationKey);
-    if (name !== translationKey) {
-      return lang(langKey, name);
-    }
+  // const getTextWithLanguage = useLastCallback((langKey: string, langCode: string) => {
+  //   const simplified = langCode.split('-')[0];
+  //   const translationKey = `TranslateLanguage${simplified.toUpperCase()}`;
+  //   const name = lang(translationKey);
+  //   if (name !== translationKey) {
+  //     return lang(langKey, name);
+  //   }
 
-    const translatedNames = new Intl.DisplayNames([language], { type: 'language' });
-    const translatedName = translatedNames.of(langCode)!;
-    return lang(`${langKey}Other`, translatedName);
-  });
+  //   const translatedNames = new Intl.DisplayNames([language], { type: 'language' });
+  //   const translatedName = translatedNames.of(langCode)!;
+  //   return lang(`${langKey}Other`, translatedName);
+  // });
 
   // const buttonText = useMemo(() => {
   //   if (isTranslating) return lang('ShowOriginalButton');
@@ -256,51 +264,51 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
   //   return getTextWithLanguage('TranslateToButton', translationLanguage);
   // }, [translationLanguage, getTextWithLanguage, isTranslating, lang]);
 
-  const doNotTranslateText = useMemo(() => {
-    if (!detectedChatLanguage) return undefined;
+  // const doNotTranslateText = useMemo(() => {
+  //   if (!detectedChatLanguage) return undefined;
 
-    return getTextWithLanguage('DoNotTranslateLanguage', detectedChatLanguage);
-  }, [getTextWithLanguage, detectedChatLanguage]);
+  //   return getTextWithLanguage('DoNotTranslateLanguage', detectedChatLanguage);
+  // }, [getTextWithLanguage, detectedChatLanguage]);
 
   // const handleHide = useLastCallback(() => {
   //   togglePeerTranslations({ chatId, isEnabled: false });
   //   requestChatTranslation({ chatId, toLanguageCode: undefined });
   // });
 
-  const handleChangeLanguage = useLastCallback(() => {
-    openChatLanguageModal({ chatId });
-  });
+  // const handleChangeLanguage = useLastCallback(() => {
+  //   openChatLanguageModal({ chatId });
+  // });
 
-  const handleDoNotTranslate = useLastCallback(() => {
-    if (!detectedChatLanguage) return;
+  // const handleDoNotTranslate = useLastCallback(() => {
+  //   if (!detectedChatLanguage) return;
 
-    setSettingOption({
-      doNotTranslate: [...doNotTranslate, detectedChatLanguage],
-    });
-    requestChatTranslation({ chatId, toLanguageCode: undefined });
+  //   setSettingOption({
+  //     doNotTranslate: [...doNotTranslate, detectedChatLanguage],
+  //   });
+  //   requestChatTranslation({ chatId, toLanguageCode: undefined });
 
-    showNotification({ message: getTextWithLanguage('AddedToDoNotTranslate', detectedChatLanguage) });
-  });
+  //   showNotification({ message: getTextWithLanguage('AddedToDoNotTranslate', detectedChatLanguage) });
+  // });
 
   useHotkeys(useMemo(() => ({
     'Mod+F': handleHotkeySearchClick,
   }), []));
 
-  const MoreMenuButton: FC<{ onTrigger: () => void; isOpen?: boolean }> = useMemo(() => {
-    return ({ onTrigger, isOpen }) => (
-      <Button
-        round
-        ripple={isRightColumnShown}
-        color="translucent"
-        size="smaller"
-        className={isOpen ? 'active' : ''}
-        onClick={onTrigger}
-        ariaLabel={lang('TranslateMessage')}
-      >
-        <Icon name="language" />
-      </Button>
-    );
-  }, [isRightColumnShown, lang]);
+  // const MoreMenuButton: FC<{ onTrigger: () => void; isOpen?: boolean }> = useMemo(() => {
+  //   return ({ onTrigger, isOpen }) => (
+  //     <Button
+  //       round
+  //       ripple={isRightColumnShown}
+  //       color="translucent"
+  //       size="smaller"
+  //       className={isOpen ? 'active' : ''}
+  //       onClick={onTrigger}
+  //       ariaLabel={lang('TranslateMessage')}
+  //     >
+  //       <Icon name="language" />
+  //     </Button>
+  //   );
+  // }, [isRightColumnShown, lang]);
 
   return (
     <div className="HeaderActions">
@@ -529,6 +537,8 @@ export default memo(withGlobal<OwnProps>(
     const shouldSendJoinRequest = Boolean(chat?.isNotJoined && chat.isJoinRequest);
     const noAnimation = !selectCanAnimateInterface(global);
 
+    const isAccountFrozen = selectIsCurrentUserFrozen(global);
+
     const isTranslating = Boolean(selectRequestedChatTranslationLanguage(global, chatId));
     const canTranslate = selectCanTranslateChat(global, chatId) && !fullInfo?.isTranslationDisabled;
     return {
@@ -559,6 +569,7 @@ export default memo(withGlobal<OwnProps>(
       doNotTranslate,
       detectedChatLanguage: chat.detectedLanguage,
       canUnblock,
+      isAccountFrozen,
     };
   },
 )(HeaderActions));
