@@ -435,7 +435,7 @@ const SummaryContent = ({
       )}
 
       {garbageMessage && garbageMessage.length > 0 && (
-        <div className="mx-auto w-[693px] rounded-[10px] bg-white pl-[82px] pr-[25px] pt-[20px] pb-[25px]">
+        <div className="mx-auto w-[693px] rounded-[10px] bg-white pl-[82px] pr-[25px] pt-[20px] pb-[25px] mt-[10px]">
           <div className="flex items-center gap-[8px]">
             <img className="w-[52px] h-[52px] rounded-full ml-[-60px]" src={SerenaLogoPath} alt="" />
             <div>

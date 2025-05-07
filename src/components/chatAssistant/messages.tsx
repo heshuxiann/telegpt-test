@@ -34,9 +34,6 @@ function PureMessages({
   const isAuxiliary = (message:Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'isAuxiliary' in item && item.isAuxiliary === true) ?? false;
   };
-  const isSummary = (message:Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'isSummary' in item && item.isSummary === true) ?? false;
-  };
   const isGlobalSummary = (message:Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-summary') ?? false;
   };

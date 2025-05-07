@@ -17,6 +17,7 @@ import { getActions } from '../../../global';
 import type { ApiChat } from '../../../api/types';
 import type { ApiMessage } from '../../../api/types/messages';
 import type { ThreadId } from '../../../types';
+import type { InfiniteScrollRef } from '../component/InfiniteScroll';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
@@ -24,6 +25,8 @@ import { Messages } from '../messages';
 import { ChataiMessageStore } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { RoomAIInput } from './room-ai-input';
+
+import { InfiniteScroll } from '../component/InfiniteScroll';
 
 import './ChatAI.scss';
 
@@ -45,8 +48,9 @@ const ChatAIRoom = (props: StateProps) => {
   const { chatId } = props;
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
   const tokenRef = useRef<string | null>(null);
+  const messageListRef = useRef<InfiniteScrollRef | null>(null);
   const {
-    messages, setMessages, append, isLoading, stop,
+    messages, setMessages, append, isLoading, stop, handleSubmit,
   } = useChat({
     api: 'https://telegpt-three.vercel.app/chat',
     id: chatId,
@@ -75,6 +79,24 @@ const ChatAIRoom = (props: StateProps) => {
       });
     }
   }, [chatId, setMessages]);
+
+  const handleLoadMore = useCallback(() => {
+    return new Promise<void>((resolve) => {
+      if (chatId) {
+        ChataiMessageStore.getMessages(chatId, pageInfo?.lastTime, 10)?.then((res) => {
+          if (res.messages) {
+            const localChatAiMessages = parseStoreMessage2Message(res.messages);
+            setMessages((prev) => [...localChatAiMessages, ...prev]);
+          }
+          setPageInfo({
+            lastTime: res.lastTime,
+            hasMore: res.hasMore,
+          });
+          resolve();
+        });
+      }
+    });
+  }, [chatId, pageInfo?.lastTime, setMessages]);
 
   const addAuthMessage = useCallback(() => {
     setMessages((prev) => [...prev, {
@@ -191,6 +213,7 @@ const ChatAIRoom = (props: StateProps) => {
             } else if (toolCall.toolName === 'nullTool') {
               // eslint-disable-next-line no-console
               console.log('没有命中工具');
+              setMessages((prev) => prev.slice(0, prev.length - 1));
               append({
                 role: 'user',
                 content: inputValue,
@@ -207,7 +230,7 @@ const ChatAIRoom = (props: StateProps) => {
       return [...messages, {
         role: 'user',
         content: value,
-        id: Math.random().toString(),
+        id: uuidv4(),
         createdAt: new Date(),
       }];
     });
@@ -215,15 +238,17 @@ const ChatAIRoom = (props: StateProps) => {
   };
   return (
     <div className="right-panel-chat-ai">
-      <div className="chat-ai-output-wrapper">
-        {/* {messages.map((message) => {
-          return <StatusResponse content={message.content} />;
-        })} */}
+      <InfiniteScroll
+        className="chat-ai-output-wrapper"
+        loadMore={handleLoadMore}
+        hasMore={pageInfo.hasMore}
+        ref={messageListRef}
+      >
         <Messages
           isLoading={isLoading}
           messages={messages}
         />
-      </div>
+      </InfiniteScroll>
       <form className="flex mx-auto px-[12px] pb-4  gap-2 w-full">
         <RoomAIInput
           isLoading={isLoading}
