@@ -1,9 +1,10 @@
 /* eslint-disable no-console */
 import type { FC } from '../../../lib/teact/teact';
-import React from '../../../lib/teact/teact';
+import React, { useEffect, useState } from '../../../lib/teact/teact';
 
 import type { Signal } from '../../../util/signals';
 
+import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import chatAILogoPath from '../../chatAssistant/assets/cgat-ai-logo.png';
 
 import useFlag from '../../../hooks/useFlag';
@@ -11,8 +12,10 @@ import useLastCallback from '../../../hooks/useLastCallback';
 
 // import aiSdkService from './ChatApiService';
 import eventEmitter from '../../chatAssistant/lib/EventEmitter';
+import Icon from '../../common/icons/Icon';
 import Menu from '../../ui/Menu';
 import MenuItem from '../../ui/MenuItem';
+import InputLanguageModal from '../InputLanguageModal';
 import generateChatgpt from './ChatApiGenerate';
 import Grammar from './Icon/Grammar';
 import Translate from './Icon/Translate';
@@ -22,6 +25,21 @@ import './InputAIMenu.scss';
 
 const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
   const [isAIToolMenuOpen, openAIToolMenu, closeAIToolMenu] = useFlag();
+  const [inputLanguageModalOpen, openInputLanguageModal, closeInputLanguageModal] = useFlag();
+  const [currentLanguage, setCurrentLanguage] = useState({
+    langCode: 'en',
+    translatedName: 'English',
+  });
+  useEffect(() => {
+    CHATAI_IDB_STORE.get('input-translate-language').then((langCode: any) => {
+      const translatedNames = new Intl.DisplayNames([langCode], { type: 'language' });
+      const translatedName = translatedNames.of(langCode)!;
+      setCurrentLanguage({
+        langCode: langCode ? langCode as string : 'en',
+        translatedName,
+      });
+    });
+  }, [isAIToolMenuOpen]);
   const handleToggleMenu = () => {
     if (isAIToolMenuOpen) {
       closeAIToolMenu();
@@ -47,7 +65,7 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
           },
           {
             role: 'user',
-            content: `Translate the following text to ${navigator.language}: ${text}`,
+            content: `Translate the following text to ${currentLanguage.langCode}: ${text}`,
             id: '3',
           },
         ],
@@ -107,8 +125,13 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
       },
     });
   });
+  const onTranslationClick = useLastCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openInputLanguageModal();
+  });
   return (
-    <div className="chat-ai-menu">
+    <div className="chat-ai-menu flex-shrink-0">
       <button className="Button chat-ai-logo-button" onClick={handleToggleMenu}>
         <img src={chatAILogoPath} alt="Chat AI Logo" />
       </button>
@@ -127,6 +150,13 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
           <div className="ai-tool-menu-item">
             <Translate size={18} />
             <span>Translate</span>
+            <div
+              className="ai-tool-menu-language ml-auto flex flex-row items-center hover:text-[#3390EC]"
+              onClick={onTranslationClick}
+            >
+              <Icon name="language" className="!mx-0 " />
+              <span>{currentLanguage.translatedName}</span>
+            </div>
           </div>
         </MenuItem>
         <MenuItem onClick={handleGrammar}>
@@ -136,6 +166,7 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
           </div>
         </MenuItem>
       </Menu>
+      <InputLanguageModal isOpen={inputLanguageModalOpen} closeInputLanguageModal={closeInputLanguageModal} />
     </div>
   );
 };

@@ -26,7 +26,7 @@ const AITranslate:FC<OwnProps> = ({ onReset }) => {
   }
   return (
     <Transition
-      id="AiKnowledge"
+      id="AiTranslate"
       name={LAYERS_ANIMATION_NAME}
       activeKey={0}
       renderCount={1}

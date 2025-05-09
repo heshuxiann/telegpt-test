@@ -2062,7 +2062,7 @@ const Composer: FC<OwnProps & StateProps> = ({
           {isInMessageList && (
             <>
               {((isInlineBotLoading && Boolean(inlineBotId)) || isInlineAILoading) && (
-                <Spinner color="gray" />
+                <Spinner color="gray" className="flex-shrink-0" />
               )}
               <Transition
                 className="composer-action-buttons-container"
@@ -2133,7 +2133,7 @@ const Composer: FC<OwnProps & StateProps> = ({
               {formatVoiceRecordDuration(currentRecordTime - startRecordTimeRef.current!)}
             </span>
           )}
-          <InputAIMenu getHtml={getHtml} />
+          <InputAIMenu getHtml={getHtml} chat={chat} />
           {!isNeedPremium && (
             <AttachMenu
               chatId={chatId}
