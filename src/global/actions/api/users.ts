@@ -9,6 +9,7 @@ import * as langProvider from '../../../util/oldLangProvider';
 import { throttle } from '../../../util/schedulers';
 import { getServerTime } from '../../../util/serverTime';
 import { callApi } from '../../../api/gramjs';
+import { ChataiContactStore, ChataiUserStore } from '../../../components/chatAssistant/store';
 import { isUserBot, isUserId } from '../../helpers';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
@@ -93,6 +94,16 @@ addActionHandler('loadUser', async (global, actions, payload): Promise<void> => 
 
   const { users, userStatusesById } = result;
 
+  // add user to db
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  users.forEach((user) => {
+    ChataiUserStore.addUser({
+      id: user.id,
+      name: `${user?.firstName || ''} ${user?.lastName || ''}`,
+      phoneNumber: user.phoneNumber,
+    });
+  });
+
   global = getGlobal();
   global = updateUsers(global, buildCollectionByKey(users, 'id'));
   global = replaceUserStatuses(global, {
@@ -144,6 +155,20 @@ addActionHandler('loadContactList', async (global): Promise<void> => {
   const sortedUsers = contactList.users.sort((a, b) => (
     collator.compare(getCompareString(a), getCompareString(b))
   )).filter((user) => !user.isSelf);
+
+  // add contacts to db
+  sortedUsers.forEach((user) => {
+    ChataiContactStore.addContact({
+      id: user.id,
+      name: `${user?.firstName || ''} ${user?.lastName || ''}`,
+      phoneNumber: user.phoneNumber,
+    });
+    ChataiUserStore.addUser({
+      id: user.id,
+      name: `${user?.firstName || ''} ${user?.lastName || ''}`,
+      phoneNumber: user.phoneNumber,
+    });
+  });
 
   global = {
     ...global,

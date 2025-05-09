@@ -30,7 +30,7 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { ArrowUpIcon, StopIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
-import vectorStore from './vector-store';
+import { messageEmbeddingStore } from './vector-store';
 
 function PureMultimodalInput({
   chatId,
@@ -119,7 +119,7 @@ function PureMultimodalInput({
     // handleSubmit(undefined, {
     //   experimental_attachments: attachments,
     // });
-    const vectorSearchResults = await vectorStore.similaritySearch({
+    const vectorSearchResults = await messageEmbeddingStore.similaritySearch({
       query: `${inputValue}`,
       k: 100,
       filterOptions: {

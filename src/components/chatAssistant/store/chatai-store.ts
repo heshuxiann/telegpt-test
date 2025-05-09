@@ -41,10 +41,15 @@ class ChataiDB {
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
       // 遍历 STORE_CONFIG，确保所有表都被创建
-      if (db.objectStoreNames.contains('message')) {
-        db.deleteObjectStore('message');
+      // if (db.objectStoreNames.contains('message')) {
+      //   db.deleteObjectStore('message');
+      //   // eslint-disable-next-line no-console
+      //   console.log('messages 对象存储已删除');
+      // }
+      if (db.objectStoreNames.contains('knowledge')) {
+        db.deleteObjectStore('knowledge');
         // eslint-disable-next-line no-console
-        console.log('messages 对象存储已删除');
+        console.log('knowledge 对象存储已删除');
       }
       Object.entries(this.STORE_CONFIG).forEach(([storeName, config]) => {
         if (!db.objectStoreNames.contains(storeName)) {

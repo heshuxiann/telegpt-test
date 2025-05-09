@@ -21,11 +21,10 @@ import {
 } from '../../../global/selectors';
 import { unique } from '../../../util/iteratees';
 import sortChatIds from '../../common/helpers/sortChatIds';
+import useOldLang from '../hook/useOldLang';
 import { ChataiGeneralStore } from '../store';
 import { SUMMARY_CHATS } from '../store/general-store';
 import { RightPanelKey } from './right-header';
-
-import useOldLang from '../../../hooks/useOldLang';
 
 import Avatar from '../ui/Avatar';
 

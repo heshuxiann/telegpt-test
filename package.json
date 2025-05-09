@@ -141,6 +141,7 @@
   "dependencies": {
     "@ai-sdk/react": "^1.1.19",
     "@cryptography/aes": "^0.1.1",
+    "@dslate/antd": "^2.0.14",
     "@radix-ui/react-slot": "^1.1.2",
     "ai": "^4.1.51",
     "antd": "^5.24.3",
@@ -167,6 +168,8 @@
     "react-dom": "^18.3.1",
     "react-markdown": "^10.0.1",
     "remark-gfm": "^4.0.1",
+    "slate": "^0.114.0",
+    "slate-react": "^0.114.2",
     "sonner": "^2.0.1",
     "tailwind-merge": "^3.0.2",
     "usehooks-ts": "^3.1.1",

@@ -17,7 +17,7 @@ import { selectChat, selectUser } from '../../../global/selectors';
 import { Messages } from '../messages';
 import { ChataiMessageStore } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
-import vectorStore from '../vector-store';
+import { messageEmbeddingStore } from '../vector-store';
 
 import { InfiniteScroll } from '../component/InfiniteScroll';
 import { AISearchInput } from './AISearchInput';
@@ -83,7 +83,7 @@ export const AISearch = () => {
   //   }, [setMessages]);
 
   const searchGroup = useCallback(async (query: string) => {
-    const vectorSearchResults = await vectorStore.similaritySearch({
+    const vectorSearchResults = await messageEmbeddingStore.similaritySearch({
       query,
       k: 100,
       filterOptions: {
@@ -132,7 +132,7 @@ export const AISearch = () => {
   }, [setMessages]);
 
   const searchUser = useCallback(async (query: string) => {
-    const vectorSearchResults = await vectorStore.similaritySearch({
+    const vectorSearchResults = await messageEmbeddingStore.similaritySearch({
       query,
       k: 100,
       filterOptions: {
@@ -180,7 +180,7 @@ export const AISearch = () => {
     }
   }, [setMessages]);
   const searchMessage = useCallback(async (query: string) => {
-    const vectorSearchResults = await vectorStore.similaritySearch({
+    const vectorSearchResults = await messageEmbeddingStore.similaritySearch({
       query,
       k: 100,
     });

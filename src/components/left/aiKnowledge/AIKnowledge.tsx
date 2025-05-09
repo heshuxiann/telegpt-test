@@ -6,9 +6,12 @@ import React, {
   memo, useCallback, useEffect, useState,
 } from '../../../lib/teact/teact';
 
+import type { AiKnowledge } from '../../chatAssistant/store/knowledge-store';
+
 import { LAYERS_ANIMATION_NAME } from '../../../util/browser/windowEnvironment';
 import { intelligentReplyTask } from '../../chatAssistant/aiTask/intelligent-reply-task';
 import { ChataiKnowledgelStore } from '../../chatAssistant/store';
+import { knowledgeEmbeddingStore } from '../../chatAssistant/vector-store';
 
 import useLastCallback from '../../../hooks/useLastCallback';
 
@@ -21,10 +24,10 @@ export type OwnProps = {
   onReset: (forceReturnToChatList?: true | Event) => void;
 };
 const AIKnowledge:FC<OwnProps> = ({ onReset }) => {
-  const [knowledgeList, setKnowledgeList] = useState<{ id:string;content:string }[]>([]);
+  const [knowledgeList, setKnowledgeList] = useState<AiKnowledge[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [type, setType] = useState<'edit' | 'add'>('add');
-  const [editKnowledge, setEditKnowledge] = useState<{ id:string;content:string } | null>(null);
+  const [editKnowledge, setEditKnowledge] = useState<AiKnowledge | null>(null);
   useEffect(() => {
     ChataiKnowledgelStore.getAllKnowledge().then((knowledge) => {
       setKnowledgeList(knowledge || []);
@@ -40,7 +43,7 @@ const AIKnowledge:FC<OwnProps> = ({ onReset }) => {
     setShowAddModal(true);
     setType(type);
   }, []);
-  const handleEdit = useCallback((knowledge:{ id:string;content:string }) => {
+  const handleEdit = useCallback((knowledge:AiKnowledge) => {
     setType('edit');
     setEditKnowledge(knowledge);
     setShowAddModal(true);
@@ -59,6 +62,7 @@ const AIKnowledge:FC<OwnProps> = ({ onReset }) => {
       });
       intelligentReplyTask.updateKnowledgeData();
     });
+    knowledgeEmbeddingStore.deleteText(id);
   }, []);
   function renderCurrentSection() {
     return (

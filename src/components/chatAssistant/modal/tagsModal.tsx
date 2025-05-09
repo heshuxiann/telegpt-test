@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Form, Input, Modal } from 'antd';
 
 import { ChataiUserStore } from '../store';
-
-import useLastCallback from '../../../hooks/useLastCallback';
 
 const { TextArea } = Input;
 
@@ -37,7 +35,7 @@ const TagsModal = (props: Iprops) => {
       });
     }
   }, [userId, form]);
-  const handleSubmit = useLastCallback(() => {
+  const handleSubmit = useCallback(() => {
     // eslint-disable-next-line no-console
     console.log(form);
     ChataiUserStore.addUser({
@@ -45,7 +43,7 @@ const TagsModal = (props: Iprops) => {
       tags: form.getFieldValue('tags'),
     });
     close();
-  });
+  }, [close, form, userInfo]);
   return (
     <Modal
       title="添加用户标签"

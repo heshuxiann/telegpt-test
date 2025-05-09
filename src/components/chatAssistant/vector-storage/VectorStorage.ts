@@ -28,7 +28,10 @@ export class VectorStorage<T> {
 
   private readonly embedTextsFn: (texts: string[]) => Promise<number[][]>;
 
+  private readonly dbName: string;
+
   constructor(options: IVSOptions = {}) {
+    this.dbName = options.dbName ?? constants.DEFAULT_DB_NAME;
     this.maxSizeInMB = options.maxSizeInMB ?? constants.DEFAULT_MAX_SIZE_IN_MB;
     this.debounceTime = options.debounceTime ?? constants.DEFAULT_DEBOUNCE_TIME;
     this.openaiModel = options.openaiModel ?? constants.DEFAULT_OPENAI_MODEL;
@@ -41,17 +44,44 @@ export class VectorStorage<T> {
     }
   }
 
-  public async addText(text: string, metadata: T): Promise<IVSDocument<T>> {
+  public async addText(text: string, id:string, metadata: T): Promise<IVSDocument<T>> {
     // Create a document from the text and metadata
     const doc: IVSDocument<T> = {
       metadata,
       text,
+      id,
       timestamp: Date.now(),
       vector: [],
       vectorMag: 0,
     };
     const docs = await this.addDocuments([doc]);
     return docs[0];
+  }
+
+  public async updateText(text: string, id:string, metadata: T): Promise<IVSDocument<T>> {
+    const doc: IVSDocument<T> = {
+      metadata,
+      text,
+      id,
+      timestamp: Date.now(),
+      vector: [],
+      vectorMag: 0,
+    };
+    const docs = await this.updateDocuments([doc]);
+    return docs[0];
+  }
+
+  public async deleteText(id: string): Promise<void> {
+    if (!this.db) {
+      this.db = await this.initDB();
+    }
+    try {
+      const tx = this.db.transaction('documents', 'readwrite');
+      tx.objectStore('documents').delete(id);
+      await tx.done;
+    } catch (error) {
+      console.error('Error deleting text:', error);
+    }
   }
 
   public async addTexts(texts: string[], metadatas: T[]): Promise<Array<IVSDocument<T>>> {
@@ -99,7 +129,7 @@ export class VectorStorage<T> {
   }
 
   private async initDB(): Promise<IDBPDatabase<any>> {
-    return openDB<any>('VectorStorage', undefined, {
+    return openDB<any>(this.dbName, undefined, {
       upgrade(db) {
         const documentStore = db.createObjectStore('documents', {
           autoIncrement: true,
@@ -111,6 +141,7 @@ export class VectorStorage<T> {
         documentStore.createIndex('vector', 'vector');
         documentStore.createIndex('vectorMag', 'vectorMag');
         documentStore.createIndex('hits', 'hits');
+        documentStore.createIndex('id', 'id', { unique: true });
       },
     });
   }
@@ -134,6 +165,21 @@ export class VectorStorage<T> {
     // Save to index db storage
     await this.saveToIndexDbStorage();
     return newDocuments;
+  }
+
+  private async updateDocuments(documents: Array<IVSDocument<T>>): Promise<Array<IVSDocument<T>>> {
+    const newVectors = await this.embedTextsFn(documents.map((doc) => doc.text));
+    // Assign vectors and precompute vector magnitudes for new documents
+    documents.forEach((doc, index) => {
+      doc.vector = newVectors[index];
+      doc.vectorMag = calcVectorMagnitude(doc);
+    });
+    // Add new documents to the store
+    this.documents.push(...documents);
+    this.removeDocsLRU();
+    // Save to index db storage
+    await this.saveToIndexDbStorage();
+    return documents;
   }
 
   private async embedTexts(texts: string[]): Promise<number[][]> {

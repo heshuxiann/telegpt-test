@@ -157,6 +157,8 @@ import usePaidMessageConfirmation from '../middle/composer/hooks/usePaidMessageC
 import useStickerTooltip from '../middle/composer/hooks/useStickerTooltip';
 import useVoiceRecording from '../middle/composer/hooks/useVoiceRecording';
 
+import eventEmitter from '../chatAssistant/lib/EventEmitter';
+import InputAIMenu from '../middle/chatgpt/InputAIMenu';
 import AttachmentModal from '../middle/composer/AttachmentModal.async';
 import AttachMenu from '../middle/composer/AttachMenu';
 import BotCommandMenu from '../middle/composer/BotCommandMenu.async';
@@ -478,6 +480,7 @@ const Composer: FC<OwnProps & StateProps> = ({
   const sendMessageAction = useSendMessageAction(chatId, threadId);
   const [isInputHasFocus, markInputHasFocus, unmarkInputHasFocus] = useFlag();
   const [isAttachMenuOpen, onAttachMenuOpen, onAttachMenuClose] = useFlag();
+  const [isInlineAILoading, setIsInlineAILoading] = useState(false);
 
   const canMediaBeReplaced = editingMessage && canEditMedia(editingMessage);
 
@@ -681,12 +684,30 @@ const Composer: FC<OwnProps & StateProps> = ({
   }, [activeVoiceRecording, isForCurrentMessageList, isInStoryViewer, sendMessageAction]);
 
   const isEditingRef = useStateRef(Boolean(editingMessage));
+
+  const updateInlineAILoading = useLastCallback((value:boolean) => {
+    setIsInlineAILoading(value);
+  });
+  const updataAIResponse = useLastCallback((text:string) => {
+    setIsInlineAILoading(false);
+    setHtml(text);
+  });
+
   useEffect(() => {
     if (!isForCurrentMessageList || isInStoryViewer) return;
     if (getHtml() && !isEditingRef.current) {
       sendMessageAction({ type: 'typing' });
     }
   }, [getHtml, isEditingRef, isForCurrentMessageList, isInStoryViewer, sendMessageAction]);
+
+  useEffect(() => {
+    eventEmitter.on('update-input-text', updataAIResponse);
+    eventEmitter.on('update-input-spiner', updateInlineAILoading);
+    return () => {
+      eventEmitter.off('update-input-text', updataAIResponse);
+      eventEmitter.off('update-input-spiner', updateInlineAILoading);
+    };
+  }, []);
 
   const isAdmin = chat && isChatAdmin(chat);
 
@@ -2040,7 +2061,7 @@ const Composer: FC<OwnProps & StateProps> = ({
           />
           {isInMessageList && (
             <>
-              {isInlineBotLoading && Boolean(inlineBotId) && (
+              {((isInlineBotLoading && Boolean(inlineBotId)) || isInlineAILoading) && (
                 <Spinner color="gray" />
               )}
               <Transition
@@ -2112,6 +2133,7 @@ const Composer: FC<OwnProps & StateProps> = ({
               {formatVoiceRecordDuration(currentRecordTime - startRecordTimeRef.current!)}
             </span>
           )}
+          <InputAIMenu getHtml={getHtml} />
           {!isNeedPremium && (
             <AttachMenu
               chatId={chatId}

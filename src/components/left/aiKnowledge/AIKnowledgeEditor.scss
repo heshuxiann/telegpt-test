@@ -1,0 +1,16 @@
+.knowledge-editor {
+  height: 100%;
+  > div {
+    height: 100%;
+  }
+  .dslate-container {
+    flex: 1;
+    overflow-y: scroll;
+    .dslate-editable {
+      min-height: unset !important;
+    }
+    .semi-input-textarea:focus-visible {
+      outline: none;
+    }
+  }
+}

@@ -14,7 +14,7 @@ import {
   getChatAvatarHash,
   getChatTitle,
   getUserFullName,
-  getVideoProfilePhotoMediaHash,
+  // getVideoProfilePhotoMediaHash,
   getWebDocumentHash,
   isAnonymousForwardsChat,
   isChatWithRepliesBot,
@@ -26,21 +26,15 @@ import buildClassName, { createClassNameBuilder } from '../../../util/buildClass
 import { getFirstLetters } from '../../../util/textFormat';
 import { REM } from '../../common/helpers/mediaDimensions';
 import { getPeerColorClass } from '../../common/helpers/peerColor';
-import renderText from '../../common/helpers/renderText';
+import { useFastClick } from '../hook/useFastClick';
+import useMedia from '../hook/useMedia';
+import useOldLang from '../hook/useOldLang';
 
-import { useFastClick } from '../../../hooks/useFastClick';
-import useLastCallback from '../../../hooks/useLastCallback';
-import useMedia from '../../../hooks/useMedia';
-import useMediaTransitionDeprecated from '../../../hooks/useMediaTransitionDeprecated';
-import useOldLang from '../../../hooks/useOldLang';
-
-import OptimizedVideo from '../../ui/OptimizedVideo';
-// import AvatarStoryCircle from '../../common/AvatarStoryCircle';
 import Icon from '../component/Icon';
 
 import '../../common/Avatar.scss';
 
-const LOOP_COUNT = 3;
+// const LOOP_COUNT = 3;
 
 export const AVATAR_SIZES = {
   micro: REM,
@@ -70,8 +64,8 @@ type OwnProps = {
   text?: string;
   isSavedMessages?: boolean;
   isSavedDialog?: boolean;
-  withVideo?: boolean;
-  loopIndefinitely?: boolean;
+  // withVideo?: boolean;
+  // loopIndefinitely?: boolean;
   noPersonalPhoto?: boolean;
   clickOpenRoom?: boolean;
   onClick?: (e: ReactMouseEvent<HTMLDivElement, MouseEvent>, hasMedia: boolean) => void;
@@ -91,8 +85,8 @@ const Avatar: FC<OwnProps> = ({
   text,
   isSavedMessages,
   isSavedDialog,
-  withVideo,
-  loopIndefinitely,
+  // withVideo,
+  // loopIndefinitely,
   noPersonalPhoto,
   clickOpenRoom = true,
   onClick,
@@ -101,7 +95,7 @@ const Avatar: FC<OwnProps> = ({
 
   // eslint-disable-next-line no-null/no-null
   const ref = useRef<HTMLDivElement>(null);
-  const videoLoopCountRef = useRef(0);
+  // const videoLoopCountRef = useRef(0);
   const isCustomPeer = peer && 'isCustomPeer' in peer;
   const realPeer = peer && !isCustomPeer ? peer : undefined;
   const user = realPeer && isApiPeerUser(realPeer) ? realPeer : undefined;
@@ -110,11 +104,11 @@ const Avatar: FC<OwnProps> = ({
   const isReplies = realPeer && isChatWithRepliesBot(realPeer.id);
   const isAnonymousForwards = realPeer && isAnonymousForwardsChat(realPeer.id);
   let imageHash: string | undefined;
-  let videoHash: string | undefined;
+  // let videoHash: string | undefined;
 
   const pxSize = typeof size === 'number' ? size : AVATAR_SIZES[size];
 
-  const shouldLoadVideo = withVideo && photo?.isVideo;
+  // const shouldLoadVideo = withVideo && photo?.isVideo;
 
   const isBig = pxSize >= AVATAR_SIZES.jumbo;
   if (!isSavedMessages && !isDeleted) {
@@ -122,9 +116,9 @@ const Avatar: FC<OwnProps> = ({
       imageHash = getChatAvatarHash(peer as ApiPeer, isBig ? 'big' : undefined);
     } else if (photo) {
       imageHash = `photo${photo.id}?size=m`;
-      if (photo.isVideo && withVideo) {
-        videoHash = getVideoProfilePhotoMediaHash(photo);
-      }
+      // if (photo.isVideo && withVideo) {
+      //   videoHash = getVideoProfilePhotoMediaHash(photo);
+      // }
     } else if (webPhoto) {
       imageHash = getWebDocumentHash(webPhoto);
     }
@@ -155,24 +149,24 @@ const Avatar: FC<OwnProps> = ({
   }, [isCustomPeer, isSavedMessages, isDeleted, isReplies, isAnonymousForwards, peer, isSavedDialog]);
 
   const imgBlobUrl = useMedia(imageHash, false, ApiMediaFormat.BlobUrl);
-  const videoBlobUrl = useMedia(videoHash, !shouldLoadVideo, ApiMediaFormat.BlobUrl);
-  const hasBlobUrl = Boolean(imgBlobUrl || videoBlobUrl);
+  // const videoBlobUrl = useMedia(videoHash, !shouldLoadVideo, ApiMediaFormat.BlobUrl);
+  const hasBlobUrl = Boolean(imgBlobUrl);
   // `videoBlobUrl` can be taken from memory cache, so we need to check `shouldLoadVideo` again
-  const shouldPlayVideo = Boolean(videoBlobUrl && shouldLoadVideo);
+  // const shouldPlayVideo = Boolean(videoBlobUrl && shouldLoadVideo);
 
-  const transitionClassNames = useMediaTransitionDeprecated(hasBlobUrl);
+  // const transitionClassNames = useMediaTransitionDeprecated(hasBlobUrl);
 
-  const handleVideoEnded = useLastCallback((e) => {
-    const video = e.currentTarget;
-    if (!videoBlobUrl) return;
+  // const handleVideoEnded = useLastCallback((e) => {
+  //   const video = e.currentTarget;
+  //   if (!videoBlobUrl) return;
 
-    if (loopIndefinitely) return;
+  //   if (loopIndefinitely) return;
 
-    videoLoopCountRef.current += 1;
-    if (videoLoopCountRef.current >= LOOP_COUNT) {
-      video.style.display = 'none';
-    }
-  });
+  //   videoLoopCountRef.current += 1;
+  //   if (videoLoopCountRef.current >= LOOP_COUNT) {
+  //     video.style.display = 'none';
+  //   }
+  // });
 
   const lang = useOldLang();
 
@@ -193,12 +187,12 @@ const Avatar: FC<OwnProps> = ({
       <>
         <img
           src={imgBlobUrl}
-          className={buildClassName(cn.media, 'avatar-media', transitionClassNames, videoBlobUrl && 'poster')}
+          className={buildClassName(cn.media, 'avatar-media')}
           alt={author}
           decoding="async"
           draggable={false}
         />
-        {shouldPlayVideo && (
+        {/* {shouldPlayVideo && (
           <OptimizedVideo
             canPlay
             src={videoBlobUrl}
@@ -211,7 +205,7 @@ const Avatar: FC<OwnProps> = ({
             draggable={false}
             onEnded={handleVideoEnded}
           />
-        )}
+        )} */}
       </>
     );
   } else if (user) {
@@ -276,7 +270,7 @@ const Avatar: FC<OwnProps> = ({
       onMouseDown={handleMouseDown}
     >
       <div className="inner">
-        {typeof content === 'string' ? renderText(content, [isBig ? 'hq_emoji' : 'emoji']) : content}
+        {content}
       </div>
     </div>
   );

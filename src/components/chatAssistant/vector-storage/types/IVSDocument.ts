@@ -5,6 +5,7 @@ export interface IVSDocument<T> {
   timestamp: number; // timestamp: The time when the document was added to the vector storage, represented as a Unix timestamp (milliseconds since the Unix Epoch).
   vectorMag?: number; // vecMag: The magnitude of the document's vector representation. This is precomputed to speed up similarity calculations.
   vector?: number[]; // vector: The vector representation of the document. This is calculated by an embedding model, such as the OpenAI model.
+  id?: string; // id: An optional unique identifier for the document. If not provided, a unique ID will be generated.
 }
 
 export interface IVSSimilaritySearchItem<T> extends IVSDocument<T> {

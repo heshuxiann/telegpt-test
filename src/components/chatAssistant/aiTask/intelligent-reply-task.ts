@@ -3,80 +3,28 @@ import { getActions } from '../../../global';
 
 import type { ApiMessage } from '../../../api/types/messages';
 
-import generateChatgpt from '../lib/generate-chat';
-import { getIntelligentReplyByKnowledgePrompt } from '../prompt';
-import { ChataiKnowledgelStore } from '../store';
+import { knowledgeEmbeddingStore } from '../vector-store';
 
-const extractContent = (content: string) => {
-  const regex = /<!--\s*json-start\s*-->([\s\S]*?)<!--\s*json-end\s*-->/s;
-  const match = content.match(regex);
-  if (match) {
-    try {
-      const result = JSON.parse(match[1].trim());
-      return result;
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('JSON 解析错误:', error);
-      return null;
-    }
-  }
-  return null;
-};
-
+const { updateDraftReplyInfo, sendMessage, clearDraft } = getActions();
 class IntelligentReplyTask {
   private static instance: IntelligentReplyTask | undefined;
-
-  private knowledgeData: string = '';
 
   private pendingMessages: ApiMessage[] = [];
 
   constructor() {
-    this.knowledgeData = '';
     this.pendingMessages = [];
-    this.initAIKnowledgeBase();
     this.initReplyTask();
   }
 
   initReplyTask() {
     setInterval(() => {
-      if (this.pendingMessages.length && this.knowledgeData) {
+      if (this.pendingMessages.length) {
         this.intelligentResponse();
       }
     }, 1000 * 60);
   }
 
-  initAIKnowledgeBase():Promise<string> {
-    return new Promise(() => {
-      let knowledgeData:string = '';
-      ChataiKnowledgelStore.getAllKnowledge().then((knowledge) => {
-        if (knowledge) {
-          knowledge.forEach((item) => {
-            knowledgeData += `${item.content}\n`;
-          });
-        }
-        this.knowledgeData = knowledgeData;
-      });
-    });
-  }
-
-  updateKnowledgeData() {
-    this.initAIKnowledgeBase();
-  }
-
-  async getKnowledgeData() {
-    if (!this.knowledgeData) {
-      this.knowledgeData = await this.initAIKnowledgeBase();
-    }
-    return this.knowledgeData;
-  }
-
-  async intelligentResponse() {
-    let knowledgeData: string = '';
-    if (this.knowledgeData) {
-      knowledgeData = this.knowledgeData;
-    } else {
-      knowledgeData = await this.getKnowledgeData();
-    }
+  intelligentResponse() {
     const messages = this.pendingMessages.map((item) => {
       return {
         chatId: item.chatId,
@@ -85,52 +33,33 @@ class IntelligentReplyTask {
         content: item.content.text?.text,
       };
     });
-    if (!messages.length || !knowledgeData) {
-      return;
-    }
-    const prompt = getIntelligentReplyByKnowledgePrompt(knowledgeData);
-    this.clearPendingMessages();
-    generateChatgpt({
-      data: {
-        messages: [
-          {
-            role: 'system',
-            content: prompt,
-            id: '1',
-          }, {
-            role: 'user',
-            content: `${JSON.stringify(messages)}\n你需要根据知识库回答用户的问题`,
-          },
-        ],
-      },
-      onResponse: (message) => {
-        // eslint-disable-next-line no-console
-        console.log('收到AI回复消息', message);
-        const replyMessageList = extractContent(message);
-        if (replyMessageList.length) {
-          replyMessageList.forEach((item:any) => {
-            if (item && item.chatId && item.messageId && item.replyContent) {
-              const { chatId, messageId, replyContent } = item;
-              const { updateDraftReplyInfo, sendMessage, clearDraft } = getActions();
-              updateDraftReplyInfo({
-                replyToMsgId: messageId,
-                replyToPeerId: undefined,
+    messages.map(async (item) => {
+      const { content, chatId, messageId } = item;
+      if (content) {
+        const vectorSearchResults = await knowledgeEmbeddingStore.similaritySearch({
+          query: content,
+          k: 1,
+        });
+        if (vectorSearchResults.similarItems) {
+          const result:any = vectorSearchResults.similarItems[0];
+          if (result.score > 0.8) {
+            updateDraftReplyInfo({
+              replyToMsgId: messageId, replyToPeerId: undefined, quoteText: undefined, quoteOffset: undefined,
+            });
+            sendMessage({
+              messageList: {
                 chatId,
-              });
-              sendMessage({
-                messageList: {
-                  chatId,
-                  threadId: -1,
-                  type: 'thread',
-                },
-                text: replyContent,
-              });
-              clearDraft({ chatId, isLocalOnly: true });
-            }
-          });
+                threadId: -1,
+                type: 'thread',
+              },
+              text: result.metadata.answer,
+            });
+            clearDraft({ chatId, isLocalOnly: true });
+          }
         }
-      },
+      }
     });
+    this.clearPendingMessages();
   }
 
   addNewMessage(message: ApiMessage) {

@@ -2,9 +2,11 @@ import type { StoreName } from './chatai-store';
 
 import ChataiDB from './chatai-store';
 
-interface AiKnowledge {
+export interface AiKnowledge {
   id: string;
-  content: string;
+  richText: any;
+  plainText: string;
+  question: string;
 }
 class KnowledgeStore extends ChataiDB {
   private storeName: StoreName = 'knowledge';

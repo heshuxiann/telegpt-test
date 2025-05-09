@@ -3,6 +3,8 @@ import copy from 'copy-to-clipboard';
 import React, { memo, useCallback } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
 
+import type { AiKnowledge } from '../../chatAssistant/store/knowledge-store';
+
 import Icon from '../../common/icons/Icon';
 import Button from '../../ui/Button';
 
@@ -29,20 +31,20 @@ const AIKnowledgeEmptyContent = ({ onAdd }:{ onAdd:NoneToVoidFunction }) => {
 };
 const AIKnowledgeList = ({ knowledgeList, onEdit, onDelete }:{
   knowledgeList:any[];
-  onEdit:(knowledge:{ id:string;content:string })=>void;
+  onEdit:(knowledge:AiKnowledge)=>void;
   onDelete:(id:string)=>void;
 }) => {
   const { showNotification } = getActions();
-  const handleCopy = useCallback((knowledge:{ id:string;content:string }) => {
-    copy(knowledge.content);
+  const handleCopy = useCallback((knowledge:AiKnowledge) => {
+    copy(knowledge.plainText);
     showNotification({
       message: 'TextCopied',
     });
   }, []);
-  const handleEdit = useCallback((knowledge:{ id:string;content:string }) => {
+  const handleEdit = useCallback((knowledge:AiKnowledge) => {
     onEdit(knowledge);
   }, [onEdit]);
-  const handleDelete = useCallback((knowledge:{ id:string;content:string }) => {
+  const handleDelete = useCallback((knowledge:AiKnowledge) => {
     onDelete(knowledge.id);
   }, [onDelete]);
   return (
@@ -50,7 +52,10 @@ const AIKnowledgeList = ({ knowledgeList, onEdit, onDelete }:{
       {knowledgeList.map((item) => (
         <div key={item.id} className="bg-[#F7F7F7] rounded-[12px] px-[16px] py-[15px] mb-[12px]">
           <div className="white-space-pre-wrap line-clamp-3 overflow-hidden text-ellipsis">
-            {item.content}
+            {item?.question || ''}
+          </div>
+          <div className="white-space-pre-wrap line-clamp-3 overflow-hidden text-ellipsis">
+            {item.plainText.replace(/\\n/g, '')}
           </div>
           <div className="flex justify-end gap-[8px] items-center">
             <Button
@@ -91,7 +96,7 @@ const AIKnowledgeContent = ({
 }:{
   knowledgeList:any[];
   onShowAddModal:(type:'edit' | 'add')=>void ;
-  onEdit:(knowledge:{ id:string;content:string })=>void;
+  onEdit:(knowledge:AiKnowledge)=>void;
   onDelete:(id:string)=>void;
 }) => {
   const handleAdd = useCallback(() => {

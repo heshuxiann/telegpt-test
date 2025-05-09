@@ -839,12 +839,12 @@ const Message: FC<OwnProps & StateProps> = ({
 
   // 自动翻译
   // eslint-disable-next-line max-len
-  if (autoTranslate && shouldTranslate && textMessage && !isTranslationPending && !currentTranslatedText && !webPage && !emojiSize && !isInvertedMedia && !webPage && !hasTranslation && !message.isOutgoing) {
-    requestMessageTranslation({
-      chatId,
-      id: messageId,
-    });
-  }
+  // if (autoTranslate && shouldTranslate && textMessage && !isTranslationPending && !currentTranslatedText && !webPage && !emojiSize && !isInvertedMedia && !webPage && !hasTranslation && !message.isOutgoing) {
+  //   requestMessageTranslation({
+  //     chatId,
+  //     id: messageId,
+  //   });
+  // }
 
   useEnsureMessage(
     replyToPeerId || chatId,
@@ -989,7 +989,7 @@ const Message: FC<OwnProps & StateProps> = ({
     return (
       <MessageText
         messageOrStory={textMessage}
-        translatedText={requestedTranslationLanguage ? currentTranslatedText : undefined}
+        translatedText={(requestedTranslationLanguage || hasTranslation) ? currentTranslatedText : undefined}
         isForAnimation={isForAnimation}
         focusedQuote={focusedQuote}
         focusedQuoteOffset={focusedQuoteOffset}

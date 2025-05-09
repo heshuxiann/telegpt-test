@@ -12,14 +12,13 @@ import type { CustomSummaryTemplate } from './store/chatai-summary-template-stor
 import eventEmitter, { Actions } from './lib/EventEmitter';
 import { isUserId } from '../../global/helpers';
 import { selectChat, selectUser } from '../../global/selectors';
+import useOldLang from './hook/useOldLang';
 import { RightPanelKey } from './rightPanel/right-header';
 import { cn, formatTimestamp, formatTimestampRange } from './utils/util';
 import {
   CopyIcon, DeleteIcon, VoiceIcon,
   VoiceingIcon,
 } from './icons';
-
-import useOldLang from '../../hooks/useOldLang';
 
 import ErrorBoundary from './ErrorBoundary';
 import Avatar from './ui/Avatar';

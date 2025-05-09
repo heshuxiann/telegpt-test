@@ -338,6 +338,12 @@
     }
 
     .last-message {
+      display: flex;
+      flex-direction: row;
+      .media-preview{
+        display: flex;
+        flex-direction: row;
+      }
       .draft {
         &::after {
           content: ": ";

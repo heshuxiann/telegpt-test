@@ -6,8 +6,7 @@ import { getActions, getGlobal } from '../../global';
 
 import { getChatTitle, isUserId } from '../../global/helpers';
 import { selectChat } from '../../global/selectors';
-
-import useOldLang from '../../hooks/useOldLang';
+import useOldLang from './hook/useOldLang';
 
 import Avatar from './ui/Avatar';
 

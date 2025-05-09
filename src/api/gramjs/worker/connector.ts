@@ -1,17 +1,37 @@
+import { getActions, getGlobal } from '../../../global';
+
 import type { Api } from '../../../lib/gramjs';
 import type { TypedBroadcastChannel } from '../../../util/browser/multitab';
-import type { ApiInitialArgs, ApiOnProgress, OnApiUpdate } from '../../types';
+import type {
+  ApiInitialArgs,
+  ApiMessage,
+  ApiOnProgress,
+  ApiUpdate,
+  OnApiUpdate,
+} from '../../types';
 import type { LocalDb } from '../localDb';
 import type { MethodArgs, MethodResponse, Methods } from '../methods/types';
 import type { OriginPayload, ThenArg, WorkerMessageEvent } from './types';
 
 import { DEBUG, IGNORE_UNHANDLED_ERRORS } from '../../../config';
+import { hasMessageText, isUserId } from '../../../global/helpers';
 import { logDebugMessage } from '../../../util/debugConsole';
 import Deferred from '../../../util/Deferred';
-import { getCurrentTabId, subscribeToMasterChange } from '../../../util/establishMultitabRole';
+import {
+  getCurrentTabId,
+  subscribeToMasterChange,
+} from '../../../util/establishMultitabRole';
 import generateUniqueId from '../../../util/generateUniqueId';
-import { ACCOUNT_SLOT, DATA_BROADCAST_CHANNEL_NAME } from '../../../util/multiaccount';
+import {
+  ACCOUNT_SLOT,
+  DATA_BROADCAST_CHANNEL_NAME,
+} from '../../../util/multiaccount';
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
+import { messageEmbeddingStore } from '../../../components/chatAssistant/vector-store';
+
+import eventEmitter, {
+  Actions,
+} from '../../../components/chatAssistant/lib/EventEmitter';
 
 type RequestState = {
   messageId: string;
@@ -48,7 +68,9 @@ subscribeToMasterChange((isMasterTabNew) => {
   isMasterTab = isMasterTabNew;
 });
 
-const channel = new BroadcastChannel(DATA_BROADCAST_CHANNEL_NAME) as TypedBroadcastChannel;
+const channel = new BroadcastChannel(
+  DATA_BROADCAST_CHANNEL_NAME,
+) as TypedBroadcastChannel;
 
 const postMessagesOnTickEnd = throttleWithTickEnd(() => {
   const payloads = pendingPayloads;
@@ -71,7 +93,11 @@ export function initApiOnMasterTab(initialArgs: ApiInitialArgs) {
 
 let updateCallback: OnApiUpdate;
 
-let localApiRequestsQueue: { fnName: any; args: any; deferred: Deferred<any> }[] = [];
+let localApiRequestsQueue: {
+  fnName: any;
+  args: any;
+  deferred: Deferred<any>;
+}[] = [];
 let apiRequestsQueue: { fnName: any; args: any; deferred: Deferred<any> }[] = [];
 let isInited = false;
 
@@ -153,7 +179,10 @@ export function setShouldEnableDebugLog(value: boolean) {
  * Call a worker method on this tab's worker, without transferring to master tab
  * Mostly needed to disconnect worker when re-electing master
  */
-export function callApiLocal<T extends keyof Methods>(fnName: T, ...args: MethodArgs<T>) {
+export function callApiLocal<T extends keyof Methods>(
+  fnName: T,
+  ...args: MethodArgs<T>
+) {
   if (!isInited) {
     if (NO_QUEUE_BEFORE_INIT.has(fnName)) {
       return Promise.resolve(undefined) as MethodResponse<T>;
@@ -176,10 +205,10 @@ export function callApiLocal<T extends keyof Methods>(fnName: T, ...args: Method
     (async () => {
       try {
         type ForbiddenTypes =
-          Api.VirtualClass<any>
+          | Api.VirtualClass<any>
           | (Api.VirtualClass<any> | undefined)[];
         type ForbiddenResponses =
-          ForbiddenTypes
+          | ForbiddenTypes
           | (AnyLiteral & { [k: string]: ForbiddenTypes });
 
         // Unwrap all chained promises
@@ -197,7 +226,10 @@ export function callApiLocal<T extends keyof Methods>(fnName: T, ...args: Method
   return promise as MethodResponse<T>;
 }
 
-export function callApi<T extends keyof Methods>(fnName: T, ...args: MethodArgs<T>) {
+export function callApi<T extends keyof Methods>(
+  fnName: T,
+  ...args: MethodArgs<T>
+) {
   if (!isInited && isMasterTab) {
     if (NO_QUEUE_BEFORE_INIT.has(fnName)) {
       return Promise.resolve(undefined) as MethodResponse<T>;
@@ -209,24 +241,26 @@ export function callApi<T extends keyof Methods>(fnName: T, ...args: MethodArgs<
     return deferred.promise as MethodResponse<T>;
   }
 
-  const promise = isMasterTab ? makeRequest({
-    type: 'callMethod',
-    name: fnName,
-    args,
-  }) : makeRequestToMaster({
-    name: fnName,
-    args,
-  });
+  const promise = isMasterTab
+    ? makeRequest({
+      type: 'callMethod',
+      name: fnName,
+      args,
+    })
+    : makeRequestToMaster({
+      name: fnName,
+      args,
+    });
 
   // Some TypeScript magic to make sure `VirtualClass` is never returned from any method
   if (DEBUG) {
     (async () => {
       try {
         type ForbiddenTypes =
-          Api.VirtualClass<any>
+          | Api.VirtualClass<any>
           | (Api.VirtualClass<any> | undefined)[];
         type ForbiddenResponses =
-          ForbiddenTypes
+          | ForbiddenTypes
           | (AnyLiteral & { [k: string]: ForbiddenTypes });
 
         // Unwrap all chained promises
@@ -270,6 +304,39 @@ export function cancelApiProgressMaster(messageId: string) {
   });
 }
 
+function sendToAIAgent(data: ApiUpdate) {
+  if (data['@type'] === 'newMessage') {
+    const hasTextContent = data.message && hasMessageText(data.message as ApiMessage);
+    if (hasTextContent) {
+      eventEmitter.emit(Actions.AddNewMessageToAiAssistant, {
+        message: data.message,
+      });
+      const {
+        date, id, senderId, chatId,
+      } = data.message;
+      const messageContent = data.message?.content?.text?.text;
+      if (chatId && messageContent) {
+        const chatType = isUserId(chatId) ? 'private' : 'group';
+        messageEmbeddingStore.addText(messageContent, String(id), {
+          chatId,
+          senderId,
+          messageId: id,
+          timestamp: date,
+          chatType,
+          date: date ? new Date(date * 1000).toISOString().split('T')[0] : '0',
+        });
+      }
+      const { autoTranslate } = getGlobal().settings.byKey;
+      if (chatId && id && autoTranslate) {
+        getActions().requestMessageTranslation({
+          chatId,
+          id,
+        });
+      }
+    }
+  }
+}
+
 function subscribeToWorker(onUpdate: OnApiUpdate) {
   worker?.addEventListener('message', ({ data }: WorkerMessageEvent) => {
     data?.payloads.forEach((payload) => {
@@ -279,14 +346,16 @@ function subscribeToWorker(onUpdate: OnApiUpdate) {
         if (DEBUG) {
           DEBUG_startAt = performance.now();
         }
-
+        payload.updates.forEach(sendToAIAgent);
         payload.updates.forEach(onUpdate);
 
         if (DEBUG) {
           const duration = performance.now() - DEBUG_startAt!;
           if (duration > 5) {
             // eslint-disable-next-line no-console
-            console.warn(`[API] Slow updates processing: ${payload.updates.length} updates in ${duration} ms`);
+            console.warn(
+              `[API] Slow updates processing: ${payload.updates.length} updates in ${duration} ms`,
+            );
           }
         }
       } else if (payload.type === 'methodResponse') {
@@ -343,11 +412,17 @@ function makeRequestToMaster(message: {
   const requestState = { messageId } as RequestState;
 
   // Re-wrap type because of `postMessage`
-  const promise: Promise<MethodResponse<keyof Methods>> = new Promise((resolve, reject) => {
-    Object.assign(requestState, { resolve, reject });
-  });
+  const promise: Promise<MethodResponse<keyof Methods>> = new Promise(
+    (resolve, reject) => {
+      Object.assign(requestState, { resolve, reject });
+    },
+  );
 
-  if ('args' in payload && 'name' in payload && typeof payload.args[1] === 'function') {
+  if (
+    'args' in payload
+    && 'name' in payload
+    && typeof payload.args[1] === 'function'
+  ) {
     payload.withCallback = true;
 
     const callback = payload.args.pop() as AnyToVoidFunction;
@@ -382,11 +457,17 @@ function makeRequest(message: OriginPayload) {
   const requestState = { messageId } as RequestState;
 
   // Re-wrap type because of `postMessage`
-  const promise: Promise<MethodResponse<keyof Methods>> = new Promise((resolve, reject) => {
-    Object.assign(requestState, { resolve, reject });
-  });
+  const promise: Promise<MethodResponse<keyof Methods>> = new Promise(
+    (resolve, reject) => {
+      Object.assign(requestState, { resolve, reject });
+    },
+  );
 
-  if ('args' in payload && 'name' in payload && typeof payload.args[1] === 'function') {
+  if (
+    'args' in payload
+    && 'name' in payload
+    && typeof payload.args[1] === 'function'
+  ) {
     payload.withCallback = true;
 
     const callback = payload.args.pop() as AnyToVoidFunction;
@@ -430,8 +511,9 @@ async function ensureWorkerPing() {
   try {
     await Promise.race([
       makeRequest({ type: 'ping' }),
-      pause(HEALTH_CHECK_TIMEOUT)
-        .then(() => (isResolved ? undefined : Promise.reject(new Error('HEALTH_CHECK_TIMEOUT')))),
+      pause(HEALTH_CHECK_TIMEOUT).then(() => (isResolved
+        ? undefined
+        : Promise.reject(new Error('HEALTH_CHECK_TIMEOUT')))),
     ]);
   } catch (err) {
     // eslint-disable-next-line no-console

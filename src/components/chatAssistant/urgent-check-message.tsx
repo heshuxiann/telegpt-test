@@ -6,12 +6,11 @@ import type { Message } from 'ai';
 import copy from 'copy-to-clipboard';
 import { getActions } from '../../global';
 
+import useOldLang from './hook/useOldLang';
 import { formatTimestamp } from './utils/util';
 import {
   CopyIcon, DeleteIcon, VoiceIcon, VoiceingIcon,
 } from './icons';
-
-import useOldLang from '../../hooks/useOldLang';
 
 import DangerIcon from './assets/danger.png';
 import SerenaLogoPath from './assets/serena.png';
