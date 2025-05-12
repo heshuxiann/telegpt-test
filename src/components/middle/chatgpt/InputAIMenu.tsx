@@ -31,9 +31,9 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
     translatedName: 'English',
   });
   useEffect(() => {
-    CHATAI_IDB_STORE.get('input-translate-language').then((langCode: any) => {
-      const translatedNames = new Intl.DisplayNames([langCode], { type: 'language' });
-      const translatedName = translatedNames.of(langCode)!;
+    CHATAI_IDB_STORE.get('input-translate-language').then((langCode = 'en') => {
+      const translatedNames = new Intl.DisplayNames([langCode as string], { type: 'language' });
+      const translatedName = translatedNames.of(langCode as string)!;
       setCurrentLanguage({
         langCode: langCode ? langCode as string : 'en',
         translatedName,
