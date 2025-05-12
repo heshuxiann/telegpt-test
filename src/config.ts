@@ -44,7 +44,7 @@ export const SESSION_ACCOUNT_PREFIX = 'account';
 export const LEGACY_PASSCODE_CACHE_NAME = 'tt-passcode';
 
 export const MULTIACCOUNT_MAX_SLOTS = 6;
-export const GLOBAL_STATE_CACHE_DISABLED = true;
+export const GLOBAL_STATE_CACHE_DISABLED = false;
 export const GLOBAL_STATE_CACHE_PREFIX = 'tt-global-state';
 export const SHARED_STATE_CACHE_KEY = 'tt-shared-state';
 export const GLOBAL_STATE_CACHE_USER_LIST_LIMIT = 500;
