@@ -33,6 +33,7 @@ import {
   getMessageDownloadableMedia,
   getMessageVideo,
   getUserFullName,
+  hasMessageText,
   hasMessageTtl,
   isActionMessage,
   isChatChannel,
@@ -50,7 +51,6 @@ import {
   selectCanGift,
   selectCanPlayAnimatedEmojis,
   selectCanScheduleUntilOnline,
-  selectCanTranslateMessage,
   selectChat,
   selectChatFullInfo,
   selectCurrentMessageList,
@@ -74,6 +74,7 @@ import {
 } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import { copyTextToClipboard } from '../../../util/clipboard';
+import { knowledgeEmbeddingStore } from '../../chatAssistant/vector-store';
 import { getSelectionAsFormattedText } from './helpers/getSelectionAsFormattedText';
 import { isSelectionRangeInsideMessage } from './helpers/isSelectionRangeInsideMessage';
 
@@ -83,6 +84,8 @@ import useOldLang from '../../../hooks/useOldLang';
 import useSchedule from '../../../hooks/useSchedule';
 import useShowTransition from '../../../hooks/useShowTransition';
 
+import eventEmitter from '../../chatAssistant/lib/EventEmitter';
+import chatAIGenerate from '../../chatAssistant/utils/ChatApiGenerate';
 import PinMessageModal from '../../common/PinMessageModal.async';
 import ConfirmDialog from '../../ui/ConfirmDialog';
 import MessageContextMenu from './MessageContextMenu';
@@ -114,6 +117,7 @@ type StateProps = {
   canSendNow?: boolean;
   canReschedule?: boolean;
   canReply?: boolean;
+  canSmartReply?: boolean;
   canPin?: boolean;
   canShowReactionsCount?: boolean;
   canBuyPremium?: boolean;
@@ -181,6 +185,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
   hasFullInfo,
   canReschedule,
   canReply,
+  canSmartReply,
   canPin,
   repliesThreadInfo,
   canUnpin,
@@ -422,6 +427,46 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
     closeMenu();
   });
 
+  const handleSmartReply = useLastCallback(async () => {
+    closeMenu();
+    if (message.content.text?.text) {
+      const vectorSearchResults = await knowledgeEmbeddingStore.similaritySearch({
+        query: message.content.text?.text,
+        k: 1,
+      });
+      type Metadata = { answer: string }; // Define the type for metadata
+      const similarResult = vectorSearchResults.similarItems[0] as { metadata: Metadata; score: number } | undefined;
+      if (similarResult && similarResult.score > 0.8) {
+        eventEmitter.emit('update-input-text', similarResult.metadata.answer);
+      } else {
+        eventEmitter.emit('update-input-spiner', true);
+        chatAIGenerate({
+          data: {
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a friendly and supportive assistant.',
+                id: '1',
+              },
+              {
+                role: 'user',
+                content: message.content.text?.text,
+                id: '2',
+              },
+            ],
+          },
+          onResponse: (response) => {
+            eventEmitter.emit('update-input-text', response);
+          },
+          onFinish: () => {
+            // eslint-disable-next-line no-console
+            console.log('Finish');
+          },
+        });
+      }
+    }
+  });
+
   const handleOpenThread = useLastCallback(() => {
     openThread({
       chatId: message.chatId,
@@ -656,6 +701,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         canSendNow={canSendNow}
         canReschedule={canReschedule}
         canReply={canReply}
+        canSmartReply={canSmartReply}
         canQuote={selectionQuoteOffset !== UNQUOTABLE_OFFSET}
         canDelete={canDelete}
         canPin={canPin}
@@ -690,6 +736,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         story={story}
         onOpenThread={handleOpenThread}
         onReply={handleReply}
+        onSmartReply={handleSmartReply}
         onEdit={handleEdit}
         onPin={handlePin}
         onUnpin={handleUnpin}
@@ -848,6 +895,7 @@ export default memo(withGlobal<OwnProps>(
     const story = storyData ? selectPeerStory(global, storyData.peerId, storyData.id) : undefined;
 
     const canGift = selectCanGift(global, message.chatId);
+    const hasTextContent = hasMessageText(message);
 
     return {
       threadId,
@@ -860,6 +908,7 @@ export default memo(withGlobal<OwnProps>(
       canSendNow: isScheduled,
       canReschedule: isScheduled,
       canReply: !isPinned && !isScheduled && canReplyGlobally,
+      canSmartReply: !isPinned && !isScheduled && canReplyGlobally && canSendText && hasTextContent,
       canPin: !isScheduled && canPin,
       canUnpin: !isScheduled && canUnpin,
       canDelete,

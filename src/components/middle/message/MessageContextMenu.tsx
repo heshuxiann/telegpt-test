@@ -63,6 +63,7 @@ type OwnProps = {
   reactionsLimit?: number;
   canReschedule?: boolean;
   canReply?: boolean;
+  canSmartReply?: boolean;
   canQuote?: boolean;
   repliesThreadInfo?: ApiThreadInfo;
   canPin?: boolean;
@@ -99,6 +100,7 @@ type OwnProps = {
   shouldRenderShowWhen?: boolean;
   canLoadReadDate?: boolean;
   onReply?: NoneToVoidFunction;
+  onSmartReply?: NoneToVoidFunction;
   onOpenThread?: VoidFunction;
   onEdit?: NoneToVoidFunction;
   onPin?: NoneToVoidFunction;
@@ -157,6 +159,7 @@ const MessageContextMenu: FC<OwnProps> = ({
   canReschedule,
   canBuyPremium,
   canReply,
+  canSmartReply,
   canQuote,
   canEdit,
   noReplies,
@@ -190,6 +193,7 @@ const MessageContextMenu: FC<OwnProps> = ({
   shouldRenderShowWhen,
   canLoadReadDate,
   onReply,
+  onSmartReply,
   onOpenThread,
   onEdit,
   onPin,
@@ -413,6 +417,11 @@ const MessageContextMenu: FC<OwnProps> = ({
         {canReply && (
           <MenuItem icon="reply" onClick={onReply}>
             {lang(canQuote ? 'lng_context_quote_and_reply' : 'Reply')}
+          </MenuItem>
+        )}
+        {canSmartReply && (
+          <MenuItem icon="reply" onClick={onSmartReply}>
+            {lang('Smart Reply')}
           </MenuItem>
         )}
         {!noReplies && Boolean(repliesThreadInfo?.messagesCount) && (

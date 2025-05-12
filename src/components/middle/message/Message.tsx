@@ -1734,7 +1734,6 @@ const Message: FC<OwnProps & StateProps> = ({
             tags={tags}
           />
         )}
-        {/* {hasText && !isOwn && <MessageAIToolBar message={textMessage} />} */}
       </div>
       {contextMenuAnchor && (
         <ContextMenuContainer

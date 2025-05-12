@@ -95,7 +95,6 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
     updateDraftReplyInfo({
       replyToMsgId: message?.id,
       replyToPeerId: undefined,
-      chatId,
     });
     sendMessage({
       messageList: {

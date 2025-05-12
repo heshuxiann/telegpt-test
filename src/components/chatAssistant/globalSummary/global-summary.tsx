@@ -265,8 +265,8 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
               content: `${JSON.stringify(checkmsgs)}\n\n${UrgentMessageCheckPrompt}`,
             },
           ]);
-          setUrgentChecks([]);
         }
+        setUrgentChecks([]);
       }, 1000 * 60);
       return () => {
         clearInterval(timer);
@@ -452,11 +452,12 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           // TODO 这里需要判断是否是紧急消息/知识库自动回复
           const { isRestricted } = chat;
           if (!message.isOutgoing && !isRestricted) {
-            if (!isChatGroup(chat)) {
+            if (!isChatGroup(chat) || message.isMentioned) {
               intelligentReplyTask.addNewMessage(message);
             }
             setUrgentChecks((prev) => [...prev, message]);
           }
+          // TODO 添加到自动总结消息队列
           if (summaryChats.current.length === 0 || summaryChats.current.includes(message.chatId)) {
             setPendingSummaryMessages((messages) => {
               if (messages[chatId]) {

@@ -46,15 +46,17 @@ class IntelligentReplyTask {
             updateDraftReplyInfo({
               replyToMsgId: messageId, replyToPeerId: undefined, quoteText: undefined, quoteOffset: undefined,
             });
-            sendMessage({
-              messageList: {
-                chatId,
-                threadId: -1,
-                type: 'thread',
-              },
-              text: result.metadata.answer,
+            setTimeout(() => {
+              sendMessage({
+                messageList: {
+                  chatId,
+                  threadId: -1,
+                  type: 'thread',
+                },
+                text: result.metadata.answer,
+              });
+              clearDraft({ chatId, isLocalOnly: true });
             });
-            clearDraft({ chatId, isLocalOnly: true });
           }
         }
       }
