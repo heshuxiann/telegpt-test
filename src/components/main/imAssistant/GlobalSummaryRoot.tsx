@@ -38,8 +38,6 @@ const GlobalSummaryRoot = () => {
 
   const handleAddNewMessage = useLastCallback((payload: { message: ApiMessage }) => {
     const message = payload.message;
-    // eslint-disable-next-line no-console
-    console.log('添加新的消息到智能客服', message);
     if (instance) {
       instance.addNewMessage(message);
     }
