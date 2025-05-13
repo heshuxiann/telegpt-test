@@ -1,3 +1,5 @@
+import { getGlobal } from '../../../global';
+
 /* eslint-disable no-null/no-null */
 export type StoreName = 'message' | 'contact' | 'user' | 'general' | 'knowledge' | 'summaryTemplate';
 
@@ -12,7 +14,9 @@ interface StoreConfig {
 type StoreConfigMap = Record<StoreName, StoreConfig>;
 
 class ChataiDB {
-  private DB_NAME: string;
+  private DB_NAME: string | undefined;
+
+  private USER_ID!: string;
 
   private VERSION: number;
 
@@ -27,8 +31,7 @@ class ChataiDB {
     summaryTemplate: { keyPath: 'id', autoIncrement: true },
   };
 
-  constructor(DB_NAME: string, VERSION: number) {
-    this.DB_NAME = DB_NAME;
+  constructor(VERSION: number) {
     this.VERSION = VERSION;
     this.initDB();
   }
@@ -36,53 +39,26 @@ class ChataiDB {
   initDB() {
     // eslint-disable-next-line @typescript-eslint/quotes, no-console
     console.log("初始化indexdb", this.VERSION);
-    const request = indexedDB.open(this.DB_NAME, this.VERSION);
-
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      // 遍历 STORE_CONFIG，确保所有表都被创建
-      // if (db.objectStoreNames.contains('message')) {
-      //   db.deleteObjectStore('message');
-      //   // eslint-disable-next-line no-console
-      //   console.log('messages 对象存储已删除');
-      // }
-      if (db.objectStoreNames.contains('knowledge')) {
-        db.deleteObjectStore('knowledge');
-        // eslint-disable-next-line no-console
-        console.log('knowledge 对象存储已删除');
-      }
-      Object.entries(this.STORE_CONFIG).forEach(([storeName, config]) => {
-        if (!db.objectStoreNames.contains(storeName)) {
-          const store = db.createObjectStore(storeName,
-            { keyPath: config.keyPath, autoIncrement: config.autoIncrement });
-
-          if (config.indexes) {
-            config.indexes.forEach(([indexName, keyPath]) => {
-              store.createIndex(indexName, keyPath, { unique: false });
-            });
-          }
-        }
-      });
-    };
-
-    request.onsuccess = () => {
-      this.db = request.result;
-    };
-
-    // eslint-disable-next-line no-console
-    request.onerror = () => console.log(new Error('Failed to open database'));
-  }
-
-  getDB(): Promise<IDBDatabase> {
-    if (this.db) {
-      return Promise.resolve(this.db); // 确保返回的是 Promise<IDBDatabase>
-    }
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.DB_NAME, this.VERSION);
+    const currentUserId = getGlobal().currentUserId;
+    if (currentUserId) {
+      const dbName = `tt-chatai-${currentUserId}`;
+      this.DB_NAME = dbName;
+      this.USER_ID = currentUserId;
+      const request = indexedDB.open(dbName, this.VERSION);
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
         // 遍历 STORE_CONFIG，确保所有表都被创建
+        // if (db.objectStoreNames.contains('message')) {
+        //   db.deleteObjectStore('message');
+        //   // eslint-disable-next-line no-console
+        //   console.log('messages 对象存储已删除');
+        // }
+        if (db.objectStoreNames.contains('knowledge')) {
+          db.deleteObjectStore('knowledge');
+          // eslint-disable-next-line no-console
+          console.log('knowledge 对象存储已删除');
+        }
         Object.entries(this.STORE_CONFIG).forEach(([storeName, config]) => {
           if (!db.objectStoreNames.contains(storeName)) {
             const store = db.createObjectStore(storeName,
@@ -99,18 +75,53 @@ class ChataiDB {
 
       request.onsuccess = () => {
         this.db = request.result;
-        resolve(this.db);
       };
 
-      request.onerror = () => reject(new Error('Failed to open database'));
-    });
+      // eslint-disable-next-line no-console
+      request.onerror = () => console.log(new Error('Failed to open database'));
+    }
   }
 
-  // 获取事务
-  protected getTransaction(storeName: string, mode: IDBTransactionMode): IDBObjectStore {
-    if (!this.db) throw new Error('Database is not initialized');
-    const transaction = this.db.transaction([storeName], mode);
-    return transaction.objectStore(storeName);
+  getDB(): Promise<IDBDatabase> {
+    const currentUserId = getGlobal().currentUserId;
+    if (currentUserId) {
+      if (currentUserId !== this.USER_ID || !this.db) {
+        const dbName = `tt-chatai-${currentUserId}`;
+        this.DB_NAME = dbName;
+        this.USER_ID = currentUserId;
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(dbName, this.VERSION);
+
+          request.onupgradeneeded = (event) => {
+            const db = (event.target as IDBOpenDBRequest).result;
+            // 遍历 STORE_CONFIG，确保所有表都被创建
+            Object.entries(this.STORE_CONFIG).forEach(([storeName, config]) => {
+              if (!db.objectStoreNames.contains(storeName)) {
+                const store = db.createObjectStore(storeName,
+                  { keyPath: config.keyPath, autoIncrement: config.autoIncrement });
+
+                if (config.indexes) {
+                  config.indexes.forEach(([indexName, keyPath]) => {
+                    store.createIndex(indexName, keyPath, { unique: false });
+                  });
+                }
+              }
+            });
+          };
+
+          request.onsuccess = () => {
+            this.db = request.result;
+            resolve(this.db);
+          };
+
+          request.onerror = () => reject(new Error('Failed to open database'));
+        });
+      } else {
+        return Promise.resolve(this.db); // 确保返回的是 Promise<IDBDatabase>
+      }
+    } else {
+      return Promise.reject(new Error('User ID is not set'));
+    }
   }
 }
 

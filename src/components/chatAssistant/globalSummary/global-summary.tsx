@@ -39,13 +39,13 @@ import { parseStoreMessage2Message } from '../store/messages-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
 import { formatSummaryText, formatUrgentCheckText } from './formate-summary-text';
 import defaultSummaryPrompt, { getGlobalSummaryPrompt } from './summary-prompt';
-import TestActions from './test-actions';
+// import TestActions from './test-actions';
 import UrgentNotification from './urgent-notification';
 
 import { InfiniteScroll } from '../component/InfiniteScroll';
 import ErrorBoundary from '../ErrorBoundary';
-import { TestModal } from './TestModal';
 
+// import { TestModal } from './TestModal';
 import './global-summary.scss';
 
 import AISummaryPath from '../assets/ai-summary.png';
@@ -74,7 +74,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     const [summaryModalVisible, setSummaryModalVisible] = useState(false);
     const [notificationMessage, setNotificationMessage] = useState<Message | null>(null);
     const [unreadSummaryCount, setUnreadSummaryCount] = useState(0);
-    const [testModalVisable, setTestModalVisible] = useState(false);
+    // const [testModalVisable, setTestModalVisible] = useState(false);
     const [globalSummaryPrompt, setGlobalSummaryPrompt] = useState('');
     const [customizationTemplate, setCustomizationTemplate] = useState<{ title: string; prompt: string } | null>(null);
     const [urgentChecks, setUrgentChecks] = useState<ApiMessage[]>([]);
@@ -190,6 +190,9 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
                 const notification = new Notification('Chat Summary', {
                   body: 'You have received a new Chat Summary',
                 });
+                notification.onclick = () => {
+                  setSummaryModalVisible(true);
+                };
                 setTimeout(() => notification.close(), 5000);
               }
             });
@@ -489,35 +492,35 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       });
     }, []);
 
-    const handleReSummary = useCallback(async (prompt: string) => {
-      const unreadMap: Record<string, ApiMessage[]> = {};
-      for (let i = 0; i < orderedIds.length; i++) {
-        const chatId = orderedIds[i];
-        const chat = selectChat(global, chatId);
-        const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
-        if (chat && chat.unreadCount && !chatBot) {
-          if (chat?.membersCount && chat?.membersCount > 100) {
-            continue;
-          }
-          const firstUnreadId = selectFirstUnreadId(global, chatId, MAIN_THREAD_ID) || chat.lastReadInboxMessageId;
-          const roomUnreadMsgs = await fetchChatUnreadMessage({
-            chat,
-            offsetId: firstUnreadId || 0,
-            addOffset: -30,
-            sliceSize: 30,
-            threadId: MAIN_THREAD_ID,
-            unreadCount: chat.unreadCount,
-            maxCount: 100,
-          });
-          if (roomUnreadMsgs.length > 0) {
-            unreadMap[chatId] = roomUnreadMsgs;
-          }
-        }
-      }
-      if (Object.keys(unreadMap).length) {
-        startSummary(unreadMap, prompt);
-      }
-    }, [global, orderedIds, startSummary]);
+    // const handleReSummary = useCallback(async (prompt: string) => {
+    //   const unreadMap: Record<string, ApiMessage[]> = {};
+    //   for (let i = 0; i < orderedIds.length; i++) {
+    //     const chatId = orderedIds[i];
+    //     const chat = selectChat(global, chatId);
+    //     const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
+    //     if (chat && chat.unreadCount && !chatBot) {
+    //       if (chat?.membersCount && chat?.membersCount > 100) {
+    //         continue;
+    //       }
+    //       const firstUnreadId = selectFirstUnreadId(global, chatId, MAIN_THREAD_ID) || chat.lastReadInboxMessageId;
+    //       const roomUnreadMsgs = await fetchChatUnreadMessage({
+    //         chat,
+    //         offsetId: firstUnreadId || 0,
+    //         addOffset: -30,
+    //         sliceSize: 30,
+    //         threadId: MAIN_THREAD_ID,
+    //         unreadCount: chat.unreadCount,
+    //         maxCount: 100,
+    //       });
+    //       if (roomUnreadMsgs.length > 0) {
+    //         unreadMap[chatId] = roomUnreadMsgs;
+    //       }
+    //     }
+    //   }
+    //   if (Object.keys(unreadMap).length) {
+    //     startSummary(unreadMap, prompt);
+    //   }
+    // }, [global, orderedIds, startSummary]);
 
     return (
       <ErrorBoundary>
@@ -541,7 +544,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             loadMore={handleLoadMore}
             hasMore={pageInfo?.hasMore}
           />
-          <TestActions
+          {/* <TestActions
             // eslint-disable-next-line react/jsx-no-bind
             summaryAllUnreadMessages={summaryAllUnreadMessages}
             // eslint-disable-next-line react/jsx-no-bind
@@ -552,7 +555,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             // eslint-disable-next-line react/jsx-no-bind
             onClose={() => setTestModalVisible(false)}
             handleReSummary={handleReSummary}
-          />
+          /> */}
         </Modal>
         <UrgentNotification message={notificationMessage} />
       </ErrorBoundary>

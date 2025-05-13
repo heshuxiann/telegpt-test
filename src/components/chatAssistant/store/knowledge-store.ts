@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { StoreName } from './chatai-store';
 
 import ChataiDB from './chatai-store';
@@ -12,7 +13,13 @@ class KnowledgeStore extends ChataiDB {
   private storeName: StoreName = 'knowledge';
 
   async getKnowledge(id: string): Promise<AiKnowledge | undefined> {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readonly');
       const store = tx.objectStore(this.storeName);
@@ -27,7 +34,13 @@ class KnowledgeStore extends ChataiDB {
   }
 
   async getAllKnowledge(): Promise<AiKnowledge[] | undefined> {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readonly');
       const store = tx.objectStore(this.storeName);
@@ -42,7 +55,13 @@ class KnowledgeStore extends ChataiDB {
   }
 
   async addKnowledge(knowledge: AiKnowledge) {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readwrite');
       const store = tx.objectStore(this.storeName);
@@ -57,7 +76,13 @@ class KnowledgeStore extends ChataiDB {
   }
 
   async deleteKnowledge(id:string) {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readwrite');
       const store = tx.objectStore(this.storeName);

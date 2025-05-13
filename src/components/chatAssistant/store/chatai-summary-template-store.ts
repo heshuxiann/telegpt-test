@@ -13,7 +13,13 @@ class SummaryTemplateStore extends ChataiDB {
   private storeName: StoreName = 'summaryTemplate';
 
   async getAllSummaryTemplate(): Promise<CustomSummaryTemplate[]> {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readonly');
       const store = tx.objectStore(this.storeName);
@@ -28,7 +34,13 @@ class SummaryTemplateStore extends ChataiDB {
   }
 
   async getSummaryTemplate(id: string): Promise<CustomSummaryTemplate> {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readonly');
       const store = tx.objectStore(this.storeName);
@@ -43,7 +55,13 @@ class SummaryTemplateStore extends ChataiDB {
   }
 
   async deleteSummaryTemplate(id: string):Promise<void> {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readwrite');
       const store = tx.objectStore(this.storeName);
@@ -57,7 +75,13 @@ class SummaryTemplateStore extends ChataiDB {
   }
 
   async addSummaryTemplate(summaryTemplate:CustomSummaryTemplate) {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readwrite');
       const store = tx.objectStore(this.storeName);

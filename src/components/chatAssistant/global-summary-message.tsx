@@ -449,7 +449,7 @@ const SummaryContent = ({
             <p className="flex items-center gap-[8px]">
               <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
               <div className="flex items-center">
-                <span className="mr-[4px]">时间范围:</span>
+                <span className="mr-[4px]">Time range:</span>
                 {formatTimestampRange(summaryInfo?.summaryStartTime, summaryInfo?.summaryEndTime)}
               </div>
             </p>

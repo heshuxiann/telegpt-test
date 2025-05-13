@@ -6,11 +6,14 @@ import type { Message } from 'ai';
 import copy from 'copy-to-clipboard';
 import { getActions } from '../../global';
 
+import eventEmitter, { Actions } from './lib/EventEmitter';
 import useOldLang from './hook/useOldLang';
 import { formatTimestamp } from './utils/util';
 import {
   CopyIcon, DeleteIcon, VoiceIcon, VoiceingIcon,
 } from './icons';
+
+import ChatAvatar from './ui/ChatAvatar';
 
 import DangerIcon from './assets/danger.png';
 import SerenaLogoPath from './assets/serena.png';
@@ -93,6 +96,11 @@ const UrgentCheckMessage = (props:IProps) => {
   if (!urgentMessage || urgentMessage.length === 0) {
     return null;
   }
+  const handleFocusMessage = (item:UrgentMessage) => {
+    const { chatId, messageId } = item;
+    getActions().focusMessage({ chatId, messageId });
+    eventEmitter.emit(Actions.HideGlobalSummaryModal);
+  };
   return (
     <div className="mx-auto w-[693px] rounded-[10px] bg-[#FFF9F9] pl-[82px] pr-[25px] pt-[20px] pb-[25px] border-[1px] border-[#FFC7C7]">
       <div className="flex items-center gap-[8px]">
@@ -111,7 +119,10 @@ const UrgentCheckMessage = (props:IProps) => {
       <ul className="list-disc pl-[24px]">
         {urgentMessage.map((item) => {
           return (
-            <li>{item.content}</li>
+            <li className="flex flex-row items-top gap-[8px]">
+              <span className="text-[15px]" onClick={() => handleFocusMessage(item)}>{item.content}</span>
+              <ChatAvatar size={20} chatId={item.chatId} />
+            </li>
           );
         })}
       </ul>

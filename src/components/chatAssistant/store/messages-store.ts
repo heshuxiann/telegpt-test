@@ -14,7 +14,13 @@ class MessageStore extends ChataiDB {
   private storeName: StoreName = 'message';
 
   async storeMessage(message: StoreMessage): Promise<void> {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return;
+    }
 
     const transaction = db.transaction([this.storeName], 'readwrite');
     const store = transaction.objectStore(this.storeName);
@@ -34,7 +40,13 @@ class MessageStore extends ChataiDB {
   }
 
   async storeMessages(messages: StoreMessage[]): Promise<void> {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return;
+    }
 
     const transaction = db.transaction([this.storeName], 'readwrite');
     const store = transaction.objectStore(this.storeName);
@@ -72,7 +84,13 @@ class MessageStore extends ChataiDB {
     lastTime: number | undefined,
     pageSize: number,
   ): Promise<{ messages: any[]; lastTime: number | undefined ;hasMore:boolean }> {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readonly');
       const store = tx.objectStore(this.storeName);
@@ -105,7 +123,13 @@ class MessageStore extends ChataiDB {
   }
 
   async getAllMessages(): Promise<StoreMessage[]> {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readonly');
       const store = tx.objectStore(this.storeName);
@@ -119,7 +143,13 @@ class MessageStore extends ChataiDB {
   }
 
   async delMessage(id: string): Promise<void> {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readwrite');
       const store = tx.objectStore(this.storeName);

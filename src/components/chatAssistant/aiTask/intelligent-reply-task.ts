@@ -42,7 +42,7 @@ class IntelligentReplyTask {
         });
         if (vectorSearchResults.similarItems) {
           const result:any = vectorSearchResults.similarItems[0];
-          if (result.score > 0.8) {
+          if (result && result.score > 0.8) {
             updateDraftReplyInfo({
               replyToMsgId: messageId, replyToPeerId: undefined, quoteText: undefined, quoteOffset: undefined,
             });

@@ -17,7 +17,7 @@ interface RightPanelProps {
 }
 export const RightPanel = (props: RightPanelProps) => {
   const { closeSummaryModal } = props;
-  const [rightPanelKey, setRightPanelKey] = useState<RightPanelKey | null>(null);
+  const [rightPanelKey, setRightPanelKey] = useState<RightPanelKey | null>(RightPanelKey.PromptTemplate);
   const [rightPanelPayload, setRightPanelPayload] = useState<MessagePanelPayload | null>(null);
   const [rightPanelContent, setRightPanelContent] = useState<React.ReactElement | null>(null);
   const handleOpenRightPanle = (payload: { rightPanelKey: RightPanelKey; rightPanelPayload: MessagePanelPayload }) => {

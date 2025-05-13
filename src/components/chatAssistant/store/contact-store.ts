@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { StoreName } from './chatai-store';
 
 import ChataiDB from './chatai-store';
@@ -13,7 +14,13 @@ class ContactStore extends ChataiDB {
   private storeName: StoreName = 'contact';
 
   async getContact(id: string): Promise<UserInfo | undefined> {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readonly');
       const store = tx.objectStore(this.storeName);
@@ -28,7 +35,13 @@ class ContactStore extends ChataiDB {
   }
 
   async addContact(contact: UserInfo) {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readwrite');
       const store = tx.objectStore(this.storeName);

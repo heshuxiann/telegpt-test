@@ -9,7 +9,6 @@ import React, {
 import type { AiKnowledge } from '../../chatAssistant/store/knowledge-store';
 
 import { LAYERS_ANIMATION_NAME } from '../../../util/browser/windowEnvironment';
-import { intelligentReplyTask } from '../../chatAssistant/aiTask/intelligent-reply-task';
 import { ChataiKnowledgelStore } from '../../chatAssistant/store';
 import { knowledgeEmbeddingStore } from '../../chatAssistant/vector-store';
 
@@ -52,7 +51,6 @@ const AIKnowledge:FC<OwnProps> = ({ onReset }) => {
     setEditKnowledge(null);
     ChataiKnowledgelStore.getAllKnowledge().then((knowledge) => {
       setKnowledgeList(knowledge || []);
-      intelligentReplyTask.updateKnowledgeData();
     });
   }, []);
   const handleDelete = useCallback((id:string) => {
@@ -60,7 +58,6 @@ const AIKnowledge:FC<OwnProps> = ({ onReset }) => {
       setKnowledgeList((prev) => {
         return prev.filter((item) => item.id !== id);
       });
-      intelligentReplyTask.updateKnowledgeData();
     });
     knowledgeEmbeddingStore.deleteText(id);
   }, []);

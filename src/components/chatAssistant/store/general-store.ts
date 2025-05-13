@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // import { CONTACT_IDB_STORE } from './im-assistant-idb';
 
 import type { StoreName } from './chatai-store';
@@ -9,7 +10,13 @@ class GeneralStore extends ChataiDB {
   private storeName: StoreName = 'general';
 
   async get(key: string): Promise<any | undefined> {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readonly');
       const store = tx.objectStore(this.storeName);
@@ -24,7 +31,13 @@ class GeneralStore extends ChataiDB {
   }
 
   async set(key:string, value:any) {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readwrite');
       const store = tx.objectStore(this.storeName);
@@ -39,7 +52,13 @@ class GeneralStore extends ChataiDB {
   }
 
   async delete(key:string) {
-    const db = await this.getDB();
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readwrite');
       const store = tx.objectStore(this.storeName);
