@@ -48,8 +48,11 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
     }
   };
   const handleTranslate = useLastCallback(() => {
-    eventEmitter.emit('update-input-spiner', true);
     const text = getHtml().trim();
+    if (!text) {
+      return;
+    }
+    eventEmitter.emit('update-input-spiner', true);
     generateChatgpt({
       data: {
         messages: [

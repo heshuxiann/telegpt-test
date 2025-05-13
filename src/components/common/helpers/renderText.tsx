@@ -66,9 +66,6 @@ export default function renderText(
       case 'highlight':
         return addHighlight(text, params!.highlight);
 
-      case 'quote':
-        return addHighlight(text, params!.quote, true);
-
       case 'links':
         return addLinks(text);
 
@@ -210,7 +207,7 @@ function addHighlight(textParts: TextPart[], highlight: string | undefined): Tex
     const newParts: TextPart[] = [];
     newParts.push(part.substring(0, queryPosition));
     newParts.push(
-      <span className={buildClassName('matching-text-highlight', isQuote && 'is-quote')}>
+      <span className="matching-text-highlight">
         {part.substring(queryPosition, queryPosition + highlight.length)}
       </span>,
     );
