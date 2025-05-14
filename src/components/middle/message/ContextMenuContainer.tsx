@@ -430,6 +430,9 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
   const handleSmartReply = useLastCallback(async () => {
     closeMenu();
     if (message.content.text?.text) {
+      updateDraftReplyInfo({
+        replyToMsgId: message.id, replyToPeerId: undefined, quoteText: undefined, quoteOffset: undefined,
+      });
       const vectorSearchResults = await knowledgeEmbeddingStore.similaritySearch({
         query: message.content.text?.text,
         k: 1,

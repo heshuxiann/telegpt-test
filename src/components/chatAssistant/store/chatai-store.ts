@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { getGlobal } from '../../../global';
 
 /* eslint-disable no-null/no-null */
@@ -120,7 +121,8 @@ class ChataiDB {
         return Promise.resolve(this.db); // 确保返回的是 Promise<IDBDatabase>
       }
     } else {
-      return Promise.reject(new Error('User ID is not set'));
+      console.log('User ID is not set');
+      return Promise.reject();
     }
   }
 }

@@ -24,6 +24,17 @@ class IntelligentReplyTask {
     }, 1000 * 60);
   }
 
+  static getTextWithoutEntities(text: string, entities: any[]): string {
+    const ranges = entities.map((entity) => ({ start: entity.offset, length: entity.length }));
+    const sortedRanges = ranges.sort((a, b) => b.start - a.start);
+
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    for (const { start, length } of sortedRanges) {
+      text = text.slice(0, start) + text.slice(start + length);
+    }
+    return text;
+  }
+
   intelligentResponse() {
     const messages = this.pendingMessages.map((item) => {
       return {
@@ -31,11 +42,18 @@ class IntelligentReplyTask {
         senderId: item.senderId,
         messageId: item.id,
         content: item.content.text?.text,
+        entities: item.content.text?.entities,
       };
     });
     messages.map(async (item) => {
-      const { content, chatId, messageId } = item;
+      const {
+        chatId, messageId, entities,
+      } = item;
+      let content = item.content || '';
       if (content) {
+        if (entities) {
+          content = IntelligentReplyTask.getTextWithoutEntities(content, entities);
+        }
         const vectorSearchResults = await knowledgeEmbeddingStore.similaritySearch({
           query: content,
           k: 1,

@@ -68,7 +68,6 @@ export interface GlobalSummaryRef {
 const GLOBAL_SUMMARY_CHATID = '777888';
 const GlobalSummary = forwardRef<GlobalSummaryRef>(
   (_, ref) => {
-    const global = getGlobal();
     const [pendingSummaryMessages, setPendingSummaryMessages] = useState<Record<string, ApiMessage[]>>({});
     const [messageList, setMessageList] = useState<Message[]>([]);
     const [summaryModalVisible, setSummaryModalVisible] = useState(false);
@@ -249,6 +248,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     useEffect(() => {
       const timer = setInterval(() => {
         const checkmsgs = urgentChecks.map((msg) => {
+          const global = getGlobal();
           if (msg.content.text?.text) {
             const peer = msg.senderId ? selectUser(global, msg.senderId) : undefined;
             return {
@@ -274,11 +274,12 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       return () => {
         clearInterval(timer);
       };
-    }, [global, urgentChecks]);
+    }, [urgentChecks]);
 
     const startSummary = useCallback(async (messages: Record<string, ApiMessage[]>, prompt?: string) => {
       // eslint-disable-next-line no-console
       console.log('开始总结', messages, globalSummaryPrompt);
+      const global = getGlobal();
       const globalSummaryLastTime = await ChataiGeneralStore.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
       const summaryTime = new Date().getTime();
       if (!Object.keys(messages).length) return;
@@ -321,7 +322,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       });
       ChataiGeneralStore.set(GLOBAL_SUMMARY_LAST_TIME, new Date().getTime());
       setUnreadSummaryCount(unreadSummaryCount + 1);
-    }, [customizationTemplate, global, globalSummaryPrompt, unreadSummaryCount]);
+    }, [customizationTemplate, globalSummaryPrompt, unreadSummaryCount]);
 
     const initUnSummaryMessage = async () => {
       const globalSummaryLastTime: number | undefined = await ChataiGeneralStore.get(GLOBAL_SUMMARY_LAST_TIME);
@@ -387,6 +388,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     }, []);
     const summaryAllUnreadMessages = async () => {
       const unreadMap: Record<string, ApiMessage[]> = {};
+      const global = getGlobal();
       for (let i = 0; i < orderedIds.length; i++) {
         const chatId = orderedIds[i];
         const chat = selectChat(global, chatId);
@@ -417,6 +419,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
 
     const summaryMessageByDeadline = async (deadline: number) => {
       const unreadMap: Record<string, ApiMessage[]> = {};
+      const global = getGlobal();
       for (let i = 0; i < orderedIds.length; i++) {
         const chatId = orderedIds[i];
         const chat = selectChat(global, chatId);
@@ -444,6 +447,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     };
 
     const addNewMessage = useCallback((message: ApiMessage) => {
+      const global = getGlobal();
       if (message.content.text) {
         const chatId = message.chatId;
         const chat = selectChat(global, chatId);
@@ -473,7 +477,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
           }
         }
       }
-    }, [global, summaryChats]);
+    }, [summaryChats]);
 
     const openGlobalSummaryModal = async () => {
       setSummaryModalVisible(true);
