@@ -74,14 +74,6 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
         ],
       },
       onResponse: (message) => {
-        // const content = message.content;
-        // let msgToRender = '';
-        // if (content.match(THOUGHT_REGEX_COMPLETE)) {
-        //   msgToRender = content.replace(THOUGHT_REGEX_COMPLETE, '').replace(/\\n/g, '\n').trim();
-        // }
-        // if (msgToRender) {
-        //   eventEmitter.emit('update-input-text', msgToRender);
-        // }
         eventEmitter.emit('update-input-text', message);
       },
       onFinish: () => {
@@ -97,18 +89,19 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
         messages: [
           {
             role: 'system',
-            content: 'You are an assistant that helps improve the clarity, grammar, and style of text.',
+            content: `你是一个文本优化助手,作为专业级文本优化引擎，您需同时承担以下角色：
+                1. 语法纠错员（检测拼写/语法/标点错误）
+                2. 风格雕塑师（调整正式/口语化/幽默等语体）
+                3. 内容架构师（优化逻辑结构与信息密度）
+                4. 读者体验官（评估可读性与情感共鸣）
+                请使用${currentLanguage.langCode}语言进行回复，并直接给出优化后的文本
+            `,
             id: '1',
           },
           {
-            role: 'system',
-            content: `Please respond in ${navigator.language}`,
-            id: '2',
-          },
-          {
             role: 'user',
-            content: `Please improve the following text: ${text}`,
-            id: '3',
+            content: `请优化下面这段文本: ${text},直接返回优化后的文本`,
+            id: '2',
           },
         ],
       },

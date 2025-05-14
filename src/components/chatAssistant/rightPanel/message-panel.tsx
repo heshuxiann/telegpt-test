@@ -95,13 +95,15 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
       replyToMsgId: message?.id,
       replyToPeerId: undefined,
     });
-    sendMessage({
-      messageList: {
-        chatId,
-        threadId: -1,
-        type: 'thread',
-      },
-      text: replyResponse,
+    setTimeout(() => {
+      sendMessage({
+        messageList: {
+          chatId,
+          threadId: -1,
+          type: 'thread',
+        },
+        text: replyResponse,
+      });
     });
     setReplyResponse('');
     setShowSmartReply(false);

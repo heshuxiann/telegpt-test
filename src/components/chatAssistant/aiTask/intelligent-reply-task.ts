@@ -21,7 +21,7 @@ class IntelligentReplyTask {
       if (this.pendingMessages.length) {
         this.intelligentResponse();
       }
-    }, 1000 * 60);
+    }, 1000 * 30);
   }
 
   static getTextWithoutEntities(text: string, entities: any[]): string {
@@ -64,13 +64,15 @@ class IntelligentReplyTask {
             updateDraftReplyInfo({
               replyToMsgId: messageId, replyToPeerId: undefined,
             });
-            sendMessage({
-              messageList: {
-                chatId,
-                threadId: -1,
-                type: 'thread',
-              },
-              text: result.metadata.answer,
+            setTimeout(() => {
+              sendMessage({
+                messageList: {
+                  chatId,
+                  threadId: -1,
+                  type: 'thread',
+                },
+                text: result.metadata.answer,
+              });
             });
             setTimeout(() => { clearDraft({ chatId, isLocalOnly: true }); });
           }
