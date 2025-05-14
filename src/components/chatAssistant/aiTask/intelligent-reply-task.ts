@@ -62,19 +62,17 @@ class IntelligentReplyTask {
           const result:any = vectorSearchResults.similarItems[0];
           if (result && result.score > 0.8) {
             updateDraftReplyInfo({
-              replyToMsgId: messageId, replyToPeerId: undefined, quoteText: undefined, quoteOffset: undefined,
+              replyToMsgId: messageId, replyToPeerId: undefined,
             });
-            setTimeout(() => {
-              sendMessage({
-                messageList: {
-                  chatId,
-                  threadId: -1,
-                  type: 'thread',
-                },
-                text: result.metadata.answer,
-              });
-              clearDraft({ chatId, isLocalOnly: true });
+            sendMessage({
+              messageList: {
+                chatId,
+                threadId: -1,
+                type: 'thread',
+              },
+              text: result.metadata.answer,
             });
+            setTimeout(() => { clearDraft({ chatId, isLocalOnly: true }); });
           }
         }
       }

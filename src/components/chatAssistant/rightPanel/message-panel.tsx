@@ -57,7 +57,6 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
       callApi('fetchMessage', { chat, messageId }).then((result) => {
         if (result && result !== MESSAGE_DELETED && result.message.content.text?.text) {
           setMessage(result.message);
-          console.log('result.message----->', result.message.content.text?.text);
           updateChatMessage(global, chat.id, messageId, result.message);
         }
       });
@@ -104,9 +103,9 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
       },
       text: replyResponse,
     });
-    clearDraft({ chatId, isLocalOnly: true });
     setReplyResponse('');
     setShowSmartReply(false);
+    setTimeout(() => { clearDraft({ chatId, isLocalOnly: true }); });
   };
 
   const handleFocusMessage = () => {
