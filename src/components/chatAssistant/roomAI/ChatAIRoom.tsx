@@ -6,6 +6,7 @@
 /* eslint-disable teactn/no-unused-prop-types */
 /* eslint-disable react/no-unused-prop-types */
 import React, {
+  memo,
   useCallback, useEffect, useRef, useState,
 } from 'react';
 import type { Message } from '@ai-sdk/react';
@@ -14,9 +15,6 @@ import type { UIMessage } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { getActions } from '../../../global';
 
-import type { ApiChat } from '../../../api/types';
-import type { ApiMessage } from '../../../api/types/messages';
-import type { ThreadId } from '../../../types';
 import type { InfiniteScrollRef } from '../component/InfiniteScroll';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
@@ -31,26 +29,16 @@ import { InfiniteScroll } from '../component/InfiniteScroll';
 import './ChatAI.scss';
 
 interface StateProps {
-  chat:ApiChat;
   chatId: string | undefined;
-  chatTitle:string | undefined;
-  // chatType: string | undefined;
-  threadId: ThreadId;
-  messageIds?: number[];
-  messagesById?: Record<number, ApiMessage>;
-  unreadMessages?: ApiMessage[];
-  memoUnreadId:number;
-  unreadCount:number;
-  onClose?: () => void;
 }
-const ChatAIRoom = (props: StateProps) => {
+const ChatAIRoomInner = (props: StateProps) => {
   const { showNotification } = getActions();
   const { chatId } = props;
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
   const tokenRef = useRef<string | null>(null);
   const messageListRef = useRef<InfiniteScrollRef | null>(null);
   const {
-    messages, setMessages, append, isLoading, stop, handleSubmit,
+    messages, setMessages, append, isLoading, stop,
   } = useChat({
     api: 'https://telegpt-three.vercel.app/chat',
     id: chatId,
@@ -65,12 +53,18 @@ const ChatAIRoom = (props: StateProps) => {
     });
   }, []);
 
+  const initDate = useCallback(() => {
+    setMessages([]);
+    setPageInfo({ lastTime: undefined, hasMore: true });
+  }, [setMessages]);
+
   useEffect(() => {
     if (chatId) {
+      initDate();
       ChataiMessageStore.getMessages(chatId, undefined, 10)?.then((res) => {
         if (res.messages) {
           const localChatAiMessages = parseStoreMessage2Message(res.messages);
-          setMessages((prev) => [...prev, ...localChatAiMessages]);
+          setMessages(localChatAiMessages);
         }
         setPageInfo({
           lastTime: res.lastTime,
@@ -78,7 +72,7 @@ const ChatAIRoom = (props: StateProps) => {
         });
       });
     }
-  }, [chatId, setMessages]);
+  }, [chatId, initDate, setMessages]);
 
   const handleLoadMore = useCallback(() => {
     return new Promise<void>((resolve) => {
@@ -186,7 +180,7 @@ const ChatAIRoom = (props: StateProps) => {
     }
   }, [messages, isLoading, chatId]);
 
-  const toolsHitCheck = (inputValue: string) => {
+  const toolsHitCheck = (formMessage: Message) => {
     fetch('https://telegpt-three.vercel.app/tool-check', {
       method: 'POST',
       headers: {
@@ -195,7 +189,7 @@ const ChatAIRoom = (props: StateProps) => {
       body: JSON.stringify({
         messages: [{
           id: uuidv4(),
-          content: inputValue,
+          content: formMessage.content,
           role: 'user',
         }],
       }),
@@ -214,9 +208,10 @@ const ChatAIRoom = (props: StateProps) => {
               // eslint-disable-next-line no-console
               console.log('没有命中工具');
               setMessages((prev) => prev.slice(0, prev.length - 1));
+              ChataiMessageStore.delMessage(formMessage.id);
               append({
                 role: 'user',
-                content: inputValue,
+                content: formMessage.content,
                 id: uuidv4(),
                 createdAt: new Date(),
               });
@@ -226,15 +221,16 @@ const ChatAIRoom = (props: StateProps) => {
       });
   };
   const handleInputSubmit = (value: string) => {
+    const newMessage:Message = {
+      role: 'user',
+      content: value,
+      id: uuidv4(),
+      createdAt: new Date(),
+    };
     setMessages((messages) => {
-      return [...messages, {
-        role: 'user',
-        content: value,
-        id: uuidv4(),
-        createdAt: new Date(),
-      }];
+      return [...messages, newMessage];
     });
-    toolsHitCheck(value);
+    toolsHitCheck(newMessage);
   };
   return (
     <div className="right-panel-chat-ai">
@@ -244,10 +240,12 @@ const ChatAIRoom = (props: StateProps) => {
         hasMore={pageInfo.hasMore}
         ref={messageListRef}
       >
-        <Messages
-          isLoading={isLoading}
-          messages={messages}
-        />
+        {messages.length > 0 && (
+          <Messages
+            isLoading={isLoading}
+            messages={messages}
+          />
+        )}
       </InfiniteScroll>
       <form className="flex mx-auto px-[12px] pb-4  gap-2 w-full">
         <RoomAIInput
@@ -260,5 +258,10 @@ const ChatAIRoom = (props: StateProps) => {
     </div>
   );
 };
+
+const ChatAIRoom = memo(ChatAIRoomInner, (prevProps, nextProps) => {
+  if (prevProps.chatId !== nextProps.chatId) return false;
+  return true;
+});
 
 export default ChatAIRoom;

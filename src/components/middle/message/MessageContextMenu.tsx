@@ -26,6 +26,7 @@ import {
 } from '../../../global/helpers';
 import buildClassName from '../../../util/buildClassName';
 import { disableScrolling } from '../../../util/scrollLock';
+import SmartReplyIcon from '../../chatAssistant/assets/smart-reply.png';
 import { REM } from '../../common/helpers/mediaDimensions';
 import renderText from '../../common/helpers/renderText';
 import { getMessageCopyOptions } from './helpers/copyOptions';
@@ -420,7 +421,16 @@ const MessageContextMenu: FC<OwnProps> = ({
           </MenuItem>
         )}
         {canSmartReply && (
-          <MenuItem icon="reply" onClick={onSmartReply}>
+          <MenuItem
+            customIcon={(
+              <img
+                className="w-[20px] h-[20px] mr-[1.25rem] ml-[0.5rem]"
+                src={SmartReplyIcon}
+                alt=""
+              />
+            )}
+            onClick={onSmartReply}
+          >
             {lang('Smart Reply')}
           </MenuItem>
         )}

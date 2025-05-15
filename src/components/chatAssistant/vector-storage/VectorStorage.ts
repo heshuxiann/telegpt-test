@@ -67,11 +67,12 @@ export class VectorStorage<T> {
       vector: [],
       vectorMag: 0,
     };
-    const docs = await this.updateDocuments([doc]);
-    return docs[0];
+    const docs = await this.updateDocument(doc);
+    return docs;
   }
 
   public async deleteText(id: string): Promise<void> {
+    this.documents = this.documents.filter((doc) => doc.id !== id);
     if (!this.db) {
       this.db = await this.initDB();
     }
@@ -167,19 +168,27 @@ export class VectorStorage<T> {
     return newDocuments;
   }
 
-  private async updateDocuments(documents: Array<IVSDocument<T>>): Promise<Array<IVSDocument<T>>> {
-    const newVectors = await this.embedTextsFn(documents.map((doc) => doc.text));
-    // Assign vectors and precompute vector magnitudes for new documents
-    documents.forEach((doc, index) => {
-      doc.vector = newVectors[index];
-      doc.vectorMag = calcVectorMagnitude(doc);
-    });
-    // Add new documents to the store
-    this.documents.push(...documents);
+  private async updateDocument(document: IVSDocument<T>): Promise<IVSDocument<T>> {
+    const newVectors = await this.embedTextsFn([document.text]);
+    document.vector = newVectors[0];
+    document.vectorMag = calcVectorMagnitude(document);
+    const oldDoc = this.documents.find((doc) => doc.id === document.id);
+    if (oldDoc) {
+      // Add new documents to the store
+      this.documents = this.documents.map((doc) => {
+        if (doc.id === document.id) {
+          return document;
+        }
+        return doc;
+      });
+    } else {
+      this.documents.push(document);
+    }
+
     this.removeDocsLRU();
     // Save to index db storage
     await this.saveToIndexDbStorage();
-    return documents;
+    return document;
   }
 
   private async embedTexts(texts: string[]): Promise<number[][]> {

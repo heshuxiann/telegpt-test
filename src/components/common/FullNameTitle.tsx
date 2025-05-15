@@ -1,4 +1,3 @@
-import copy from 'copy-to-clipboard';
 import type { FC } from '../../lib/teact/teact';
 import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
@@ -20,7 +19,7 @@ import {
 import { isApiPeerUser } from '../../global/helpers/peers';
 import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
-// import { copyTextToClipboard } from '../../util/clipboard';
+import { copyTextToClipboard } from '../../util/clipboard';
 import stopEvent from '../../util/stopEvent';
 import renderText from './helpers/renderText';
 
@@ -85,8 +84,7 @@ const FullNameTitle: FC<OwnProps> = ({
     }
 
     stopEvent(e);
-    // copyTextToClipboard(title);
-    copy(title);
+    copyTextToClipboard(title);
     showNotification({ message: `${isUser ? 'User' : 'Chat'} name was copied` });
   });
 

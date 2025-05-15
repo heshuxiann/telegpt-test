@@ -11,14 +11,10 @@ class IntelligentReplyTask {
 
   private pendingMessages: ApiMessage[] = [];
 
-  constructor() {
-    this.pendingMessages = [];
-    this.initReplyTask();
-  }
-
   initReplyTask() {
+    const pendingMessages = this.pendingMessages;
     setInterval(() => {
-      if (this.pendingMessages.length) {
+      if (pendingMessages.length) {
         this.intelligentResponse();
       }
     }, 1000 * 10);
@@ -51,12 +47,11 @@ class IntelligentReplyTask {
       } = item;
       let content = item.content || '';
       if (content) {
-        if (entities) {
+        if (entities && entities?.length > 0) {
           content = IntelligentReplyTask.getTextWithoutEntities(content, entities);
         }
         const vectorSearchResults = await knowledgeEmbeddingStore.similaritySearch({
           query: content,
-          k: 1,
         });
         if (vectorSearchResults.similarItems) {
           const result:any = vectorSearchResults.similarItems[0];
