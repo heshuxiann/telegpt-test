@@ -1983,7 +1983,7 @@ export default memo(withGlobal<OwnProps>(
       }),
       senderBoosts,
       tags: global.savedReactionTags?.byKey,
-      canTranscribeVoice,
+      canTranscribeVoice: true,
       viaBusinessBot,
       effect,
       poll,

@@ -1,11 +1,11 @@
 /* eslint-disable no-null/no-null */
 import { getActions } from '../../../global';
 
+import type { ApiDraft } from '../../../api/types';
 import type { ApiMessage } from '../../../api/types/messages';
 
 import { knowledgeEmbeddingStore } from '../vector-store';
 
-const { updateDraftReplyInfo, sendMessage, clearDraft } = getActions();
 class IntelligentReplyTask {
   private static instance: IntelligentReplyTask | undefined;
 
@@ -21,7 +21,7 @@ class IntelligentReplyTask {
       if (this.pendingMessages.length) {
         this.intelligentResponse();
       }
-    }, 1000 * 30);
+    }, 1000 * 10);
   }
 
   static getTextWithoutEntities(text: string, entities: any[]): string {
@@ -61,20 +61,27 @@ class IntelligentReplyTask {
         if (vectorSearchResults.similarItems) {
           const result:any = vectorSearchResults.similarItems[0];
           if (result && result.score > 0.8) {
-            updateDraftReplyInfo({
-              replyToMsgId: messageId, replyToPeerId: undefined,
+            const threadId = -1; // Default to -1 for non-threaded messages
+            const replyInfo = {
+              type: 'message',
+              replyToMsgId: messageId,
+              replyToPeerId: undefined,
+            };
+            getActions().saveReplyDraft({
+              chatId,
+              threadId,
+              draft: { replyInfo } as ApiDraft,
+              isLocalOnly: true,
             });
-            setTimeout(() => {
-              sendMessage({
-                messageList: {
-                  chatId,
-                  threadId: -1,
-                  type: 'thread',
-                },
-                text: result.metadata.answer,
-              });
+            getActions().sendMessage({
+              messageList: {
+                chatId,
+                threadId,
+                type: 'thread',
+              },
+              text: result.metadata.answer,
             });
-            setTimeout(() => { clearDraft({ chatId, isLocalOnly: true }); });
+            getActions().clearDraft({ chatId, isLocalOnly: true });
           }
         }
       }

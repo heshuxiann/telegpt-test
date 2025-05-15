@@ -593,6 +593,16 @@ addActionHandler('saveDraft', (global, actions, payload): ActionReturnType => {
   });
 });
 
+addActionHandler('saveReplyDraft', (global, actions, payload): ActionReturnType => {
+  const {
+    chatId, threadId, draft, isLocalOnly,
+  } = payload;
+
+  saveDraft({
+    global, chatId, threadId, draft, isLocalOnly,
+  });
+});
+
 addActionHandler('clearDraft', (global, actions, payload): ActionReturnType => {
   const {
     chatId, threadId = MAIN_THREAD_ID, isLocalOnly, shouldKeepReply,

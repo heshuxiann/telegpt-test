@@ -650,6 +650,12 @@ export interface ActionPayloads {
     messageId?: number;
   } & WithTabId;
   editLastMessage: WithTabId | undefined;
+  saveReplyDraft: {
+    chatId: string;
+    threadId: ThreadId;
+    draft: ApiDraft;
+    isLocalOnly?: boolean;
+  };
   saveDraft: {
     chatId: string;
     threadId: ThreadId;
