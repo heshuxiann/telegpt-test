@@ -10,16 +10,17 @@ import { getGlobal } from '../../../global';
 import type { ApiChatType, ApiPeer } from '../../../api/types';
 import type { CustomPeer } from '../../../types';
 
+import { ALL_FOLDER_ID } from '../../../config';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import {
-  getCanPostInChat, getChatTitle, getGroupStatus, getUserFullName, getUserStatus, isDeletedUser,
+  getChatTitle, getGroupStatus, getUserFullName, getUserStatus,
 } from '../../../global/helpers';
 import { filterPeersByQuery, isApiPeerChat, isApiPeerUser } from '../../../global/helpers/peers';
 import {
-  filterChatIdsByType, selectChat, selectChatFullInfo, selectPeer, selectUser,
+  filterChatIdsByType, selectPeer,
   selectUserStatus,
 } from '../../../global/selectors';
-import { unique } from '../../../util/iteratees';
+import { getOrderedIds } from '../../../util/folderManager';
 import sortChatIds from '../../common/helpers/sortChatIds';
 import useOldLang from '../hook/useOldLang';
 import { ChataiGeneralStore } from '../store';
@@ -30,15 +31,10 @@ import Avatar from '../ui/Avatar';
 
 const ChatPickerPanel = () => {
   const global = getGlobal();
+  const orderedIds = React.useMemo(() => getOrderedIds(ALL_FOLDER_ID) || [], []);
   const {
-    chats: {
-      listIds,
-    },
     currentUserId,
   } = global;
-  const activeListIds = listIds.active;
-  const archivedListIds = listIds.archived;
-  const contactIds = global.contactList?.userIds;
   const [selected, setSelected] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const filter:ApiChatType[] = useMemo(() => ['channels', 'chats', 'users', 'groups'], []);
@@ -49,36 +45,16 @@ const ChatPickerPanel = () => {
     });
   }, []);
   const ids = useMemo(() => {
-    const peerIds = [
-      ...(activeListIds || []),
-      ...((search && archivedListIds) || []),
-    ].filter((id) => {
-      const chat = selectChat(global, id);
-      const user = selectUser(global, id);
-      if (user && !isDeletedUser(user)) return true;
-      if (chat) {
-        const { membersCount } = chat;
-        if (membersCount && membersCount > 100) return false;
-      }
-
-      const chatFullInfo = selectChatFullInfo(global, id);
-
-      return chat && (!chatFullInfo || getCanPostInChat(chat, undefined, undefined, chatFullInfo));
-    });
-
     const sorted = sortChatIds(
       filterPeersByQuery({
-        ids: unique([
-          ...peerIds,
-          ...(contactIds || []),
-        ]),
+        ids: orderedIds,
         query: search,
       }),
       undefined,
     );
 
     return filterChatIdsByType(global, sorted, filter);
-  }, [activeListIds, search, archivedListIds, contactIds, global, filter]);
+  }, [filter, global, orderedIds, search]);
 
   const renderChatItem = (id: string) => {
     const peer:ApiPeer | undefined = selectPeer(global, id);

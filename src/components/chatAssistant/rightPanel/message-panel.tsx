@@ -25,7 +25,7 @@ import chatAIGenerate from '../utils/ChatApiGenerate';
 
 import './message-panel.scss';
 
-import MingcuteaiIcon from '../assets/mingcute-ai.png';
+import ChatAILogoPath from '../assets/cgat-ai-logo.png';
 
 const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; messageId: number;closeSummaryModal:()=>void }) => {
   const global = getGlobal();
@@ -178,7 +178,7 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
               className="w-[15px] h-[15px] cursor-pointer"
               onClick={() => { setShowSmartReply(true); handleSmaryReply(message); }}
             >
-              <img src={MingcuteaiIcon} alt="ai-reply" className="w-full h-full" />
+              <img src={ChatAILogoPath} alt="ai-reply" className="w-full h-full" />
             </div>
             <div
               className="text-[#9F9F9F] cursor-pointer"
@@ -192,7 +192,7 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
         {showSmartReply ? (
           <div>
             <div className="flex flex-row items-center gap-[6px]">
-              <img className="w-[15px] h-[15px]" src={MingcuteaiIcon} alt="MingcuteaiIcon" />
+              <img className="w-[15px] h-[15px]" src={ChatAILogoPath} alt="MingcuteaiIcon" />
               <span className="text-[14px] text-[#757575]">Reply suggested by Serena AI</span>
             </div>
             <div className="flex flex-row items-end gap-[12px]">

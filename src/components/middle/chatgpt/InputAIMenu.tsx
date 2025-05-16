@@ -5,7 +5,9 @@ import React, { useEffect, useState } from '../../../lib/teact/teact';
 import type { Signal } from '../../../util/signals';
 
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
+import TranslateIcon from '../../chatAssistant/assets/ai-translate.png';
 import chatAILogoPath from '../../chatAssistant/assets/cgat-ai-logo.png';
+import GrammerIcon from '../../chatAssistant/assets/grammar.png';
 
 import useFlag from '../../../hooks/useFlag';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -17,8 +19,6 @@ import Menu from '../../ui/Menu';
 import MenuItem from '../../ui/MenuItem';
 import InputLanguageModal from '../InputLanguageModal';
 import generateChatgpt from './ChatApiGenerate';
-import Grammar from './Icon/Grammar';
-import Translate from './Icon/Translate';
 
 // import { THOUGHT_REGEX_COMPLETE } from './StatusResponse';
 import './InputAIMenu.scss';
@@ -106,14 +106,6 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
         ],
       },
       onResponse: (message) => {
-        // const content = message.content;
-        // let msgToRender = '';
-        // if (content.match(THOUGHT_REGEX_COMPLETE)) {
-        //   msgToRender = content.replace(THOUGHT_REGEX_COMPLETE, '').replace(/\\n/g, '\n').trim();
-        // }
-        // if (msgToRender) {
-        //   eventEmitter.emit('update-input-text', msgToRender);
-        // }
         eventEmitter.emit('update-input-text', message);
       },
       onFinish: () => {
@@ -144,7 +136,7 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
       >
         <MenuItem onClick={handleTranslate}>
           <div className="ai-tool-menu-item">
-            <Translate size={18} />
+            <img src={TranslateIcon} alt="" className="w-[18px] h-[18px]" />
             <span>Translate</span>
             <div
               className="ai-tool-menu-language ml-auto flex flex-row items-center hover:text-[#3390EC]"
@@ -157,7 +149,7 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
         </MenuItem>
         <MenuItem onClick={handleGrammar}>
           <div className="ai-tool-menu-item">
-            <Grammar size={18} />
+            <img src={GrammerIcon} alt="" className="w-[18px] h-[18px]" />
             <span>Grammar</span>
           </div>
         </MenuItem>
