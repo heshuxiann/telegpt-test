@@ -22,6 +22,7 @@ import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import { Messages } from '../messages';
 import { ChataiMessageStore } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
+import { checkGoogleAuthStatus } from '../utils/google-api';
 import { RoomAIInput } from './room-ai-input';
 
 import { InfiniteScroll } from '../component/InfiniteScroll';
@@ -119,13 +120,15 @@ const ChatAIRoomInner = (props: StateProps) => {
   const handleCreateCalendarSuccess = useCallback((payload: any) => {
     const { message, response } = payload;
     if (response?.error) {
-      if (response.error?.code === 401) {
-        addAuthMessage();
-        return;
-      }
       showNotification({
         message: response.error?.message || 'Create Calendar Failed',
       });
+      if (response.error?.code === 401 || response.error?.code === 403) {
+        ChataiMessageStore.delMessage(message?.id);
+        const newMessage = messages.filter((item) => item.id !== message?.id);
+        setMessages(newMessage as UIMessage[]);
+        addAuthMessage();
+      }
     } else {
       ChataiMessageStore.delMessage(message?.id);
       const newMessage = messages.filter((item) => item.id !== message?.id);
@@ -196,13 +199,14 @@ const ChatAIRoomInner = (props: StateProps) => {
     }).then((res) => res.json())
       .then((toolResults) => {
         if (toolResults && toolResults.length > 0) {
-          toolResults.forEach((toolCall: any) => {
+          toolResults.forEach(async (toolCall: any) => {
             if (toolCall.toolName === 'checkIsCreateMeet') {
               // TODO createMeet
-              if (!tokenRef.current) {
-                addAuthMessage();
-              } else {
+              const loginStatus = await checkGoogleAuthStatus();
+              if (loginStatus) {
                 addInsertGoogleEventMessage();
+              } else {
+                addAuthMessage();
               }
             } else if (toolCall.toolName === 'nullTool') {
               // eslint-disable-next-line no-console

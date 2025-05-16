@@ -10,13 +10,13 @@ import { loadAuth2, loadGapiInsideDOM } from 'gapi-script';
 
 import eventEmitter, { Actions } from './lib/EventEmitter';
 import { CHATAI_IDB_STORE } from '../../util/browser/idb';
+import { checkHasAllNeededScopes } from './utils/google-api';
 
 import GoogleIcon from './assets/google.png';
 
 const GoogleLoginAuthMessage = ({ message }:{ message:Message }) => {
   const GOOGLE_APP_CLIENT_ID = useRef('847573679345-qq64ofbqhv7gg61e04dbrk8b92djf1fb.apps.googleusercontent.com');
   const [gapi, setGapi] = useState(null);
-  const [user, setUser] = useState<any>(null);
   useEffect(() => {
     const loadGapi = async () => {
       const newGapi = await loadGapiInsideDOM();
@@ -25,9 +25,8 @@ const GoogleLoginAuthMessage = ({ message }:{ message:Message }) => {
     loadGapi();
   }, []);
 
-  const updateToken = useCallback((currentUser: any) => {
-    const token = currentUser.getAuthResponse().access_token;
-    console.log(token);
+  const updateToken = useCallback((authResponse: any) => {
+    const token = authResponse.access_token;
     CHATAI_IDB_STORE.set('google-token', token);
     eventEmitter.emit(Actions.UpdateGoogleToken, {
       message,
@@ -35,11 +34,14 @@ const GoogleLoginAuthMessage = ({ message }:{ message:Message }) => {
     });
   }, [message]);
 
-  const attachSignin = useCallback((element:any, auth2:any) => {
+  const attachSignin = useCallback((auth2:any) => {
+    const element = document.getElementById('authBtn');
     auth2.attachClickHandler(element, {}, (googleUser:any) => {
-      updateUser(googleUser);
-      updateToken(googleUser);
-      eventEmitter.emit(Actions.GoogleAuthSuccess);
+      const authResponse = googleUser.getAuthResponse();
+      if (checkHasAllNeededScopes(authResponse.scope)) {
+        updateToken(authResponse);
+        eventEmitter.emit(Actions.GoogleAuthSuccess);
+      }
     }, (error:any) => {
       console.log(JSON.stringify(error));
     });
@@ -47,37 +49,22 @@ const GoogleLoginAuthMessage = ({ message }:{ message:Message }) => {
 
   useEffect(() => {
     if (!gapi) return;
-
     const setAuth2 = async () => {
       const auth2 = await loadAuth2(gapi, GOOGLE_APP_CLIENT_ID.current, 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.events.public.readonly');
       if (auth2.isSignedIn.get()) {
-        updateUser(auth2.currentUser.get());
-        updateToken(auth2.currentUser.get());
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        const authResponse = auth2.currentUser.get().getAuthResponse();
+        if (checkHasAllNeededScopes(authResponse.scope)) {
+          updateToken(authResponse);
+        } else {
+          attachSignin(auth2);
+        }
       } else {
-        attachSignin(document.getElementById('authBtn'), auth2);
+        attachSignin(auth2);
       }
     };
     setAuth2();
   }, [attachSignin, gapi, updateToken]);
-
-  useEffect(() => {
-    if (!gapi) return;
-
-    if (!user) {
-      const setAuth2 = async () => {
-        const auth2 = await loadAuth2(gapi, GOOGLE_APP_CLIENT_ID.current, 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.events.public.readonly');
-        attachSignin(document.getElementById('authBtn'), auth2);
-      };
-      setAuth2();
-    }
-  }, [gapi, attachSignin, user]);
-
-  const updateUser = (currentUser: any) => {
-    const name = currentUser.getBasicProfile().getName();
-    const profileImg = currentUser.getBasicProfile().getImageUrl();
-    console.log(name, profileImg);
-    setUser({ name, profileImg });
-  };
 
   return (
     <div className="px-[12px]">

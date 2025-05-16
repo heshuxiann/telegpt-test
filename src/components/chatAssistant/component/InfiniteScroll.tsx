@@ -64,6 +64,7 @@ export const InfiniteScroll = forwardRef<InfiniteScrollRef, InfiniteScrollProps>
   const restoreScrollPosition = () => {
     if (anchorRef.current) {
       anchorRef.current.scrollIntoView({ behavior: 'instant', block: 'start' });
+      setTimeout(() => { setAutoScrollToBottom(true); });
     }
   };
 
@@ -114,8 +115,8 @@ export const InfiniteScroll = forwardRef<InfiniteScrollRef, InfiniteScrollProps>
       observer.observe(container, {
         childList: true,
         subtree: true,
-        attributes: true,
-        characterData: true,
+        attributes: false,
+        characterData: false,
       });
 
       return () => {

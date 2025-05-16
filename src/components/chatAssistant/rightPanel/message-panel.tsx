@@ -17,9 +17,11 @@ import { callApi } from '../../../api/gramjs';
 import { ArrowRightIcon, SendIcon } from '../icons';
 import { languagePrompt } from '../prompt';
 import { cn, formatTimestamp } from '../utils/util';
+import { knowledgeEmbeddingStore } from '../vector-store';
 
 import ErrorBoundary from '../ErrorBoundary';
-import Avatar from '../ui/Avatar';
+import ChatAvatar from '../ui/ChatAvatar';
+import chatAIGenerate from '../utils/ChatApiGenerate';
 
 import './message-panel.scss';
 
@@ -73,7 +75,42 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
       });
     }
   }, [messages]);
-  const handleSmaryReply = (message:ApiMessage) => {
+  const handleSmaryReply = async (message:ApiMessage) => {
+    if (message.content.text?.text) {
+      const vectorSearchResults = await knowledgeEmbeddingStore.similaritySearch({
+        query: message.content.text?.text,
+      });
+      type Metadata = { answer: string }; // Define the type for metadata
+      const similarResult = vectorSearchResults.similarItems[0] as { metadata: Metadata; score: number } | undefined;
+      if (similarResult && similarResult.score > 0.8) {
+        setReplyResponse(similarResult.metadata.answer);
+      } else {
+        chatAIGenerate({
+          data: {
+            messages: [
+              {
+                role: 'system',
+                content: '你是一个多语种智能助手。接收用户消息后，自动识别其使用的语言，并用相同的语言进行自然、得体的回复。你应该理解消息的语境，确保回复简洁、友好且符合语言习惯。',
+                id: '1',
+              },
+              {
+                role: 'user',
+                content: `请回复下面的消息: ${message.content.text?.text}`,
+                id: '2',
+              },
+            ],
+          },
+          onResponse: (response) => {
+            setReplyResponse(response);
+          },
+          onFinish: () => {
+            // eslint-disable-next-line no-console
+            console.log('Finish');
+          },
+        });
+      }
+    }
+
     append({
       role: 'user',
       content: `请回复下面的消息: ${message.content.text?.text}`,
@@ -127,18 +164,13 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
     return (
       <>
         <div className="flex flex-row items-center mb-[12px]">
-          <Avatar
-            key={chatId}
-            className="overlay-avatar"
-            size={34}
-            peer={peer}
-          />
+          <ChatAvatar chatId={chatId} size={34} />
           <span className="text-[16px] font-semibold mr-[8px] ml-[12px]">{name}</span>
           <span className="text-[#979797] text-[13px]">{date}</span>
         </div>
-        <div className="text-[15px] relative">
+        <div className="text-[15px] relative flex flex-row items-end justify-between">
           <div>{text}</div>
-          <div className={cn('right-panel-message-actions flex items-center flex-row justify-end gap-[4px] absolute bottom-0 right-0', {
+          <div className={cn('right-panel-message-actions flex items-center flex-row justify-end gap-[4px]', {
             '!flex': showSmartReply,
           })}
           >

@@ -27,15 +27,20 @@ const GoogleEventDetailMessage = ({ message }:{ message:Message }) => {
           <FormLabel lable="title" />
           <span className="text-[14px]">{messageContent?.summary}</span>
         </div>
-        <div>
-          <FormLabel lable="guests" />
-          {messageContent?.attendees?.map((attendee: any) => (
-            <div className="text-[14px]" key={attendee.email}>{attendee.email}</div>
-          ))}
-        </div>
+        {messageContent?.attendees?.length > 0 && (
+          <div>
+            <FormLabel lable="guests" />
+            {messageContent?.attendees?.map((attendee: any) => (
+              <div className="text-[14px]" key={attendee.email}>{attendee.email}</div>
+            ))}
+          </div>
+        )}
         <div>
           <FormLabel lable="time" />
-          <span className="text-[14px]">{messageContent.start.dateTime} - {messageContent.end.dateTime}</span>
+          <div className="flex flex-col">
+            <span className="text-[14px]">{messageContent.start.dateTime} - {messageContent.end.dateTime}</span>
+            <span className="text-[14px] text-[#979797]">{messageContent.start.timeZone}</span>
+          </div>
         </div>
         <div>
           <FormLabel lable="meet" />

@@ -435,7 +435,6 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
       });
       const vectorSearchResults = await knowledgeEmbeddingStore.similaritySearch({
         query: message.content.text?.text,
-        k: 1,
       });
       type Metadata = { answer: string }; // Define the type for metadata
       const similarResult = vectorSearchResults.similarItems[0] as { metadata: Metadata; score: number } | undefined;
@@ -448,12 +447,12 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
             messages: [
               {
                 role: 'system',
-                content: 'You are a friendly and supportive assistant.',
+                content: '你是一个多语种智能助手。接收用户消息后，自动识别其使用的语言，并用相同的语言进行自然、得体的回复。你应该理解消息的语境，确保回复简洁、友好且符合语言习惯。',
                 id: '1',
               },
               {
                 role: 'user',
-                content: message.content.text?.text,
+                content: `请回复下面的消息: ${message.content.text?.text}`,
                 id: '2',
               },
             ],

@@ -3,6 +3,8 @@
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
 import React, { useCallback, useEffect, useState } from 'react';
+import type { ITimezone } from 'react-timezone-select';
+import TimezoneSelect from 'react-timezone-select';
 import type { Message } from 'ai';
 import {
   Button, DatePicker, Input,
@@ -10,6 +12,7 @@ import {
 import type { RangePickerProps } from 'antd/es/date-picker';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
+import type { ITimezoneOption } from 'react-timezone-select/dist/index.d';
 
 import eventEmitter, { Actions } from './lib/EventEmitter';
 import { CHATAI_IDB_STORE } from '../../util/browser/idb';
@@ -21,7 +24,7 @@ import GoogleMeetIcon from './assets/google-meet.png';
 import UserIcon from './assets/user.png';
 import WriteIcon from './assets/write.png';
 
-export const FormLabel = (props:{ lable:'title' | 'time' | 'guests' | 'meet' }) => {
+export const FormLabel = (props: { lable: 'title' | 'time' | 'guests' | 'meet' }) => {
   const [title, setTitle] = useState('');
   const [icon, setIcon] = useState('');
   const { lable: label } = props;
@@ -53,13 +56,13 @@ export const FormLabel = (props:{ lable:'title' | 'time' | 'guests' | 'meet' }) 
   );
 };
 
-const ErrorTip = ({ message }:{ message:string }) => {
+const ErrorTip = ({ message }: { message: string }) => {
   return (
     <div className="text-[12px] leading-[18px] text-red-400">{message}</div>
   );
 };
 
-const EmailItem = ({ email, onDelete }:{ email:string;onDelete:(email:string)=>void }) => {
+const EmailItem = ({ email, onDelete }: { email: string; onDelete: (email: string) => void }) => {
   return (
     <div className="flex items-center gap-[8px] py-[10px]">
       <img className="w-[24px] h-[24px] rounded-full" src={DefaultAvatar} alt="" />
@@ -73,7 +76,7 @@ const EmailItem = ({ email, onDelete }:{ email:string;onDelete:(email:string)=>v
     </div>
   );
 };
-const GoogleEventCreateMessage = ({ message }:{ message:Message }) => {
+const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
   const disabledDate: RangePickerProps['disabledDate'] = useCallback((current: dayjs.Dayjs) => {
     // Can not select days before today and today
     return current && current < dayjs().startOf('day');
@@ -87,7 +90,13 @@ const GoogleEventCreateMessage = ({ message }:{ message:Message }) => {
   const [emailError, setEmailError] = useState('');
   const [dateError, setDateError] = useState('');
   const [titleError, setTitleError] = useState('');
-  const validateEmail = (email:string) => {
+  const [selectedTimezone, setSelectedTimezone] = useState<ITimezone>(
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  );
+  useEffect(() => {
+    console.log('selectedTimezone', selectedTimezone);
+  }, [selectedTimezone]);
+  const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
   };
@@ -96,6 +105,9 @@ const GoogleEventCreateMessage = ({ message }:{ message:Message }) => {
     if (e.target.value) {
       setTitleError('');
     }
+  }, []);
+  const handleTimeZoomChange = useCallback((item: ITimezoneOption) => {
+    setSelectedTimezone(item.value);
   }, []);
   const handleTimeChange = useCallback((dates: null | (Dayjs | null)[], dateStrings: string[]) => {
     if (dates) {
@@ -137,7 +149,7 @@ const GoogleEventCreateMessage = ({ message }:{ message:Message }) => {
       setEmailError('Please enter the correct email address');
     }
   }, []);
-  const handleDeleteEmail = useCallback((email:string) => {
+  const handleDeleteEmail = useCallback((email: string) => {
     setEmails((prev) => prev.filter((item) => item !== email));
   }, []);
   const handleSubmit = useCallback(async () => {
@@ -149,7 +161,7 @@ const GoogleEventCreateMessage = ({ message }:{ message:Message }) => {
       setDateError('Please select the date');
     }
     const googleToken = await CHATAI_IDB_STORE.get('google-token');
-    const attendees:{ email:string }[] = [];
+    const attendees: { email: string }[] = [];
     if (emails.length) {
       emails.forEach((email) => {
         attendees.push({
@@ -159,8 +171,8 @@ const GoogleEventCreateMessage = ({ message }:{ message:Message }) => {
     }
     const event = {
       summary: title,
-      start: { dateTime: new Date(startDate), timeZone: 'Asia/Shanghai' },
-      end: { dateTime: new Date(endDate), timeZone: 'Asia/Shanghai' },
+      start: { dateTime: new Date(startDate), timeZone: selectedTimezone },
+      end: { dateTime: new Date(endDate), timeZone: selectedTimezone },
       attendees,
       reminders: {
         useDefault: false,
@@ -176,26 +188,21 @@ const GoogleEventCreateMessage = ({ message }:{ message:Message }) => {
         },
       },
     };
-    try {
-      fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&alt=json&key=AIzaSyAtEl_iCCVN7Gv-xs1kfpcGCfD9IYO-UhU', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${googleToken}`,
-        },
-        body: JSON.stringify(event),
-      }).then((response) => response.json()).then((res) => {
-        console.log(res, '------创建日历');
-        eventEmitter.emit(Actions.CreateCalendarSuccess, {
-          message,
-          response: res,
-        });
-      }).catch((err) => {
-        console.log(err, '------创建日历失败');
+    fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&alt=json&key=AIzaSyAtEl_iCCVN7Gv-xs1kfpcGCfD9IYO-UhU', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${googleToken}`,
+      },
+      body: JSON.stringify(event),
+    }).then((response) => response.json()).then((res) => {
+      eventEmitter.emit(Actions.CreateCalendarSuccess, {
+        message,
+        response: res,
       });
-    } catch (err) {
-      console.log(err, '------创建日历失败');
-    }
-  }, [emails, endDate, message, startDate, title]);
+    }).catch((err) => {
+      console.log(err);
+    });
+  }, [emails, endDate, message, selectedTimezone, startDate, title]);
   return (
     <div className="google-event-create-message px-[12px]">
       <div className="p-[10px] border border-solid border-[#D9D9D9] rounded-[16px] bg-white w-[326px]">
@@ -207,7 +214,7 @@ const GoogleEventCreateMessage = ({ message }:{ message:Message }) => {
         </div>
         <div className="flex flex-col gap-[8px] mb-[12px]">
           <FormLabel lable="time" />
-          <div className="flex flex-row items-center gap-[8px]">
+          <div className="flex flex-col items-center gap-[8px]">
             <RangePicker
               disabledDate={disabledDate}
               presets={[
@@ -220,6 +227,7 @@ const GoogleEventCreateMessage = ({ message }:{ message:Message }) => {
               format="YYYY/MM/DD HH:mm"
               onChange={handleTimeChange}
             />
+            <TimezoneSelect value={selectedTimezone} onChange={handleTimeZoomChange} />
           </div>
           {dateError && <ErrorTip message={dateError} />}
         </div>
