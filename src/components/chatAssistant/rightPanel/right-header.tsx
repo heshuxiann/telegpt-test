@@ -6,8 +6,8 @@ import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { ArrowLeftIcon, CloseIcon } from '../icons';
 
 export enum RightPanelKey {
+  PersonalizeSettings = 'PersonalizeSettings',
   OriginalMessages = 'OriginalMessages',
-  PromptTemplate = 'PromptTemplate',
   CustomizationPrompt = 'CustomizationPrompt',
   ChatPicker = 'ChatPicker',
 }
@@ -33,16 +33,16 @@ const RightHeader = (props: Props) => {
   const [backButton, setBackButton] = useState<React.ReactNode | undefined>(undefined);
   const handleBack = useCallback(() => {
     eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
-      rightPanelKey: RightPanelKey.PromptTemplate,
+      rightPanelKey: RightPanelKey.PersonalizeSettings,
     });
   }, []);
   useEffect(() => {
     switch (rightPanelKey) {
+      case RightPanelKey.PersonalizeSettings:
+        setTitle('Personalized settings');
+        break;
       case RightPanelKey.OriginalMessages:
         setTitle('Original Messages');
-        break;
-      case RightPanelKey.PromptTemplate:
-        setTitle('Personalized settings ');
         break;
       case RightPanelKey.CustomizationPrompt:
         setTitle('Customization');

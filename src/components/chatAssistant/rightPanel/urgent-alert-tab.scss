@@ -1,0 +1,10 @@
+.urgent-topic-item{
+    &-actions{
+        display: none;
+    }
+    &:hover{
+        .urgent-topic-item-actions{
+            display: flex;
+        }
+    }
+}

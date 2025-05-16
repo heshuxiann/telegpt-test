@@ -27,12 +27,12 @@ const CustomizationPromptPanel = () => {
       prompt,
     });
     eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
-      rightPanelKey: RightPanelKey.PromptTemplate,
+      rightPanelKey: RightPanelKey.PersonalizeSettings,
     });
   }, [title, prompt]);
   const handleCancel = useCallback(() => {
     eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
-      rightPanelKey: RightPanelKey.PromptTemplate,
+      rightPanelKey: RightPanelKey.PersonalizeSettings,
     });
   }, []);
   return (

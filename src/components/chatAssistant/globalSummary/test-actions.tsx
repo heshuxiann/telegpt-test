@@ -5,7 +5,7 @@ import './test-actions.scss';
 
 interface IProps {
   summaryAllUnreadMessages: () => Promise<void>;
-  showTestModalVisible: () => void;
+  showTestModalVisible?: () => void;
 }
 const TestActions = (props: IProps) => {
   const { summaryAllUnreadMessages, showTestModalVisible } = props;
@@ -20,6 +20,11 @@ const TestActions = (props: IProps) => {
   //     }
   //   });
   // };
+  const handleVoiceCall = () => {
+    fetch('http://10.1.4.146:3000/voice-call', {
+      method: 'POST',
+    });
+  };
   return (
     <div className="test-actions-wrapper absolute left-[20px] bottom-[20px] flex flex-col gap-[12px]">
       <Button type="primary" onClick={summaryAllUnreadMessages}>
@@ -27,6 +32,9 @@ const TestActions = (props: IProps) => {
       </Button>
       <Button type="primary" onClick={showTestModalVisible}>
         Test entry
+      </Button>
+      <Button type="primary" onClick={handleVoiceCall}>
+        语音通知
       </Button>
     </div>
   );

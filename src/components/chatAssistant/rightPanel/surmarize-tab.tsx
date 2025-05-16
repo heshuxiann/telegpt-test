@@ -12,11 +12,11 @@ import { CustomizationTemplates } from '../globalSummary/summary-prompt';
 import { CloseIcon } from '../icons';
 import { ChataiGeneralStore, ChataiSummaryTemplateStore } from '../store';
 import { RightPanelKey } from './right-header';
-import { SummaryChats } from './summary-chats';
+import { SelectedChats } from './selected-chats';
 
-import './prompt-template-panel.scss';
+import './surmarize-tab.scss';
 
-const PromptTemplatePanel = () => {
+const SummarizeTab = () => {
   const [userDefinedTemplate, setUserDefinedTemplate] = useState<CustomSummaryTemplate[]>([]);
   const [lastTemplate, setLastTemplate] = useState<CustomSummaryTemplate | undefined>(undefined);
   const [currentTemplate, setCurrentTemplate] = useState<CustomSummaryTemplate | undefined>(undefined);
@@ -117,7 +117,7 @@ const PromptTemplatePanel = () => {
             + Customization
           </div>
         </div>
-        <SummaryChats />
+        <SelectedChats />
       </div>
       {actionsVisable ? (
         <div className="flex flex-row justify-center gap-[14px] py-[24px] w-full z-10 bg-white absolute bottom-0 left-0">
@@ -138,4 +138,4 @@ const PromptTemplatePanel = () => {
     </div>
   );
 };
-export default PromptTemplatePanel;
+export default SummarizeTab;

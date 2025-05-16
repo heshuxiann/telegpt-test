@@ -29,7 +29,6 @@ import { CloseIcon, SettingIcon } from '../icons';
 import { Messages } from '../messages';
 // import { MultimodalInput } from '../multimodal-input';
 import { UrgentMessageCheckPrompt } from '../prompt';
-import { RightPanelKey } from '../rightPanel/right-header';
 import { RightPanel } from '../rightPanel/right-panel';
 import {
   ChataiGeneralStore, ChataiMessageStore, GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME,
@@ -320,6 +319,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         },
         customizationTemplate,
       });
+      setPendingSummaryMessages({});
       ChataiGeneralStore.set(GLOBAL_SUMMARY_LAST_TIME, new Date().getTime());
       setUnreadSummaryCount(unreadSummaryCount + 1);
     }, [customizationTemplate, globalSummaryPrompt, unreadSummaryCount]);
@@ -552,9 +552,9 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             // eslint-disable-next-line react/jsx-no-bind
             summaryAllUnreadMessages={summaryAllUnreadMessages}
             // eslint-disable-next-line react/jsx-no-bind
-            showTestModalVisible={() => { setTestModalVisible(true); }}
-          />
-          <TestModal
+            // showTestModalVisible={() => { setTestModalVisible(true); }}
+          /> */}
+          {/* <TestModal
             visible={testModalVisable}
             // eslint-disable-next-line react/jsx-no-bind
             onClose={() => setTestModalVisible(false)}
@@ -582,10 +582,8 @@ const SummaryModalContent = (props: SummaryContentProps) => {
     isLoading, messages, onClose, deleteMessage, loadMore, hasMore,
   } = props;
   const messageListRef = useRef<InfiniteScrollRef | null>(null);
-  const handleShowTemplate = useCallback(() => {
-    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
-      rightPanelKey: RightPanelKey.PromptTemplate,
-    });
+  const handleShowRightPanel = useCallback(() => {
+    eventEmitter.emit(Actions.ShowGlobalSummaryPanel);
   }, []);
   return (
     <div className="globa-summary-container flex flex-col w-full h-full">
@@ -593,7 +591,7 @@ const SummaryModalContent = (props: SummaryContentProps) => {
         <img className="w-[40px] h-[40px] rounded-full mr-[12px]" src={SerenaPath} alt="Serena" />
         <span className="text-[15px] font-semibold">Serena AI</span>
         <div className="flex items-center ml-auto gap-[20px]">
-          <div className="cursor-pointer text-black flex flex-row gap-[6px] items-center" onClick={handleShowTemplate}>
+          <div className="cursor-pointer text-black flex flex-row gap-[6px] items-center" onClick={handleShowRightPanel}>
             <SettingIcon />
             <span className="text-[16px] font-semibold">Personalize</span>
           </div>

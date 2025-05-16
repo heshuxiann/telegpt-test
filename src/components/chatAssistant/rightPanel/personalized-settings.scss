@@ -1,0 +1,17 @@
+.personalized-settings-tab{
+    .ant-tabs-nav{
+        margin-bottom: 0!important;
+        padding-left:16px;
+        padding-right: 16px;
+    }
+    .ant-tabs-content-holder{
+        padding-top: 16px;
+        .ant-tabs-content{
+            height: 100%;
+            .ant-tabs-tabpane{
+                height: 100%;
+            }
+        }
+    }
+   
+}

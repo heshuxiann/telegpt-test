@@ -19,9 +19,9 @@ import { RightPanelKey } from './right-header';
 import Icon from '../component/Icon';
 import Avatar from '../ui/Avatar';
 
-import './summary-chats.scss';
+import './selected-chats.scss';
 
-export const SummaryChats = () => {
+export const SelectedChats = () => {
   const [selected, setSelected] = useState<string[]>([]);
   const lang = useOldLang();
   const global = getGlobal();

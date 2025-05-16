@@ -114,7 +114,7 @@ const ChatPickerPanel = () => {
   }, []);
   const handleClose = () => {
     eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
-      rightPanelKey: RightPanelKey.PromptTemplate,
+      rightPanelKey: RightPanelKey.PersonalizeSettings,
     });
   };
   const handleCancel = useCallback(() => {
