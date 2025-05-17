@@ -14,9 +14,9 @@ import { selectPeer, selectUserStatus } from '../../../global/selectors';
 import useOldLang from '../hook/useOldLang';
 import { ChataiGeneralStore } from '../store';
 import { SUMMARY_CHATS } from '../store/general-store';
-import { RightPanelKey } from './right-header';
 
 import Icon from '../component/Icon';
+import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 import Avatar from '../ui/Avatar';
 
 import './selected-chats.scss';
@@ -25,11 +25,10 @@ export const SelectedChats = () => {
   const [selected, setSelected] = useState<string[]>([]);
   const lang = useOldLang();
   const global = getGlobal();
+  const { openDrawer } = useDrawer();
   const handleChatPicker = useCallback(() => {
-    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
-      rightPanelKey: RightPanelKey.ChatPicker,
-    });
-  }, []);
+    openDrawer(DrawerKey.ChatPicker);
+  }, [openDrawer]);
   useEffect(() => {
     ChataiGeneralStore.get(SUMMARY_CHATS).then((res) => {
       setSelected(res || []);

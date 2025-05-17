@@ -25,8 +25,8 @@ import sortChatIds from '../../common/helpers/sortChatIds';
 import useOldLang from '../hook/useOldLang';
 import { ChataiGeneralStore } from '../store';
 import { SUMMARY_CHATS } from '../store/general-store';
-import { RightPanelKey } from './right-header';
 
+import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 import Avatar from '../ui/Avatar';
 
 const ChatPickerPanel = () => {
@@ -39,6 +39,7 @@ const ChatPickerPanel = () => {
   const [search, setSearch] = useState('');
   const filter:ApiChatType[] = useMemo(() => ['channels', 'chats', 'users', 'groups'], []);
   const lang = useOldLang();
+  const { openDrawer } = useDrawer();
   useEffect(() => {
     ChataiGeneralStore.get(SUMMARY_CHATS).then((res) => {
       setSelected(res || []);
@@ -112,19 +113,19 @@ const ChatPickerPanel = () => {
     console.log('checked = ', checkedValues);
     setSelected(checkedValues);
   }, []);
-  const handleClose = () => {
-    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
-      rightPanelKey: RightPanelKey.PersonalizeSettings,
-    });
-  };
+  const handleClose = useCallback(() => {
+    openDrawer(DrawerKey.PersonalizeSettings);
+  }, [openDrawer]);
+
   const handleCancel = useCallback(() => {
     handleClose();
-  }, []);
+  }, [handleClose]);
+
   const handleSave = useCallback(() => {
     ChataiGeneralStore.set(SUMMARY_CHATS, selected);
     eventEmitter.emit(Actions.UpdateSummaryChats, { chats: selected });
     handleClose();
-  }, [selected]);
+  }, [handleClose, selected]);
   return (
     <div className="h-full px-[20px] flex flex-col">
       <Input placeholder="Search" onChange={(e) => setSearch(e.target.value)} />

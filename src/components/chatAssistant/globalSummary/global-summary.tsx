@@ -43,6 +43,7 @@ import UrgentNotification from './urgent-notification';
 
 import { InfiniteScroll } from '../component/InfiniteScroll';
 import ErrorBoundary from '../ErrorBoundary';
+import { DrawerKey, DrawerProvider, useDrawer } from './DrawerContext';
 
 // import { TestModal } from './TestModal';
 import './global-summary.scss';
@@ -528,40 +529,42 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
 
     return (
       <ErrorBoundary>
-        <div className="w-full h-full flex justify-center items-center cursor-pointer" onClick={openGlobalSummaryModal}>
-          <img className="w-[24px] h-[24px]" src={AISummaryPath} alt="AI Summary" />
-        </div>
-        <Modal
-          open={summaryModalVisible}
-          width="100vw"
-          height="100vh"
-          footer={null}
-          closeIcon={null}
-          className="global-summary-modal"
-          wrapClassName="global-summary-modal-wrap"
-        >
-          <SummaryModalContent
-            messages={messageList}
-            isLoading={isLoading}
-            onClose={handleClose}
-            deleteMessage={deleteMessage}
-            loadMore={handleLoadMore}
-            hasMore={pageInfo?.hasMore}
-          />
-          {/* <TestActions
+        <DrawerProvider>
+          <div className="w-full h-full flex justify-center items-center cursor-pointer" onClick={openGlobalSummaryModal}>
+            <img className="w-[24px] h-[24px]" src={AISummaryPath} alt="AI Summary" />
+          </div>
+          <Modal
+            open={summaryModalVisible}
+            width="100vw"
+            height="100vh"
+            footer={null}
+            closeIcon={null}
+            className="global-summary-modal"
+            wrapClassName="global-summary-modal-wrap"
+          >
+            <SummaryModalContent
+              messages={messageList}
+              isLoading={isLoading}
+              onClose={handleClose}
+              deleteMessage={deleteMessage}
+              loadMore={handleLoadMore}
+              hasMore={pageInfo?.hasMore}
+            />
+            {/* <TestActions
             // eslint-disable-next-line react/jsx-no-bind
             summaryAllUnreadMessages={summaryAllUnreadMessages}
             // eslint-disable-next-line react/jsx-no-bind
             // showTestModalVisible={() => { setTestModalVisible(true); }}
           /> */}
-          {/* <TestModal
+            {/* <TestModal
             visible={testModalVisable}
             // eslint-disable-next-line react/jsx-no-bind
             onClose={() => setTestModalVisible(false)}
             handleReSummary={handleReSummary}
           /> */}
-        </Modal>
-        <UrgentNotification message={notificationMessage} />
+          </Modal>
+          <UrgentNotification message={notificationMessage} />
+        </DrawerProvider>
       </ErrorBoundary>
 
     );
@@ -582,9 +585,10 @@ const SummaryModalContent = (props: SummaryContentProps) => {
     isLoading, messages, onClose, deleteMessage, loadMore, hasMore,
   } = props;
   const messageListRef = useRef<InfiniteScrollRef | null>(null);
+  const { openDrawer } = useDrawer();
   const handleShowRightPanel = useCallback(() => {
-    eventEmitter.emit(Actions.ShowGlobalSummaryPanel);
-  }, []);
+    openDrawer(DrawerKey.PersonalizeSettings);
+  }, [openDrawer]);
   return (
     <div className="globa-summary-container flex flex-col w-full h-full">
       <div className="h-[56px] w-full px-[20px] flex items-center bg-white/50">

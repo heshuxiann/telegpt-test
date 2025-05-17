@@ -9,11 +9,9 @@ import { getActions, getGlobal } from '../../global';
 
 import type { CustomSummaryTemplate } from './store/chatai-summary-template-store';
 
-import eventEmitter, { Actions } from './lib/EventEmitter';
 import { isUserId } from '../../global/helpers';
 import { selectChat, selectUser } from '../../global/selectors';
 import useOldLang from './hook/useOldLang';
-import { RightPanelKey } from './rightPanel/right-header';
 import { cn, formatTimestamp, formatTimestampRange } from './utils/util';
 import {
   CopyIcon, DeleteIcon, VoiceIcon,
@@ -21,6 +19,7 @@ import {
 } from './icons';
 
 import ErrorBoundary from './ErrorBoundary';
+import { DrawerKey, useDrawer } from './globalSummary/DrawerContext';
 import Avatar from './ui/Avatar';
 
 import ActionsIcon from './assets/actions.png';
@@ -103,16 +102,12 @@ const ChatAvatar = ({
 
 const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; index: number }) => {
   const { title, summaryItems, summaryChatIds } = topicItem;
+  const { openDrawer } = useDrawer();
   if (!summaryItems.length) return null;
   if (!title) return null;
   const showMessageDetail = (relevantMessages: Array<{ chatId: string; messageIds: number[] }>) => {
     if (!relevantMessages.length) return;
-    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
-      rightPanelKey: RightPanelKey.OriginalMessages,
-      rightPanelPayload: {
-        relevantMessages,
-      },
-    });
+    openDrawer(DrawerKey.OriginalMessages, { relevantMessages });
   };
   return (
     <ErrorBoundary>
@@ -152,12 +147,10 @@ const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; 
 };
 
 const SummaryPenddingItem = ({ pendingItem }: { pendingItem: ISummaryPendingItem }) => {
+  const { openDrawer } = useDrawer();
   const showMessageDetail = () => {
-    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
-      rightPanelKey: RightPanelKey.OriginalMessages,
-      rightPanelPayload: {
-        relevantMessages: [{ chatId: pendingItem.chatId, messageIds: [pendingItem.relevantMessageIds] }],
-      },
+    openDrawer(DrawerKey.OriginalMessages, {
+      relevantMessages: [{ chatId: pendingItem.chatId, messageIds: [pendingItem.relevantMessageIds] }],
     });
   };
   return (
@@ -179,12 +172,10 @@ const SummaryGarbageItem = ({ garBageItem }: { garBageItem: ISummaryGarbageItem 
   const {
     chatId, chatTitle, level, summary, relevantMessageIds,
   } = garBageItem;
+  const { openDrawer } = useDrawer();
   const showMessageDetail = (chatId: string, relevantMessageIds: number[]) => {
-    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
-      rightPanelKey: RightPanelKey.OriginalMessages,
-      rightPanelPayload: {
-        relevantMessages: [{ chatId, messageIds: relevantMessageIds }],
-      },
+    openDrawer(DrawerKey.OriginalMessages, {
+      relevantMessages: [{ chatId, messageIds: relevantMessageIds }],
     });
   };
   return (

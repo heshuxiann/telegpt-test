@@ -1,19 +1,14 @@
+/* eslint-disable no-null/no-null */
 /* eslint-disable max-len */
 import React, { useCallback, useEffect, useState } from 'react';
 import cx from 'classnames';
 
-import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { ArrowLeftIcon, CloseIcon } from '../icons';
 
-export enum RightPanelKey {
-  PersonalizeSettings = 'PersonalizeSettings',
-  OriginalMessages = 'OriginalMessages',
-  CustomizationPrompt = 'CustomizationPrompt',
-  ChatPicker = 'ChatPicker',
-}
+import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 
 interface Props {
-  rightPanelKey: RightPanelKey;
+  drawerKey: DrawerKey | undefined;
   onClose: () => void;
 }
 
@@ -28,30 +23,29 @@ const HeaderButton = ({ icon, className, onClick }:{ icon:React.ReactNode;classN
   );
 };
 const RightHeader = (props: Props) => {
-  const { rightPanelKey, onClose } = props;
+  const { drawerKey, onClose } = props;
   const [title, setTitle] = useState('');
-  const [backButton, setBackButton] = useState<React.ReactNode | undefined>(undefined);
+  const { openDrawer } = useDrawer();
   const handleBack = useCallback(() => {
-    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
-      rightPanelKey: RightPanelKey.PersonalizeSettings,
-    });
-  }, []);
+    openDrawer(DrawerKey.PersonalizeSettings);
+  }, [openDrawer]);
   useEffect(() => {
-    switch (rightPanelKey) {
-      case RightPanelKey.PersonalizeSettings:
+    switch (drawerKey) {
+      case DrawerKey.PersonalizeSettings:
         setTitle('Personalized settings');
         break;
-      case RightPanelKey.OriginalMessages:
+      case DrawerKey.OriginalMessages:
         setTitle('Original Messages');
         break;
-      case RightPanelKey.CustomizationPrompt:
+      case DrawerKey.CustomizationPrompt:
         setTitle('Customization');
-        setBackButton(<HeaderButton className="absolute left-[18px]" icon={<ArrowLeftIcon size={24} />} onClick={handleBack} />);
     }
-  }, [handleBack, rightPanelKey]);
+  }, [handleBack, drawerKey]);
   return (
     <div className="h-[50px] flex items-center justify-center relative">
-      {backButton}
+      {drawerKey === DrawerKey.CustomizationPrompt ? (
+        <HeaderButton className="absolute left-[18px]" icon={<ArrowLeftIcon size={24} />} onClick={handleBack} />
+      ) : null}
       <span className="text-[16px] font-semibold">{title}</span>
       <div
         className="w-[20px] h-[20px] rounded-full bg-[#B1B1B1] flex items-center justify-center absolute right-[18px] top-[15px] cursor-pointer"

@@ -11,8 +11,9 @@ import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { CustomizationTemplates } from '../globalSummary/summary-prompt';
 import { CloseIcon } from '../icons';
 import { ChataiGeneralStore, ChataiSummaryTemplateStore } from '../store';
-import { RightPanelKey } from './right-header';
 import { SelectedChats } from './selected-chats';
+
+import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 
 import './surmarize-tab.scss';
 
@@ -20,6 +21,7 @@ const SummarizeTab = () => {
   const [userDefinedTemplate, setUserDefinedTemplate] = useState<CustomSummaryTemplate[]>([]);
   const [lastTemplate, setLastTemplate] = useState<CustomSummaryTemplate | undefined>(undefined);
   const [currentTemplate, setCurrentTemplate] = useState<CustomSummaryTemplate | undefined>(undefined);
+  const { openDrawer } = useDrawer();
   useEffect(() => {
     ChataiSummaryTemplateStore.getAllSummaryTemplate().then((res) => {
       setUserDefinedTemplate(res || []);
@@ -39,10 +41,8 @@ const SummarizeTab = () => {
     return currentTemplate && currentTemplate?.id !== lastTemplate?.id;
   }, [currentTemplate, lastTemplate]);
   const handleCustomization = useCallback(() => {
-    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
-      rightPanelKey: RightPanelKey.CustomizationPrompt,
-    });
-  }, []);
+    openDrawer(DrawerKey.CustomizationPrompt);
+  }, [openDrawer]);
   const handleTemplateSelect = useCallback((item: CustomSummaryTemplate) => {
     setCurrentTemplate(item);
   }, []);

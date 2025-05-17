@@ -3,14 +3,15 @@ import React, { useCallback, useState } from 'react';
 import { Input } from 'antd';
 import { v4 as uuidv4 } from 'uuid';
 
-import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { ChataiSummaryTemplateStore } from '../store';
-import { RightPanelKey } from './right-header';
+
+import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 
 const { TextArea } = Input;
 const CustomizationPromptPanel = () => {
   const [title, setTitle] = useState('');
   const [prompt, setPrompt] = useState('');
+  const { openDrawer } = useDrawer();
   const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
   }, []);
@@ -26,15 +27,11 @@ const CustomizationPromptPanel = () => {
       title,
       prompt,
     });
-    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
-      rightPanelKey: RightPanelKey.PersonalizeSettings,
-    });
-  }, [title, prompt]);
+    openDrawer(DrawerKey.PersonalizeSettings);
+  }, [title, prompt, openDrawer]);
   const handleCancel = useCallback(() => {
-    eventEmitter.emit(Actions.ShowGlobalSummaryPanel, {
-      rightPanelKey: RightPanelKey.PersonalizeSettings,
-    });
-  }, []);
+    openDrawer(DrawerKey.PersonalizeSettings);
+  }, [openDrawer]);
   return (
     <div className="h-full flex flex-col px-[18px]">
       <p className="text-[14px] text-[#666666]">Please enter the specific topic you want to summarize accurately and add a detailed description. The message summary service will show the content as per your needs.</p>

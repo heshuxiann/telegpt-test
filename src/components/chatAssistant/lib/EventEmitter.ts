@@ -7,7 +7,6 @@ export enum Actions {
   AddNewMessageToAiAssistant = 'AddNewMessageToAiAssistant',
   // global summary
   HideGlobalSummaryModal = 'HideGlobalSummaryModal',
-  ShowGlobalSummaryPanel = 'ShowGlobalSummaryPanel',
   GlobalSummaryTemplateUpdate = 'GlobalSummaryTemplateUpdate',
   // summary chats
   UpdateSummaryChats = 'UpdateSummaryChats',
