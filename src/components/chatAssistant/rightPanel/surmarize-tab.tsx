@@ -82,8 +82,15 @@ const SummarizeTab = () => {
       selectedChats: selected,
       onSave: (chats:string[]) => {
         ChataiGeneralStore.set(SUMMARY_CHATS, chats);
-        openDrawer(DrawerKey.PersonalizeSettings);
+        openDrawer(DrawerKey.PersonalizeSettings, {
+          activeKey: '1',
+        });
         eventEmitter.emit(Actions.UpdateSummaryChats, { chats });
+      },
+      onCancel: () => {
+        openDrawer(DrawerKey.PersonalizeSettings, {
+          activeKey: '1',
+        });
       },
     });
   }, [openDrawer]);

@@ -5,6 +5,7 @@ export enum Actions {
 
   // global ai assistant
   AddNewMessageToAiAssistant = 'AddNewMessageToAiAssistant',
+  AddUrgentMessage = 'AddUrgentMessage',
   // global summary
   HideGlobalSummaryModal = 'HideGlobalSummaryModal',
   GlobalSummaryTemplateUpdate = 'GlobalSummaryTemplateUpdate',

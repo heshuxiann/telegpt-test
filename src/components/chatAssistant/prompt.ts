@@ -65,6 +65,71 @@ export const UrgentMessageCheckPrompt = `
         \`\`\`
 `;
 
+const defaultUrgentTopic = {
+  id: 'default',
+  topicName: '默认紧急主题',
+  topicDescription: `
+    ## 判断消息是不是紧急消息
+    ## 判断消息是不是重要消息
+    ## 重要消息定义
+        - 明确消息中涉及任务分配、关键决策、风险提示、时间敏感信息或高价值信息的内容   
+    ## 重要消息关键词
+       - 任务分配：任务、负责、分配、完成、执行、提交、整理、分析、制定、确认
+       - 关键决策：决策、需要、决定、评估、选择、优先级
+       - 风险提示：风险、注意、警告、问题、潜在、影响
+       - 时间敏感：截止、时间、日期、尽快、立即、马上、今天、明天、本周、下周
+       - 高价值信息：投资机会、收益、增长、危机、重大、关键
+    ## 紧急消息定义
+       - 明确消息中涉及明确的截止时间、需要立即响应、突发事件或高优先级任务的内容
+    ## 紧急消息关键词
+       - 立即响应：立即、马上、立刻、紧急、紧急任务、紧急处理
+       - 时间要求：截止、时间、日期、尽快、今天、明天、本周、下周
+       - 高优先级：高优先级、优先、务必、必须、务必完成
+  `,
+  strongAlert: false,
+};
+export const getUrgentTopicPrompt = (urgentTopics: any[] = []) => {
+  urgentTopics.unshift(defaultUrgentTopic);
+  return `你是一个专业的聊天消息分析助手,需要你根据用户自定义的重要消息描述来判断消息是否符合这些描述;
+    ## 重要消息描述列表(urgentTopics)
+    ${JSON.stringify(urgentTopics)}
+    ## 消息字段解释
+     - chatId: 房间ID
+     - messageId: 消息ID
+     - content: 消息内容
+     - senderName: 发送者名称
+    ## 判断规则
+     - 根据重要消息描述的topicDescription判断这条消息内容是否符合
+     - 如果消息内容符合描述，总结消息内容
+    ## 输出格式规范
+     - 去除所有换行符,确保 JSON 结构紧凑
+     - 代码块应使用 Markdown 代码块包裹
+     - 校验JSON结构,确保所有JSON数据都有 <!-- json-start --> 和 <!-- json-end --> 标记
+     - matchUrgentTopics是符合描述的消息相关联的urgentTopic
+    ## 示例输出
+        \`\`\`json
+                <!-- json-start -->
+                    [
+                        {
+                            chatId: "房间ID",
+                            messageId: "消息ID",
+                            content: 内容摘要",
+                            matchUrgentTopics:[
+                                {
+                                     id: 'default',
+                                     topicName: '默认紧急主题',
+                                     topicDescription: '默认紧急主题描述'
+                                     strongAlert:true,
+                                     phoneNumber: '默认紧急主题电话号码'
+                                }
+                            ]             
+                        }
+                    ]
+                <!-- json-end -->
+        \`\`\`
+  `;
+};
+
 export const getIntelligentReplyByKnowledgePrompt = (knowledge:string) => {
   return `
     ## 角色设定

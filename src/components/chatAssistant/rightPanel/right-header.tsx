@@ -32,8 +32,10 @@ const RightHeader = (props: Props) => {
   const [title, setTitle] = useState('');
   const { openDrawer } = useDrawer();
   const handleBack = useCallback(() => {
-    openDrawer(DrawerKey.PersonalizeSettings);
-  }, [openDrawer]);
+    openDrawer(DrawerKey.PersonalizeSettings, {
+      activeKey: drawerKey === DrawerKey.CustomizationPrompt ? '1' : '2',
+    });
+  }, [drawerKey, openDrawer]);
   useEffect(() => {
     switch (drawerKey) {
       case DrawerKey.PersonalizeSettings:

@@ -32,13 +32,17 @@ const AddTopicPanel = () => {
       console.log('values', values);
       const topicId = drawerParams?.topicId || uuidv4();
       ChataiUrgentTopicStore.addUrgentTopic({ id: topicId, ...values });
-      openDrawer(DrawerKey.PersonalizeSettings);
+      openDrawer(DrawerKey.PersonalizeSettings, {
+        activeKey: '2',
+      });
     }).catch((errorInfo) => {
       console.log('errorInfo', errorInfo);
     });
   }, [drawerParams?.topicId, form, openDrawer]);
   const handleCancel = useCallback(() => {
-    openDrawer(DrawerKey.PersonalizeSettings);
+    openDrawer(DrawerKey.PersonalizeSettings, {
+      activeKey: '2',
+    });
   }, [openDrawer]);
   return (
     <div className="h-full overflow-hidden px-[18px] flex flex-col">

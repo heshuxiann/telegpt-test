@@ -2,6 +2,7 @@ import { getActions } from '../../../global';
 
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import { intelligentReplyTask } from '../aiTask/intelligent-reply-task';
+import { urgentCheckTask } from '../aiTask/urgent-check-task';
 
 export const initChatAI = () => {
   // init data
@@ -14,4 +15,6 @@ export const initChatAI = () => {
   });
   // init intelligent reply task
   intelligentReplyTask.initTask();
+  // init urgent alert task
+  urgentCheckTask.initTask();
 };

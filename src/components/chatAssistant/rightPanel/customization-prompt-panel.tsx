@@ -27,10 +27,14 @@ const CustomizationPromptPanel = () => {
       title,
       prompt,
     });
-    openDrawer(DrawerKey.PersonalizeSettings);
+    openDrawer(DrawerKey.PersonalizeSettings, {
+      activeKey: '1',
+    });
   }, [title, prompt, openDrawer]);
   const handleCancel = useCallback(() => {
-    openDrawer(DrawerKey.PersonalizeSettings);
+    openDrawer(DrawerKey.PersonalizeSettings, {
+      activeKey: '1',
+    });
   }, [openDrawer]);
   return (
     <div className="h-full flex flex-col px-[18px]">

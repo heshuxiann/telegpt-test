@@ -10,6 +10,7 @@ import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 import { ChataiGeneralStore, ChataiUrgentTopicStore } from '../store';
 import { UrgentTopic } from '../store/urgent-topic-store';
 import { URGENT_CHATS } from '../store/general-store';
+import { urgentCheckTask } from '../aiTask/urgent-check-task';
 
 const TopicItem = ({ topic }: { topic: UrgentTopic }) => {
   const { openDrawer } = useDrawer();
@@ -69,8 +70,15 @@ const UrgentAlertTab = () => {
       selectedChats,
       onSave: (chats: string[]) => {
         ChataiGeneralStore.set(URGENT_CHATS, chats);
-        openDrawer(DrawerKey.PersonalizeSettings);
-        // eventEmitter.emit(Actions.UpdateSummaryChats, { chats });
+        openDrawer(DrawerKey.PersonalizeSettings, {
+          activeKey: '2'
+        });
+        urgentCheckTask.updateUrgentChats(chats);
+      },
+      onCancel: () => {
+        openDrawer(DrawerKey.PersonalizeSettings, {
+          activeKey: '2',
+        });
       },
     });
   }, [openDrawer]);

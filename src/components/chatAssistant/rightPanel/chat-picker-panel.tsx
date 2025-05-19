@@ -11,7 +11,6 @@ import type { ApiChatType, ApiPeer } from '../../../api/types';
 import type { CustomPeer } from '../../../types';
 
 import { ALL_FOLDER_ID } from '../../../config';
-import eventEmitter, { Actions } from '../lib/EventEmitter';
 import {
   getChatTitle, getGroupStatus, getUserFullName, getUserStatus,
 } from '../../../global/helpers';
@@ -23,10 +22,8 @@ import {
 import { getOrderedIds } from '../../../util/folderManager';
 import sortChatIds from '../../common/helpers/sortChatIds';
 import useOldLang from '../hook/useOldLang';
-import { ChataiGeneralStore } from '../store';
-import { SUMMARY_CHATS } from '../store/general-store';
 
-import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
+import { useDrawer } from '../globalSummary/DrawerContext';
 import Avatar from '../ui/Avatar';
 
 const ChatPickerPanel = () => {
@@ -35,7 +32,7 @@ const ChatPickerPanel = () => {
   const {
     currentUserId,
   } = global;
-  const { openDrawer, drawerParams } = useDrawer();
+  const { drawerParams } = useDrawer();
   const selectedChats = drawerParams?.selectedChats || [];
   const [selected, setSelected] = useState<string[]>(selectedChats);
   const [search, setSearch] = useState('');
@@ -115,19 +112,15 @@ const ChatPickerPanel = () => {
     console.log('checked = ', checkedValues);
     setSelected(checkedValues);
   }, []);
-  const handleClose = useCallback(() => {
-    openDrawer(DrawerKey.PersonalizeSettings);
-  }, [openDrawer]);
 
   const handleCancel = useCallback(() => {
-    handleClose();
-  }, [handleClose]);
+    drawerParams?.onCancel();
+  }, [drawerParams]);
 
   const handleSave = useCallback(() => {
     // ChataiGeneralStore.set(SUMMARY_CHATS, selected);
     drawerParams?.onSave(selected);
-    handleClose();
-  }, [drawerParams, handleClose, selected]);
+  }, [drawerParams, selected]);
   return (
     <div className="h-full px-[20px] flex flex-col">
       <Input placeholder="Search" onChange={(e) => setSearch(e.target.value)} />

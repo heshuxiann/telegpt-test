@@ -24,11 +24,11 @@ import {
 } from '../../../global/selectors';
 import { getOrderedIds } from '../../../util/folderManager';
 import { intelligentReplyTask } from '../aiTask/intelligent-reply-task';
+import { urgentCheckTask } from '../aiTask/urgent-check-task';
 import { useDidUpdateEffect } from '../hook/useDidUpdateEffect';
 import { CloseIcon, SettingIcon } from '../icons';
 import { Messages } from '../messages';
 // import { MultimodalInput } from '../multimodal-input';
-import { UrgentMessageCheckPrompt } from '../prompt';
 import { RightPanel } from '../rightPanel/right-panel';
 import {
   ChataiGeneralStore, ChataiMessageStore, GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME,
@@ -76,7 +76,6 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
     // const [testModalVisable, setTestModalVisible] = useState(false);
     const [globalSummaryPrompt, setGlobalSummaryPrompt] = useState('');
     const [customizationTemplate, setCustomizationTemplate] = useState<{ title: string; prompt: string } | null>(null);
-    const [urgentChecks, setUrgentChecks] = useState<ApiMessage[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
     const summaryChats = useRef<string[]>([]);
@@ -199,36 +198,24 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
         });
     };
 
-    const handleUrgentMessageCheck = (messages: Message[]) => {
-      fetch('https://telegpt-three.vercel.app/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages,
-        }),
-      })
-        .then((res) => res.json())
-        .then((res) => {
-          const formatResponse = formatUrgentCheckText(res.text);
-          if (formatResponse) {
-            const newMessage: StoreMessage = {
-              chatId: GLOBAL_SUMMARY_CHATID,
-              timestamp: new Date().getTime(),
-              content: JSON.stringify(formatResponse),
-              id: uuidv4(),
-              createdAt: new Date(),
-              role: 'assistant',
-              annotations: [{
-                type: 'urgent-message-check',
-              }],
-            };
-            ChataiMessageStore.storeMessage(newMessage);
-            setMessageList((prev) => [...prev, newMessage]);
-            setNotificationMessage(newMessage);
-          }
-        });
+    const handleAddUrgentMessage = (message:string) => {
+      const formatResponse = formatUrgentCheckText(message);
+      if (formatResponse) {
+        const newMessage: StoreMessage = {
+          chatId: GLOBAL_SUMMARY_CHATID,
+          timestamp: new Date().getTime(),
+          content: JSON.stringify(formatResponse),
+          id: uuidv4(),
+          createdAt: new Date(),
+          role: 'assistant',
+          annotations: [{
+            type: 'urgent-message-check',
+          }],
+        };
+        ChataiMessageStore.storeMessage(newMessage);
+        setMessageList((prev) => [...prev, newMessage]);
+        setNotificationMessage(newMessage);
+      }
     };
 
     useEffect(() => {
@@ -238,43 +225,14 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
       eventEmitter.on(Actions.GlobalSummaryTemplateUpdate, initSummaryTemplate);
       eventEmitter.on(Actions.HideGlobalSummaryModal, handleClose);
       eventEmitter.on(Actions.UpdateSummaryChats, handleSummaryChatsUpdate);
+      eventEmitter.on(Actions.AddUrgentMessage, handleAddUrgentMessage);
       return () => {
         eventEmitter.off(Actions.GlobalSummaryTemplateUpdate, initSummaryTemplate);
         eventEmitter.off(Actions.HideGlobalSummaryModal, handleClose);
         eventEmitter.off(Actions.UpdateSummaryChats, handleSummaryChatsUpdate);
+        eventEmitter.off(Actions.AddUrgentMessage, handleAddUrgentMessage);
       };
     }, [handleClose]);
-    // 检测是否是紧急消息
-    useEffect(() => {
-      const timer = setInterval(() => {
-        const checkmsgs = urgentChecks.map((msg) => {
-          const global = getGlobal();
-          if (msg.content.text?.text) {
-            const peer = msg.senderId ? selectUser(global, msg.senderId) : undefined;
-            return {
-              chatId: msg.chatId,
-              messageId: msg.id,
-              senderName: peer ? `${peer.firstName || ''} ${peer.lastName || ''}` : '',
-              content: msg.content.text?.text || '',
-            };
-          }
-          return false;
-        }).filter(Boolean);
-        if (checkmsgs.length) {
-          handleUrgentMessageCheck([
-            {
-              id: uuidv4(),
-              role: 'user',
-              content: `${JSON.stringify(checkmsgs)}\n\n${UrgentMessageCheckPrompt}`,
-            },
-          ]);
-        }
-        setUrgentChecks([]);
-      }, 1000 * 60);
-      return () => {
-        clearInterval(timer);
-      };
-    }, [urgentChecks]);
 
     const startSummary = useCallback(async (messages: Record<string, ApiMessage[]>, prompt?: string) => {
       // eslint-disable-next-line no-console
@@ -463,7 +421,7 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             if (!isChatGroup(chat) || message.isMentioned) {
               intelligentReplyTask.addNewMessage(message);
             }
-            setUrgentChecks((prev) => [...prev, message]);
+            urgentCheckTask.addNewMessage(message);
           }
           // TODO 添加到自动总结消息队列
           if (summaryChats.current.length === 0 || summaryChats.current.includes(message.chatId)) {
