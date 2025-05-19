@@ -1,16 +1,20 @@
 /* eslint-disable no-console */
-// import { CONTACT_IDB_STORE } from './im-assistant-idb';
-
 import type { StoreName } from './chatai-store';
 
 import ChataiDB from './chatai-store';
 
-export const SUMMARY_CHATS = 'summaryChats';
-export const URGENT_CHATS = 'urgentChats';
-class GeneralStore extends ChataiDB {
-  private storeName: StoreName = 'general';
+export interface UrgentTopic {
+  id: string;
+  topicName: string;
+  topicDescription: string;
+  strongAlert?: boolean;
+  phoneNumber?: string;
+}
 
-  async get(key: string): Promise<any | undefined> {
+class UrgentTopicStore extends ChataiDB {
+  private storeName: StoreName = 'urgentTopic';
+
+  async getAllUrgentTopic(): Promise<UrgentTopic[]> {
     let db: IDBDatabase;
     try {
       db = await this.getDB();
@@ -21,7 +25,7 @@ class GeneralStore extends ChataiDB {
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readonly');
       const store = tx.objectStore(this.storeName);
-      const request = store.get(key);
+      const request = store.getAll();
       request.onsuccess = () => {
         resolve(request.result);
       };
@@ -31,7 +35,28 @@ class GeneralStore extends ChataiDB {
     });
   }
 
-  async set(key:string, value:any) {
+  async getUrgentTopic(id: string): Promise<UrgentTopic> {
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(this.storeName, 'readonly');
+      const store = tx.objectStore(this.storeName);
+      const request = store.get(id);
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+      request.onerror = () => {
+        reject(request.error);
+      };
+    });
+  }
+
+  async deleteUrgentTopic(id: string):Promise<void> {
     let db: IDBDatabase;
     try {
       db = await this.getDB();
@@ -42,17 +67,16 @@ class GeneralStore extends ChataiDB {
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readwrite');
       const store = tx.objectStore(this.storeName);
-      const request = store.put(value, key);
+      const request = store.delete(id);
       request.onsuccess = () => {
-        resolve(request.result);
+        console.log(`Deleted record with key: ${id}`);
+        resolve();
       };
-      request.onerror = () => {
-        reject(request.error);
-      };
+      request.onerror = () => reject(new Error('Failed to delete record'));
     });
   }
 
-  async delete(key:string) {
+  async addUrgentTopic(urgentTopic:UrgentTopic) {
     let db: IDBDatabase;
     try {
       db = await this.getDB();
@@ -63,7 +87,7 @@ class GeneralStore extends ChataiDB {
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readwrite');
       const store = tx.objectStore(this.storeName);
-      const request = store.delete(key);
+      const request = store.put(urgentTopic);
       request.onsuccess = () => {
         resolve(request.result);
       };
@@ -74,4 +98,4 @@ class GeneralStore extends ChataiDB {
   }
 }
 
-export default GeneralStore;
+export default UrgentTopicStore;

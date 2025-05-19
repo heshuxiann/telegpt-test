@@ -21,26 +21,15 @@ import Avatar from '../ui/Avatar';
 
 import './selected-chats.scss';
 
-export const SelectedChats = () => {
-  const [selected, setSelected] = useState<string[]>([]);
+interface Props {
+  selected: string[];
+  onOpenChatSelect:() => void;
+  onDelete: (id: string) => void;
+}
+export const SelectedChats = (props: Props) => {
+  const { onOpenChatSelect, selected, onDelete } = props;
   const lang = useOldLang();
   const global = getGlobal();
-  const { openDrawer } = useDrawer();
-  const handleChatPicker = useCallback(() => {
-    openDrawer(DrawerKey.ChatPicker);
-  }, [openDrawer]);
-  useEffect(() => {
-    ChataiGeneralStore.get(SUMMARY_CHATS).then((res) => {
-      setSelected(res || []);
-    });
-  }, []);
-
-  const removeChat = useCallback((id: string) => {
-    const newSelected = selected.filter((item) => item !== id);
-    setSelected(newSelected);
-    ChataiGeneralStore.set(SUMMARY_CHATS, newSelected);
-    eventEmitter.emit(Actions.UpdateSummaryChats, { chats: newSelected });
-  }, [selected]);
   const renderChatItem = (id: string) => {
     const peer:ApiPeer | undefined = selectPeer(global, id);
     if (!peer) {
@@ -91,7 +80,7 @@ export const SelectedChats = () => {
           name="delete"
           className="chat-picker-del ml-auto cursor-pointer text-[18px] text-[#FF4D4F]"
           // eslint-disable-next-line react/jsx-no-bind
-          onClick={() => { removeChat(id); }}
+          onClick={() => { onDelete(id); }}
         />
       </div>
     );
@@ -101,7 +90,7 @@ export const SelectedChats = () => {
       <h3 className="text-[18px] font-semibold">Which chats do you care about？</h3>
       <div
         className="chat-picker-item flex cursor-pointer items-center gap-[8px] py-[10px] hover:bg-[#F4F4F5] rounded-[12px]"
-        onClick={handleChatPicker}
+        onClick={onOpenChatSelect}
       >
         <div
           className="flex items-center justify-center w-[40px] h-[40px] rounded-full bg-[#8C42F0] text-white"

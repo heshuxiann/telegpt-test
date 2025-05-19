@@ -2,7 +2,7 @@
 import { getGlobal } from '../../../global';
 
 /* eslint-disable no-null/no-null */
-export type StoreName = 'message' | 'contact' | 'user' | 'general' | 'knowledge' | 'summaryTemplate';
+export type StoreName = 'message' | 'contact' | 'user' | 'general' | 'knowledge' | 'summaryTemplate' | 'urgentTopic';
 
 type IndexConfig = [indexName: string, keyPath: string | string[]];
 
@@ -30,6 +30,7 @@ class ChataiDB {
     general: { autoIncrement: true },
     knowledge: { keyPath: 'id', autoIncrement: true },
     summaryTemplate: { keyPath: 'id', autoIncrement: true },
+    urgentTopic: { keyPath: 'topicId', autoIncrement: false },
   };
 
   constructor(VERSION: number) {

@@ -11,6 +11,7 @@ import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { CustomizationTemplates } from '../globalSummary/summary-prompt';
 import { CloseIcon } from '../icons';
 import { ChataiGeneralStore, ChataiSummaryTemplateStore } from '../store';
+import { SUMMARY_CHATS } from '../store/general-store';
 import { SelectedChats } from './selected-chats';
 
 import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
@@ -21,6 +22,7 @@ const SummarizeTab = () => {
   const [userDefinedTemplate, setUserDefinedTemplate] = useState<CustomSummaryTemplate[]>([]);
   const [lastTemplate, setLastTemplate] = useState<CustomSummaryTemplate | undefined>(undefined);
   const [currentTemplate, setCurrentTemplate] = useState<CustomSummaryTemplate | undefined>(undefined);
+  const [selectedChats, setSelectedChats] = useState<string[]>([]);
   const { openDrawer } = useDrawer();
   useEffect(() => {
     ChataiSummaryTemplateStore.getAllSummaryTemplate().then((res) => {
@@ -31,6 +33,9 @@ const SummarizeTab = () => {
         setLastTemplate(res);
         setCurrentTemplate(res);
       }
+    });
+    ChataiGeneralStore.get(SUMMARY_CHATS).then((res) => {
+      setSelectedChats(res || []);
     });
   }, []);
   const actionsVisable = useMemo(() => {
@@ -71,6 +76,23 @@ const SummarizeTab = () => {
       setCurrentTemplate(undefined);
     }
   }, [lastTemplate?.id, currentTemplate?.id]);
+  const handleOpenChatSelect = useCallback(async () => {
+    const selected = await ChataiGeneralStore.get(SUMMARY_CHATS);
+    openDrawer(DrawerKey.ChatPicker, {
+      selectedChats: selected,
+      onSave: (chats:string[]) => {
+        ChataiGeneralStore.set(SUMMARY_CHATS, chats);
+        openDrawer(DrawerKey.PersonalizeSettings);
+        eventEmitter.emit(Actions.UpdateSummaryChats, { chats });
+      },
+    });
+  }, [openDrawer]);
+
+  const handleDeleteSummaryChat = useCallback((id: string) => {
+    const newSelected = selectedChats.filter((item) => item !== id);
+    ChataiGeneralStore.set(SUMMARY_CHATS, newSelected);
+    eventEmitter.emit(Actions.UpdateSummaryChats, { chats: newSelected });
+  }, [selectedChats]);
   return (
     <div className="h-full overflow-hidden relative">
       <div className="h-full flex flex-col px-[18px] overflow-auto">
@@ -117,7 +139,11 @@ const SummarizeTab = () => {
             + Customization
           </div>
         </div>
-        <SelectedChats />
+        <SelectedChats
+          onOpenChatSelect={handleOpenChatSelect}
+          selected={selectedChats}
+          onDelete={handleDeleteSummaryChat}
+        />
       </div>
       {actionsVisable ? (
         <div className="flex flex-row justify-center gap-[14px] py-[24px] w-full z-10 bg-white absolute bottom-0 left-0">

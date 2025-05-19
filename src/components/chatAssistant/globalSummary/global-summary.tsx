@@ -552,9 +552,9 @@ const GlobalSummary = forwardRef<GlobalSummaryRef>(
             />
             {/* <TestActions
             // eslint-disable-next-line react/jsx-no-bind
-            summaryAllUnreadMessages={summaryAllUnreadMessages}
+            // summaryAllUnreadMessages={summaryAllUnreadMessages}
             // eslint-disable-next-line react/jsx-no-bind
-            // showTestModalVisible={() => { setTestModalVisible(true); }}
+            showTestModalVisible={() => { setTestModalVisible(true); }}
           /> */}
             {/* <TestModal
             visible={testModalVisable}

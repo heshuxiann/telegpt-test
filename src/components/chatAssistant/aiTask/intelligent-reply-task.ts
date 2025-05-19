@@ -11,12 +11,9 @@ class IntelligentReplyTask {
 
   private pendingMessages: ApiMessage[] = [];
 
-  initReplyTask() {
-    const pendingMessages = this.pendingMessages;
+  initTask() {
     setInterval(() => {
-      if (pendingMessages.length) {
-        this.intelligentResponse();
-      }
+      this.intelligentResponse();
     }, 1000 * 10);
   }
 
@@ -32,6 +29,7 @@ class IntelligentReplyTask {
   }
 
   intelligentResponse() {
+    if (!this.pendingMessages) return;
     const messages = this.pendingMessages.map((item) => {
       return {
         chatId: item.chatId,

@@ -2,7 +2,7 @@
 /* eslint-disable max-len */
 /* eslint-disable no-console */
 import React, {
-  useCallback, useEffect, useMemo, useState,
+  useCallback, useMemo, useState,
 } from 'react';
 import { Checkbox, Input } from 'antd';
 import { getGlobal } from '../../../global';
@@ -35,16 +35,18 @@ const ChatPickerPanel = () => {
   const {
     currentUserId,
   } = global;
-  const [selected, setSelected] = useState<string[]>([]);
+  const { openDrawer, drawerParams } = useDrawer();
+  const selectedChats = drawerParams?.selectedChats || [];
+  const [selected, setSelected] = useState<string[]>(selectedChats);
   const [search, setSearch] = useState('');
   const filter:ApiChatType[] = useMemo(() => ['channels', 'chats', 'users', 'groups'], []);
   const lang = useOldLang();
-  const { openDrawer } = useDrawer();
-  useEffect(() => {
-    ChataiGeneralStore.get(SUMMARY_CHATS).then((res) => {
-      setSelected(res || []);
-    });
-  }, []);
+
+  // useEffect(() => {
+  //   ChataiGeneralStore.get(SUMMARY_CHATS).then((res) => {
+  //     setSelected(res || []);
+  //   });
+  // }, []);
   const ids = useMemo(() => {
     const sorted = sortChatIds(
       filterPeersByQuery({
@@ -122,10 +124,10 @@ const ChatPickerPanel = () => {
   }, [handleClose]);
 
   const handleSave = useCallback(() => {
-    ChataiGeneralStore.set(SUMMARY_CHATS, selected);
-    eventEmitter.emit(Actions.UpdateSummaryChats, { chats: selected });
+    // ChataiGeneralStore.set(SUMMARY_CHATS, selected);
+    drawerParams?.onSave(selected);
     handleClose();
-  }, [handleClose, selected]);
+  }, [drawerParams, handleClose, selected]);
   return (
     <div className="h-full px-[20px] flex flex-col">
       <Input placeholder="Search" onChange={(e) => setSearch(e.target.value)} />

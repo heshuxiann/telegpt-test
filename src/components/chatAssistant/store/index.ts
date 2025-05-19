@@ -3,9 +3,10 @@ import ContactStore from './contact-store';
 import GeneralStore from './general-store';
 import KnowledgeStore from './knowledge-store';
 import MessageStore from './messages-store';
+import UrgentTopicStore from './urgent-topic-store';
 import UsersStore from './user-store';
 
-const dbVersion = 7;
+const dbVersion = 9;
 
 export const GLOBAL_SUMMARY_LAST_TIME = 'globalSummaryLastTime';
 export const GLOBAL_SUMMARY_READ_TIME = 'globalSummaryReadTime';
@@ -16,6 +17,7 @@ export const ChataiUserStore = new UsersStore(dbVersion);
 export const ChataiGeneralStore = new GeneralStore(dbVersion);
 export const ChataiKnowledgelStore = new KnowledgeStore(dbVersion);
 export const ChataiSummaryTemplateStore = new SummaryTemplateStore(dbVersion);
+export const ChataiUrgentTopicStore = new UrgentTopicStore(dbVersion);
 (window as any).downloadAllSummarys = () => {
   ChataiMessageStore.getAllMessages().then((res) => {
     const content = JSON.stringify(res);

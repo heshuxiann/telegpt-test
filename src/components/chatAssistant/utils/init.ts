@@ -13,5 +13,5 @@ export const initChatAI = () => {
     getActions().setSettingOption({ autoTranslate: value as boolean || false });
   });
   // init intelligent reply task
-  intelligentReplyTask.initReplyTask();
+  intelligentReplyTask.initTask();
 };
