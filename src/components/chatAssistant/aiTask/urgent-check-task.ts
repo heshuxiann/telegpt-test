@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
 import type { ApiMessage } from '../../../api/types/messages';
 
@@ -80,7 +81,7 @@ class UrgentCheckTask {
   }
 
   addNewMessage(message: ApiMessage) {
-    if (this.urgentChats.includes(message.chatId)) {
+    if (this.urgentChats.length === 0 || this.urgentChats.includes(message.chatId)) {
       this.pendingMessages.push(message);
     }
   }
