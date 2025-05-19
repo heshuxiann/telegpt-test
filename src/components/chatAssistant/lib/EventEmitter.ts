@@ -6,9 +6,9 @@ export enum Actions {
   // global ai assistant
   AddNewMessageToAiAssistant = 'AddNewMessageToAiAssistant',
   AddUrgentMessage = 'AddUrgentMessage',
+  AddSummaryMessage = 'AddSummaryMessage',
   // global summary
   HideGlobalSummaryModal = 'HideGlobalSummaryModal',
-  GlobalSummaryTemplateUpdate = 'GlobalSummaryTemplateUpdate',
   // summary chats
   UpdateSummaryChats = 'UpdateSummaryChats',
   // google

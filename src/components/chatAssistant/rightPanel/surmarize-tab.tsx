@@ -7,7 +7,7 @@ import cx from 'classnames';
 
 import type { CustomSummaryTemplate } from '../store/chatai-summary-template-store';
 
-import eventEmitter, { Actions } from '../lib/EventEmitter';
+import { globalSummaryTask } from '../aiTask/global-summary-task';
 import { CustomizationTemplates } from '../globalSummary/summary-prompt';
 import { CloseIcon } from '../icons';
 import { ChataiGeneralStore, ChataiSummaryTemplateStore } from '../store';
@@ -57,7 +57,7 @@ const SummarizeTab = () => {
   const handleSave = useCallback(() => {
     ChataiGeneralStore.set('lastDefinedPrompt', currentTemplate);
     setLastTemplate(currentTemplate);
-    eventEmitter.emit(Actions.GlobalSummaryTemplateUpdate);
+    globalSummaryTask.updateSummaryTemplate();
   }, [currentTemplate]);
   const handleDelete = useCallback((e: React.MouseEvent<HTMLDivElement>, id: string) => {
     e.preventDefault();
@@ -85,7 +85,7 @@ const SummarizeTab = () => {
         openDrawer(DrawerKey.PersonalizeSettings, {
           activeKey: '1',
         });
-        eventEmitter.emit(Actions.UpdateSummaryChats, { chats });
+        globalSummaryTask.updateSummaryChats(chats);
       },
       onCancel: () => {
         openDrawer(DrawerKey.PersonalizeSettings, {
@@ -98,7 +98,8 @@ const SummarizeTab = () => {
   const handleDeleteSummaryChat = useCallback((id: string) => {
     const newSelected = selectedChats.filter((item) => item !== id);
     ChataiGeneralStore.set(SUMMARY_CHATS, newSelected);
-    eventEmitter.emit(Actions.UpdateSummaryChats, { chats: newSelected });
+    globalSummaryTask.updateSummaryChats(newSelected);
+    setSelectedChats(newSelected);
   }, [selectedChats]);
   return (
     <div className="h-full overflow-hidden relative">

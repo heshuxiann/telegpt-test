@@ -1,6 +1,7 @@
 import { getActions } from '../../../global';
 
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
+import { globalSummaryTask } from '../aiTask/global-summary-task';
 import { intelligentReplyTask } from '../aiTask/intelligent-reply-task';
 import { urgentCheckTask } from '../aiTask/urgent-check-task';
 
@@ -13,6 +14,8 @@ export const initChatAI = () => {
   CHATAI_IDB_STORE.get('auto-translate').then((value) => {
     getActions().setSettingOption({ autoTranslate: value as boolean || false });
   });
+  // init global summary
+  globalSummaryTask.initTask();
   // init intelligent reply task
   intelligentReplyTask.initTask();
   // init urgent alert task

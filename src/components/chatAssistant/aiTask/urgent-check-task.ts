@@ -1,12 +1,18 @@
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
+import { v4 as uuidv4 } from 'uuid';
+
 import type { ApiMessage } from '../../../api/types/messages';
+import type { StoreMessage } from '../store/messages-store';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import generateChatgpt from '../lib/generate-chat';
+import { formatUrgentCheckText } from '../globalSummary/formate-summary-text';
 import { getUrgentTopicPrompt } from '../prompt';
-import { ChataiGeneralStore, ChataiUrgentTopicStore } from '../store';
+import { ChataiGeneralStore, ChataiMessageStore, ChataiUrgentTopicStore } from '../store';
 import { URGENT_CHATS } from '../store/general-store';
+
+const GLOBAL_SUMMARY_CHATID = '777888';
 
 class UrgentCheckTask {
   private static instance: UrgentCheckTask | undefined;
@@ -21,7 +27,7 @@ class UrgentCheckTask {
     });
     setInterval(() => {
       this.checkUrgentMessage();
-    }, 1000 * 30);
+    }, 1000 * 60 * 5);
   }
 
   static getTextWithoutEntities(text: string, entities: any[]): string {
@@ -67,7 +73,22 @@ class UrgentCheckTask {
         },
         onResponse: (response) => {
           console.log('response', response);
-          eventEmitter.emit(Actions.AddUrgentMessage, response);
+          const formatResponse = formatUrgentCheckText(response);
+          if (formatResponse) {
+            const newMessage: StoreMessage = {
+              chatId: GLOBAL_SUMMARY_CHATID,
+              timestamp: new Date().getTime(),
+              content: JSON.stringify(formatResponse),
+              id: uuidv4(),
+              createdAt: new Date(),
+              role: 'assistant',
+              annotations: [{
+                type: 'urgent-message-check',
+              }],
+            };
+            ChataiMessageStore.storeMessage(newMessage);
+            eventEmitter.emit(Actions.AddUrgentMessage, newMessage);
+          }
         },
       });
     });

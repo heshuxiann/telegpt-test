@@ -101,6 +101,7 @@ export const getUrgentTopicPrompt = (urgentTopics: any[] = []) => {
     ## 判断规则
      - 根据重要消息描述的topicDescription判断这条消息内容是否符合
      - 如果消息内容符合描述，总结消息内容
+     - 如果不符合任何一条topicDescription,则直接过滤掉
     ## 输出格式规范
      - 去除所有换行符,确保 JSON 结构紧凑
      - 代码块应使用 Markdown 代码块包裹

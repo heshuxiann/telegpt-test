@@ -1,16 +1,20 @@
+/* eslint-disable no-console */
+/* eslint-disable react/jsx-no-bind */
+/* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable max-len */
 import React, { useCallback, useEffect, useState } from 'react';
 
+import type { UrgentTopic } from '../store/urgent-topic-store';
+
+import { urgentCheckTask } from '../aiTask/urgent-check-task';
+import { ChataiGeneralStore, ChataiUrgentTopicStore } from '../store';
+import { URGENT_CHATS } from '../store/general-store';
 import { SelectedChats } from './selected-chats';
 
 import Icon from '../component/Icon';
+import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 
 import './urgent-alert-tab.scss';
-import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
-import { ChataiGeneralStore, ChataiUrgentTopicStore } from '../store';
-import { UrgentTopic } from '../store/urgent-topic-store';
-import { URGENT_CHATS } from '../store/general-store';
-import { urgentCheckTask } from '../aiTask/urgent-check-task';
 
 const TopicItem = ({ topic }: { topic: UrgentTopic }) => {
   const { openDrawer } = useDrawer();
@@ -18,7 +22,7 @@ const TopicItem = ({ topic }: { topic: UrgentTopic }) => {
     ChataiUrgentTopicStore.deleteUrgentTopic(topic.id);
   };
   const handleEditTopic = () => {
-    openDrawer(DrawerKey.AddTopicPanel, topic)
+    openDrawer(DrawerKey.AddTopicPanel, topic);
   };
   return (
     <div className="urgent-topic-item p-[20px] bg-white rounded-[8px] flex flex-row items-center justify-between gap-[24px]">
@@ -63,6 +67,8 @@ const UrgentAlertTab = () => {
   const handleDelete = useCallback((id: string) => {
     const newSelected = selectedChats.filter((item) => item !== id);
     ChataiGeneralStore.set(URGENT_CHATS, newSelected);
+    setSelectedChats(newSelected);
+    urgentCheckTask.updateUrgentChats(newSelected);
   }, [selectedChats]);
   const handleOpenChatSelect = useCallback(async () => {
     const selectedChats = await ChataiGeneralStore.get(URGENT_CHATS);
@@ -71,7 +77,7 @@ const UrgentAlertTab = () => {
       onSave: (chats: string[]) => {
         ChataiGeneralStore.set(URGENT_CHATS, chats);
         openDrawer(DrawerKey.PersonalizeSettings, {
-          activeKey: '2'
+          activeKey: '2',
         });
         urgentCheckTask.updateUrgentChats(chats);
       },

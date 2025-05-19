@@ -1,22 +1,18 @@
 /* eslint-disable max-len */
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import { getGlobal } from '../../../global';
 
 import type { ApiPeer } from '../../../api/types';
 import type { CustomPeer } from '../../../types';
 
-import eventEmitter, { Actions } from '../lib/EventEmitter';
 import {
   getChatTitle, getGroupStatus, getUserFullName, getUserStatus,
 } from '../../../global/helpers';
 import { isApiPeerChat, isApiPeerUser } from '../../../global/helpers/peers';
 import { selectPeer, selectUserStatus } from '../../../global/selectors';
 import useOldLang from '../hook/useOldLang';
-import { ChataiGeneralStore } from '../store';
-import { SUMMARY_CHATS } from '../store/general-store';
 
 import Icon from '../component/Icon';
-import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 import Avatar from '../ui/Avatar';
 
 import './selected-chats.scss';
