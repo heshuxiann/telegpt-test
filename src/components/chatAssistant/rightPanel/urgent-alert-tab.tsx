@@ -6,6 +6,7 @@ import { SelectedChats } from './selected-chats';
 import Icon from '../component/Icon';
 
 import './urgent-alert-tab.scss';
+import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 
 interface TopicItemProps {
   topicName: string;
@@ -25,8 +26,16 @@ const TopicItem = ({ topic }:{ topic: TopicItemProps }) => {
   );
 };
 const AddTopic = () => {
+  const {openDrawer} = useDrawer();
+  const handleAddTopic = () => {
+    console.log('add topic');
+    openDrawer(DrawerKey.AddTopicPanel);
+  };
   return (
-    <div className="urgent-topic-item p-[20px] bg-white rounded-[8px] flex flex-row items-center gap-[8px] text-[#8C42F0] cursor-pointer">
+    <div 
+    className="urgent-topic-item p-[20px] bg-white rounded-[8px] flex flex-row items-center gap-[8px] text-[#8C42F0] cursor-pointer"
+    onClick={handleAddTopic}
+    >
       <Icon name="add" />
       <span>Add Topic</span>
     </div>

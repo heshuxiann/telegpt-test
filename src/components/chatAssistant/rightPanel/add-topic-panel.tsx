@@ -8,7 +8,7 @@ const { TextArea } = Input;
 const AddTopicPanel = () => {
   const strongAlertChange = () => {};
   return (
-    <div className="h-full overflow-hidden">
+    <div className="h-full overflow-hidden px-[18px]">
       <div className="flex-1 flex flex-col gap-[10px] overflow-auto">
         <div className="text-[14px] text-[#666666]">
           Please set the topics and content descriptions for which you need alerts. When a message contains these contents, an alert will be triggered.

@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import type { MessagePanelPayload } from './message-panel';
 
+import AddTopicPanel from './add-topic-panel';
 import ChatPickerPanel from './chat-picker-panel';
 import CustomizationPromptPanel from './customization-prompt-panel';
 import MessagePanel from './message-panel';
@@ -36,6 +37,9 @@ export const RightPanel = (props: RightPanelProps) => {
         break;
       case DrawerKey.ChatPicker:
         setRightPanelContent(<ChatPickerPanel />);
+        break;
+      case DrawerKey.AddTopicPanel:
+        setRightPanelContent(<AddTopicPanel />);
         break;
     }
   }, [closeSummaryModal, drawerKey, drawerParams]);

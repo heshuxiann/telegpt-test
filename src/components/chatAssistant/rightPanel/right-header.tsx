@@ -12,6 +12,11 @@ interface Props {
   onClose: () => void;
 }
 
+const hasBackDrawer = [
+  DrawerKey.CustomizationPrompt,
+  DrawerKey.AddTopicPanel,
+];
+
 const HeaderButton = ({ icon, className, onClick }:{ icon:React.ReactNode;className?:string;onClick:()=>void }) => {
   return (
     <div
@@ -38,12 +43,13 @@ const RightHeader = (props: Props) => {
         setTitle('Original Messages');
         break;
       case DrawerKey.CustomizationPrompt:
+      case DrawerKey.AddTopicPanel:
         setTitle('Customization');
     }
   }, [handleBack, drawerKey]);
   return (
     <div className="h-[50px] flex items-center justify-center relative">
-      {drawerKey === DrawerKey.CustomizationPrompt ? (
+      {drawerKey && hasBackDrawer.includes(drawerKey) ? (
         <HeaderButton className="absolute left-[18px]" icon={<ArrowLeftIcon size={24} />} onClick={handleBack} />
       ) : null}
       <span className="text-[16px] font-semibold">{title}</span>

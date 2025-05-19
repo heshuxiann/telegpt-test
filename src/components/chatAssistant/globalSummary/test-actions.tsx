@@ -4,7 +4,7 @@ import { Button } from 'antd';
 import './test-actions.scss';
 
 interface IProps {
-  summaryAllUnreadMessages: () => Promise<void>;
+  summaryAllUnreadMessages?: () => Promise<void>;
   showTestModalVisible?: () => void;
 }
 const TestActions = (props: IProps) => {
@@ -21,7 +21,7 @@ const TestActions = (props: IProps) => {
   //   });
   // };
   const handleVoiceCall = () => {
-    fetch('http://10.1.4.146:3000/voice-call', {
+    fetch('http://10.1.4.150:3000/voice-call', {
       method: 'POST',
     });
   };

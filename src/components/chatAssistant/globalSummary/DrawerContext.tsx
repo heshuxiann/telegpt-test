@@ -9,6 +9,7 @@ export enum DrawerKey {
   OriginalMessages = 'OriginalMessages',
   CustomizationPrompt = 'CustomizationPrompt',
   ChatPicker = 'ChatPicker',
+  AddTopicPanel = 'AddTopicPanel',
 }
 
 type DrawerMeta = {
