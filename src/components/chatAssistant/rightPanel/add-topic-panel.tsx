@@ -27,18 +27,34 @@ const AddTopicPanel = () => {
   const strongAlertChange = (checked:boolean) => {
     setStrongAlert(checked);
   };
+  const updateAllTopicPhoneNumber = async (phoneNumber:string) => {
+    console.log(1111);
+    const allTopics = await ChataiUrgentTopicStore.getAllUrgentTopic();
+    allTopics.map((topic) => {
+      if (topic.phoneNumber) {
+        topic.phoneNumber = phoneNumber;
+      }
+      return topic;
+    });
+    console.log(2222);
+    return ChataiUrgentTopicStore.addUrgentTopics(allTopics);
+  };
   const handleSave = useCallback(() => {
-    form.validateFields().then((values) => {
+    form.validateFields().then(async (values) => {
       console.log('values', values);
-      const topicId = drawerParams?.topicId || uuidv4();
-      ChataiUrgentTopicStore.addUrgentTopic({ id: topicId, ...values });
+      const topicId = drawerParams?.id || uuidv4();
+      await ChataiUrgentTopicStore.addUrgentTopic({ id: topicId, ...values });
+      if (values.phoneNumber) {
+        await updateAllTopicPhoneNumber(values.phoneNumber);
+        console.log(3333);
+      }
       openDrawer(DrawerKey.PersonalizeSettings, {
         activeKey: '2',
       });
     }).catch((errorInfo) => {
       console.log('errorInfo', errorInfo);
     });
-  }, [drawerParams?.topicId, form, openDrawer]);
+  }, [drawerParams?.id, form, openDrawer]);
   const handleCancel = useCallback(() => {
     openDrawer(DrawerKey.PersonalizeSettings, {
       activeKey: '2',

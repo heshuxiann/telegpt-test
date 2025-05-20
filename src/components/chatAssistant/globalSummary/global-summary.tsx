@@ -65,7 +65,7 @@ const GlobalSummary = () => {
     setSummaryModalVisible(false);
   }, []);
 
-  const handleAddSummaryMessage = (message:StoreMessage) => {
+  const handleAddSummaryMessage = (message: StoreMessage) => {
     setMessageList((prev) => [...prev, message]);
     // 通知
     window.Notification.requestPermission().then((permission) => {
@@ -80,7 +80,7 @@ const GlobalSummary = () => {
       }
     });
   };
-  const handleAddUrgentMessage = (message:StoreMessage) => {
+  const handleAddUrgentMessage = (message: StoreMessage) => {
     setMessageList((prev) => [...prev, message]);
     setNotificationMessage(message);
   };
@@ -161,7 +161,7 @@ const GlobalSummary = () => {
           {/* <TestActions
           // eslint-disable-next-line react/jsx-no-bind
           // eslint-disable-next-line react/jsx-no-bind
-          showTestModalVisible={() => { setTestModalVisible(true); }}
+          // showTestModalVisible={() => { setTestModalVisible(true); }}
         /> */}
           {/* <TestModal
           visible={testModalVisable}

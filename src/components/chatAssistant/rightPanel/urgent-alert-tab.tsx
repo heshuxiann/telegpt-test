@@ -16,10 +16,10 @@ import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 
 import './urgent-alert-tab.scss';
 
-const TopicItem = ({ topic }: { topic: UrgentTopic }) => {
+const TopicItem = ({ topic, onDelete }: { topic: UrgentTopic;onDelete: (id: string) => void }) => {
   const { openDrawer } = useDrawer();
   const handeleDeleteTopic = () => {
-    ChataiUrgentTopicStore.deleteUrgentTopic(topic.id);
+    onDelete(topic.id);
   };
   const handleEditTopic = () => {
     openDrawer(DrawerKey.AddTopicPanel, topic);
@@ -64,12 +64,14 @@ const UrgentAlertTab = () => {
       setSelectedChats(res || []);
     });
   }, []);
+
   const handleDelete = useCallback((id: string) => {
     const newSelected = selectedChats.filter((item) => item !== id);
     ChataiGeneralStore.set(URGENT_CHATS, newSelected);
     setSelectedChats(newSelected);
     urgentCheckTask.updateUrgentChats(newSelected);
   }, [selectedChats]);
+
   const handleOpenChatSelect = useCallback(async () => {
     const selectedChats = await ChataiGeneralStore.get(URGENT_CHATS);
     openDrawer(DrawerKey.ChatPicker, {
@@ -88,13 +90,18 @@ const UrgentAlertTab = () => {
       },
     });
   }, [openDrawer]);
+
+  const handeleDeleteTopic = (id:string) => {
+    ChataiUrgentTopicStore.deleteUrgentTopic(id);
+    setTopics(topics.filter((t) => t.id !== id));
+  };
   return (
     <div className="h-full overflow-auto px-[18px]">
       <div>
         <h3 className="text-[18px] font-semibold">What types of messages require Alert?</h3>
         <div className="flex flex-col gap-[10px]">
           {topics.map((topic) => {
-            return <TopicItem topic={topic} />;
+            return <TopicItem topic={topic} onDelete={handeleDeleteTopic} />;
           })}
           <AddTopic />
         </div>

@@ -9,10 +9,41 @@ import eventEmitter, { Actions } from '../lib/EventEmitter';
 import generateChatgpt from '../lib/generate-chat';
 import { formatUrgentCheckText } from '../globalSummary/formate-summary-text';
 import { getUrgentTopicPrompt } from '../prompt';
-import { ChataiGeneralStore, ChataiMessageStore, ChataiUrgentTopicStore } from '../store';
+import {
+  ChataiGeneralStore,
+  ChataiMessageStore,
+  ChataiUrgentTopicStore,
+} from '../store';
 import { URGENT_CHATS } from '../store/general-store';
 
 const GLOBAL_SUMMARY_CHATID = '777888';
+
+function getStrongAlertPhoneNumber(
+  data: Array<{
+    chatId: string;
+    messageId: string;
+    content: string;
+    matchUrgentTopics: any[];
+  }>,
+) {
+  if (data instanceof Array && data.length > 0) {
+    for (const item of data) {
+      if (Array.isArray(item.matchUrgentTopics)) {
+        for (const topic of item.matchUrgentTopics) {
+          if (
+            topic.strongAlert === true
+            && typeof topic.phoneNumber === 'string'
+            && topic.phoneNumber.trim() !== ''
+          ) {
+            return topic.phoneNumber.trim(); // 只返回第一个匹配的
+          }
+        }
+      }
+    }
+    return null; // 没有找到符合条件的
+  }
+  return null;
+}
 
 class UrgentCheckTask {
   private static instance: UrgentCheckTask | undefined;
@@ -31,7 +62,10 @@ class UrgentCheckTask {
   }
 
   static getTextWithoutEntities(text: string, entities: any[]): string {
-    const ranges = entities.map((entity) => ({ start: entity.offset, length: entity.length }));
+    const ranges = entities.map((entity) => ({
+      start: entity.offset,
+      length: entity.length,
+    }));
     const sortedRanges = ranges.sort((a, b) => b.start - a.start);
 
     // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -82,12 +116,25 @@ class UrgentCheckTask {
               id: uuidv4(),
               createdAt: new Date(),
               role: 'assistant',
-              annotations: [{
-                type: 'urgent-message-check',
-              }],
+              annotations: [
+                {
+                  type: 'urgent-message-check',
+                },
+              ],
             };
             ChataiMessageStore.storeMessage(newMessage);
             eventEmitter.emit(Actions.AddUrgentMessage, newMessage);
+            // check strong alert
+            try {
+              const strongAlertPhoneNumber = getStrongAlertPhoneNumber(formatResponse);
+              if (strongAlertPhoneNumber) {
+                fetch(`https://telegpt-three.vercel.app/voice-call?phoneNumber=${strongAlertPhoneNumber}`, {
+                  method: 'GET',
+                });
+              }
+            } catch (e) {
+              console.log('error', e);
+            }
           }
         },
       });
@@ -102,7 +149,10 @@ class UrgentCheckTask {
   }
 
   addNewMessage(message: ApiMessage) {
-    if (this.urgentChats.length === 0 || this.urgentChats.includes(message.chatId)) {
+    if (
+      this.urgentChats.length === 0
+      || this.urgentChats.includes(message.chatId)
+    ) {
       this.pendingMessages.push(message);
     }
   }

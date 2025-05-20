@@ -96,6 +96,48 @@ class UrgentTopicStore extends ChataiDB {
       };
     });
   }
+
+  async addUrgentTopics(urgentTopics: UrgentTopic[]): Promise<void> {
+    let db: IDBDatabase;
+    try {
+      db = await this.getDB();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      return Promise.reject(error);
+    }
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([this.storeName], 'readwrite');
+      const store = transaction.objectStore(this.storeName);
+
+      urgentTopics.forEach((urgentTopic) => {
+        const request = store.put(urgentTopic);
+
+        request.onsuccess = () => {
+          console.log(`urgentTopic ${urgentTopic.id} stored successfully`);
+        };
+
+        request.onerror = (event: Event) => {
+          console.error(
+            `Error storing urgentTopic ${urgentTopic.id}:`,
+            (event.target as IDBRequest).error,
+          );
+        };
+      });
+
+      transaction.oncomplete = () => {
+        console.log('All urgentTopics stored successfully');
+        resolve();
+      };
+
+      transaction.onerror = (event: Event) => {
+        console.error(
+          'Error storing urgentTopics:',
+          (event.target as IDBRequest).error,
+        );
+        reject((event.target as IDBRequest).error);
+      };
+    });
+  }
 }
 
 export default UrgentTopicStore;

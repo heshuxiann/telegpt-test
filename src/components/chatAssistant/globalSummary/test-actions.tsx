@@ -20,9 +20,10 @@ const TestActions = (props: IProps) => {
   //     }
   //   });
   // };
+
   const handleVoiceCall = () => {
-    fetch('http://10.1.4.150:3000/voice-call', {
-      method: 'POST',
+    fetch('https://telegpt-three.vercel.app/voice-call?phoneNumber=17671617800', {
+      method: 'GET',
     });
   };
   return (
