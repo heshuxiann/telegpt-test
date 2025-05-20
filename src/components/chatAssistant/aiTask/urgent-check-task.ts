@@ -53,7 +53,7 @@ class UrgentCheckTask {
   initTask() {
     setInterval(() => {
       this.checkUrgentMessage();
-    }, 1000 * 10);
+    }, 1000 * 60 * 5);
   }
 
   static getTextWithoutEntities(text: string, entities: any[]): string {
