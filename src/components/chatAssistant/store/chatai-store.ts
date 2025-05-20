@@ -56,10 +56,10 @@ class ChataiDB {
         //   // eslint-disable-next-line no-console
         //   console.log('messages 对象存储已删除');
         // }
-        if (db.objectStoreNames.contains('knowledge')) {
-          db.deleteObjectStore('knowledge');
+        if (db.objectStoreNames.contains('urgentTopic')) {
+          db.deleteObjectStore('urgentTopic');
           // eslint-disable-next-line no-console
-          console.log('knowledge 对象存储已删除');
+          console.log('urgentTopic 对象存储已删除');
         }
         Object.entries(this.STORE_CONFIG).forEach(([storeName, config]) => {
           if (!db.objectStoreNames.contains(storeName)) {
