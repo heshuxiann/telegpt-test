@@ -30,7 +30,7 @@ class ChataiDB {
     general: { autoIncrement: true },
     knowledge: { keyPath: 'id', autoIncrement: true },
     summaryTemplate: { keyPath: 'id', autoIncrement: true },
-    urgentTopic: { keyPath: 'topicId', autoIncrement: false },
+    urgentTopic: { keyPath: 'id', autoIncrement: false },
   };
 
   constructor(VERSION: number) {
