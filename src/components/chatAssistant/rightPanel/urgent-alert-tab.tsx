@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import type { UrgentTopic } from '../store/urgent-topic-store';
 
 import { urgentCheckTask } from '../aiTask/urgent-check-task';
-import { ChataiGeneralStore, ChataiUrgentTopicStore } from '../store';
+import { ChataiStores } from '../store';
 import { URGENT_CHATS } from '../store/general-store';
 import { SelectedChats } from './selected-chats';
 
@@ -56,28 +56,28 @@ const UrgentAlertTab = () => {
   const [selectedChats, setSelectedChats] = useState<string[]>([]);
   const { openDrawer } = useDrawer();
   useEffect(() => {
-    ChataiUrgentTopicStore.getAllUrgentTopic().then((topics) => {
+    ChataiStores.urgentTopic?.getAllUrgentTopic().then((topics) => {
       console.log('topics', topics);
       setTopics(topics);
     });
-    ChataiGeneralStore.get(URGENT_CHATS).then((res) => {
+    ChataiStores.general?.get(URGENT_CHATS).then((res) => {
       setSelectedChats(res || []);
     });
   }, []);
 
   const handleDelete = useCallback((id: string) => {
     const newSelected = selectedChats.filter((item) => item !== id);
-    ChataiGeneralStore.set(URGENT_CHATS, newSelected);
+    ChataiStores.general?.set(URGENT_CHATS, newSelected);
     setSelectedChats(newSelected);
     urgentCheckTask.updateUrgentChats(newSelected);
   }, [selectedChats]);
 
   const handleOpenChatSelect = useCallback(async () => {
-    const selectedChats = await ChataiGeneralStore.get(URGENT_CHATS);
+    const selectedChats = await ChataiStores.general?.get(URGENT_CHATS);
     openDrawer(DrawerKey.ChatPicker, {
       selectedChats,
       onSave: (chats: string[]) => {
-        ChataiGeneralStore.set(URGENT_CHATS, chats);
+        ChataiStores.general?.set(URGENT_CHATS, chats);
         openDrawer(DrawerKey.PersonalizeSettings, {
           activeKey: '2',
         });
@@ -92,7 +92,7 @@ const UrgentAlertTab = () => {
   }, [openDrawer]);
 
   const handeleDeleteTopic = (id:string) => {
-    ChataiUrgentTopicStore.deleteUrgentTopic(id);
+    ChataiStores.urgentTopic?.deleteUrgentTopic(id);
     setTopics(topics.filter((t) => t.id !== id));
   };
   return (

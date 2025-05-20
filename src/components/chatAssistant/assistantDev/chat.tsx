@@ -7,12 +7,11 @@ import { v4 as uuidv4 } from 'uuid';
 import type { ApiMessage, ApiMessageEntityMentionName } from '../../../api/types';
 import type { IFetchUnreadMessage, ImAssistantChat } from './im-assistant';
 
+import { Messages } from '../messages';
 import TagsModal from '../modal/tagsModal';
 import SettingPanel from '../setting-panel';
-import { ChataiUserStore } from '../store';
+import { ChataiStores } from '../store';
 import { MultimodalInput } from './multimodal-input';
-
-import { Messages } from '../../right/ChatAI/messages';
 
 interface IProps {
   currentChat: ImAssistantChat;
@@ -59,7 +58,7 @@ export function Chat(props:IProps) {
     if (currentChat) {
       // eslint-disable-next-line @typescript-eslint/no-shadow
       if (currentChat?.chatType === 'single') {
-        ChataiUserStore.getUser(currentChat.chatId).then((userInfo) => {
+        ChataiStores.user?.getUser(currentChat.chatId).then((userInfo) => {
           if (userInfo) {
             let content = `这是一个IM聊天室,你的名字是${userInfo.name},你的手机号是${userInfo.phoneNumber};`;
             if (userInfo?.tags) {

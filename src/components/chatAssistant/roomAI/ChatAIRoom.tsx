@@ -20,7 +20,7 @@ import type { InfiniteScrollRef } from '../component/InfiniteScroll';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import { Messages } from '../messages';
-import { ChataiMessageStore } from '../store';
+import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { checkGoogleAuthStatus } from '../utils/google-api';
 import { RoomAIInput } from './room-ai-input';
@@ -62,7 +62,7 @@ const ChatAIRoomInner = (props: StateProps) => {
   useEffect(() => {
     if (chatId) {
       initDate();
-      ChataiMessageStore.getMessages(chatId, undefined, 10)?.then((res) => {
+      ChataiStores.message?.getMessages(chatId, undefined, 10)?.then((res) => {
         if (res.messages) {
           const localChatAiMessages = parseStoreMessage2Message(res.messages);
           setMessages(localChatAiMessages);
@@ -78,7 +78,7 @@ const ChatAIRoomInner = (props: StateProps) => {
   const handleLoadMore = useCallback(() => {
     return new Promise<void>((resolve) => {
       if (chatId) {
-        ChataiMessageStore.getMessages(chatId, pageInfo?.lastTime, 10)?.then((res) => {
+        ChataiStores.message?.getMessages(chatId, pageInfo?.lastTime, 10)?.then((res) => {
           if (res.messages) {
             const localChatAiMessages = parseStoreMessage2Message(res.messages);
             setMessages((prev) => [...localChatAiMessages, ...prev]);
@@ -124,13 +124,13 @@ const ChatAIRoomInner = (props: StateProps) => {
         message: response.error?.message || 'Create Calendar Failed',
       });
       if (response.error?.code === 401 || response.error?.code === 403) {
-        ChataiMessageStore.delMessage(message?.id);
+        ChataiStores.message?.delMessage(message?.id);
         const newMessage = messages.filter((item) => item.id !== message?.id);
         setMessages(newMessage as UIMessage[]);
         addAuthMessage();
       }
     } else {
-      ChataiMessageStore.delMessage(message?.id);
+      ChataiStores.message?.delMessage(message?.id);
       const newMessage = messages.filter((item) => item.id !== message?.id);
       const appendMessage = [
         {
@@ -160,7 +160,7 @@ const ChatAIRoomInner = (props: StateProps) => {
     const { message, token } = payload;
     tokenRef.current = token;
     if (message) {
-      ChataiMessageStore.delMessage(message.id);
+      ChataiStores.message?.delMessage(message.id);
       setMessages((prev) => prev.filter((item) => item.id !== message.id));
     }
   }, [setMessages]);
@@ -179,7 +179,7 @@ const ChatAIRoomInner = (props: StateProps) => {
   useEffect(() => {
     if (!isLoading && chatId) {
       const msgs = parseMessage2StoreMessage(chatId, messages);
-      ChataiMessageStore.storeMessages([...msgs]);
+      ChataiStores.message?.storeMessages([...msgs]);
     }
   }, [messages, isLoading, chatId]);
 
@@ -212,7 +212,7 @@ const ChatAIRoomInner = (props: StateProps) => {
               // eslint-disable-next-line no-console
               console.log('没有命中工具');
               setMessages((prev) => prev.slice(0, prev.length - 1));
-              ChataiMessageStore.delMessage(formMessage.id);
+              ChataiStores.message?.delMessage(formMessage.id);
               append({
                 role: 'user',
                 content: formMessage.content,

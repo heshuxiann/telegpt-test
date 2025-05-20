@@ -1,7 +1,7 @@
+/* eslint-disable no-null/no-null */
 /* eslint-disable no-console */
 import type { StoreName } from './chatai-store';
-
-import ChataiDB from './chatai-store';
+import type ChataiDB from './chatai-store';
 
 export interface AiKnowledge {
   id: string;
@@ -9,13 +9,22 @@ export interface AiKnowledge {
   plainText: string;
   question: string;
 }
-class KnowledgeStore extends ChataiDB {
+class KnowledgeStore {
   private storeName: StoreName = 'knowledge';
+
+  private db: IDBDatabase | null = null;
+
+  private chataiStoreManager:ChataiDB;
+
+  constructor(private dbManager: ChataiDB) {
+    this.db = dbManager.db;
+    this.chataiStoreManager = dbManager;
+  }
 
   async getKnowledge(id: string): Promise<AiKnowledge | undefined> {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);
@@ -36,7 +45,7 @@ class KnowledgeStore extends ChataiDB {
   async getAllKnowledge(): Promise<AiKnowledge[] | undefined> {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);
@@ -57,7 +66,7 @@ class KnowledgeStore extends ChataiDB {
   async addKnowledge(knowledge: AiKnowledge) {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);
@@ -78,7 +87,7 @@ class KnowledgeStore extends ChataiDB {
   async deleteKnowledge(id:string) {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);

@@ -12,7 +12,7 @@ interface StoreConfig {
 
 type StoreConfigMap = Record<StoreName, StoreConfig>;
 
-class ChataiStoreManager {
+class ChataiDB {
   private instance: IDBDatabase | null = null;
 
   private initPromise: Promise<IDBDatabase> | null = null;
@@ -21,7 +21,7 @@ class ChataiStoreManager {
 
   private VERSION: number;
 
-  public db: IDBDatabase | null = null;
+  private db: IDBDatabase | null = null;
 
   private STORE_CONFIG:StoreConfigMap = {
     message: { keyPath: 'id', indexes: [['id', 'id'], ['chatId_timestamp', ['chatId', 'timestamp']]] },
@@ -36,6 +36,7 @@ class ChataiStoreManager {
   constructor(VERSION: number, DB_NAME: string) {
     this.VERSION = VERSION;
     this.DB_NAME = DB_NAME;
+    this.initDB();
   }
 
   initDB(): Promise<IDBDatabase> {
@@ -94,4 +95,4 @@ class ChataiStoreManager {
   }
 }
 
-export default ChataiStoreManager;
+export default ChataiDB;

@@ -2,6 +2,8 @@ export enum Actions {
   HideMenu = 'HideMenu',
   ShowMenu = 'ShowMenu',
   ShowTranslateModal = 'ShowTranslateModal',
+  // store
+  ChatAIStoreReady = 'ChatAIStoreReady',
 
   // global ai assistant
   AddNewMessageToAiAssistant = 'AddNewMessageToAiAssistant',

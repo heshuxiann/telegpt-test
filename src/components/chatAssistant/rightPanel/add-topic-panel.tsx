@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import type { UrgentTopic } from '../store/urgent-topic-store';
 
-import { ChataiUrgentTopicStore } from '../store';
+import { ChataiStores } from '../store';
 
 import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 
@@ -28,22 +28,20 @@ const AddTopicPanel = () => {
     setStrongAlert(checked);
   };
   const updateAllTopicPhoneNumber = async (phoneNumber:string) => {
-    console.log(1111);
-    const allTopics = await ChataiUrgentTopicStore.getAllUrgentTopic();
-    allTopics.map((topic) => {
+    const allTopics = await ChataiStores.urgentTopic?.getAllUrgentTopic();
+    allTopics?.map((topic) => {
       if (topic.phoneNumber) {
         topic.phoneNumber = phoneNumber;
       }
       return topic;
     });
-    console.log(2222);
-    return ChataiUrgentTopicStore.addUrgentTopics(allTopics);
+    return ChataiStores.urgentTopic?.addUrgentTopics(allTopics || []);
   };
   const handleSave = useCallback(() => {
     form.validateFields().then(async (values) => {
       console.log('values', values);
       const topicId = drawerParams?.id || uuidv4();
-      await ChataiUrgentTopicStore.addUrgentTopic({ id: topicId, ...values });
+      await ChataiStores.urgentTopic?.addUrgentTopic({ id: topicId, ...values });
       if (values.phoneNumber) {
         await updateAllTopicPhoneNumber(values.phoneNumber);
         console.log(3333);

@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-shadow */
+/* eslint-disable no-null/no-null */
+import eventEmitter, { Actions } from '../lib/EventEmitter';
+import ChataiStoreManager from './chatai-store';
 import SummaryTemplateStore from './chatai-summary-template-store';
 import ContactStore from './contact-store';
 import GeneralStore from './general-store';
@@ -6,30 +10,59 @@ import MessageStore from './messages-store';
 import UrgentTopicStore from './urgent-topic-store';
 import UsersStore from './user-store';
 
-const dbVersion = 11;
+const dbVersion = 14;
 
 export const GLOBAL_SUMMARY_LAST_TIME = 'globalSummaryLastTime';
 export const GLOBAL_SUMMARY_READ_TIME = 'globalSummaryReadTime';
 
-export const ChataiMessageStore = new MessageStore(dbVersion);
-export const ChataiContactStore = new ContactStore(dbVersion);
-export const ChataiUserStore = new UsersStore(dbVersion);
-export const ChataiGeneralStore = new GeneralStore(dbVersion);
-export const ChataiKnowledgelStore = new KnowledgeStore(dbVersion);
-export const ChataiSummaryTemplateStore = new SummaryTemplateStore(dbVersion);
-export const ChataiUrgentTopicStore = new UrgentTopicStore(dbVersion);
-(window as any).downloadAllSummarys = () => {
-  ChataiMessageStore.getAllMessages().then((res) => {
-    const content = JSON.stringify(res);
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    // 3. 创建下载链接并触发点击
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'summarys.txt'; // 设置下载文件名
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
-  });
+let currentUserId!:string;
+
+let storeBuildState: boolean = false;
+
+export const ChataiStores = {
+  message: null as MessageStore | null,
+  contact: null as ContactStore | null,
+  user: null as UsersStore | null,
+  general: null as GeneralStore | null,
+  knowledge: null as KnowledgeStore | null,
+  summaryTemplate: null as SummaryTemplateStore | null,
+  urgentTopic: null as UrgentTopicStore | null,
 };
-(window as any).ChataiMessageStore = ChataiMessageStore;
+
+export function setChataiStoreBuilderCurrentUserId(_currentUserId: string) {
+  currentUserId = _currentUserId;
+  if (!storeBuildState) {
+    initChataiStores(currentUserId);
+  }
+}
+
+export async function initChataiStores(currentUserId: string) {
+  storeBuildState = true;
+  console.log('初始化数据库...');
+  const dbName = `tt-chatai-${currentUserId}`;
+  const chataiStoreManager = new ChataiStoreManager(dbVersion, dbName);
+  await chataiStoreManager.initDB();
+  ChataiStores.message = new MessageStore(chataiStoreManager);
+  ChataiStores.contact = new ContactStore(chataiStoreManager);
+  ChataiStores.user = new UsersStore(chataiStoreManager);
+  ChataiStores.general = new GeneralStore(chataiStoreManager);
+  ChataiStores.knowledge = new KnowledgeStore(chataiStoreManager);
+  ChataiStores.summaryTemplate = new SummaryTemplateStore(chataiStoreManager);
+  ChataiStores.urgentTopic = new UrgentTopicStore(chataiStoreManager);
+  eventEmitter.emit(Actions.ChatAIStoreReady);
+  (window as any).downloadAllSummarys = () => {
+    ChataiStores.message?.getAllMessages().then((res) => {
+      const content = JSON.stringify(res);
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      // 3. 创建下载链接并触发点击
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'summarys.txt'; // 设置下载文件名
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    });
+  };
+  (window as any).ChataiMessageStore = ChataiStores.message;
+}

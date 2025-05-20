@@ -23,7 +23,6 @@ import { MULTITAB_STORAGE_KEY } from './util/multiaccount';
 import { checkAndAssignPermanentWebVersion } from './util/permanentWebVersion';
 import { onBeforeUnload } from './util/schedulers';
 import updateWebmanifest from './util/updateWebmanifest';
-import { initChatAI } from './components/chatAssistant/utils/init';
 
 import App from './components/App';
 
@@ -68,8 +67,6 @@ async function init() {
   const global = getGlobal();
 
   initLocalization(selectSharedSettings(global).language, true);
-
-  initChatAI();
 
   subscribeToMasterChange((isMasterTab) => {
     getActions()

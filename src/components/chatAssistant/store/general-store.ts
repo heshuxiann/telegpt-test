@@ -1,19 +1,28 @@
+/* eslint-disable no-null/no-null */
 /* eslint-disable no-console */
 // import { CONTACT_IDB_STORE } from './im-assistant-idb';
 
 import type { StoreName } from './chatai-store';
-
-import ChataiDB from './chatai-store';
+import type ChataiDB from './chatai-store';
 
 export const SUMMARY_CHATS = 'summaryChats';
 export const URGENT_CHATS = 'urgentChats';
-class GeneralStore extends ChataiDB {
+class GeneralStore {
   private storeName: StoreName = 'general';
+
+  private db: IDBDatabase | null = null;
+
+  private chataiStoreManager:ChataiDB;
+
+  constructor(private dbManager: ChataiDB) {
+    this.db = dbManager.db;
+    this.chataiStoreManager = dbManager;
+  }
 
   async get(key: string): Promise<any | undefined> {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);
@@ -34,7 +43,7 @@ class GeneralStore extends ChataiDB {
   async set(key:string, value:any) {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);
@@ -55,7 +64,7 @@ class GeneralStore extends ChataiDB {
   async delete(key:string) {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);

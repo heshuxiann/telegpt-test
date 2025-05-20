@@ -9,11 +9,7 @@ import eventEmitter, { Actions } from '../lib/EventEmitter';
 import generateChatgpt from '../lib/generate-chat';
 import { formatUrgentCheckText } from '../globalSummary/formate-summary-text';
 import { getUrgentTopicPrompt } from '../prompt';
-import {
-  ChataiGeneralStore,
-  ChataiMessageStore,
-  ChataiUrgentTopicStore,
-} from '../store';
+import { ChataiStores } from '../store';
 import { URGENT_CHATS } from '../store/general-store';
 
 const GLOBAL_SUMMARY_CHATID = '777888';
@@ -52,10 +48,9 @@ class UrgentCheckTask {
 
   private urgentChats: string[] = [];
 
+  private urgentChatsInitialized:boolean = false;
+
   initTask() {
-    ChataiGeneralStore.get(URGENT_CHATS).then((res) => {
-      this.urgentChats = res || [];
-    });
     setInterval(() => {
       this.checkUrgentMessage();
     }, 1000 * 60 * 5);
@@ -86,7 +81,7 @@ class UrgentCheckTask {
         content: item.content.text?.text,
       };
     });
-    ChataiUrgentTopicStore.getAllUrgentTopic().then((topics) => {
+    ChataiStores.urgentTopic?.getAllUrgentTopic().then((topics) => {
       const urgentPrompts = getUrgentTopicPrompt(topics);
       generateChatgpt({
         data: {
@@ -122,7 +117,7 @@ class UrgentCheckTask {
                 },
               ],
             };
-            ChataiMessageStore.storeMessage(newMessage);
+            ChataiStores.message?.storeMessage(newMessage);
             eventEmitter.emit(Actions.AddUrgentMessage, newMessage);
             // check strong alert
             try {
@@ -148,11 +143,25 @@ class UrgentCheckTask {
     console.log('checkUrgentMessage', this.pendingMessages);
   }
 
-  addNewMessage(message: ApiMessage) {
-    if (
-      this.urgentChats.length === 0
-      || this.urgentChats.includes(message.chatId)
-    ) {
+  getUrgentChats():Promise<string[]> {
+    return new Promise((resolve) => {
+      if (this.urgentChatsInitialized) {
+        resolve(this.urgentChats);
+      } else {
+        this.urgentChatsInitialized = true;
+        ChataiStores.general?.get(URGENT_CHATS).then((chats) => {
+          this.urgentChats = chats || [];
+          resolve(chats || []);
+        }).catch(() => {
+          resolve([]);
+        });
+      }
+    });
+  }
+
+  async addNewMessage(message: ApiMessage) {
+    const urgentChats = await this.getUrgentChats() || [];
+    if (urgentChats.length === 0 || urgentChats.includes(message.chatId)) {
       this.pendingMessages.push(message);
     }
   }

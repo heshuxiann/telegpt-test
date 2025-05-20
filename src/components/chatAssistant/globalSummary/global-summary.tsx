@@ -21,7 +21,7 @@ import { CloseIcon, SettingIcon } from '../icons';
 import { Messages } from '../messages';
 import { RightPanel } from '../rightPanel/right-panel';
 import {
-  ChataiGeneralStore, ChataiMessageStore, GLOBAL_SUMMARY_LAST_TIME,
+  ChataiStores, GLOBAL_SUMMARY_LAST_TIME,
 } from '../store';
 import { parseStoreMessage2Message } from '../store/messages-store';
 // import TestActions from './test-actions';
@@ -47,7 +47,7 @@ const GlobalSummary = () => {
   const orderedIds = React.useMemo(() => getOrderedIds(ALL_FOLDER_ID) || [], []);
   const handleLoadMore = useCallback(() => {
     return new Promise<void>((resolve) => {
-      ChataiMessageStore.getMessages(GLOBAL_SUMMARY_CHATID, pageInfo?.lastTime, 10)?.then((res) => {
+      ChataiStores.message?.getMessages(GLOBAL_SUMMARY_CHATID, pageInfo?.lastTime, 10)?.then((res) => {
         if (res.messages) {
           const localChatAiMessages = parseStoreMessage2Message(res.messages);
           setMessageList((prev) => [...localChatAiMessages, ...prev]);
@@ -89,15 +89,17 @@ const GlobalSummary = () => {
     eventEmitter.on(Actions.HideGlobalSummaryModal, handleClose);
     eventEmitter.on(Actions.AddUrgentMessage, handleAddUrgentMessage);
     eventEmitter.on(Actions.AddSummaryMessage, handleAddSummaryMessage);
+    eventEmitter.on(Actions.ChatAIStoreReady, getSummaryHistory);
     return () => {
       eventEmitter.off(Actions.HideGlobalSummaryModal, handleClose);
       eventEmitter.off(Actions.AddUrgentMessage, handleAddUrgentMessage);
       eventEmitter.off(Actions.AddSummaryMessage, handleAddSummaryMessage);
+      eventEmitter.off(Actions.ChatAIStoreReady, getSummaryHistory);
     };
   }, [handleClose]);
 
   const initUnSummaryMessage = async () => {
-    const globalSummaryLastTime: number | undefined = await ChataiGeneralStore.get(GLOBAL_SUMMARY_LAST_TIME);
+    const globalSummaryLastTime: number | undefined = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME);
     if (!globalSummaryLastTime) {
       // TODO 总结所有的未读消息
       globalSummaryTask.summaryAllUnreadMessages();
@@ -112,8 +114,8 @@ const GlobalSummary = () => {
     }
   }, [orderedIds?.length]);
 
-  useEffect(() => {
-    ChataiMessageStore.getMessages(GLOBAL_SUMMARY_CHATID, undefined, 10)?.then((res) => {
+  const getSummaryHistory = () => {
+    ChataiStores.message?.getMessages(GLOBAL_SUMMARY_CHATID, undefined, 10)?.then((res) => {
       if (res.messages) {
         const localChatAiMessages = parseStoreMessage2Message(res.messages);
         setMessageList((prev) => [...localChatAiMessages, ...prev]);
@@ -123,6 +125,12 @@ const GlobalSummary = () => {
         hasMore: res.hasMore,
       });
     });
+  };
+
+  useEffect(() => {
+    if (ChataiStores.message) {
+      getSummaryHistory();
+    }
   }, []);
 
   const openGlobalSummaryModal = () => {
@@ -131,7 +139,7 @@ const GlobalSummary = () => {
   };
 
   const deleteMessage = useCallback((messageId: string) => {
-    ChataiMessageStore.delMessage(messageId).then(() => {
+    ChataiStores.message?.delMessage(messageId).then(() => {
       setMessageList((prev) => prev.filter((message) => message.id !== messageId));
     });
   }, []);

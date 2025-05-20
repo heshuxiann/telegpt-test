@@ -3,20 +3,28 @@
 import type { Message } from 'ai';
 
 import type { StoreName } from './chatai-store';
-
-import ChataiDB from './chatai-store';
+import type ChataiDB from './chatai-store';
 
 export interface StoreMessage extends Message {
   chatId: string;
   timestamp: number;
 }
-class MessageStore extends ChataiDB {
+class MessageStore {
   private storeName: StoreName = 'message';
+
+  private db: IDBDatabase | null = null;
+
+  private chataiStoreManager:ChataiDB;
+
+  constructor(private dbManager: ChataiDB) {
+    this.db = dbManager.db;
+    this.chataiStoreManager = dbManager;
+  }
 
   async storeMessage(message: StoreMessage): Promise<void> {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return;
@@ -42,7 +50,7 @@ class MessageStore extends ChataiDB {
   async storeMessages(messages: StoreMessage[]): Promise<void> {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return;
@@ -86,7 +94,7 @@ class MessageStore extends ChataiDB {
   ): Promise<{ messages: any[]; lastTime: number | undefined ;hasMore:boolean }> {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);
@@ -125,7 +133,7 @@ class MessageStore extends ChataiDB {
   async getAllMessages(): Promise<StoreMessage[]> {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);
@@ -145,7 +153,7 @@ class MessageStore extends ChataiDB {
   async delMessage(id: string): Promise<void> {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);

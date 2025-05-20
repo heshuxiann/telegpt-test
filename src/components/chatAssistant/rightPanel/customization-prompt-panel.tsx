@@ -3,7 +3,7 @@ import React, { useCallback, useState } from 'react';
 import { Input } from 'antd';
 import { v4 as uuidv4 } from 'uuid';
 
-import { ChataiSummaryTemplateStore } from '../store';
+import { ChataiStores } from '../store';
 
 import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 
@@ -22,7 +22,7 @@ const CustomizationPromptPanel = () => {
     if (!title || !prompt) {
       return;
     }
-    ChataiSummaryTemplateStore.addSummaryTemplate({
+    ChataiStores.summaryTemplate?.addSummaryTemplate({
       id: uuidv4(),
       title,
       prompt,

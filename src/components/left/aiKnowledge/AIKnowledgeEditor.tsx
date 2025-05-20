@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import type { AiKnowledge } from '../../chatAssistant/store/knowledge-store';
 
-import { ChataiKnowledgelStore } from '../../chatAssistant/store';
+import { ChataiStores } from '../../chatAssistant/store';
 import { knowledgeEmbeddingStore } from '../../chatAssistant/vector-store';
 
 type OwnProps = {
@@ -65,7 +65,7 @@ const AIKnowledgeEditor = (props: OwnProps) => {
       setQuestionError('');
     }
     const knowledgeIdValue = type === 'add' ? knowledgeId.current : knowledge?.id as string;
-    ChataiKnowledgelStore.addKnowledge({
+    ChataiStores.knowledge?.addKnowledge({
       id: knowledgeIdValue,
       richText: value,
       plainText,

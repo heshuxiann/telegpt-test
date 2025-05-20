@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Form, Input, Modal } from 'antd';
 
-import { ChataiUserStore } from '../store';
+import { ChataiStores } from '../store';
 
 const { TextArea } = Input;
 
@@ -23,7 +23,7 @@ const TagsModal = (props: Iprops) => {
   const [userInfo, setUserInfo] = useState<UserInfo>({});
   useEffect(() => {
     if (userId) {
-      ChataiUserStore.getUser(userId).then((user) => {
+      ChataiStores.user?.getUser(userId).then((user) => {
         if (user) {
           setUserInfo(user);
           form.setFieldsValue({
@@ -38,7 +38,7 @@ const TagsModal = (props: Iprops) => {
   const handleSubmit = useCallback(() => {
     // eslint-disable-next-line no-console
     console.log(form);
-    ChataiUserStore.addUser({
+    ChataiStores.user?.addUser({
       ...userInfo,
       tags: form.getFieldValue('tags'),
     });

@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 /* eslint-disable no-null/no-null */
-import { ChataiGeneralStore } from '../store';
+import { ChataiStores } from '../store';
 
 const defaultSummaryPrompt = `
             你是一个专业的聊天记录分析师,请总结以下聊天内容,并根据不同的数据类型填充到相应的 JSON 模板中。
@@ -185,7 +185,7 @@ export const CustomizationTemplates = [
 
 export const getGlobalSummaryPrompt = () => {
   return new Promise<{ prompt:string;customizationTemplate:{ id:string;title:string;prompt:string } | null }>((resolve) => {
-    ChataiGeneralStore.get('lastDefinedPrompt').then((selectTemp) => {
+    ChataiStores.general?.get('lastDefinedPrompt').then((selectTemp) => {
       if (selectTemp?.prompt) {
         const template = `
                 你是一个专业的聊天记录分析师,请总结以下聊天内容,并根据不同的数据类型填充到相应的 JSON 模板中。

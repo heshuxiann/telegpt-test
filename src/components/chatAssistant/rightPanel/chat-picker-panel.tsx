@@ -39,11 +39,6 @@ const ChatPickerPanel = () => {
   const filter:ApiChatType[] = useMemo(() => ['channels', 'chats', 'users', 'groups'], []);
   const lang = useOldLang();
 
-  // useEffect(() => {
-  //   ChataiGeneralStore.get(SUMMARY_CHATS).then((res) => {
-  //     setSelected(res || []);
-  //   });
-  // }, []);
   const ids = useMemo(() => {
     const sorted = sortChatIds(
       filterPeersByQuery({
@@ -118,7 +113,6 @@ const ChatPickerPanel = () => {
   }, [drawerParams]);
 
   const handleSave = useCallback(() => {
-    // ChataiGeneralStore.set(SUMMARY_CHATS, selected);
     drawerParams?.onSave(selected);
   }, [drawerParams, selected]);
   return (

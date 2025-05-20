@@ -17,8 +17,8 @@ import { getOrderedIds } from '../../../util/folderManager';
 import { formatSummaryText } from '../globalSummary/formate-summary-text';
 import defaultSummaryPrompt, { getGlobalSummaryPrompt } from '../globalSummary/summary-prompt';
 import {
-  ChataiGeneralStore, ChataiMessageStore, GLOBAL_SUMMARY_LAST_TIME,
-  GLOBAL_SUMMARY_READ_TIME,
+  ChataiStores,
+  GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME,
 } from '../store';
 import { SUMMARY_CHATS } from '../store/general-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
@@ -48,10 +48,9 @@ class GlobalSummaryTask {
 
   private unreadSummaryCount = 0;
 
+  private summaryChatsInitialized = false;
+
   initTask() {
-    ChataiGeneralStore.get(SUMMARY_CHATS).then((res) => {
-      this.summaryChats = res || [];
-    });
     this.updateSummaryTemplate();
     const executeTask = () => {
       const currentTime = new Date();
@@ -99,7 +98,7 @@ class GlobalSummaryTask {
   }
 
   async initUnSummary() {
-    const globalSummaryLastTime: number | undefined = await ChataiGeneralStore.get(GLOBAL_SUMMARY_LAST_TIME);
+    const globalSummaryLastTime: number | undefined = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME);
     if (!globalSummaryLastTime) {
       // TODO 总结所有的未读消息
       this.summaryAllUnreadMessages();
@@ -112,7 +111,7 @@ class GlobalSummaryTask {
     // eslint-disable-next-line no-console
     console.log('开始总结', messages);
     const global = getGlobal();
-    const globalSummaryLastTime = await ChataiGeneralStore.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
+    const globalSummaryLastTime = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
     const summaryTime = new Date().getTime();
     if (!messages.length) return;
     const summaryMessages: SummaryMessage[] = messages.map((message) => {
@@ -153,7 +152,7 @@ class GlobalSummaryTask {
       },
       onResponse: (response) => {
         console.log('response', response);
-        ChataiGeneralStore.set(GLOBAL_SUMMARY_LAST_TIME, new Date().getTime());
+        ChataiStores.general?.set(GLOBAL_SUMMARY_LAST_TIME, new Date().getTime());
         const formatResponse = formatSummaryText(response);
         if (formatResponse) {
           const content = {
@@ -172,7 +171,7 @@ class GlobalSummaryTask {
               type: 'global-summary',
             }],
           };
-          ChataiMessageStore.storeMessage(newMessage);
+          ChataiStores.message?.storeMessage(newMessage);
           eventEmitter.emit(Actions.AddSummaryMessage, newMessage);
           callback?.();
         }
@@ -244,11 +243,11 @@ class GlobalSummaryTask {
   }
 
   async mergeUnreadSummarys() {
-    const lastReadTime: number | undefined = await ChataiGeneralStore.get(GLOBAL_SUMMARY_READ_TIME);
+    const lastReadTime: number | undefined = await ChataiStores.general?.get(GLOBAL_SUMMARY_READ_TIME);
     if (lastReadTime && this.unreadSummaryCount > 2) {
       this.summaryMessageByDeadline(lastReadTime);
     }
-    ChataiGeneralStore.set(GLOBAL_SUMMARY_READ_TIME, new Date().getTime());
+    ChataiStores.general?.set(GLOBAL_SUMMARY_READ_TIME, new Date().getTime());
     this.unreadSummaryCount = 0;
   }
 
@@ -269,9 +268,26 @@ class GlobalSummaryTask {
     // console.log('checkUrgentMessage', this.pendingMessages);
   }
 
-  addNewMessage(message: ApiMessage) {
+  getSummaryChats():Promise<string[]> {
+    return new Promise((resolve) => {
+      if (this.summaryChatsInitialized) {
+        resolve(this.summaryChats);
+      } else {
+        this.summaryChatsInitialized = true;
+        ChataiStores.general?.get(SUMMARY_CHATS).then((chats) => {
+          this.summaryChats = chats || [];
+          resolve(chats || []);
+        }).catch(() => {
+          resolve([]);
+        });
+      }
+    });
+  }
+
+  async addNewMessage(message: ApiMessage) {
+    const summaryChats = await this.getSummaryChats() || [];
     const chatId = message.chatId;
-    if (this.summaryChats.length === 0 || this.summaryChats.includes(chatId)) {
+    if (summaryChats.length === 0 || summaryChats.includes(chatId)) {
       this.pendingMessages.push(message);
       console.log('待总结的消息', this.pendingMessages);
     }

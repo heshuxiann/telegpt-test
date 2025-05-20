@@ -10,7 +10,7 @@ import type { CustomSummaryTemplate } from '../store/chatai-summary-template-sto
 import { globalSummaryTask } from '../aiTask/global-summary-task';
 import { CustomizationTemplates } from '../globalSummary/summary-prompt';
 import { CloseIcon } from '../icons';
-import { ChataiGeneralStore, ChataiSummaryTemplateStore } from '../store';
+import { ChataiStores } from '../store';
 import { SUMMARY_CHATS } from '../store/general-store';
 import { SelectedChats } from './selected-chats';
 
@@ -25,16 +25,16 @@ const SummarizeTab = () => {
   const [selectedChats, setSelectedChats] = useState<string[]>([]);
   const { openDrawer } = useDrawer();
   useEffect(() => {
-    ChataiSummaryTemplateStore.getAllSummaryTemplate().then((res) => {
+    ChataiStores.summaryTemplate?.getAllSummaryTemplate().then((res) => {
       setUserDefinedTemplate(res || []);
     });
-    ChataiGeneralStore.get('lastDefinedPrompt').then((res) => {
+    ChataiStores.general?.get('lastDefinedPrompt').then((res) => {
       if (res) {
         setLastTemplate(res);
         setCurrentTemplate(res);
       }
     });
-    ChataiGeneralStore.get(SUMMARY_CHATS).then((res) => {
+    ChataiStores.general?.get(SUMMARY_CHATS).then((res) => {
       setSelectedChats(res || []);
     });
   }, []);
@@ -55,20 +55,20 @@ const SummarizeTab = () => {
     setCurrentTemplate(lastTemplate);
   }, [lastTemplate]);
   const handleSave = useCallback(() => {
-    ChataiGeneralStore.set('lastDefinedPrompt', currentTemplate);
+    ChataiStores.general?.set('lastDefinedPrompt', currentTemplate);
     setLastTemplate(currentTemplate);
     globalSummaryTask.updateSummaryTemplate();
   }, [currentTemplate]);
   const handleDelete = useCallback((e: React.MouseEvent<HTMLDivElement>, id: string) => {
     e.preventDefault();
     e.stopPropagation();
-    ChataiSummaryTemplateStore.deleteSummaryTemplate(id).then(() => {
+    ChataiStores.summaryTemplate?.deleteSummaryTemplate(id).then(() => {
       setUserDefinedTemplate((prev) => {
         return prev.filter((item) => item.id !== id);
       });
     });
     if (id === lastTemplate?.id) {
-      ChataiGeneralStore.delete('lastDefinedPrompt').then(() => {
+      ChataiStores.general?.delete('lastDefinedPrompt').then(() => {
         setLastTemplate(undefined);
       });
     }
@@ -77,11 +77,11 @@ const SummarizeTab = () => {
     }
   }, [lastTemplate?.id, currentTemplate?.id]);
   const handleOpenChatSelect = useCallback(async () => {
-    const selected = await ChataiGeneralStore.get(SUMMARY_CHATS);
+    const selected = await ChataiStores.general?.get(SUMMARY_CHATS);
     openDrawer(DrawerKey.ChatPicker, {
       selectedChats: selected,
       onSave: (chats:string[]) => {
-        ChataiGeneralStore.set(SUMMARY_CHATS, chats);
+        ChataiStores.general?.set(SUMMARY_CHATS, chats);
         openDrawer(DrawerKey.PersonalizeSettings, {
           activeKey: '1',
         });
@@ -97,7 +97,7 @@ const SummarizeTab = () => {
 
   const handleDeleteSummaryChat = useCallback((id: string) => {
     const newSelected = selectedChats.filter((item) => item !== id);
-    ChataiGeneralStore.set(SUMMARY_CHATS, newSelected);
+    ChataiStores.general?.set(SUMMARY_CHATS, newSelected);
     globalSummaryTask.updateSummaryChats(newSelected);
     setSelectedChats(newSelected);
   }, [selectedChats]);

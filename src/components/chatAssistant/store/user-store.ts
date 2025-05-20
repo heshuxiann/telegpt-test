@@ -1,7 +1,7 @@
+/* eslint-disable no-null/no-null */
 /* eslint-disable no-console */
 import type { StoreName } from './chatai-store';
-
-import ChataiDB from './chatai-store';
+import type ChataiDB from './chatai-store';
 
 interface UserInfo {
   id: string;
@@ -11,13 +11,22 @@ interface UserInfo {
   tags?:string;
 }
 
-class UserStore extends ChataiDB {
+class UserStore {
   private storeName: StoreName = 'user';
+
+  private db: IDBDatabase | null = null;
+
+  private chataiStoreManager:ChataiDB;
+
+  constructor(private dbManager: ChataiDB) {
+    this.db = dbManager.db;
+    this.chataiStoreManager = dbManager;
+  }
 
   async getUser(id: string): Promise<UserInfo | undefined> {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);
@@ -38,7 +47,7 @@ class UserStore extends ChataiDB {
   async addUser(contact: UserInfo) {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);

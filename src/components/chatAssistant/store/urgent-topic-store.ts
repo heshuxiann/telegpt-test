@@ -1,7 +1,7 @@
+/* eslint-disable no-null/no-null */
 /* eslint-disable no-console */
 import type { StoreName } from './chatai-store';
-
-import ChataiDB from './chatai-store';
+import type ChataiDB from './chatai-store';
 
 export interface UrgentTopic {
   id: string;
@@ -11,13 +11,22 @@ export interface UrgentTopic {
   phoneNumber?: string;
 }
 
-class UrgentTopicStore extends ChataiDB {
+class UrgentTopicStore {
   private storeName: StoreName = 'urgentTopic';
+
+  private db: IDBDatabase | null = null;
+
+  private chataiStoreManager:ChataiDB;
+
+  constructor(private dbManager: ChataiDB) {
+    this.db = dbManager.db;
+    this.chataiStoreManager = dbManager;
+  }
 
   async getAllUrgentTopic(): Promise<UrgentTopic[]> {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);
@@ -38,7 +47,7 @@ class UrgentTopicStore extends ChataiDB {
   async getUrgentTopic(id: string): Promise<UrgentTopic> {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);
@@ -59,7 +68,7 @@ class UrgentTopicStore extends ChataiDB {
   async deleteUrgentTopic(id: string):Promise<void> {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);
@@ -79,7 +88,7 @@ class UrgentTopicStore extends ChataiDB {
   async addUrgentTopic(urgentTopic:UrgentTopic) {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);
@@ -100,7 +109,7 @@ class UrgentTopicStore extends ChataiDB {
   async addUrgentTopics(urgentTopics: UrgentTopic[]): Promise<void> {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);

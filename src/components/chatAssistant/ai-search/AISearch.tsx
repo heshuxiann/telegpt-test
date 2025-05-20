@@ -15,7 +15,7 @@ import type { InfiniteScrollRef } from '../component/InfiniteScroll';
 import generateChatgpt from '../lib/generate-chat';
 import { selectChat, selectUser } from '../../../global/selectors';
 import { Messages } from '../messages';
-import { ChataiMessageStore } from '../store';
+import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { messageEmbeddingStore } from '../vector-store';
 
@@ -40,7 +40,7 @@ export const AISearch = () => {
   });
 
   useEffect(() => {
-    ChataiMessageStore.getMessages(GLOBAL_SEARCH_CHATID, undefined, 20)?.then((res) => {
+    ChataiStores.message?.getMessages(GLOBAL_SEARCH_CHATID, undefined, 20)?.then((res) => {
       if (res.messages) {
         const localChatAiMessages = parseStoreMessage2Message(res.messages);
         setMessages((prev) => [...localChatAiMessages, ...prev]);
@@ -55,13 +55,13 @@ export const AISearch = () => {
   useEffect(() => {
     if (messages.length > 0 && !isLoading) {
       const parsedMessage = parseMessage2StoreMessage(GLOBAL_SEARCH_CHATID, messages);
-      ChataiMessageStore.storeMessages([...parsedMessage]);
+      ChataiStores.message?.storeMessages([...parsedMessage]);
     }
   }, [isLoading, messages]);
 
   const handleLoadMore = useCallback(() => {
     return new Promise<void>((resolve) => {
-      ChataiMessageStore.getMessages(GLOBAL_SEARCH_CHATID, pageInfo?.lastTime, 20)?.then((res) => {
+      ChataiStores.message?.getMessages(GLOBAL_SEARCH_CHATID, pageInfo?.lastTime, 20)?.then((res) => {
         if (res.messages) {
           const localChatAiMessages = parseStoreMessage2Message(res.messages);
           setMessages((prev) => [...localChatAiMessages, ...prev]);
@@ -76,7 +76,7 @@ export const AISearch = () => {
   }, [pageInfo?.lastTime, setMessages]);
 
   //   const deleteMessage = useCallback((messageId: string) => {
-  //     ChataiMessageStore.delMessage(messageId).then(() => {
+  //     ChataiStores.message?.delMessage(messageId).then(() => {
   //       setLocalChatAiMessages((prev) => prev.filter((message) => message.id !== messageId));
   //       setMessages((prev) => prev.filter((message) => message.id !== messageId));
   //     });
@@ -225,7 +225,7 @@ export const AISearch = () => {
     console.log('messages------->', messages);
     if (messages.length > 0 && !isLoading) {
       const parsedMessage = parseMessage2StoreMessage(GLOBAL_SEARCH_CHATID, messages);
-      ChataiMessageStore.storeMessages([...parsedMessage]);
+      ChataiStores.message?.storeMessages([...parsedMessage]);
     }
   }, [isLoading, messages]);
 

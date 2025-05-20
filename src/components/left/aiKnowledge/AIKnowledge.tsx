@@ -9,7 +9,7 @@ import React, {
 import type { AiKnowledge } from '../../chatAssistant/store/knowledge-store';
 
 import { LAYERS_ANIMATION_NAME } from '../../../util/browser/windowEnvironment';
-import { ChataiKnowledgelStore } from '../../chatAssistant/store';
+import { ChataiStores } from '../../chatAssistant/store';
 import { knowledgeEmbeddingStore } from '../../chatAssistant/vector-store';
 
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -28,7 +28,7 @@ const AIKnowledge:FC<OwnProps> = ({ onReset }) => {
   const [type, setType] = useState<'edit' | 'add'>('add');
   const [editKnowledge, setEditKnowledge] = useState<AiKnowledge | null>(null);
   useEffect(() => {
-    ChataiKnowledgelStore.getAllKnowledge().then((knowledge) => {
+    ChataiStores.knowledge?.getAllKnowledge().then((knowledge) => {
       setKnowledgeList(knowledge || []);
     });
   }, []);
@@ -49,12 +49,12 @@ const AIKnowledge:FC<OwnProps> = ({ onReset }) => {
   }, []);
   const handleUpdate = useCallback(() => {
     setEditKnowledge(null);
-    ChataiKnowledgelStore.getAllKnowledge().then((knowledge) => {
+    ChataiStores.knowledge?.getAllKnowledge().then((knowledge) => {
       setKnowledgeList(knowledge || []);
     });
   }, []);
   const handleDelete = useCallback((id:string) => {
-    ChataiKnowledgelStore.deleteKnowledge(id).then(() => {
+    ChataiStores.knowledge?.deleteKnowledge(id).then(() => {
       setKnowledgeList((prev) => {
         return prev.filter((item) => item.id !== id);
       });

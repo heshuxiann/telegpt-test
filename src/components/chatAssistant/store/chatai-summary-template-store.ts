@@ -1,7 +1,7 @@
+/* eslint-disable no-null/no-null */
 /* eslint-disable no-console */
 import type { StoreName } from './chatai-store';
-
-import ChataiDB from './chatai-store';
+import type ChataiDB from './chatai-store';
 
 export interface CustomSummaryTemplate {
   id: string;
@@ -9,13 +9,22 @@ export interface CustomSummaryTemplate {
   prompt: string;
 }
 
-class SummaryTemplateStore extends ChataiDB {
+class SummaryTemplateStore {
   private storeName: StoreName = 'summaryTemplate';
+
+  private db: IDBDatabase | null = null;
+
+  private chataiStoreManager:ChataiDB;
+
+  constructor(private dbManager: ChataiDB) {
+    this.db = dbManager.db;
+    this.chataiStoreManager = dbManager;
+  }
 
   async getAllSummaryTemplate(): Promise<CustomSummaryTemplate[]> {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);
@@ -36,7 +45,7 @@ class SummaryTemplateStore extends ChataiDB {
   async getSummaryTemplate(id: string): Promise<CustomSummaryTemplate> {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);
@@ -57,7 +66,7 @@ class SummaryTemplateStore extends ChataiDB {
   async deleteSummaryTemplate(id: string):Promise<void> {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);
@@ -77,7 +86,7 @@ class SummaryTemplateStore extends ChataiDB {
   async addSummaryTemplate(summaryTemplate:CustomSummaryTemplate) {
     let db: IDBDatabase;
     try {
-      db = await this.getDB();
+      db = await this.chataiStoreManager.getDB();
     } catch (error) {
       console.error('Error adding contact:', error);
       return Promise.reject(error);
