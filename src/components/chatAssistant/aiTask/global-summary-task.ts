@@ -98,13 +98,23 @@ class GlobalSummaryTask {
     });
   }
 
+  async initUnSummary() {
+    const globalSummaryLastTime: number | undefined = await ChataiGeneralStore.get(GLOBAL_SUMMARY_LAST_TIME);
+    if (!globalSummaryLastTime) {
+      // TODO 总结所有的未读消息
+      this.summaryAllUnreadMessages();
+    } else if (globalSummaryLastTime < Date.now() - 1000 * 60 * 60 * 10) {
+      this.summaryMessageByDeadline(globalSummaryLastTime);
+    }
+  }
+
   async startSummary(messages:ApiMessage[], callback?:()=>void) {
     // eslint-disable-next-line no-console
     console.log('开始总结', messages);
     const global = getGlobal();
     const globalSummaryLastTime = await ChataiGeneralStore.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
     const summaryTime = new Date().getTime();
-    if (!Object.keys(messages).length) return;
+    if (!messages.length) return;
     const summaryMessages: SummaryMessage[] = messages.map((message) => {
       if (message.content.text?.text) {
         const peer = message.senderId ? selectUser(global, message.senderId) : undefined;
@@ -131,7 +141,7 @@ class GlobalSummaryTask {
       summaryStartTime: globalSummaryLastTime || null,
       summaryEndTime: summaryTime,
       summaryMessageCount: summaryMessages.length,
-      summaryChatIds: Object.keys(messages),
+      summaryChatIds: messages.map((item) => item.chatId),
     };
     generateChatgpt({
       data: {
