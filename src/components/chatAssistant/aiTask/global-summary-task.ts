@@ -153,6 +153,7 @@ class GlobalSummaryTask {
       },
       onResponse: (response) => {
         console.log('response', response);
+        ChataiGeneralStore.set(GLOBAL_SUMMARY_LAST_TIME, new Date().getTime());
         const formatResponse = formatSummaryText(response);
         if (formatResponse) {
           const content = {
