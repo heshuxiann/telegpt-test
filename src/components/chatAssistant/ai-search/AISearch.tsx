@@ -6,17 +6,17 @@ import React, {
   useCallback, useEffect, useRef, useState,
 } from 'react';
 import { useChat } from '@ai-sdk/react';
-import type { Attachment, Message, UIMessage } from 'ai';
+import type { Attachment, UIMessage } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
 
 import type { InfiniteScrollRef } from '../component/InfiniteScroll';
 
-import generateChatgpt from '../lib/generate-chat';
 import { selectChat, selectUser } from '../../../global/selectors';
 import { Messages } from '../messages';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
+import { sendGAEvent } from '../utils/analytics';
 import { messageEmbeddingStore } from '../vector-store';
 
 import { InfiniteScroll } from '../component/InfiniteScroll';
@@ -221,8 +221,6 @@ export const AISearch = () => {
   }, [append, global]);
 
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('messages------->', messages);
     if (messages.length > 0 && !isLoading) {
       const parsedMessage = parseMessage2StoreMessage(GLOBAL_SEARCH_CHATID, messages);
       ChataiStores.message?.storeMessages([...parsedMessage]);
@@ -271,6 +269,7 @@ export const AISearch = () => {
     });
     toolsHitCheck(query);
     messageListRef.current?.scrollToBottom();
+    sendGAEvent('ai_search');
   }, [setMessages, toolsHitCheck]);
 
   return (

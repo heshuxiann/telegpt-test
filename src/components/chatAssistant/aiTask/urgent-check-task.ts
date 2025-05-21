@@ -11,6 +11,7 @@ import { formatUrgentCheckText } from '../globalSummary/formate-summary-text';
 import { getUrgentTopicPrompt } from '../prompt';
 import { ChataiStores } from '../store';
 import { URGENT_CHATS } from '../store/general-store';
+import { sendGAEvent } from '../utils/analytics';
 
 const GLOBAL_SUMMARY_CHATID = '777888';
 
@@ -126,6 +127,7 @@ class UrgentCheckTask {
                 fetch(`https://telegpt-three.vercel.app/voice-call?phoneNumber=${strongAlertPhoneNumber}`, {
                   method: 'GET',
                 });
+                sendGAEvent('call_reminder');
               }
             } catch (e) {
               console.log('error', e);

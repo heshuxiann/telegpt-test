@@ -8,6 +8,7 @@ import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import TranslateIcon from '../../chatAssistant/assets/ai-translate.png';
 import chatAILogoPath from '../../chatAssistant/assets/cgat-ai-logo.png';
 import GrammerIcon from '../../chatAssistant/assets/grammar.png';
+import { sendGAEvent } from '../../chatAssistant/utils/analytics';
 
 import useFlag from '../../../hooks/useFlag';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -80,6 +81,7 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
         console.log('Finish');
       },
     });
+    sendGAEvent('input_translate');
   });
   const handleGrammar = useLastCallback(() => {
     eventEmitter.emit('update-input-spiner', true);
@@ -112,6 +114,7 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
         console.log('Finish');
       },
     });
+    sendGAEvent('input_grammar');
   });
   const onTranslationClick = useLastCallback((e: React.MouseEvent) => {
     e.preventDefault();

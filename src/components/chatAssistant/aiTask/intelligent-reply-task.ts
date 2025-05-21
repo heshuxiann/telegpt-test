@@ -4,6 +4,7 @@ import { getActions } from '../../../global';
 import type { ApiDraft } from '../../../api/types';
 import type { ApiMessage } from '../../../api/types/messages';
 
+import { sendGAEvent } from '../utils/analytics';
 import { knowledgeEmbeddingStore } from '../vector-store';
 
 class IntelligentReplyTask {
@@ -75,6 +76,7 @@ class IntelligentReplyTask {
               text: result.metadata.answer,
             });
             getActions().clearDraft({ chatId, isLocalOnly: true });
+            sendGAEvent('intelligent_reply');
           }
         }
       }

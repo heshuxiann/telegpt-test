@@ -22,6 +22,7 @@ import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import { Messages } from '../messages';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
+import { sendGAEvent } from '../utils/analytics';
 import { checkGoogleAuthStatus } from '../utils/google-api';
 import { RoomAIInput } from './room-ai-input';
 
@@ -208,6 +209,7 @@ const ChatAIRoomInner = (props: StateProps) => {
               } else {
                 addAuthMessage();
               }
+              sendGAEvent('google_meet');
             } else if (toolCall.toolName === 'nullTool') {
               // eslint-disable-next-line no-console
               console.log('没有命中工具');
