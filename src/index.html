@@ -49,18 +49,10 @@
   <link rel="icon" type="image/png" sizes="192x192" href="./<%= htmlWebpackPlugin.options.mainIcon %>.png">
   <link rel="alternate icon" href="./favicon.ico" type="image/x-icon">
   <link rel="manifest" id="the-manifest-placeholder" href="./<%= htmlWebpackPlugin.options.manifest %>">
-
+    <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-5P4RKLRDG5"></script>
+  <script src="./gtag-init.js"></script>
   <script src="./redirect.js"></script>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-5P4RKLRDG5"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-5P4RKLRDG5');
-  window.gtag = gtag;
-</script>
 </head>
 
 <body id="root">
