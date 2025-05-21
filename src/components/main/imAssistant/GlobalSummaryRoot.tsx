@@ -27,9 +27,8 @@ const GlobalSummaryRoot = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (containerRef.current) {
-      injectMessageAI(containerRef.current);
+      injectMessageAI(containerRef.current, {});
     }
-    // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, []);
   useEffect(() => {
     eventEmitter.on(Actions.AddNewMessageToAiAssistant, handleAddNewMessage);

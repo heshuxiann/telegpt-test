@@ -13,10 +13,6 @@ interface StoreConfig {
 type StoreConfigMap = Record<StoreName, StoreConfig>;
 
 class ChataiStoreManager {
-  private instance: IDBDatabase | null = null;
-
-  private initPromise: Promise<IDBDatabase> | null = null;
-
   private DB_NAME: string;
 
   private VERSION: number;
@@ -39,11 +35,9 @@ class ChataiStoreManager {
   }
 
   initDB(): Promise<IDBDatabase> {
-    if (this.instance) return Promise.resolve(this.instance);
-    if (this.initPromise) return this.initPromise;
     // eslint-disable-next-line @typescript-eslint/quotes, no-console
     console.log("初始化indexdb", this.VERSION);
-    this.initPromise = new Promise<IDBDatabase>((resolve, reject) => {
+    return new Promise<IDBDatabase>((resolve, reject) => {
       const request = indexedDB.open(this.DB_NAME, this.VERSION);
 
       request.onupgradeneeded = (event) => {
@@ -74,21 +68,18 @@ class ChataiStoreManager {
       };
 
       request.onsuccess = () => {
-        this.instance = request.result;
+        this.db = request.result;
         resolve(request.result);
       };
 
       // eslint-disable-next-line no-console
       request.onerror = () => reject(new Error('Failed to open database'));
     });
-    return this.initPromise;
   }
 
   async getDB(): Promise<IDBDatabase> {
-    if (!this.instance) {
+    if (!this.db) {
       this.db = await this.initDB();
-    } else {
-      this.db = this.instance;
     }
     return this.db!;
   }

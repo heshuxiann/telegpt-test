@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 // import type { Dispatch, SetStateAction } from 'react';
 import React, {
+  forwardRef,
   useCallback, useEffect, useRef, useState,
 } from 'react';
 import type { Message } from 'ai';
@@ -24,6 +25,7 @@ import {
   ChataiStores, GLOBAL_SUMMARY_LAST_TIME,
 } from '../store';
 import { parseStoreMessage2Message } from '../store/messages-store';
+import { sendGAEvent } from '../utils/analytics';
 // import TestActions from './test-actions';
 import UrgentNotification from './urgent-notification';
 
@@ -38,7 +40,7 @@ import AISummaryPath from '../assets/ai-summary.png';
 import SerenaPath from '../assets/serena.png';
 
 const GLOBAL_SUMMARY_CHATID = '777888';
-const GlobalSummary = () => {
+const GlobalSummary = forwardRef(() => {
   const [messageList, setMessageList] = useState<Message[]>([]);
   const [summaryModalVisible, setSummaryModalVisible] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState<Message | null>(null);
@@ -75,6 +77,7 @@ const GlobalSummary = () => {
         });
         notification.onclick = () => {
           setSummaryModalVisible(true);
+          sendGAEvent('summary_view');
         };
         setTimeout(() => notification.close(), 5000);
       }
@@ -136,6 +139,7 @@ const GlobalSummary = () => {
   const openGlobalSummaryModal = () => {
     setSummaryModalVisible(true);
     globalSummaryTask.mergeUnreadSummarys();
+    sendGAEvent('summary_view');
   };
 
   const deleteMessage = useCallback((messageId: string) => {
@@ -183,7 +187,7 @@ const GlobalSummary = () => {
     </ErrorBoundary>
 
   );
-};
+});
 interface SummaryContentProps {
   loadMore: () => Promise<void>;
   hasMore: boolean;
