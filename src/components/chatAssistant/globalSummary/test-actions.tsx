@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from 'antd';
+import { v4 as uuidv4 } from 'uuid';
 
 import './test-actions.scss';
 
@@ -26,6 +27,24 @@ const TestActions = (props: IProps) => {
       method: 'GET',
     });
   };
+  const handleToolcheck = () => {
+    fetch('http://localhost:3000/tool-check', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: [{
+          id: uuidv4(),
+          content: '我的邮箱是824767401@qq.com',
+          role: 'user',
+        }],
+      }),
+    }).then((res) => res.json())
+      .then((toolResults) => {
+        console.log(toolResults);
+      });
+  };
   return (
     <div className="test-actions-wrapper absolute left-[20px] bottom-[20px] flex flex-col gap-[12px]">
       <Button type="primary" onClick={summaryAllUnreadMessages}>
@@ -36,6 +55,9 @@ const TestActions = (props: IProps) => {
       </Button>
       <Button type="primary" onClick={handleVoiceCall}>
         语音通知
+      </Button>
+      <Button type="primary" onClick={handleToolcheck}>
+        tool check
       </Button>
     </div>
   );

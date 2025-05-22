@@ -21,7 +21,14 @@ async function embedTextsFn(texts: string[]): Promise<number[][]> {
   return responseData.embeddings;
 }
 
-const vectorStore = new VectorStorage({ embedTextsFn });
-export const messageEmbeddingStore = new VectorStorage({ embedTextsFn, dbName: 'message-embedding' });
-export const knowledgeEmbeddingStore = new VectorStorage({ embedTextsFn, dbName: 'knowledge-embedding' });
-export default vectorStore;
+const vectorStoreMap = new Map();
+
+function getVectorStore(dbName: string) {
+  if (!vectorStoreMap.has(dbName)) {
+    vectorStoreMap.set(dbName, new VectorStorage({ embedTextsFn, dbName }));
+  }
+  return vectorStoreMap.get(dbName)!;
+}
+
+export const messageEmbeddingStore = getVectorStore('message-embedding');
+export const knowledgeEmbeddingStore = getVectorStore('knowledge-embedding');

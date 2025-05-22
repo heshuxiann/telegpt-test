@@ -33,7 +33,6 @@ import { InfiniteScroll } from '../component/InfiniteScroll';
 import ErrorBoundary from '../ErrorBoundary';
 import { DrawerKey, DrawerProvider, useDrawer } from './DrawerContext';
 
-// import { TestModal } from './TestModal';
 import './global-summary.scss';
 
 import AISummaryPath from '../assets/ai-summary.png';
@@ -44,7 +43,6 @@ const GlobalSummary = forwardRef(() => {
   const [messageList, setMessageList] = useState<Message[]>([]);
   const [summaryModalVisible, setSummaryModalVisible] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState<Message | null>(null);
-  // const [testModalVisable, setTestModalVisible] = useState(false);
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
   const orderedIds = React.useMemo(() => getOrderedIds(ALL_FOLDER_ID) || [], []);
   const handleLoadMore = useCallback(() => {
@@ -170,17 +168,7 @@ const GlobalSummary = forwardRef(() => {
             loadMore={handleLoadMore}
             hasMore={pageInfo?.hasMore}
           />
-          {/* <TestActions
-          // eslint-disable-next-line react/jsx-no-bind
-          // eslint-disable-next-line react/jsx-no-bind
-          // showTestModalVisible={() => { setTestModalVisible(true); }}
-        /> */}
-          {/* <TestModal
-          visible={testModalVisable}
-          // eslint-disable-next-line react/jsx-no-bind
-          onClose={() => setTestModalVisible(false)}
-          handleReSummary={handleReSummary}
-        /> */}
+          {/* <TestActions /> */}
         </Modal>
         <UrgentNotification message={notificationMessage} />
       </DrawerProvider>

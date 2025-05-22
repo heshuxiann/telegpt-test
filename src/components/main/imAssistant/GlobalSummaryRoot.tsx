@@ -45,9 +45,9 @@ const GlobalSummaryRoot = () => {
       const chat = selectChat(global, chatId);
       const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
       if (chat && !chatBot) {
-        if (chat.membersCount && chat?.membersCount > 100) {
-          return;
-        }
+        // if (chat.membersCount && chat?.membersCount > 100) {
+        //   return;
+        // }
         // TODO 这里需要判断是否是紧急消息/知识库自动回复
         const { isRestricted } = chat;
         if (!message.isOutgoing && !isRestricted) {
