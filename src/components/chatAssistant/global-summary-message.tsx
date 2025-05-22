@@ -150,7 +150,7 @@ const SummaryPenddingItem = ({ pendingItem }: { pendingItem: ISummaryPendingItem
   const { openDrawer } = useDrawer();
   const showMessageDetail = () => {
     openDrawer(DrawerKey.OriginalMessages, {
-      relevantMessages: [{ chatId: pendingItem.chatId, messageIds: [pendingItem.relevantMessageIds] }],
+      relevantMessages: [{ chatId: pendingItem.chatId, messageIds: pendingItem.relevantMessageIds }],
     });
   };
   return (

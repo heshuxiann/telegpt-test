@@ -30,9 +30,10 @@ import ChatAILogoPath from '../assets/cgat-ai-logo.png';
 const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; messageId: number;closeSummaryModal:()=>void }) => {
   const global = getGlobal();
   const chat = selectChat(global, chatId);
-  const [message, setMessage] = useState<ApiMessage | undefined>();
+  const [message, setMessage] = useState<ApiMessage | undefined>(undefined);
   const [showSmartReply, setShowSmartReply] = useState(false);
   const [replyResponse, setReplyResponse] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { messages, append } = useChat({
     api: 'https://telegpt-three.vercel.app/chat',
@@ -52,16 +53,26 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
   };
   const { focusMessage } = getActions();
   useEffect(() => {
-    const message = selectChatMessage(global, chatId, messageId);
-    if (message) {
-      setMessage(message);
-    } else if (chat) {
-      callApi('fetchMessage', { chat, messageId }).then((result) => {
-        if (result && result !== MESSAGE_DELETED && result.message.content.text?.text) {
-          setMessage(result.message);
-          updateChatMessage(global, chat.id, messageId, result.message);
-        }
-      });
+    if (messageId) {
+      const message = selectChatMessage(global, chatId, Number(messageId));
+      if (message) {
+        setMessage(message);
+        setIsLoading(false);
+      } else if (chat) {
+        callApi('fetchMessage', { chat, messageId }).then((result) => {
+          if (result) {
+            if (result === MESSAGE_DELETED) {
+              setMessage(undefined);
+            } else if (result.message.content.text?.text) {
+              setMessage(result.message);
+              updateChatMessage(global, chat.id, messageId, result.message);
+            }
+          }
+          setIsLoading(false);
+        }).catch(() => {
+          setIsLoading(false);
+        });
+      }
     }
     // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, [chatId, messageId]);
@@ -149,12 +160,20 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
 
   const handleFocusMessage = () => {
     closeSummaryModal();
-    focusMessage({ chatId, messageId });
+    if (messageId) {
+      focusMessage({
+        chatId, messageId: Number(messageId),
+      });
+    }
   };
 
   const renderMessage = () => {
     if (!message || !message.content.text?.text) {
-      return undefined;
+      return (
+        <div className="text-[15px] text-[#979797]">
+          Message Deleted
+        </div>
+      );
     }
     const text = message.content.text?.text;
     const date = formatTimestamp(message.date * 1000);
@@ -220,10 +239,10 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
 
   return (
     <div className="right-panel-message-item pb-[20px] pt-[16px] border-solid border-b-[1px] border-[rgba(0,0,0,0.1)] px-[18px]">
-      {message ? (
-        renderMessage()
-      ) : (
+      {isLoading ? (
         <Skeleton active paragraph={{ rows: 2 }} />
+      ) : (
+        renderMessage()
       )}
     </div>
   );
@@ -237,7 +256,11 @@ const CustomVirtualList = ({
   height:number;
   closeSummaryModal:()=>void;
 }) => {
-  const listData = relevantMessages.flatMap(({ chatId, messageIds }) => messageIds.map((messageId) => ({ chatId, messageId })));
+  // const listData = relevantMessages.flatMap(({ chatId, messageIds }) => messageIds.map((messageId) => ({ chatId, messageId })));
+  const listData = relevantMessages.flatMap((item) => item.messageIds.map((messageId) => ({
+    chatId: item.chatId,
+    messageId,
+  })));
   return (
     // eslint-disable-next-line react/jsx-no-bind
     <VirtualList data={listData} height={height} itemHeight={50} itemKey={(item) => item.messageId}>

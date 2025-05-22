@@ -6,13 +6,13 @@ import type { Message } from 'ai';
 import copy from 'copy-to-clipboard';
 import { getActions } from '../../global';
 
-import eventEmitter, { Actions } from './lib/EventEmitter';
 import useOldLang from './hook/useOldLang';
 import { formatTimestamp } from './utils/util';
 import {
   CopyIcon, DeleteIcon, VoiceIcon, VoiceingIcon,
 } from './icons';
 
+import { DrawerKey, useDrawer } from './globalSummary/DrawerContext';
 import ChatAvatar from './ui/ChatAvatar';
 
 import DangerIcon from './assets/danger.png';
@@ -87,6 +87,7 @@ const ActionsItems = ({
 const UrgentCheckMessage = (props:IProps) => {
   const { message, deleteMessage } = props;
   const [urgentMessage, setUrgentMessage] = useState<UrgentMessage[]>([]);
+  const { openDrawer } = useDrawer();
   useEffect(() => {
     const parsedMessage = JSON.parse(message.content);
     if (parsedMessage && typeof parsedMessage === 'object' && parsedMessage.length > 0) {
@@ -96,10 +97,8 @@ const UrgentCheckMessage = (props:IProps) => {
   if (!urgentMessage || urgentMessage.length === 0) {
     return null;
   }
-  const handleFocusMessage = (item:UrgentMessage) => {
-    const { chatId, messageId } = item;
-    getActions().focusMessage({ chatId, messageId });
-    eventEmitter.emit(Actions.HideGlobalSummaryModal);
+  const showMessageDetail = (item:UrgentMessage) => {
+    openDrawer(DrawerKey.OriginalMessages, { relevantMessages: [{ chatId: item.chatId, messageIds: [item.messageId] }] });
   };
   return (
     <div className="mx-auto w-[693px] rounded-[10px] bg-[#FFF9F9] pl-[82px] pr-[25px] pt-[20px] pb-[25px] border-[1px] border-[#FFC7C7]">
@@ -120,7 +119,7 @@ const UrgentCheckMessage = (props:IProps) => {
         {urgentMessage.map((item) => {
           return (
             <li className="flex flex-row items-top gap-[8px]">
-              <span className="text-[15px]" onClick={() => handleFocusMessage(item)}>{item.content}</span>
+              <span className="text-[15px]" onClick={() => showMessageDetail(item)}>{item.content}</span>
               <ChatAvatar size={20} chatId={item.chatId} />
             </li>
           );
