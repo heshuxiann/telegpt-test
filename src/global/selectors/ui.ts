@@ -1,7 +1,6 @@
 import type { ApiMessage, ApiSponsoredMessage } from '../../api/types';
-import type { GlobalState, TabArgs } from '../types';
-
 import type { PerformanceTypeKey, ThemeKey } from '../../types';
+import type { GlobalState, TabArgs } from '../types';
 import { NewChatMembersProgress, RightColumnContent } from '../../types';
 
 import { IS_SNAP_EFFECT_SUPPORTED } from '../../util/browser/windowEnvironment';
@@ -59,9 +58,11 @@ export function selectRightColumnContentKey<T extends GlobalState>(
     RightColumnContent.GifSearch
   ) : tabState.newChatMembersProgress !== NewChatMembersProgress.Closed ? (
     RightColumnContent.AddingMembers
+  ) : tabState.isChatAIShown ? (
+    RightColumnContent.ChatAI
   ) : tabState.isChatInfoShown && tabState.messageLists.length ? (
     RightColumnContent.ChatInfo
-  ) : tabState.isChatAIShown ? RightColumnContent.ChatAI : undefined;
+  ) : undefined;
 }
 
 export function selectIsRightColumnShown<T extends GlobalState>(

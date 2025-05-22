@@ -31,9 +31,9 @@ const GlobalSummaryRoot = () => {
     }
   }, []);
   useEffect(() => {
-    eventEmitter.on(Actions.AddNewMessageToAiAssistant, handleAddNewMessage);
+    eventEmitter.on(Actions.NewTextMessage, handleAddNewMessage);
     return () => {
-      eventEmitter.off(Actions.AddNewMessageToAiAssistant, handleAddNewMessage);
+      eventEmitter.off(Actions.NewTextMessage, handleAddNewMessage);
     };
   }, []);
 

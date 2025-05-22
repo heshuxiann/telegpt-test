@@ -1,6 +1,5 @@
 /* eslint-disable no-null/no-null */
 /* eslint-disable no-console */
-// import { CONTACT_IDB_STORE } from './im-assistant-idb';
 
 import type { StoreName } from './chatai-store';
 import type ChataiDB from './chatai-store';

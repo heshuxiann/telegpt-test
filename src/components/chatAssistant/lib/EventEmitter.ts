@@ -6,7 +6,7 @@ export enum Actions {
   ChatAIStoreReady = 'ChatAIStoreReady',
 
   // global ai assistant
-  AddNewMessageToAiAssistant = 'AddNewMessageToAiAssistant',
+  NewTextMessage = 'NewTextMessage',
   AddUrgentMessage = 'AddUrgentMessage',
   AddSummaryMessage = 'AddSummaryMessage',
   // global summary

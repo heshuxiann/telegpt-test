@@ -3,6 +3,7 @@ import { Button } from 'antd';
 import { v4 as uuidv4 } from 'uuid';
 
 import './test-actions.scss';
+import { signOutGoogle } from '../utils/google-api';
 
 interface IProps {
   summaryAllUnreadMessages?: () => Promise<void>;
@@ -45,6 +46,9 @@ const TestActions = (props: IProps) => {
         console.log(toolResults);
       });
   };
+  const handleSignOut = () => {
+    signOutGoogle();
+  };
   return (
     <div className="test-actions-wrapper absolute left-[20px] bottom-[20px] flex flex-col gap-[12px]">
       <Button type="primary" onClick={summaryAllUnreadMessages}>
@@ -58,6 +62,9 @@ const TestActions = (props: IProps) => {
       </Button>
       <Button type="primary" onClick={handleToolcheck}>
         tool check
+      </Button>
+      <Button type="primary" onClick={handleSignOut}>
+        退出谷歌登录
       </Button>
     </div>
   );

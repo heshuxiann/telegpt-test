@@ -25,7 +25,7 @@ const RoomAIWrapper = (props: StateProps) => {
   // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, [chatId]);
   return (
-    <div className="chat-ai-room" ref={containerRef} />
+    <div className="chat-ai-room w-full h-full overflow-hidden" ref={containerRef} />
   );
 };
 

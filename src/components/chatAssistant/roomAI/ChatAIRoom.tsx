@@ -239,7 +239,7 @@ const ChatAIRoomInner = (props: StateProps) => {
     toolsHitCheck(newMessage);
   };
   return (
-    <div className="right-panel-chat-ai">
+    <div className="right-panel-chat-ai w-full h-full overflow-hidden">
       <InfiniteScroll
         className="chat-ai-output-wrapper"
         loadMore={handleLoadMore}

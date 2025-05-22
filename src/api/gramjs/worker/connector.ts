@@ -308,7 +308,7 @@ function sendToAIAgent(data: ApiUpdate) {
   if (data['@type'] === 'newMessage') {
     const hasTextContent = data.message && hasMessageText(data.message as ApiMessage);
     if (hasTextContent) {
-      eventEmitter.emit(Actions.AddNewMessageToAiAssistant, {
+      eventEmitter.emit(Actions.NewTextMessage, {
         message: data.message,
       });
       const {

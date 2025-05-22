@@ -302,7 +302,9 @@ const RightColumn: FC<OwnProps & StateProps> = ({
       || contentKey === RightColumnContent.Management
       || contentKey === RightColumnContent.AddingMembers
       || contentKey === RightColumnContent.CreateTopic
-      || contentKey === RightColumnContent.EditTopic),
+      || contentKey === RightColumnContent.EditTopic
+      || contentKey === RightColumnContent.ChatAI
+    ),
     onBack: () => close(false),
   });
 
