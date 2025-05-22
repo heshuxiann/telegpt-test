@@ -189,7 +189,7 @@ const InputAIMenu: FC = ({ getHtml, chat }: { getHtml: Signal<string>;chat:ApiCh
 
   const getMeetParamsByAITools = (message:string): Promise<any> => {
     return new Promise((resolve, reject) => {
-      fetch('http://localhost:3000/api/toolcheck', {
+      fetch('https://telegpt-three.vercel.app/tool-check', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
