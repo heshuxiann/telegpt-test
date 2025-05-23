@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-null/no-null */
 /* eslint-disable max-len */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import type { MessagePanelPayload } from './message-panel';
 
@@ -44,13 +44,10 @@ export const RightPanel = (props: RightPanelProps) => {
     }
   }, [closeSummaryModal, drawerKey, drawerParams]);
 
-  const onClose = useCallback(() => {
-    closeDrawer();
-  }, [closeDrawer]);
   if (!isOpen) return null;
   return (
     <div className="right-panel-container w-[375px] h-full bg-white/50 flex flex-col">
-      <RightHeader drawerKey={drawerKey} onClose={onClose} />
+      <RightHeader drawerKey={drawerKey} onClose={closeDrawer} />
       <div className="flex-1 overflow-hidden">
         {rightPanelContent}
       </div>

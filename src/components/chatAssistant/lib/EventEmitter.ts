@@ -13,10 +13,13 @@ export enum Actions {
   HideGlobalSummaryModal = 'HideGlobalSummaryModal',
   // summary chats
   UpdateSummaryChats = 'UpdateSummaryChats',
+  SummaryLanguageChange = 'SummaryLanguageChange',
   // google
   CreateCalendarSuccess = 'CreateCalendarSuccess',
   GoogleAuthSuccess = 'GoogleAuthSuccess',
   UpdateGoogleToken = 'UpdateGoogleToken',
+  // modal
+  OpenSummaryLanguageModal = 'OpenSummaryLanguageModal',
 }
 class EventEmitter {
   private static instance: EventEmitter;

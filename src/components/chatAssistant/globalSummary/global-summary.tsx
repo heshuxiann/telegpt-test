@@ -18,7 +18,7 @@ import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { getOrderedIds } from '../../../util/folderManager';
 import { globalSummaryTask } from '../aiTask/global-summary-task';
 import { useDidUpdateEffect } from '../hook/useDidUpdateEffect';
-import { CloseIcon, SettingIcon } from '../icons';
+import { CloseIcon } from '../icons';
 import { Messages } from '../messages';
 import { RightPanel } from '../rightPanel/right-panel';
 import {
@@ -26,12 +26,13 @@ import {
 } from '../store';
 import { parseStoreMessage2Message } from '../store/messages-store';
 import { sendGAEvent } from '../utils/analytics';
+import SummaryHeaderActions from './summary-header-actions';
 // import TestActions from './test-actions';
 import UrgentNotification from './urgent-notification';
 
 import { InfiniteScroll } from '../component/InfiniteScroll';
 import ErrorBoundary from '../ErrorBoundary';
-import { DrawerKey, DrawerProvider, useDrawer } from './DrawerContext';
+import { DrawerProvider } from './DrawerContext';
 
 import './global-summary.scss';
 
@@ -190,20 +191,13 @@ const SummaryModalContent = (props: SummaryContentProps) => {
     messages, onClose, deleteMessage, loadMore, hasMore,
   } = props;
   const messageListRef = useRef<InfiniteScrollRef | null>(null);
-  const { openDrawer } = useDrawer();
-  const handleShowRightPanel = useCallback(() => {
-    openDrawer(DrawerKey.PersonalizeSettings);
-  }, [openDrawer]);
   return (
     <div className="globa-summary-container flex flex-col w-full h-full">
       <div className="h-[56px] w-full px-[20px] flex items-center bg-white/50">
         <img className="w-[40px] h-[40px] rounded-full mr-[12px]" src={SerenaPath} alt="Serena" />
         <span className="text-[15px] font-semibold">Serena AI</span>
         <div className="flex items-center ml-auto gap-[20px]">
-          <div className="cursor-pointer text-black flex flex-row gap-[6px] items-center" onClick={handleShowRightPanel}>
-            <SettingIcon />
-            <span className="text-[16px] font-semibold">Personalize</span>
-          </div>
+          <SummaryHeaderActions />
           <div className="cursor-pointer text-black" onClick={onClose}>
             <CloseIcon />
           </div>
@@ -226,7 +220,6 @@ const SummaryModalContent = (props: SummaryContentProps) => {
 
         </div>
         <RightPanel closeSummaryModal={onClose} />
-
       </div>
     </div>
   );

@@ -13,6 +13,7 @@ import { isSystemBot, isUserId } from '../../../global/helpers';
 import {
   selectBot, selectChat, selectChatLastMessageId, selectFirstUnreadId, selectUser,
 } from '../../../global/selectors';
+import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import { getOrderedIds } from '../../../util/folderManager';
 import { formatSummaryText } from '../globalSummary/formate-summary-text';
 import defaultSummaryPrompt, { getGlobalSummaryPrompt } from '../globalSummary/summary-prompt';
@@ -51,7 +52,6 @@ class GlobalSummaryTask {
   private summaryChatsInitialized = false;
 
   initTask() {
-    this.updateSummaryTemplate();
     const executeTask = () => {
       const currentTime = new Date();
       const hours = currentTime.getHours();
@@ -78,6 +78,10 @@ class GlobalSummaryTask {
 
     // 每分钟执行一次来检查时间段
     setInterval(executeTask, 60000);
+    this.updateSummaryTemplate();
+    eventEmitter.on(Actions.ChatAIStoreReady, () => {
+      this.updateSummaryTemplate();
+    });
   }
 
   summaryPendingMessages() {
@@ -86,15 +90,20 @@ class GlobalSummaryTask {
     });
   }
 
-  updateSummaryTemplate() {
-    getGlobalSummaryPrompt().then((res) => {
-      if (res) {
-        this.globalSummaryPrompt = res.prompt;
+  async updateSummaryTemplate() {
+    let definePrompt = '';
+    let language = 'en';
+    try {
+      const defineTemp = await ChataiStores.general?.get('lastDefinedPrompt');
+      if (defineTemp) {
+        definePrompt = defineTemp.prompt;
+        this.customizationTemplate = defineTemp;
       }
-      if (res.customizationTemplate) {
-        this.customizationTemplate = res.customizationTemplate;
-      }
-    });
+      language = await CHATAI_IDB_STORE.get('summary-language') || 'en';
+    } catch (e) {
+      console.log(e);
+    }
+    this.globalSummaryPrompt = getGlobalSummaryPrompt(language, definePrompt);
   }
 
   async initUnSummary() {

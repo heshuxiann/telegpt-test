@@ -29,7 +29,7 @@ type DrawerContextType = {
 const DrawerContext = createContext<DrawerContextType | null>(null);
 
 export const DrawerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [drawer, setDrawer] = useState<DrawerMeta>({ isOpen: false });
+  const [drawer, setDrawer] = useState<DrawerMeta>({ isOpen: true, drawerKey: DrawerKey.PersonalizeSettings });
 
   const openDrawer = useCallback((drawerKey?: DrawerKey, drawerParams?: any) => {
     setDrawer({ isOpen: true, drawerKey, drawerParams });

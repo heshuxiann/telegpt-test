@@ -18,6 +18,7 @@ import { hasEncryptedSession } from '../util/passcode';
 import { getInitialLocationHash, parseInitialLocationHash } from '../util/routing';
 import { checkSessionLocked, hasStoredSession } from '../util/sessions';
 import { updateSizes } from '../util/windowSize';
+import { setChataiStoreBuilderCurrentUserId } from './chatAssistant/store';
 
 import useAppLayout from '../hooks/useAppLayout';
 import useFlag from '../hooks/useFlag';
@@ -246,6 +247,10 @@ const App: FC<StateProps> = ({
 
 export default withGlobal(
   (global): StateProps => {
+    const { currentUserId } = global;
+    if (currentUserId) {
+      setChataiStoreBuilderCurrentUserId(currentUserId);
+    }
     return {
       authState: global.authState,
       isScreenLocked: global.passcode?.isScreenLocked,
