@@ -149,7 +149,7 @@ class GlobalSummaryTask {
       summaryStartTime: globalSummaryLastTime || null,
       summaryEndTime: summaryTime,
       summaryMessageCount: summaryMessages.length,
-      summaryChatIds: messages.map((item) => item.chatId),
+      summaryChatIds: [...new Set(messages.map((item) => item.chatId))],
     };
     generateChatgpt({
       data: {
