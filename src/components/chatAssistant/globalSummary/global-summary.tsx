@@ -27,7 +27,7 @@ import {
 import { parseStoreMessage2Message } from '../store/messages-store';
 import { sendGAEvent } from '../utils/analytics';
 import SummaryHeaderActions from './summary-header-actions';
-// import TestActions from './test-actions';
+import TestActions from './test-actions';
 import UrgentNotification from './urgent-notification';
 
 import { InfiniteScroll } from '../component/InfiniteScroll';
@@ -169,7 +169,7 @@ const GlobalSummary = forwardRef(() => {
             loadMore={handleLoadMore}
             hasMore={pageInfo?.hasMore}
           />
-          {/* <TestActions /> */}
+          <TestActions />
         </Modal>
         <UrgentNotification message={notificationMessage} />
       </DrawerProvider>

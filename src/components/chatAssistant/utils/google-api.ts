@@ -2,24 +2,20 @@
 /* eslint-disable max-len */
 import { gapi, loadAuth2 } from 'gapi-script';
 
-const GOOGLE_APP_CLIENT_ID = '847573679345-qq64ofbqhv7gg61e04dbrk8b92djf1fb.apps.googleusercontent.com';
-const authScopes = [
+export const GOOGLE_APP_CLIENT_ID = '847573679345-qq64ofbqhv7gg61e04dbrk8b92djf1fb.apps.googleusercontent.com';
+export const SCOPES = [
   'https://www.googleapis.com/auth/calendar',
   'https://www.googleapis.com/auth/calendar.events',
 ];
-const SCOPES = [
-  'https://www.googleapis.com/auth/calendar',
-  'https://www.googleapis.com/auth/calendar.events',
-].join(' ');
 export const checkHasAllNeededScopes = (scopes:string) => {
   const scopesArray = scopes.split(' ');
-  const hasAllScopes = authScopes.every((scope) => scopesArray.includes(scope));
+  const hasAllScopes = SCOPES.every((scope) => scopesArray.includes(scope));
   return hasAllScopes;
 };
 export const checkGoogleAuthStatus = async () => {
-  let auth2 = await loadAuth2(gapi, GOOGLE_APP_CLIENT_ID, SCOPES);
+  let auth2 = await loadAuth2(gapi, GOOGLE_APP_CLIENT_ID, SCOPES.join(' '));
   if (!auth2) {
-    auth2 = await loadAuth2(gapi, GOOGLE_APP_CLIENT_ID, SCOPES);
+    auth2 = await loadAuth2(gapi, GOOGLE_APP_CLIENT_ID, SCOPES.join(' '));
   }
   if (auth2.isSignedIn.get()) {
     const authResponse = auth2.currentUser.get().getAuthResponse();
@@ -34,7 +30,7 @@ export const checkGoogleAuthStatus = async () => {
 
 // 初始化并登录
 export async function loginWithGoogle() {
-  const auth2 = await loadAuth2(gapi, GOOGLE_APP_CLIENT_ID, SCOPES);
+  const auth2 = await loadAuth2(gapi, GOOGLE_APP_CLIENT_ID, SCOPES.join(' '));
 
   if (!auth2.isSignedIn.get()) {
     const user = await auth2.signIn();
@@ -56,11 +52,13 @@ export async function loginWithGoogle() {
   }
 }
 export const signOutGoogle = async () => {
-  const auth2 = await loadAuth2(gapi, GOOGLE_APP_CLIENT_ID, SCOPES);
+  const auth2 = await loadAuth2(gapi, GOOGLE_APP_CLIENT_ID, SCOPES.join(' '));
   if (auth2.isSignedIn.get()) {
     auth2.signOut();
   }
 };
+
+(window as any).signOutGoogle = signOutGoogle;
 
 export interface ICreateMeetResponse {
   summary: string;
