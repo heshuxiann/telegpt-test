@@ -74,6 +74,7 @@ import {
 } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import { copyTextToClipboard } from '../../../util/clipboard';
+import ScheduleMeeting from '../../chatAssistant/utils/schedule-meeting';
 import { knowledgeEmbeddingStore } from '../../chatAssistant/vector-store';
 import { getSelectionAsFormattedText } from './helpers/getSelectionAsFormattedText';
 import { isSelectionRangeInsideMessage } from './helpers/isSelectionRangeInsideMessage';
@@ -118,6 +119,7 @@ type StateProps = {
   canReschedule?: boolean;
   canReply?: boolean;
   canSmartReply?: boolean;
+  canScheduleMeeting?:boolean;
   canPin?: boolean;
   canShowReactionsCount?: boolean;
   canBuyPremium?: boolean;
@@ -186,6 +188,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
   canReschedule,
   canReply,
   canSmartReply,
+  canScheduleMeeting,
   canPin,
   repliesThreadInfo,
   canUnpin,
@@ -469,6 +472,13 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
     }
   });
 
+  const handleScheduleMeeting = useLastCallback(() => {
+    const chatId = message.chatId;
+    const scheduleMeeting = new ScheduleMeeting(chatId);
+    scheduleMeeting.start(message);
+    closeMenu();
+  });
+
   const handleOpenThread = useLastCallback(() => {
     openThread({
       chatId: message.chatId,
@@ -704,6 +714,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         canReschedule={canReschedule}
         canReply={canReply}
         canSmartReply={canSmartReply}
+        canScheduleMeeting={canScheduleMeeting}
         canQuote={selectionQuoteOffset !== UNQUOTABLE_OFFSET}
         canDelete={canDelete}
         canPin={canPin}
@@ -739,6 +750,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         onOpenThread={handleOpenThread}
         onReply={handleReply}
         onSmartReply={handleSmartReply}
+        onScheduleMeet={handleScheduleMeeting}
         onEdit={handleEdit}
         onPin={handlePin}
         onUnpin={handleUnpin}
@@ -911,6 +923,7 @@ export default memo(withGlobal<OwnProps>(
       canReschedule: isScheduled,
       canReply: !isPinned && !isScheduled && canReplyGlobally,
       canSmartReply: !isPinned && !isScheduled && canReplyGlobally && canSendText && hasTextContent,
+      canScheduleMeeting: !isOwn && hasTextContent,
       canPin: !isScheduled && canPin,
       canUnpin: !isScheduled && canUnpin,
       canDelete,

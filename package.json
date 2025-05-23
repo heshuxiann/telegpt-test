@@ -173,6 +173,7 @@
     "slate": "^0.114.0",
     "slate-react": "^0.114.2",
     "sonner": "^2.0.1",
+    "spell-checker-js": "^1.2.6",
     "tailwind-merge": "^3.0.2",
     "usehooks-ts": "^3.1.1",
     "uuid": "^11.1.0",

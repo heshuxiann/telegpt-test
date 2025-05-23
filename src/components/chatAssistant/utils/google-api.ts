@@ -62,7 +62,7 @@ export const signOutGoogle = async () => {
   }
 };
 
-interface ICreateMeetResponse {
+export interface ICreateMeetResponse {
   summary: string;
   start: { dateTime: string; timeZone: string };
   end: { dateTime: string; timeZone: string };

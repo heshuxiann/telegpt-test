@@ -26,6 +26,7 @@ import {
 } from '../../../global/helpers';
 import buildClassName from '../../../util/buildClassName';
 import { disableScrolling } from '../../../util/scrollLock';
+import ScheduleMeetingIcon from '../../chatAssistant/assets/schedule-meeting.png';
 import SmartReplyIcon from '../../chatAssistant/assets/smart-reply.png';
 import { REM } from '../../common/helpers/mediaDimensions';
 import renderText from '../../common/helpers/renderText';
@@ -65,6 +66,7 @@ type OwnProps = {
   canReschedule?: boolean;
   canReply?: boolean;
   canSmartReply?: boolean;
+  canScheduleMeeting?: boolean;
   canQuote?: boolean;
   repliesThreadInfo?: ApiThreadInfo;
   canPin?: boolean;
@@ -102,6 +104,7 @@ type OwnProps = {
   canLoadReadDate?: boolean;
   onReply?: NoneToVoidFunction;
   onSmartReply?: NoneToVoidFunction;
+  onScheduleMeet?: NoneToVoidFunction;
   onOpenThread?: VoidFunction;
   onEdit?: NoneToVoidFunction;
   onPin?: NoneToVoidFunction;
@@ -161,6 +164,7 @@ const MessageContextMenu: FC<OwnProps> = ({
   canBuyPremium,
   canReply,
   canSmartReply,
+  canScheduleMeeting,
   canQuote,
   canEdit,
   noReplies,
@@ -195,6 +199,7 @@ const MessageContextMenu: FC<OwnProps> = ({
   canLoadReadDate,
   onReply,
   onSmartReply,
+  onScheduleMeet,
   onOpenThread,
   onEdit,
   onPin,
@@ -432,6 +437,20 @@ const MessageContextMenu: FC<OwnProps> = ({
             onClick={onSmartReply}
           >
             {lang('Smart Reply')}
+          </MenuItem>
+        )}
+        {canScheduleMeeting && (
+          <MenuItem
+            customIcon={(
+              <img
+                className="w-[20px] h-[20px] mr-[1.25rem] ml-[0.5rem]"
+                src={ScheduleMeetingIcon}
+                alt=""
+              />
+            )}
+            onClick={onScheduleMeet}
+          >
+            {lang('Schedule a Meeting')}
           </MenuItem>
         )}
         {!noReplies && Boolean(repliesThreadInfo?.messagesCount) && (
