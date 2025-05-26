@@ -11,6 +11,36 @@ import type { ICreateMeetResponse } from './google-api';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { checkGoogleAuthStatus, createGoogleMeet, loginWithGoogle } from './google-api';
 
+function formatTimeRange(startISO:string, endISO:string) {
+  const startDate = new Date(startISO);
+  const endDate = new Date(endISO);
+
+  const dayFormatter = new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const timeFormatter = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+  // 格式化时间（去掉空格和 AM/PM 小写）
+  const formatTime = (date:Date) => {
+    return timeFormatter.format(date)
+      .toLowerCase()
+      .replace(' ', '');
+  };
+
+  const dateStr = dayFormatter.format(startDate);
+  const startTimeStr = formatTime(startDate);
+  const endTimeStr = formatTime(endDate);
+
+  return `${dateStr} ${startTimeStr}-${endTimeStr}`;
+}
+
 class ScheduleMeeting {
   private chatId:string;
 
@@ -80,6 +110,7 @@ class ScheduleMeeting {
             content: message,
             role: 'user',
           }],
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
       }).then((res) => res.json()).then((toolResults) => {
         let email: string[] | null = null;
@@ -139,7 +170,7 @@ class ScheduleMeeting {
     }).then((createMeetResponse:ICreateMeetResponse) => {
       console.log('createMeetResponse', createMeetResponse);
       if (createMeetResponse) {
-        const eventMessage = `Event details \n📝 Title\n${createMeetResponse.summary}\n👥 Guests\n${createMeetResponse.attendees.map((attendee) => attendee.email).join('\\n')}\n📅 Time\n${createMeetResponse.start.dateTime} - ${createMeetResponse.end.dateTime}\n${createMeetResponse.start.timeZone}\n🔗 Meeting link\n${createMeetResponse.hangoutLink}
+        const eventMessage = `Event details \n📝 Title\n${createMeetResponse.summary}\n👥 Guests\n${createMeetResponse.attendees.map((attendee) => attendee.email).join('\\n')}\n📅 Time\n${formatTimeRange(createMeetResponse.start.dateTime,createMeetResponse.end.dateTime)}\n${createMeetResponse.start.timeZone}\n🔗 Meeting link\n${createMeetResponse.hangoutLink}
             `;
         this.sendMessage(eventMessage);
       }
