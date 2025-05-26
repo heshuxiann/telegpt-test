@@ -41,6 +41,7 @@ const {
 
 const CSP = `
   default-src 'self';
+  font-src 'self' data:;
   connect-src 'self' wss://*.web.telegram.org blob: http: https: ${APP_ENV === 'development' ? 'wss:' : ''};
   script-src 'self' 'wasm-unsafe-eval' https://t.me/_websync_ https://telegram.me/_websync_ http://apis.google.com https://accounts.google.com https://www.googletagmanager.com;
   style-src 'self' 'unsafe-inline';

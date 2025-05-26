@@ -89,7 +89,7 @@ export const createGoogleMeet = ({
       };
     });
     const event = {
-      summary: '会议预定',
+      summary: 'Meeting Invitation',
       start: { dateTime: new Date(startDate), timeZone: selectedTimezone },
       end: { dateTime: new Date(endDate), timeZone: selectedTimezone },
       attendees,
