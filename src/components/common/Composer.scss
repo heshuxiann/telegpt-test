@@ -660,6 +660,9 @@
 #caption-input-text {
   position: relative;
   flex-grow: 1;
+  .highlight-overlay{
+    padding: calc((var(--base-height, 3.5rem) - var(--composer-text-size, 1rem) * 1.375) / 2) 0.875rem;
+  }
 
   .form-control {
     padding: calc((var(--base-height, 3.5rem) - var(--composer-text-size, 1rem) * 1.375) / 2) 0.875rem;
@@ -676,6 +679,7 @@
     border-radius: 0 !important;
     box-shadow: none !important;
     caret-color: var(--color-text);
+    z-index: 2;
 
     &.touched {
       & ~ .placeholder-text {
@@ -799,6 +803,12 @@
       padding: calc((2.875rem - var(--composer-text-size, 1rem) * 1.3125) / 2) 0;
     }
   }
+  .highlight-overlay{
+    padding: calc((var(--base-height, 3.5rem) - var(--composer-text-size, 1rem) * 1.3125) / 2) 0;
+    @media (max-width: 600px) {
+      padding: calc((2.875rem - var(--composer-text-size, 1rem) * 1.3125) / 2) 0;
+    }
+  }
 
   .forced-placeholder,
   .placeholder-text {
@@ -815,6 +825,13 @@
       padding-right: 0;
 
       @media (min-width: 600px) {
+        padding-left: 0.5rem;
+      }
+    }
+    .highlight-overlay{
+      padding-left: 0;
+      padding-right: 0;
+      @media (max-width: 600px) {
         padding-left: 0.5rem;
       }
     }

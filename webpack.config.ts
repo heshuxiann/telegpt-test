@@ -243,6 +243,10 @@ export default function createConfig(
         extensions: [new WebpackContextExtension()], // eslint-disable-line @typescript-eslint/no-use-before-define
       }),
     ],
+    experiments: {
+      asyncWebAssembly: true,
+      topLevelAwait: true,
+    },
 
     devtool: APP_ENV === 'production' && IS_PACKAGED_ELECTRON ? undefined : 'source-map',
 
