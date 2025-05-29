@@ -499,7 +499,7 @@ const MessageInput: FC<OwnProps & StateProps> = ({
     for (const item of validRanges) {
       const { start, end } = item.span.char;
       const { replacements } = item;
-      if (start && end) {
+      if (start !== undefined && end !== undefined) {
         const range = document.createRange();
         const { node: startNode, offset: startOffset } = getNodeForIndex(textNodes, start);
         const { node: endNode, offset: endOffset } = getNodeForIndex(textNodes, end);

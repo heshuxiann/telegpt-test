@@ -13,7 +13,9 @@ export type ErrorsMarkers = {
 }[];
 export interface InputGrammerProps {
   errorMarkers:ErrorsMarkers;
-  handleFixError:({ start, end, replacement }:{ start: number; end: number; replacement: string })=>void;
+  handleFixError:({
+    start, end, replacement, errorIndex,
+  }:{ start: number; end: number; replacement: string ;errorIndex:number })=>void;
 }
 const InputGrammer = (props:InputGrammerProps) => {
   const { errorMarkers, handleFixError } = props;

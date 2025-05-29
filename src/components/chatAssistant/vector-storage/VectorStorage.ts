@@ -115,7 +115,7 @@ export class VectorStorage<T> {
     this.updateHitCounters(results);
     if (results.length > 0) {
       this.removeDocsLRU();
-      await this.saveToIndexDbStorage();
+      // await this.saveToIndexDbStorage();
     }
     if (!includeValues) {
       results.forEach((result) => {
@@ -164,7 +164,7 @@ export class VectorStorage<T> {
     this.documents.push(...newDocuments);
     this.removeDocsLRU();
     // Save to index db storage
-    await this.saveToIndexDbStorage();
+    await this.addToIndexDbStorage(newDocuments);
     return newDocuments;
   }
 
@@ -187,7 +187,7 @@ export class VectorStorage<T> {
 
     this.removeDocsLRU();
     // Save to index db storage
-    await this.saveToIndexDbStorage();
+    await this.addToIndexDbStorage([document]);
     return document;
   }
 
@@ -252,6 +252,22 @@ export class VectorStorage<T> {
       const tx = this.db.transaction('documents', 'readwrite');
       await tx.objectStore('documents').clear();
       for (const doc of this.documents) {
+        // eslint-disable-next-line no-await-in-loop
+        await tx.objectStore('documents').put(doc);
+      }
+      await tx.done;
+    } catch (error: any) {
+      console.error('Failed to save to IndexedDB:', error.message);
+    }
+  }
+
+  private async addToIndexDbStorage(documents:Array<IVSDocument<T>>): Promise<void> {
+    if (!this.db) {
+      this.db = await this.initDB();
+    }
+    try {
+      const tx = this.db.transaction('documents', 'readwrite');
+      for (const doc of documents) {
         // eslint-disable-next-line no-await-in-loop
         await tx.objectStore('documents').put(doc);
       }
