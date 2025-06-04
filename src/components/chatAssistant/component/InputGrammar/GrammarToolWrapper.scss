@@ -1,0 +1,39 @@
+.grammar-tool-wrapper {
+  width: 100%;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+  border: 3px solid #8c42f0;
+  border-radius: 16px;
+  position: absolute;
+  background-color: #fff;
+  opacity: 0;
+  transform: translateY(1.5rem);
+  transform-origin: bottom;
+  transition: opacity var(--layer-transition), transform var(--layer-transition);
+  scrollbar-gutter: stable;
+  &.open {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .grammar-tool-tabs {
+    height: 100%;
+    .ant-tabs-nav-wrap {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+    .ant-tabs-content-holder {
+      max-height: 20rem;
+      overflow: auto;
+      .ant-tabs-tabpane {
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-top: 12px;
+        .grammar-tool-tab-content-title{
+            font-size: 14px;
+            color: #8C42F0;
+            font-weight: 600;
+        }
+      }
+    }
+  }
+}

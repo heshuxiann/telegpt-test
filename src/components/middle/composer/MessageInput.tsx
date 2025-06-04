@@ -43,7 +43,7 @@ import Icon from '../../common/icons/Icon';
 import Button from '../../ui/Button';
 import TextTimer from '../../ui/TextTimer';
 import TextFormatter from './TextFormatter.async';
-import InputGrammerWrapper from '../../chatAssistant/component/InputGrammer/InputGrammerWrapper';
+import InputGrammarWrapper from '../../chatAssistant/component/InputGrammar/InputGrammarWrapper';
 
 // eslint-disable-next-line import/no-relative-packages
 
@@ -734,7 +734,7 @@ const MessageInput: FC<OwnProps & StateProps> = ({
         onClick={!isAttachmentModalInput && !canSendPlainText ? handleClick : undefined}
       >
         <div className={inputScrollerContentClass}>
-          <InputGrammerWrapper errorMarkers={errorMarkers} handleFixError={handleFixError} />
+          <InputGrammarWrapper errorMarkers={errorMarkers} handleFixError={handleFixError} />
           <div
             ref={inputRef}
             id={editableInputId || EDITABLE_INPUT_ID}

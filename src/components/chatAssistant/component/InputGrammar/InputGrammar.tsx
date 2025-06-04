@@ -17,7 +17,7 @@ export interface InputGrammerProps {
     start, end, replacement, errorIndex,
   }:{ start: number; end: number; replacement: string ;errorIndex:number })=>void;
 }
-const InputGrammer = (props:InputGrammerProps) => {
+const InputGrammar = (props:InputGrammerProps) => {
   const { errorMarkers, handleFixError } = props;
   return (
     <div className="absolute left-0 top-0">
@@ -40,4 +40,4 @@ const InputGrammer = (props:InputGrammerProps) => {
   );
 };
 
-export default InputGrammer;
+export default InputGrammar;

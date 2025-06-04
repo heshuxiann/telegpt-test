@@ -153,6 +153,10 @@ function setupMutationObserver() {
           return;
         }
 
+        if (type === 'attributes' && attributeName === 'style') {
+          return;
+        }
+
         if (forcedMutationAllowedFor.has(target)) {
           return;
         }
@@ -164,7 +168,6 @@ function setupMutationObserver() {
         if (attributeName?.startsWith('data-')) {
           return;
         }
-
         // eslint-disable-next-line no-console
         onError(new Error(`Unexpected mutation detected: \`${type === 'attributes' ? attributeName : type}\``));
       });

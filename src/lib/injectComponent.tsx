@@ -9,12 +9,12 @@ export function injectComponent<T extends {}>(Component: React.ComponentType<T>)
     if (!domRoot) return null;
 
     if (!domRoot.$aiRoot) {
-      const mountNode = document.createElement('div');
-      mountNode.style.width = '100%';
-      mountNode.style.height = '100%';
-      domRoot.appendChild(mountNode);
+      // const mountNode = document.createElement('div');
+      // mountNode.style.width = '100%';
+      // mountNode.style.height = '100%';
+      // domRoot.appendChild(mountNode);
 
-      const root = createRoot(mountNode);
+      const root = createRoot(domRoot);
       domRoot.$aiRoot = root;
     }
 

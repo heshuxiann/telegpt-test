@@ -7,14 +7,14 @@ import React, {
   useEffect, useRef,
 } from '../../../../lib/teact/teact';
 
-import type { InputGrammerProps } from './InputGrammer';
+import type { InputGrammerProps } from './InputGrammar';
 
 import { injectComponent } from '../../../../lib/injectComponent';
 
-import InputGrammer from './InputGrammer';
+import InputGrammar from './InputGrammar';
 
-const injectMessageAI = injectComponent(InputGrammer);
-const InputGrammerWrapper = (props:InputGrammerProps) => {
+const injectMessageAI = injectComponent(InputGrammar);
+const InputGrammarWrapper = (props:InputGrammerProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (containerRef.current) {
@@ -26,4 +26,4 @@ const InputGrammerWrapper = (props:InputGrammerProps) => {
   );
 };
 
-export default InputGrammerWrapper;
+export default InputGrammarWrapper;

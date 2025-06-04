@@ -157,6 +157,7 @@ import usePaidMessageConfirmation from '../middle/composer/hooks/usePaidMessageC
 import useStickerTooltip from '../middle/composer/hooks/useStickerTooltip';
 import useVoiceRecording from '../middle/composer/hooks/useVoiceRecording';
 
+import GrammarToolWrapper from '../chatAssistant/component/InputGrammar/GrammarToolWrapper';
 import eventEmitter from '../chatAssistant/lib/EventEmitter';
 import InputAIMenu from '../middle/chatgpt/InputAIMenu';
 import AttachmentModal from '../middle/composer/AttachmentModal.async';
@@ -2133,6 +2134,7 @@ const Composer: FC<OwnProps & StateProps> = ({
               {formatVoiceRecordDuration(currentRecordTime - startRecordTimeRef.current!)}
             </span>
           )}
+          <GrammarToolWrapper getHtml={getHtml} setHtml={setHtml} />
           <InputAIMenu getHtml={getHtml} chat={chat} />
           {!isNeedPremium && (
             <AttachMenu
