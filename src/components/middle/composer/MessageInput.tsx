@@ -1,7 +1,8 @@
 /* eslint-disable max-len */
 // eslint-disable-next-line simple-import-sort/imports
 import type { ChangeEvent, RefObject } from 'react';
-import * as wasm from 'nlprule-wasm';
+// import * as wasm from 'nlprule-wasm';
+import { Sapling } from '@saplingai/sapling-js/observer';
 import type { FC, TeactNode } from '../../../lib/teact/teact';
 import React, {
   getIsHeavyAnimating,
@@ -203,6 +204,21 @@ const MessageInput: FC<OwnProps & StateProps> = ({
   useEffect(() => {
     setShouldDisplayTimer(Boolean(timedPlaceholderLangKey && timedPlaceholderDate));
   }, [timedPlaceholderDate, timedPlaceholderLangKey]);
+
+  useEffect(() => {
+    Sapling.init({
+      key: 'WCFKUN3GJEEC1FSEPFH6Q7T9R5C67QTE',
+      endpointHostname: 'https://api.sapling.ai',
+      editPathname: '/api/v1/edits',
+      statusBadge: true,
+      mode: 'dev',
+    });
+
+    const editor = inputRef.current;
+    if (editor) {
+      Sapling.observe(editor);
+    }
+  });
 
   const handleTimerEnd = useLastCallback(() => {
     setShouldDisplayTimer(false);
@@ -535,16 +551,16 @@ const MessageInput: FC<OwnProps & StateProps> = ({
   function checkTextInput() {
     const textContent = inputRef.current?.textContent || '';
     if (textContent && textContent.length) {
-      wasm.default().then(() => {
-        const nlpRuleChecker = wasm.NlpRuleChecker.new();
-        const corrections = nlpRuleChecker.check(textContent);
-        // eslint-disable-next-line no-console
-        console.log('Corrections:', corrections);
-        setErrorRanges(corrections);
-        if (corrections.length > 0) {
-          highLightErrors(corrections);
-        }
-      });
+      // wasm.default().then(() => {
+      //   const nlpRuleChecker = wasm.NlpRuleChecker.new();
+      //   const corrections = nlpRuleChecker.check(textContent);
+      //   // eslint-disable-next-line no-console
+      //   console.log('Corrections:', corrections);
+      //   setErrorRanges(corrections);
+      //   if (corrections.length > 0) {
+      //     highLightErrors(corrections);
+      //   }
+      // });
     }
   }
 
@@ -594,10 +610,10 @@ const MessageInput: FC<OwnProps & StateProps> = ({
         focusEditableElement(inputRef.current!, true);
       }
     }
-    if (errorRanges) {
-      highLightErrors(errorRanges);
-    }
-    inputNlpRuleCheck();
+    // if (errorRanges) {
+    //   highLightErrors(errorRanges);
+    // }
+    // inputNlpRuleCheck();
   }
 
   function handleAndroidContextMenu(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
@@ -737,7 +753,7 @@ const MessageInput: FC<OwnProps & StateProps> = ({
           <InputGrammarWrapper errorMarkers={errorMarkers} handleFixError={handleFixError} />
           <div
             ref={inputRef}
-            id={editableInputId || EDITABLE_INPUT_ID}
+            id={`${editableInputId || EDITABLE_INPUT_ID} editor`}
             className={className}
             contentEditable={isAttachmentModalInput || canSendPlainText}
             role="textbox"
