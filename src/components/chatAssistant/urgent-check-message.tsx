@@ -12,8 +12,8 @@ import {
   CopyIcon, DeleteIcon, VoiceIcon, VoiceingIcon,
 } from './icons';
 
+import ChatAvatar from './component/ChatAvatar';
 import { DrawerKey, useDrawer } from './globalSummary/DrawerContext';
-import ChatAvatar from './ui/ChatAvatar';
 
 import DangerIcon from './assets/danger.png';
 import SerenaLogoPath from './assets/serena.png';

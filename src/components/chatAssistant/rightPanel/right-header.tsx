@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import cx from 'classnames';
 
-import { ArrowLeftIcon, CloseIcon } from '../icons';
+import { LeftOutlined, CloseIcon } from '../icons';
 
 import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 
@@ -52,7 +52,7 @@ const RightHeader = (props: Props) => {
   return (
     <div className="h-[50px] flex items-center justify-center relative">
       {drawerKey && hasBackDrawer.includes(drawerKey) ? (
-        <HeaderButton className="absolute left-[18px]" icon={<ArrowLeftIcon size={24} />} onClick={handleBack} />
+        <HeaderButton className="absolute left-[18px]" icon={<LeftOutlined size={24} />} onClick={handleBack} />
       ) : null}
       <span className="text-[16px] font-semibold">{title}</span>
       <div

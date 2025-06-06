@@ -30,7 +30,7 @@ import { useFastClick } from '../hook/useFastClick';
 import useMedia from '../hook/useMedia';
 import useOldLang from '../hook/useOldLang';
 
-import Icon from '../component/Icon';
+import Icon from './Icon';
 
 import '../../common/Avatar.scss';
 

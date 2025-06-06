@@ -23,8 +23,8 @@ import { getOrderedIds } from '../../../util/folderManager';
 import sortChatIds from '../../common/helpers/sortChatIds';
 import useOldLang from '../hook/useOldLang';
 
+import Avatar from '../component/Avatar';
 import { useDrawer } from '../globalSummary/DrawerContext';
-import Avatar from '../ui/Avatar';
 
 const ChatPickerPanel = () => {
   const global = getGlobal();

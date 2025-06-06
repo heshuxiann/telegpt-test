@@ -22,7 +22,7 @@ const InputGrammarWrapper = (props:InputGrammerProps) => {
     }
   }, [props]);
   return (
-    <div className="absolute left-0 top-0" ref={containerRef} />
+    <div className="absolute left-0 top-0 w-full h-full pointer-events-none" ref={containerRef} />
   );
 };
 

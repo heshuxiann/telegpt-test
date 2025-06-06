@@ -34,7 +34,6 @@ export const AISearch = () => {
     messages, setMessages, append, isLoading, input, setInput, stop, handleSubmit,
   } = useChat({
     id: GLOBAL_SEARCH_CHATID,
-    // api: 'https://telegpt-three.vercel.app/chat',
     api: 'https://telegpt-three.vercel.app/chat',
     sendExtraMessageFields: true,
   });

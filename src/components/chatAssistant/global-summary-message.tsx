@@ -18,9 +18,9 @@ import {
   VoiceingIcon,
 } from './icons';
 
+import Avatar from './component/Avatar';
 import ErrorBoundary from './ErrorBoundary';
 import { DrawerKey, useDrawer } from './globalSummary/DrawerContext';
-import Avatar from './ui/Avatar';
 
 import ActionsIcon from './assets/actions.png';
 import CalendarIcon from './assets/calendar.png';

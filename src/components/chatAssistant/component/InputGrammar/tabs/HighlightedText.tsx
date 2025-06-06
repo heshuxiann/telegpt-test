@@ -9,7 +9,7 @@ type Props = {
 };
 
 const HighlightedText: React.FC<Props> = ({ text, errors }) => {
-  if (!errors.length) return <span>{text}</span>;
+  if (!errors.length) return <p><span>{text}</span></p>;
 
   // 将原文拆分成高亮块和普通块
   const fragments: React.ReactNode[] = [];

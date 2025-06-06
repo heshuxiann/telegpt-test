@@ -22,9 +22,9 @@ import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
 import { sanitizeUIMessages } from '../../../lib/utils';
+import { Button } from '../component/button';
+import { Textarea } from '../component/textarea';
 import { StopIcon } from '../icons';
-import { Button } from '../ui/button';
-import { Textarea } from '../ui/textarea';
 
 function PureMultimodalInput({
   isLoading,

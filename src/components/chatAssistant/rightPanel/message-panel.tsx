@@ -19,8 +19,8 @@ import { languagePrompt } from '../prompt';
 import { cn, formatTimestamp } from '../utils/util';
 import { knowledgeEmbeddingStore } from '../vector-store';
 
+import ChatAvatar from '../component/ChatAvatar';
 import ErrorBoundary from '../ErrorBoundary';
-import ChatAvatar from '../ui/ChatAvatar';
 import chatAIGenerate from '../utils/ChatApiGenerate';
 
 import './message-panel.scss';

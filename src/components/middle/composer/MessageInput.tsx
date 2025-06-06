@@ -1,8 +1,6 @@
 /* eslint-disable max-len */
 // eslint-disable-next-line simple-import-sort/imports
 import type { ChangeEvent, RefObject } from 'react';
-// import * as wasm from 'nlprule-wasm';
-import { Sapling } from '@saplingai/sapling-js/observer';
 import type { FC, TeactNode } from '../../../lib/teact/teact';
 import React, {
   getIsHeavyAnimating,
@@ -190,35 +188,26 @@ const MessageInput: FC<OwnProps & StateProps> = ({
   const isMobileDevice = isMobile && (IS_IOS || IS_ANDROID);
 
   const [shouldDisplayTimer, setShouldDisplayTimer] = useState(false);
-  const [errorRanges, setErrorRanges] = useState<any[]>([]);
-  const [errorMarkers, setErrorMarkers] = useState<{
-    left:number;
-    top:number;
-    width:number;
-    height:number;
-    replacements:string[];
-    start:number;
-    end:number;
-  }[]>([]);
 
   useEffect(() => {
     setShouldDisplayTimer(Boolean(timedPlaceholderLangKey && timedPlaceholderDate));
   }, [timedPlaceholderDate, timedPlaceholderLangKey]);
 
-  useEffect(() => {
-    Sapling.init({
-      key: 'WCFKUN3GJEEC1FSEPFH6Q7T9R5C67QTE',
-      endpointHostname: 'https://api.sapling.ai',
-      editPathname: '/api/v1/edits',
-      statusBadge: true,
-      mode: 'dev',
-    });
+  // useEffect(() => {
+  //   Sapling.init({
+  //     key: 'WCFKUN3GJEEC1FSEPFH6Q7T9R5C67QTE',
+  //     endpointHostname: 'https://api.sapling.ai',
+  //     editPathname: '/api/v1/edits',
+  //     statusBadge: true,
+  //     mode: 'dev',
+  //   });
 
-    const editor = inputRef.current;
-    if (editor) {
-      Sapling.observe(editor);
-    }
-  });
+  //   const editor = inputRef.current;
+  //   if (editor) {
+  //     Sapling.observe(editor);
+  //     editor.addEventListener('sapling:edit', handleEdit);
+  //   }
+  // });
 
   const handleTimerEnd = useLastCallback(() => {
     setShouldDisplayTimer(false);
@@ -454,142 +443,6 @@ const MessageInput: FC<OwnProps & StateProps> = ({
       e.target.addEventListener('keyup', processSelectionWithTimeout, { once: true });
     }
   }
-
-  function getTextNodes(node: HTMLDivElement) {
-    // eslint-disable-next-line no-null/no-null
-    const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null);
-    const textNodes = [];
-    while (walker.nextNode()) {
-      textNodes.push(walker.currentNode);
-    }
-    return textNodes;
-  }
-
-  function getNodeForIndex(textNodes: Node[], index: number) {
-    let remaining = index;
-    for (const node of textNodes) {
-      if (node.nodeType === Node.TEXT_NODE && remaining <= (node as Text).length) {
-        return { node, offset: remaining };
-      }
-      if (node.nodeType === Node.TEXT_NODE) {
-        remaining -= (node as Text).length;
-      }
-    }
-    // eslint-disable-next-line no-null/no-null
-    return { node: null, offset: 0 };
-  }
-
-  function getUnderlineTOffset(rect: DOMRect, containerRect: DOMRect, editableDiv: HTMLDivElement) {
-    const computed = getComputedStyle(editableDiv);
-    const lineHeight = parseFloat(computed.lineHeight);
-    const top = rect.top - containerRect.top;
-    const left = rect.left - containerRect.left;
-    return {
-      left, top, width: rect.width, height: lineHeight,
-    };
-  }
-
-  function pruneInvalidRanges(
-    text: string,
-    corrections: any,
-  ) {
-    return corrections.filter((correction: any) => {
-      const { start, end } = correction.span.char;
-      if (end > text.length) return false; // 被删掉了
-      const span = text.slice(start, end);
-      return /\S/.test(span); // 非空内容才保留
-    });
-  }
-
-  function highLightErrors(corrections: any) {
-    const textarea = inputRef.current;
-    // const overlay = highlightRef.current;
-    if (!textarea) return;
-    const textNodes = getTextNodes(textarea);
-    const textContent = textarea.textContent || '';
-    if (!textNodes) return;
-    // overlay.innerHTML = ''; // 清空之前的下划线
-    setErrorMarkers([]);
-    const validRanges = pruneInvalidRanges(textContent, corrections);
-    const markers = [];
-    for (const item of validRanges) {
-      const { start, end } = item.span.char;
-      const { replacements } = item;
-      if (start !== undefined && end !== undefined) {
-        const range = document.createRange();
-        const { node: startNode, offset: startOffset } = getNodeForIndex(textNodes, start);
-        const { node: endNode, offset: endOffset } = getNodeForIndex(textNodes, end);
-
-        if (!startNode || !endNode) continue;
-
-        range.setStart(startNode, startOffset);
-        range.setEnd(endNode, endOffset);
-
-        const rects = range.getClientRects();
-        for (const rect of rects) {
-          const marker = document.createElement('div');
-          marker.className = 'underline-block';
-          const textareaReact = textarea.getBoundingClientRect();
-          const {
-            left, top, width, height,
-          } = getUnderlineTOffset(rect, textareaReact, textarea);
-          markers.push({
-            left,
-            top,
-            width,
-            height,
-            start,
-            end,
-            replacements,
-          });
-        }
-      }
-    }
-    setErrorMarkers(markers);
-  }
-
-  function checkTextInput() {
-    const textContent = inputRef.current?.textContent || '';
-    if (textContent && textContent.length) {
-      // wasm.default().then(() => {
-      //   const nlpRuleChecker = wasm.NlpRuleChecker.new();
-      //   const corrections = nlpRuleChecker.check(textContent);
-      //   // eslint-disable-next-line no-console
-      //   console.log('Corrections:', corrections);
-      //   setErrorRanges(corrections);
-      //   if (corrections.length > 0) {
-      //     highLightErrors(corrections);
-      //   }
-      // });
-    }
-  }
-
-  const inputNlpRuleCheck = debounce(checkTextInput, 2000, false, true);
-
-  const handleFixError = useLastCallback(({
-    start, end, replacement, errorIndex,
-  }:{ start:number;end:number;replacement:string;errorIndex:number }) => {
-    const textarea = inputRef.current;
-    if (!textarea) return;
-    // eslint-disable-next-line no-console
-    console.log(start, end, replacement);
-    const textNodes = getTextNodes(textarea);
-    const { node: startNode, offset: startOffset } = getNodeForIndex(textNodes, start);
-    const { node: endNode, offset: endOffset } = getNodeForIndex(textNodes, end);
-
-    if (!startNode || !endNode) return;
-
-    const range = document.createRange();
-    range.setStart(startNode, startOffset);
-    range.setEnd(endNode, endOffset);
-
-    range.deleteContents();
-    range.insertNode(document.createTextNode(replacement));
-    const newErrorRanges = errorRanges.filter((_, index) => index !== errorIndex);
-    setErrorRanges(newErrorRanges);
-    highLightErrors(newErrorRanges);
-  });
-
   function handleChange(e: ChangeEvent<HTMLDivElement>) {
     const { innerHTML, textContent } = e.currentTarget;
 
@@ -610,10 +463,6 @@ const MessageInput: FC<OwnProps & StateProps> = ({
         focusEditableElement(inputRef.current!, true);
       }
     }
-    // if (errorRanges) {
-    //   highLightErrors(errorRanges);
-    // }
-    // inputNlpRuleCheck();
   }
 
   function handleAndroidContextMenu(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
@@ -750,10 +599,10 @@ const MessageInput: FC<OwnProps & StateProps> = ({
         onClick={!isAttachmentModalInput && !canSendPlainText ? handleClick : undefined}
       >
         <div className={inputScrollerContentClass}>
-          <InputGrammarWrapper errorMarkers={errorMarkers} handleFixError={handleFixError} />
+          <InputGrammarWrapper inputRef={inputRef} />
           <div
             ref={inputRef}
-            id={`${editableInputId || EDITABLE_INPUT_ID} editor`}
+            id={editableInputId || EDITABLE_INPUT_ID}
             className={className}
             contentEditable={isAttachmentModalInput || canSendPlainText}
             role="textbox"

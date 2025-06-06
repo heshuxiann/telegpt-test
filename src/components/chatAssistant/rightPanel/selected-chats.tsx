@@ -12,8 +12,8 @@ import { isApiPeerChat, isApiPeerUser } from '../../../global/helpers/peers';
 import { selectPeer, selectUserStatus } from '../../../global/selectors';
 import useOldLang from '../hook/useOldLang';
 
+import Avatar from '../component/Avatar';
 import Icon from '../component/Icon';
-import Avatar from '../ui/Avatar';
 
 import './selected-chats.scss';
 

@@ -8,7 +8,7 @@ import { getChatTitle, isUserId } from '../../global/helpers';
 import { selectChat } from '../../global/selectors';
 import useOldLang from './hook/useOldLang';
 
-import Avatar from './ui/Avatar';
+import Avatar from './component/Avatar';
 
 export const GroupSearchMessage = ({ message }: { message: Message }) => {
   const [chatIds, setChatIds] = useState<string[]>([]);

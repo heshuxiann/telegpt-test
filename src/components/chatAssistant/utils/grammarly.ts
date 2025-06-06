@@ -2,8 +2,7 @@ export type GrammarlyCheckItem = {
   type?: string;
   description?: string;
   offset: number;
-  length?: number;
-  bad?: string;
+  length: number;
   originalText?: string;
   remove_segment: boolean;
   suggestions:string[];

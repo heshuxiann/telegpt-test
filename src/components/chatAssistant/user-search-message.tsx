@@ -7,7 +7,7 @@ import { getActions, getGlobal } from '../../global';
 import { getUserFullName, isUserId } from '../../global/helpers';
 import { selectChat, selectUser } from '../../global/selectors';
 
-import Avatar from './ui/Avatar';
+import Avatar from './component/Avatar';
 
 export const UserSearchMessage = ({ message }: { message: Message }) => {
   const [senderIds, setSenderIds] = useState<string[]>([]);
