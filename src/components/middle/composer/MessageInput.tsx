@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 // eslint-disable-next-line simple-import-sort/imports
 import type { ChangeEvent, RefObject } from 'react';
+// import { Sapling } from '@saplingai/sapling-js/observer';
 import type { FC, TeactNode } from '../../../lib/teact/teact';
 import React, {
   getIsHeavyAnimating,
@@ -205,7 +206,6 @@ const MessageInput: FC<OwnProps & StateProps> = ({
   //   const editor = inputRef.current;
   //   if (editor) {
   //     Sapling.observe(editor);
-  //     editor.addEventListener('sapling:edit', handleEdit);
   //   }
   // });
 

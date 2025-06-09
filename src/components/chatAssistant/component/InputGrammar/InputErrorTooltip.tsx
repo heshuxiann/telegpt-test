@@ -9,45 +9,33 @@ export type OwnProps = {
   left: number;
   width: number;
   height: number;
-  start: number;
-  end: number;
   replacement:string;
   generalErrorType: string;
   errorIndex?: number;
-  handleFixError:({
-    start, end, replacement, errorIndex,
-  }:{ start: number; end: number; replacement: string;errorIndex:number })=>void;
+  handleFixError:(errorIndex:number)=>void;
 };
 
 const TooltipContent = (
   {
     replacement,
-    start,
-    end,
     errorIndex,
     handleFixError,
   }:
   { replacement:string;
-    start:number;
-    end:number;
     errorIndex:number;
-    handleFixError:({
-      start, end, replacement, errorIndex,
-    }:{ start: number; end: number; replacement: string; errorIndex:number })=>void;
+    handleFixError:(errorIndex:number)=>void;
   },
 ) => {
   // eslint-disable-next-line @typescript-eslint/no-shadow
-  const handleClick = (replacement:string) => {
-    handleFixError({
-      start, end, replacement, errorIndex,
-    });
+  const handleClick = () => {
+    handleFixError(errorIndex);
   };
   return (
     <div className="InputErrorTooltip__content">
       <div>ReplaceMent</div>
       <div
         className="px-[12px] py-[10px] rounded-[8px] cursor-pointer hover:bg-[#F4F4F5]"
-        onClick={() => handleClick(replacement)}
+        onClick={handleClick}
       >
         {replacement}
       </div>
@@ -57,7 +45,7 @@ const TooltipContent = (
 
 const InputErrorTooltip = (props: OwnProps) => {
   const {
-    top, left, width, height, start, end, replacement, generalErrorType, errorIndex, handleFixError,
+    top, left, width, height, replacement, generalErrorType, errorIndex, handleFixError,
   } = props;
   const triggerRef = useRef<HTMLDivElement>(null);
   return (
@@ -72,8 +60,6 @@ const InputErrorTooltip = (props: OwnProps) => {
         content={(
           <TooltipContent
             replacement={replacement}
-            start={start}
-            end={end}
             errorIndex={errorIndex!!}
             handleFixError={handleFixError}
           />
@@ -81,7 +67,7 @@ const InputErrorTooltip = (props: OwnProps) => {
       >
         <div
           ref={triggerRef}
-          className={`h-full w-full border-b-[2px] ${generalErrorType.toLocaleLowerCase() === 'spelling' ? 'border-red-500/60' : 'border-[#FFD633]'}`}
+          className={`h-full w-full border-b-[2px] ${generalErrorType.toLocaleLowerCase() === 'typos' ? 'border-red-500/60' : 'border-[#FFD633]'}`}
         />
       </Popover>
     </div>

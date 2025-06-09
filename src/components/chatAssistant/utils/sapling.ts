@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+import { v4 as uuidv4 } from 'uuid';
+
 class Sapling {
   private editUrl: string;
 
@@ -6,10 +8,10 @@ class Sapling {
     this.editUrl = 'https://api.sapling.ai/api/v1/edits';
   }
 
-  private async saplingEditOverview(text: string) {
+  public async saplingEditOverview(text: string) {
     const params = {
       text,
-      session_id: 'test session',
+      session_id: uuidv4(),
       key: 'WCFKUN3GJEEC1FSEPFH6Q7T9R5C67QTE', // replace with your API key
     };
 
