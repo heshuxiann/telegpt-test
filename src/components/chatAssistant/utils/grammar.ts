@@ -11,7 +11,6 @@ class GrammarChecker {
       text,
       language: 'en-US',
       useragent: 'standalone',
-      tokenV2: '6b58944466a21519ca87f75d8caff1ce',
       disabledRules: 'WHITESPACE_RULE',
       mode: 'allButTextLevelOnly',
       allowIncompleteResults: 'true',
