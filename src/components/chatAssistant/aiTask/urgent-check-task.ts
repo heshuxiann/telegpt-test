@@ -4,11 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 import type { ApiMessage } from '../../../api/types/messages';
 import type { StoreMessage } from '../store/messages-store';
+import type { UrgentTopic } from '../store/urgent-topic-store';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
-import generateChatgpt from '../lib/generate-chat';
-import { formatUrgentCheckText } from '../globalSummary/formate-summary-text';
-import { getUrgentTopicPrompt } from '../prompt';
+import { DefaultUrgentTopic } from '../prompt';
 import { ChataiStores } from '../store';
 import { URGENT_CHATS } from '../store/general-store';
 import { sendGAEvent } from '../utils/analytics';
@@ -20,24 +19,19 @@ function getStrongAlertPhoneNumber(
     chatId: string;
     messageId: string;
     content: string;
-    matchUrgentTopics: any[];
+    matchUrgentTopicIds: string[];
   }>,
+  topics: Array<UrgentTopic>,
 ) {
   if (data instanceof Array && data.length > 0) {
-    for (const item of data) {
-      if (Array.isArray(item.matchUrgentTopics)) {
-        for (const topic of item.matchUrgentTopics) {
-          if (
-            topic.strongAlert === true
-            && typeof topic.phoneNumber === 'string'
-            && topic.phoneNumber.trim() !== ''
-          ) {
-            return topic.phoneNumber.trim(); // 只返回第一个匹配的
-          }
-        }
-      }
-    }
-    return null; // 没有找到符合条件的
+    const mergedUniqueTopicIds = Array.from(
+      // eslint-disable-next-line @typescript-eslint/no-shadow
+      new Set(data.flatMap((item) => item.matchUrgentTopicIds)),
+    );
+    const phoneNumber = topics.find(
+      (topic) => mergedUniqueTopicIds.includes(topic.id) && topic.strongAlert,
+    )?.phoneNumber;
+    return phoneNumber || null;
   }
   return null;
 }
@@ -49,12 +43,12 @@ class UrgentCheckTask {
 
   private urgentChats: string[] = [];
 
-  private urgentChatsInitialized:boolean = false;
+  private urgentChatsInitialized: boolean = false;
 
   initTask() {
     setInterval(() => {
       this.checkUrgentMessage();
-    }, 1000 * 60 * 5);
+    }, 1000 * 60 * 5); // 每5分钟检查一次
   }
 
   static getTextWithoutEntities(text: string, entities: any[]): string {
@@ -83,32 +77,26 @@ class UrgentCheckTask {
       };
     });
     ChataiStores.urgentTopic?.getAllUrgentTopic().then((topics) => {
-      const urgentPrompts = getUrgentTopicPrompt(topics);
-      generateChatgpt({
-        data: {
-          messages: [
-            {
-              role: 'system',
-              content: urgentPrompts,
-              id: '1',
-            },
-            {
-              role: 'user',
-              content: `分析一下消息列表,获取符合描述的消息:
-                ${JSON.stringify(messages)}
-              `,
-              id: '2',
-            },
-          ],
+      topics.unshift(DefaultUrgentTopic);
+      fetch('https://telegpt-three.vercel.app/urgent-message-check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        onResponse: (response) => {
-          console.log('response', response);
-          const formatResponse = formatUrgentCheckText(response);
-          if (formatResponse) {
+        body: JSON.stringify({
+          messages,
+          urgentTopics: topics,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log('urgent check response', data);
+          const matchs = data?.data || [];
+          if (matchs.length > 0) {
             const newMessage: StoreMessage = {
               chatId: GLOBAL_SUMMARY_CHATID,
               timestamp: new Date().getTime(),
-              content: JSON.stringify(formatResponse),
+              content: JSON.stringify(matchs),
               id: uuidv4(),
               createdAt: new Date(),
               role: 'assistant',
@@ -122,7 +110,7 @@ class UrgentCheckTask {
             eventEmitter.emit(Actions.AddUrgentMessage, newMessage);
             // check strong alert
             try {
-              const strongAlertPhoneNumber = getStrongAlertPhoneNumber(formatResponse);
+              const strongAlertPhoneNumber = getStrongAlertPhoneNumber(matchs, topics);
               if (strongAlertPhoneNumber) {
                 fetch(`https://telegpt-three.vercel.app/voice-call?phoneNumber=${strongAlertPhoneNumber}`, {
                   method: 'GET',
@@ -133,8 +121,7 @@ class UrgentCheckTask {
               console.log('error', e);
             }
           }
-        },
-      });
+        });
     });
     this.clearPendingMessages();
   }
@@ -145,24 +132,27 @@ class UrgentCheckTask {
     console.log('checkUrgentMessage', this.pendingMessages);
   }
 
-  getUrgentChats():Promise<string[]> {
+  getUrgentChats(): Promise<string[]> {
     return new Promise((resolve) => {
       if (this.urgentChatsInitialized) {
         resolve(this.urgentChats);
       } else {
         this.urgentChatsInitialized = true;
-        ChataiStores.general?.get(URGENT_CHATS).then((chats) => {
-          this.urgentChats = chats || [];
-          resolve(chats || []);
-        }).catch(() => {
-          resolve([]);
-        });
+        ChataiStores.general
+          ?.get(URGENT_CHATS)
+          .then((chats) => {
+            this.urgentChats = chats || [];
+            resolve(chats || []);
+          })
+          .catch(() => {
+            resolve([]);
+          });
       }
     });
   }
 
   async addNewMessage(message: ApiMessage) {
-    const urgentChats = await this.getUrgentChats() || [];
+    const urgentChats = (await this.getUrgentChats()) || [];
     if (urgentChats.length === 0 || urgentChats.includes(message.chatId)) {
       this.pendingMessages.push(message);
     }

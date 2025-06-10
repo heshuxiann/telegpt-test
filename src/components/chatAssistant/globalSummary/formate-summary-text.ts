@@ -58,21 +58,6 @@ ISummaryTopicItem[] | ISummaryPendingItem[] | ISummaryGarbageItem[] | ISummaryTo
   return null;
 };
 
-const extractJsonContent = (content: string) => {
-  const regex = /<!--\s*json-start\s*-->([\s\S]*?)<!--\s*json-end\s*-->/s;
-  const match = content.match(regex);
-  if (match) {
-    try {
-      const result = JSON.parse(match[1].trim());
-      return result;
-    } catch (error) {
-      console.error('JSON 解析错误:', error);
-      return null;
-    }
-  }
-  return null;
-};
-
 export const formatSummaryText = (content: string): {
   mainTopic: ISummaryTopicItem[] | null;
   pendingMatters: ISummaryPendingItem[] | null;
@@ -90,14 +75,6 @@ export const formatSummaryText = (content: string): {
       garbageMessage: garbageMessage as ISummaryGarbageItem[] | null,
       customizationTopic: customizationTopic as ISummaryTopicItem[] | null,
     };
-  }
-  return null;
-};
-
-export const formatUrgentCheckText = (content: string) => {
-  const parsedMessage = extractJsonContent(content);
-  if (parsedMessage && parsedMessage.length > 0) {
-    return parsedMessage;
   }
   return null;
 };

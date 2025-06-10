@@ -65,7 +65,7 @@ export const UrgentMessageCheckPrompt = `
         \`\`\`
 `;
 
-const defaultUrgentTopic = {
+export const DefaultUrgentTopic = {
   id: 'default',
   topicName: '默认紧急主题',
   topicDescription: `
@@ -87,48 +87,6 @@ const defaultUrgentTopic = {
        - 高优先级：高优先级、优先、务必、必须、务必完成
   `,
   strongAlert: false,
-};
-export const getUrgentTopicPrompt = (urgentTopics: any[] = []) => {
-  urgentTopics.unshift(defaultUrgentTopic);
-  return `你是一个专业的聊天消息分析助手,需要你根据用户自定义的重要消息描述来判断消息是否符合这些描述;
-    ## 重要消息描述列表(urgentTopics)
-    ${JSON.stringify(urgentTopics)}
-    ## 消息字段解释
-     - chatId: 房间ID
-     - messageId: 消息ID
-     - content: 消息内容
-     - senderName: 发送者名称
-    ## 判断规则
-     - 根据重要消息描述的topicDescription判断这条消息内容是否符合
-     - 如果消息内容符合描述，总结消息内容
-     - 如果不符合任何一条topicDescription,则直接过滤掉
-    ## 输出格式规范
-     - 去除所有换行符,确保 JSON 结构紧凑
-     - 代码块应使用 Markdown 代码块包裹
-     - 校验JSON结构,确保所有JSON数据都有 <!-- json-start --> 和 <!-- json-end --> 标记
-     - matchUrgentTopics是符合描述的消息相关联的urgentTopic
-    ## 示例输出
-        \`\`\`json
-                <!-- json-start -->
-                    [
-                        {
-                            chatId: "房间ID",
-                            messageId: "消息ID",
-                            content: 内容摘要",
-                            matchUrgentTopics:[
-                                {
-                                     id: 'default',
-                                     topicName: '默认紧急主题',
-                                     topicDescription: '默认紧急主题描述'
-                                     strongAlert:true,
-                                     phoneNumber: '默认紧急主题电话号码'
-                                }
-                            ]             
-                        }
-                    ]
-                <!-- json-end -->
-        \`\`\`
-  `;
 };
 
 export const getIntelligentReplyByKnowledgePrompt = (knowledge:string) => {

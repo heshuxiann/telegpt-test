@@ -1,6 +1,9 @@
 .right-panel-message-item {
   .right-panel-message-actions {
     display: none;
+    position: absolute;
+    right: 0;
+    transform: translateY(100%);
   }
   &:hover {
     .right-panel-message-actions {

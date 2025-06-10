@@ -5,7 +5,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { Skeleton } from 'antd';
-import VirtualList from 'rc-virtual-list';
 import { getActions, getGlobal } from '../../../global';
 
 import { type ApiMessage, MESSAGE_DELETED } from '../../../api/types';
@@ -184,11 +183,13 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
       <>
         <div className="flex flex-row items-center mb-[12px]">
           <ChatAvatar chatId={chatId} size={34} />
-          <span className="text-[16px] font-semibold mr-[8px] ml-[12px]">{name}</span>
+          <span className="text-[16px] font-semibold mr-[8px] ml-[12px] flex-1 whitespace-nowrap overflow-hidden text-ellipsis">
+            {name}
+          </span>
           <span className="text-[#979797] text-[13px]">{date}</span>
         </div>
         <div className="text-[15px] relative flex flex-row items-end justify-between">
-          <div>{text}</div>
+          <div className="w-full">{text}</div>
           <div className={cn('right-panel-message-actions flex items-center flex-row justify-end gap-[4px]', {
             '!flex': showSmartReply,
           })}
@@ -249,29 +250,26 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
 };
 
 const CustomVirtualList = ({
-  relevantMessages, height, closeSummaryModal,
+  relevantMessages, closeSummaryModal,
 }:
 {
   relevantMessages: { chatId: string; messageIds: number[] }[];
-  height:number;
   closeSummaryModal:()=>void;
 }) => {
-  // const listData = relevantMessages.flatMap(({ chatId, messageIds }) => messageIds.map((messageId) => ({ chatId, messageId })));
   const listData = relevantMessages.flatMap((item) => item.messageIds.map((messageId) => ({
     chatId: item.chatId,
     messageId,
   })));
   return (
-    // eslint-disable-next-line react/jsx-no-bind
-    <VirtualList data={listData} height={height} itemHeight={50} itemKey={(item) => item.messageId}>
-      {(item) => {
+    <div className="h-full overflow-y-auto">
+      {listData.map((item) => {
         return (
           <ErrorBoundary>
             <Message chatId={item.chatId} messageId={item.messageId} closeSummaryModal={closeSummaryModal} />
           </ErrorBoundary>
         );
-      }}
-    </VirtualList>
+      })}
+    </div>
   );
 };
 
@@ -282,19 +280,10 @@ interface MessagePanelProps extends MessagePanelPayload {
   closeSummaryModal:()=>void;
 }
 const MessagePanel = ({ closeSummaryModal, relevantMessages }:MessagePanelProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [height, setHeight] = useState(0);
-
-  useEffect(() => {
-    if (containerRef.current) {
-      setHeight(containerRef.current.getBoundingClientRect().height);
-    }
-  }, []);
-
   return (
-    <div className="h-full" ref={containerRef}>
+    <div className="h-full">
       {relevantMessages.length > 0 && (
-        <CustomVirtualList relevantMessages={relevantMessages} height={height} closeSummaryModal={closeSummaryModal} />
+        <CustomVirtualList relevantMessages={relevantMessages} closeSummaryModal={closeSummaryModal} />
       )}
     </div>
   );

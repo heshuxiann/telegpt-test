@@ -16,13 +16,12 @@ import { sendGAEvent } from '../../chatAssistant/utils/analytics';
 import useFlag from '../../../hooks/useFlag';
 import useLastCallback from '../../../hooks/useLastCallback';
 
-// import aiSdkService from './ChatApiService';
 import eventEmitter from '../../chatAssistant/lib/EventEmitter';
+import chatAIGenerate from '../../chatAssistant/utils/ChatApiGenerate';
 import Icon from '../../common/icons/Icon';
 import Menu from '../../ui/Menu';
 import MenuItem from '../../ui/MenuItem';
 import InputLanguageModal from '../InputLanguageModal';
-import generateChatgpt from './ChatApiGenerate';
 
 // import { THOUGHT_REGEX_COMPLETE } from './StatusResponse';
 import './InputAIMenu.scss';
@@ -57,7 +56,7 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
       return;
     }
     eventEmitter.emit('update-input-spiner', true);
-    generateChatgpt({
+    chatAIGenerate({
       data: {
         messages: [
           {
@@ -89,7 +88,7 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
   const handleGrammar = useLastCallback(() => {
     eventEmitter.emit('update-input-spiner', true);
     const text = getHtml().trim();
-    generateChatgpt({
+    chatAIGenerate({
       data: {
         messages: [
           {

@@ -12,6 +12,7 @@ import type { Signal } from '../../../../util/signals';
 
 import { injectComponent } from '../../../../lib/injectComponent';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
+import parseHtmlAsFormattedText from '../../../../util/parseHtmlAsFormattedText';
 
 import useFlag from '../../../../hooks/useFlag';
 import useVirtualBackdrop from '../../../../hooks/useVirtualBackdrop';
@@ -55,6 +56,8 @@ const GrammarToolWrapper = (props:GrammarToolWrapperProps) => {
     if (isGrammarToolOpen) {
       closeGrammarTool();
     } else {
+      const { text } = parseHtmlAsFormattedText(getHtml());
+      if (text.trim() === '') return;
       openGrammarTool();
     }
   };

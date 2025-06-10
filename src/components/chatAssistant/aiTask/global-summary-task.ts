@@ -8,7 +8,6 @@ import { type ApiMessage, MAIN_THREAD_ID } from '../../../api/types/messages';
 
 import { ALL_FOLDER_ID } from '../../../config';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
-import generateChatgpt from '../lib/generate-chat';
 import { isSystemBot, isUserId } from '../../../global/helpers';
 import {
   selectBot, selectChat, selectChatLastMessageId, selectFirstUnreadId, selectUser,
@@ -23,6 +22,8 @@ import {
 } from '../store';
 import { SUMMARY_CHATS } from '../store/general-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
+
+import chatAIGenerate from '../utils/ChatApiGenerate';
 
 interface SummaryMessage {
   chatId: string;
@@ -151,7 +152,7 @@ class GlobalSummaryTask {
       summaryMessageCount: summaryMessages.length,
       summaryChatIds: [...new Set(messages.map((item) => item.chatId))],
     };
-    generateChatgpt({
+    chatAIGenerate({
       data: {
         messages: [{
           id: uuidv4(),

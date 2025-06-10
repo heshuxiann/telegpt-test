@@ -4,6 +4,7 @@ interface ChatProps {
   onFinish?: () => void;
 }
 const chatAIGenerate = (props:ChatProps) => {
+  // `https://telegpt-three.vercel.app/generate?options=${JSON.stringify({ temperature: 0.1 })}`
   fetch('https://telegpt-three.vercel.app/generate', {
     method: 'POST',
     headers: {

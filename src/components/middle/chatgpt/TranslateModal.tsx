@@ -5,10 +5,9 @@ import React, { useCallback, useEffect, useState } from '../../../lib/teact/teac
 
 import useLang from '../../../hooks/useLang';
 
+import chatAIGenerate from '../../chatAssistant/utils/ChatApiGenerate';
 import Button from '../../ui/Button';
 import Modal from '../../ui/Modal';
-import generateChatgpt from './ChatApiGenerate';
-// import aiSdkService from './ChatApiService';
 import CopyIcon from './Icon/CopyIcon';
 import DropDownIcon from './Icon/DropDownIcon';
 import RefreshIcon from './Icon/RefreshIcon';
@@ -91,7 +90,7 @@ const TranslateModal = (props: TranslateModalProps) => {
 
   const handleChat = () => {
     setIsLoading(true);
-    generateChatgpt({
+    chatAIGenerate({
       data: {
         messages: [
           {

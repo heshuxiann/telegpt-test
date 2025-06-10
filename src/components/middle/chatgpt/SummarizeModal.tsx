@@ -3,9 +3,8 @@
 // import { useChat } from '@ai-sdk/react';
 import React, { useEffect, useState } from '../../../lib/teact/teact';
 
+import chatAIGenerate from '../../chatAssistant/utils/ChatApiGenerate';
 import Modal from '../../ui/Modal';
-import generateChatgpt from './ChatApiGenerate';
-// import aiSdkService from './ChatApiService';
 import CopyIcon from './Icon/CopyIcon';
 import RefreshIcon from './Icon/RefreshIcon';
 import SkeletonScreen from './SkeletonScreen';
@@ -29,7 +28,7 @@ const SummarizeModal = (props: SummarizeModalProps) => {
   }, [isOpen]);
   const handleChat = () => {
     setIsLoading(true);
-    generateChatgpt({
+    chatAIGenerate({
       data: {
         messages: [
           {
