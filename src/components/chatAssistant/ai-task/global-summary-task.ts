@@ -219,7 +219,7 @@ class GlobalSummaryTask {
           maxCount: 100,
         });
         if (roomUnreadMsgs.length > 0) {
-          unreadMessages = roomUnreadMsgs;
+          unreadMessages = unreadMessages.concat(roomUnreadMsgs);
         }
       }
     }
@@ -250,7 +250,7 @@ class GlobalSummaryTask {
           threadId: MAIN_THREAD_ID,
           maxCount: 100,
         });
-        unreadMessages = roomUnreadMsgs;
+        unreadMessages = unreadMessages.concat(roomUnreadMsgs);
       }
     }
     if (unreadMessages.length) {
