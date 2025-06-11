@@ -11,8 +11,7 @@ import { DefaultUrgentTopic } from '../prompt';
 import { ChataiStores } from '../store';
 import { URGENT_CHATS } from '../store/general-store';
 import { sendGAEvent } from '../utils/analytics';
-
-const GLOBAL_SUMMARY_CHATID = '777888';
+import { GLOBAL_SUMMARY_CHATID } from '../variables';
 
 function getStrongAlertPhoneNumber(
   data: Array<{

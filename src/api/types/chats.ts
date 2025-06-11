@@ -90,6 +90,8 @@ export interface ApiChat {
   detectedLanguage?: string;
 
   paidMessagesStars?: number;
+  // serena
+  isSerena?: boolean;
 }
 
 export interface ApiTypingStatus {

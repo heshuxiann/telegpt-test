@@ -1,6 +1,7 @@
 import type { ApiChat, ApiMessage } from '../../../api/types';
 
-import { callApi } from '../../../api/gramjs/worker/connector';
+// import { callApi } from '../../../api/gramjs/worker/connector';
+const { callApi } = require('../../../api/gramjs/worker/connector');
 
 export const fetchMessage = (props:{
   chat: ApiChat;
@@ -18,7 +19,7 @@ export const fetchMessage = (props:{
     addOffset,
     limit: sliceSize,
     threadId,
-  }).then((result) => {
+  }).then((result:any) => {
     if (!result) {
       return undefined;
     }
@@ -101,7 +102,7 @@ export const fetchChatMessageByDeadline = async (
       break; // 没有更多消息，退出循环
     }
     if (result.messages[result.messages.length - 1].date < deadline) {
-      const effectMessage = result.messages.filter((msg) => msg.date >= deadline);
+      const effectMessage = result.messages.filter((msg:any) => msg.date >= deadline);
       messages = messages.concat(effectMessage);
       break;
     } else if (messages.length + result.messages.length > maxCount) {

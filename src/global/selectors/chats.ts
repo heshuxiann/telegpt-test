@@ -9,6 +9,7 @@ import {
 } from '../../config';
 import { IS_TRANSLATION_SUPPORTED } from '../../util/browser/windowEnvironment';
 import { getCurrentTabId } from '../../util/establishMultitabRole';
+import { GLOBAL_SUMMARY_CHATID } from '../../components/chatAssistant/variables';
 import {
   getHasAdminRight,
   getPrivateChatUserId,
@@ -25,6 +26,12 @@ import {
 } from './users';
 
 export function selectChat<T extends GlobalState>(global: T, chatId: string): ApiChat | undefined {
+  if (chatId === GLOBAL_SUMMARY_CHATID) {
+    return {
+      id: GLOBAL_SUMMARY_CHATID,
+      isSerena: true,
+    } as ApiChat;
+  }
   return global.chats.byId[chatId];
 }
 

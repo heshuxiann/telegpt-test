@@ -130,6 +130,7 @@ import {
 } from '../../selectors';
 import { selectGroupCall } from '../../selectors/calls';
 import { selectCurrentLimit } from '../../selectors/limits';
+import { GLOBAL_SUMMARY_CHATID } from '../../../components/chatAssistant/variables';
 
 const TOP_CHAT_MESSAGES_PRELOAD_INTERVAL = 100;
 const INFINITE_LOOP_MARKER = 100;

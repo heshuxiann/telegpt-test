@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
-import { globalSummaryTask } from '../aiTask/global-summary-task';
+import { globalSummaryTask } from '../ai-task/global-summary-task';
 import { LanguageIcon, SettingIcon } from '../icons';
 
 import { DrawerKey, useDrawer } from './DrawerContext';

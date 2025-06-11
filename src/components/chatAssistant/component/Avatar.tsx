@@ -243,7 +243,6 @@ const Avatar: FC<OwnProps> = ({
 
   const { handleClick, handleMouseDown } = useFastClick((e: ReactMouseEvent<HTMLDivElement, MouseEvent>) => {
     if (clickOpenRoom && realPeer?.id) {
-      eventEmitter.emit(Actions.HideGlobalSummaryModal);
       openChat({ id: realPeer.id });
     }
     if (onClick) {

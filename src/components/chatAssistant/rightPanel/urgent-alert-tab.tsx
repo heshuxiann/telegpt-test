@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import type { UrgentTopic } from '../store/urgent-topic-store';
 
-import { urgentCheckTask } from '../aiTask/urgent-check-task';
+import { urgentCheckTask } from '../ai-task/urgent-check-task';
 import { ChataiStores } from '../store';
 import { URGENT_CHATS } from '../store/general-store';
 import { SelectedChats } from './selected-chats';

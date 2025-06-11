@@ -22,6 +22,7 @@ import {
 } from '../store';
 import { SUMMARY_CHATS } from '../store/general-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
+import { GLOBAL_SUMMARY_CHATID } from '../variables';
 
 import chatAIGenerate from '../utils/ChatApiGenerate';
 
@@ -34,8 +35,6 @@ interface SummaryMessage {
   messageId: number;
   content: string;
 }
-
-const GLOBAL_SUMMARY_CHATID = '777888';
 
 class GlobalSummaryTask {
   private static instance: GlobalSummaryTask | undefined;
@@ -80,8 +79,15 @@ class GlobalSummaryTask {
     // 每分钟执行一次来检查时间段
     setInterval(executeTask, 60000);
     this.updateSummaryTemplate();
-    eventEmitter.on(Actions.ChatAIStoreReady, () => {
+    eventEmitter.on(Actions.ChatAIStoreReady, async () => {
       this.updateSummaryTemplate();
+      const globalSummaryLastTime: number | undefined = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME);
+      if (!globalSummaryLastTime) {
+      // TODO 总结所有的未读消息
+        this.summaryAllUnreadMessages();
+      } else if (globalSummaryLastTime < Date.now() - 1000 * 60 * 60 * 10) {
+        this.summaryMessageByDeadline(globalSummaryLastTime);
+      }
     });
   }
 

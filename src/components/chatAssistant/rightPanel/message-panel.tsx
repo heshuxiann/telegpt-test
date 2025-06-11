@@ -26,7 +26,7 @@ import './message-panel.scss';
 
 import ChatAILogoPath from '../assets/cgat-ai-logo.png';
 
-const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; messageId: number;closeSummaryModal:()=>void }) => {
+const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) => {
   const global = getGlobal();
   const chat = selectChat(global, chatId);
   const [message, setMessage] = useState<ApiMessage | undefined>(undefined);
@@ -158,7 +158,6 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
   };
 
   const handleFocusMessage = () => {
-    closeSummaryModal();
     if (messageId) {
       focusMessage({
         chatId, messageId: Number(messageId),
@@ -250,11 +249,10 @@ const Message = ({ chatId, messageId, closeSummaryModal }: { chatId: string; mes
 };
 
 const CustomVirtualList = ({
-  relevantMessages, closeSummaryModal,
+  relevantMessages,
 }:
 {
   relevantMessages: { chatId: string; messageIds: number[] }[];
-  closeSummaryModal:()=>void;
 }) => {
   const listData = relevantMessages.flatMap((item) => item.messageIds.map((messageId) => ({
     chatId: item.chatId,
@@ -265,7 +263,7 @@ const CustomVirtualList = ({
       {listData.map((item) => {
         return (
           <ErrorBoundary>
-            <Message chatId={item.chatId} messageId={item.messageId} closeSummaryModal={closeSummaryModal} />
+            <Message chatId={item.chatId} messageId={item.messageId} />
           </ErrorBoundary>
         );
       })}
@@ -276,14 +274,11 @@ const CustomVirtualList = ({
 export interface MessagePanelPayload {
   relevantMessages:{ chatId: string; messageIds: number[] }[];
 }
-interface MessagePanelProps extends MessagePanelPayload {
-  closeSummaryModal:()=>void;
-}
-const MessagePanel = ({ closeSummaryModal, relevantMessages }:MessagePanelProps) => {
+const MessagePanel = ({ relevantMessages }:MessagePanelPayload) => {
   return (
     <div className="h-full">
       {relevantMessages.length > 0 && (
-        <CustomVirtualList relevantMessages={relevantMessages} closeSummaryModal={closeSummaryModal} />
+        <CustomVirtualList relevantMessages={relevantMessages} />
       )}
     </div>
   );

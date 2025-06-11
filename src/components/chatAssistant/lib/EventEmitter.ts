@@ -9,8 +9,6 @@ export enum Actions {
   NewTextMessage = 'NewTextMessage',
   AddUrgentMessage = 'AddUrgentMessage',
   AddSummaryMessage = 'AddSummaryMessage',
-  // global summary
-  HideGlobalSummaryModal = 'HideGlobalSummaryModal',
   // summary chats
   UpdateSummaryChats = 'UpdateSummaryChats',
   SummaryLanguageChange = 'SummaryLanguageChange',

@@ -27,6 +27,7 @@ import {
   DATA_BROADCAST_CHANNEL_NAME,
 } from '../../../util/multiaccount';
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
+import ChatAIMessageQuene from '../../../components/chatAssistant/ai-task/chatai-task';
 import { messageEmbeddingStore } from '../../../components/chatAssistant/vector-store';
 
 import eventEmitter, {
@@ -311,6 +312,7 @@ function sendToAIAgent(data: ApiUpdate) {
       eventEmitter.emit(Actions.NewTextMessage, {
         message: data.message,
       });
+      ChatAIMessageQuene.add(data.message as ApiMessage);
       const {
         date, id, senderId, chatId,
       } = data.message;

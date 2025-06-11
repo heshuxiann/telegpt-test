@@ -7,7 +7,7 @@ import cx from 'classnames';
 
 import type { CustomSummaryTemplate } from '../store/chatai-summary-template-store';
 
-import { globalSummaryTask } from '../aiTask/global-summary-task';
+import { globalSummaryTask } from '../ai-task/global-summary-task';
 import { CustomizationTemplates } from '../globalSummary/summary-prompt';
 import { CloseIcon } from '../icons';
 import { ChataiStores } from '../store';

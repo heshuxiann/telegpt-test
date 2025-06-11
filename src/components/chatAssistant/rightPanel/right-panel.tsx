@@ -14,11 +14,7 @@ import RightHeader from './right-header';
 
 import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 
-interface RightPanelProps {
-  closeSummaryModal:()=>void;
-}
-export const RightPanel = (props: RightPanelProps) => {
-  const { closeSummaryModal } = props;
+export const RightPanel = () => {
   const {
     isOpen, drawerKey, drawerParams, closeDrawer,
   } = useDrawer();
@@ -30,7 +26,7 @@ export const RightPanel = (props: RightPanelProps) => {
         setRightPanelContent(<PersonalizeSettings />);
         break;
       case DrawerKey.OriginalMessages:
-        setRightPanelContent(<MessagePanel relevantMessages={(drawerParams as MessagePanelPayload)?.relevantMessages} closeSummaryModal={closeSummaryModal} />);
+        setRightPanelContent(<MessagePanel relevantMessages={(drawerParams as MessagePanelPayload)?.relevantMessages} />);
         break;
       case DrawerKey.CustomizationPrompt:
         setRightPanelContent(<CustomizationPromptPanel />);
@@ -42,11 +38,11 @@ export const RightPanel = (props: RightPanelProps) => {
         setRightPanelContent(<AddTopicPanel />);
         break;
     }
-  }, [closeSummaryModal, drawerKey, drawerParams]);
+  }, [drawerKey, drawerParams]);
 
   if (!isOpen) return null;
   return (
-    <div className="right-panel-container w-[375px] h-full bg-white/50 flex flex-col">
+    <div className="right-panel-container w-[375px] h-full bg-white flex flex-col">
       <RightHeader drawerKey={drawerKey} onClose={closeDrawer} />
       <div className="flex-1 overflow-hidden">
         {rightPanelContent}

@@ -105,6 +105,8 @@ import MiddleSearch from './search/MiddleSearch.async';
 
 import './MiddleColumn.scss';
 import styles from './MiddleColumn.module.scss';
+import { GLOBAL_SUMMARY_CHATID } from '../chatAssistant/variables';
+import GlobalSummaryWrapper from '../chatAssistant/globalSummary/GlobalSummaryWrapper';
 
 interface OwnProps {
   leftColumnRef: React.RefObject<HTMLDivElement>;
@@ -160,6 +162,7 @@ type StateProps = {
   paidMessagesStars?: number;
   isAccountFrozen?: boolean;
   freezeAppealChat?: ApiChat;
+  isSerena?: boolean;
 };
 
 function isImage(item: DataTransferItem) {
@@ -223,6 +226,7 @@ function MiddleColumn({
   paidMessagesStars,
   isAccountFrozen,
   freezeAppealChat,
+  isSerena
 }: OwnProps & StateProps) {
   const {
     openChat,
@@ -521,7 +525,8 @@ function MiddleColumn({
         style={customBackgroundValue ? `--custom-background: ${customBackgroundValue}` : undefined}
       />
       <div id="middle-column-portals" />
-      {Boolean(renderingChatId && renderingThreadId) && (
+      {isSerena && <GlobalSummaryWrapper />}
+      {Boolean(renderingChatId && renderingThreadId && !isSerena) && (
         <>
           <div className="messages-layout" onDragEnter={renderingCanPost ? handleDragEnter : undefined}>
             <MiddleHeaderPanes
@@ -820,6 +825,8 @@ export default memo(withGlobal<OwnProps>(
     const botFreezeAppealId = global.botFreezeAppealId;
     const freezeAppealChat = botFreezeAppealId
       ? selectChat(global, botFreezeAppealId) : undefined;
+     
+    const isSerena = chatId === GLOBAL_SUMMARY_CHATID;
 
     return {
       ...state,
@@ -861,6 +868,7 @@ export default memo(withGlobal<OwnProps>(
       paidMessagesStars,
       isAccountFrozen,
       freezeAppealChat,
+      isSerena
     };
   },
 )(MiddleColumn));

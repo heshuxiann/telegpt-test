@@ -23,6 +23,7 @@ import { IS_APP, IS_MAC_OS } from '../../../util/browser/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
 import { getOrderKey, getPinnedChatsCount } from '../../../util/folderManager';
 import { getServerTime } from '../../../util/serverTime';
+import ChatSerena from '../../chatAssistant/globalSummary/chat-serana';
 
 import usePeerStoriesPolling from '../../../hooks/polling/usePeerStoriesPolling';
 import useTopOverscroll from '../../../hooks/scroll/useTopOverscroll';
@@ -225,8 +226,9 @@ const ChatList: FC<OwnProps> = ({
 
     return viewportIds!.map((id, i) => {
       const isPinned = viewportOffset + i < pinnedCount;
+      const offset = resolvedFolderId === ALL_FOLDER_ID ? viewportOffset + i + 1 : viewportOffset + i;
       const offsetTop = unconfirmedSessionHeight + archiveHeight + frozenNotificationHeight
-      + (viewportOffset + i) * CHAT_HEIGHT_PX;
+      + offset * CHAT_HEIGHT_PX;
 
       return (
         <Chat
@@ -280,6 +282,10 @@ const ChatList: FC<OwnProps> = ({
           onDragEnter={handleArchivedDragEnter}
         />
       )}
+      {resolvedFolderId === ALL_FOLDER_ID && (
+        <ChatSerena key="serena" />
+      )}
+
       {viewportIds?.length ? (
         renderChats()
       ) : viewportIds && !viewportIds.length && !isSaved ? (
