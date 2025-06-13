@@ -10,7 +10,6 @@ import type { Signal } from '../../../util/signals';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import TranslateIcon from '../../chatAssistant/assets/ai-translate.png';
 import chatAILogoPath from '../../chatAssistant/assets/cgat-ai-logo.png';
-import GrammerIcon from '../../chatAssistant/assets/grammar.png';
 import { sendGAEvent } from '../../chatAssistant/utils/analytics';
 
 import useFlag from '../../../hooks/useFlag';
@@ -85,39 +84,6 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
     });
     sendGAEvent('input_translate');
   });
-  const handleGrammar = useLastCallback(() => {
-    eventEmitter.emit('update-input-spiner', true);
-    const text = getHtml().trim();
-    chatAIGenerate({
-      data: {
-        messages: [
-          {
-            role: 'system',
-            content: `你是一个文本优化助手,作为专业级文本优化引擎，您需同时承担以下角色：
-                1. 语法纠错员（检测拼写/语法/标点错误）
-                2. 风格雕塑师（调整正式/口语化/幽默等语体）
-                3. 内容架构师（优化逻辑结构与信息密度）
-                4. 读者体验官（评估可读性与情感共鸣）
-                请使用${currentLanguage.langCode}语言进行回复，并直接给出优化后的文本
-            `,
-            id: '1',
-          },
-          {
-            role: 'user',
-            content: `请优化下面这段文本: ${text},直接返回优化后的文本`,
-            id: '2',
-          },
-        ],
-      },
-      onResponse: (message) => {
-        eventEmitter.emit('update-input-text', message);
-      },
-      onFinish: () => {
-        console.log('Finish');
-      },
-    });
-    sendGAEvent('input_grammar');
-  });
   const onTranslationClick = useLastCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -151,12 +117,6 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
               <Icon name="language" className="!mx-0 " />
               <span>{currentLanguage.translatedName}</span>
             </div>
-          </div>
-        </MenuItem>
-        <MenuItem onClick={handleGrammar}>
-          <div className="ai-tool-menu-item">
-            <img src={GrammerIcon} alt="" className="w-[18px] h-[18px]" />
-            <span>Grammar</span>
           </div>
         </MenuItem>
       </Menu>
