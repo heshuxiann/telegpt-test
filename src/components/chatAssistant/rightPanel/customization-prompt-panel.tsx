@@ -39,8 +39,8 @@ const CustomizationPromptPanel = () => {
   return (
     <div className="h-full flex flex-col px-[18px]">
       <p className="text-[14px] text-[#666666]">Please enter the specific topic you want to summarize accurately and add a detailed description. The message summary service will show the content as per your needs.</p>
-      <Input placeholder="Primary Subject" className="h-[40px]" onChange={handleTitleChange} />
-      <TextArea className="mt-[12px]" rows={4} placeholder="Content description" onChange={handlePromptChange} />
+      <Input placeholder="Primary Subject" className="h-[40px] bg-[var(--color-chat-hover)]" onChange={handleTitleChange} />
+      <TextArea className="mt-[12px] bg-[var(--color-chat-hover)]" rows={4} placeholder="Content description" onChange={handlePromptChange} />
       <div className="flex flex-row justify-center gap-[14px] mt-auto mb-[24px]">
         <button
           className="w-[158px] h-[40px] border-[1px] border-[#8C42F0] rounded-[20px]"

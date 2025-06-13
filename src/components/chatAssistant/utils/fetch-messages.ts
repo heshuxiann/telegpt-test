@@ -1,7 +1,7 @@
 import type { ApiChat, ApiMessage } from '../../../api/types';
 
-// import { callApi } from '../../../api/gramjs/worker/connector';
 const { callApi } = require('../../../api/gramjs/worker/connector');
+// import { callApi } from '../../../api/gramjs/worker/connector';
 
 export const fetchMessage = (props:{
   chat: ApiChat;

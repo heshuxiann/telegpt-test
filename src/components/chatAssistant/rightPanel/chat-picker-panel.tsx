@@ -89,13 +89,13 @@ const ChatPickerPanel = () => {
     const specialTitle = getTitle();
     return (
       <Checkbox value={id}>
-        <div className="flex-1 flex flex-row items-center gap-[12px] px-[12px] py-[10px] hover:bg-[#F4F4F5] rounded-[12px]">
+        <div className="flex-1 flex flex-row items-center gap-[12px] px-[12px] py-[10px] hover:bg-[var(--color-chat-hover)] rounded-[12px]">
           <Avatar
             peer={peer}
             isSavedMessages={isSelf}
             size="medium"
           />
-          <div className="flex flex-col gap-[4px] justify-center">
+          <div className="flex flex-col gap-[4px] justify-center text-[var(--color-text)]">
             <div className="overflow-hidden overflow-ellipsis whitespace-nowrap">{specialTitle}</div>
             <div>{subtitle}</div>
           </div>
@@ -116,7 +116,7 @@ const ChatPickerPanel = () => {
     drawerParams?.onSave(selected);
   }, [drawerParams, selected]);
   return (
-    <div className="h-full px-[20px] flex flex-col">
+    <div className="h-full px-[20px] flex flex-col text-[var(--color-text)]">
       <Input placeholder="Search" onChange={(e) => setSearch(e.target.value)} />
       <div className="flex-1 overflow-y-auto">
         <Checkbox.Group onChange={onChange} value={selected}>
