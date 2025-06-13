@@ -182,8 +182,7 @@ class GlobalSummaryTask {
       ),
       summaryChatIds: Object.keys(chats),
     };
-    console.log('summaryChats----->', JSON.stringify(summaryChats));
-    fetch('http://localhost:3000/api/summary', {
+    fetch('https://telegpt-three.vercel.app/global-summary', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
