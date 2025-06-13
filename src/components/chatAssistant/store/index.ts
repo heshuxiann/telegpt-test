@@ -7,10 +7,11 @@ import ContactStore from './contact-store';
 import GeneralStore from './general-store';
 import KnowledgeStore from './knowledge-store';
 import MessageStore from './messages-store';
+import SummaryStore from './summary-store';
 import UrgentTopicStore from './urgent-topic-store';
 import UsersStore from './user-store';
 
-const dbVersion = 15;
+const dbVersion = 16;
 
 export const GLOBAL_SUMMARY_LAST_TIME = 'globalSummaryLastTime';
 export const GLOBAL_SUMMARY_READ_TIME = 'globalSummaryReadTime';
@@ -18,6 +19,7 @@ export const GLOBAL_SUMMARY_READ_TIME = 'globalSummaryReadTime';
 let currentUserId!: string;
 
 export const ChataiStores = {
+  summary: null as SummaryStore | null,
   message: null as MessageStore | null,
   contact: null as ContactStore | null,
   user: null as UsersStore | null,
@@ -38,6 +40,7 @@ export async function initChataiStores(_currentUserId: string) {
   const dbName = `tt-chatai-${_currentUserId}`;
   const chataiStoreManager = new ChataiStoreManager(dbVersion, dbName);
   await chataiStoreManager.initDB();
+  ChataiStores.summary = new SummaryStore(chataiStoreManager);
   ChataiStores.message = new MessageStore(chataiStoreManager);
   ChataiStores.contact = new ContactStore(chataiStoreManager);
   ChataiStores.user = new UsersStore(chataiStoreManager);

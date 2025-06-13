@@ -11,14 +11,13 @@ import type { Message } from 'ai';
 import { getActions } from '../../../global';
 
 import type { InfiniteScrollRef } from '../component/InfiniteScroll';
-import type { StoreMessage } from '../store/messages-store';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import buildClassName from '../../../util/buildClassName';
 import { Messages } from '../messages';
 import { RightPanel } from '../rightPanel/right-panel';
 import { ChataiStores } from '../store';
-import { parseStoreMessage2Message } from '../store/messages-store';
+import { parseSummaryStoreMessage2Message, type SummaryStoreMessage } from '../store/summary-store';
 import { sendGAEvent } from '../utils/analytics';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
 import SummaryHeaderActions from './summary-header-actions';
@@ -40,9 +39,9 @@ const GlobalSummary = forwardRef(() => {
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
   const handleLoadMore = useCallback(() => {
     return new Promise<void>((resolve) => {
-      ChataiStores.message?.getMessages(GLOBAL_SUMMARY_CHATID, pageInfo?.lastTime, 10)?.then((res) => {
+      ChataiStores.summary?.getMessages(pageInfo?.lastTime, 10)?.then((res) => {
         if (res.messages) {
-          const localChatAiMessages = parseStoreMessage2Message(res.messages);
+          const localChatAiMessages = parseSummaryStoreMessage2Message(res.messages);
           setMessageList((prev) => [...localChatAiMessages, ...prev]);
         }
         setPageInfo({
@@ -54,7 +53,7 @@ const GlobalSummary = forwardRef(() => {
     });
   }, [pageInfo?.lastTime]);
 
-  const handleAddSummaryMessage = (message: StoreMessage) => {
+  const handleAddSummaryMessage = (message: SummaryStoreMessage) => {
     setMessageList((prev) => [...prev, message]);
     // 通知
     window.Notification.requestPermission().then((permission) => {
@@ -70,7 +69,7 @@ const GlobalSummary = forwardRef(() => {
       }
     });
   };
-  const handleAddUrgentMessage = (message: StoreMessage) => {
+  const handleAddUrgentMessage = (message: SummaryStoreMessage) => {
     setMessageList((prev) => [...prev, message]);
     setNotificationMessage(message);
   };
@@ -87,9 +86,9 @@ const GlobalSummary = forwardRef(() => {
   }, []);
 
   const getSummaryHistory = () => {
-    ChataiStores.message?.getMessages(GLOBAL_SUMMARY_CHATID, undefined, 10)?.then((res) => {
+    ChataiStores.summary?.getMessages(undefined, 10)?.then((res) => {
       if (res.messages) {
-        const localChatAiMessages = parseStoreMessage2Message(res.messages);
+        const localChatAiMessages = parseSummaryStoreMessage2Message(res.messages);
         setMessageList((prev) => [...localChatAiMessages, ...prev]);
       }
       setPageInfo({
@@ -100,13 +99,13 @@ const GlobalSummary = forwardRef(() => {
   };
 
   useEffect(() => {
-    if (ChataiStores.message) {
+    if (ChataiStores.summary) {
       getSummaryHistory();
     }
   }, []);
 
   const deleteMessage = useCallback((messageId: string) => {
-    ChataiStores.message?.delMessage(messageId).then(() => {
+    ChataiStores.summary?.delMessage(messageId).then(() => {
       setMessageList((prev) => prev.filter((message) => message.id !== messageId));
     });
   }, []);

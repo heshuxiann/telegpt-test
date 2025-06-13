@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
 
 import type { CustomSummaryTemplate } from '../store/chatai-summary-template-store';
-import type { StoreMessage } from '../store/messages-store';
+import type { SummaryStoreMessage } from '../store/summary-store';
 import { type ApiMessage, MAIN_THREAD_ID } from '../../../api/types/messages';
 
 import { ALL_FOLDER_ID } from '../../../config';
@@ -21,7 +21,6 @@ import {
 } from '../store';
 import { SUMMARY_CHATS } from '../store/general-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
-import { GLOBAL_SUMMARY_CHATID } from '../variables';
 
 function getAlignedExecutionTimestamp(): number | null {
   const date = new Date();
@@ -201,8 +200,7 @@ class GlobalSummaryTask {
           summaryInfo,
           customizationTemplate: this.customizationTemplate,
         };
-        const newMessage: StoreMessage = {
-          chatId: GLOBAL_SUMMARY_CHATID,
+        const newMessage: SummaryStoreMessage = {
           timestamp: new Date().getTime(),
           content: JSON.stringify(content),
           id: uuidv4(),
@@ -212,7 +210,7 @@ class GlobalSummaryTask {
             type: 'global-summary',
           }],
         };
-        ChataiStores.message?.storeMessage(newMessage);
+        ChataiStores.summary?.storeMessage(newMessage);
         ChataiStores.general?.set(GLOBAL_SUMMARY_LAST_TIME, summaryTime);
         eventEmitter.emit(Actions.AddSummaryMessage, newMessage);
         callback?.();

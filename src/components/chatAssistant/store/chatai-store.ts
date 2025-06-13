@@ -1,6 +1,7 @@
+/* eslint-disable max-len */
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
-export type StoreName = 'message' | 'contact' | 'user' | 'general' | 'knowledge' | 'summaryTemplate' | 'urgentTopic';
+export type StoreName = 'message' | 'contact' | 'user' | 'general' | 'knowledge' | 'summaryTemplate' | 'urgentTopic' | 'summary';
 
 type IndexConfig = [indexName: string, keyPath: string | string[]];
 
@@ -20,6 +21,7 @@ class ChataiStoreManager {
   public db: IDBDatabase | null = null;
 
   private STORE_CONFIG:StoreConfigMap = {
+    summary: { keyPath: 'id', indexes: [['id', 'id'], ['timestamp', 'timestamp']] },
     message: { keyPath: 'id', indexes: [['id', 'id'], ['chatId_timestamp', ['chatId', 'timestamp']]] },
     contact: { keyPath: 'id', autoIncrement: true },
     user: { keyPath: 'id', autoIncrement: true },

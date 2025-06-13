@@ -3,7 +3,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import type { ApiMessage } from '../../../api/types/messages';
-import type { StoreMessage } from '../store/messages-store';
+import type { SummaryStoreMessage } from '../store/summary-store';
 import type { UrgentTopic } from '../store/urgent-topic-store';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
@@ -11,7 +11,6 @@ import { DefaultUrgentTopic } from '../prompt';
 import { ChataiStores } from '../store';
 import { URGENT_CHATS } from '../store/general-store';
 import { sendGAEvent } from '../utils/analytics';
-import { GLOBAL_SUMMARY_CHATID } from '../variables';
 
 function getStrongAlertPhoneNumber(
   data: Array<{
@@ -92,8 +91,7 @@ class UrgentCheckTask {
           console.log('urgent check response', data);
           const matchs = data?.data || [];
           if (matchs.length > 0) {
-            const newMessage: StoreMessage = {
-              chatId: GLOBAL_SUMMARY_CHATID,
+            const newMessage: SummaryStoreMessage = {
               timestamp: new Date().getTime(),
               content: JSON.stringify(matchs),
               id: uuidv4(),
@@ -105,7 +103,7 @@ class UrgentCheckTask {
                 },
               ],
             };
-            ChataiStores.message?.storeMessage(newMessage);
+            ChataiStores.summary?.storeMessage(newMessage);
             eventEmitter.emit(Actions.AddUrgentMessage, newMessage);
             // check strong alert
             try {
