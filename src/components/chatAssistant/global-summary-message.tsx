@@ -46,26 +46,24 @@ interface ISummaryInfo {
 }
 
 interface ISummaryTopicItem {
+  chatId:string;
+  chatRoomName: string;
   title: string;
-  summaryChatIds: Array<string>;
   summaryItems: Array<{
-    subtitle: string;
-    relevantMessages: Array<{
-      chatId: string;
-      messageIds: Array<number>;
-    }>;
+    content: string;
+    relevantMessageIds: Array<number>;
   }>;
 }
 
 interface ISummaryPendingItem {
   chatId: string;
-  chatTitle: string;
+  chatRoomName: string;
   summary: string;
   relevantMessageIds: number[];
 }
 interface ISummaryGarbageItem {
   chatId: string;
-  chatTitle: string;
+  chatRoomName: string;
   summary: string;
   level: 'high' | 'low';
   relevantMessageIds: number[];
@@ -101,42 +99,33 @@ const ChatAvatar = ({
 };
 
 const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; index: number }) => {
-  const { title, summaryItems, summaryChatIds } = topicItem;
+  const { title, summaryItems, chatId } = topicItem;
   const { openDrawer } = useDrawer();
   if (!summaryItems.length) return null;
   if (!title) return null;
-  const showMessageDetail = (relevantMessages: Array<{ chatId: string; messageIds: number[] }>) => {
-    if (!relevantMessages.length) return;
-    openDrawer(DrawerKey.OriginalMessages, { relevantMessages });
+  const showMessageDetail = (chatId: string, relevantMessageIds: number[]) => {
+    openDrawer(DrawerKey.OriginalMessages, {
+      relevantMessages: [{ chatId, messageIds: relevantMessageIds }],
+    });
   };
   return (
     <ErrorBoundary>
       <div>
         <div className="flex flex-row items-center flex-wrap">
           <span className="text-[16px] font-bold mr-[24px]">{index + 1}. {title}</span>
-          {summaryChatIds ? (
-            <>
-              {
-                summaryChatIds.slice(0, 10).map((chatId: string) => {
-                  return (
-                    <ChatAvatar size={20} chatId={chatId} />
-                  );
-                })
-              }
-            </>
-          ) : null}
+          {chatId && (<ChatAvatar size={20} chatId={chatId} />)}
         </div>
         <ul className="list-disc pl-[2px] text-[16px] list-inside">
           {summaryItems.map((summaryItem: any) => {
-            const { subtitle, relevantMessages } = summaryItem;
-            if (!subtitle) return null;
+            const { content, relevantMessageIds } = summaryItem;
+            if (!content) return null;
             return (
               <li
                 role="button"
                 className="cursor-pointer text-[15px]"
-                onClick={() => showMessageDetail(relevantMessages)}
+                onClick={() => showMessageDetail(chatId, relevantMessageIds)}
               >
-                {subtitle}
+                {content}
               </li>
             );
           })}
@@ -170,7 +159,7 @@ const SummaryPenddingItem = ({ pendingItem }: { pendingItem: ISummaryPendingItem
 
 const SummaryGarbageItem = ({ garBageItem }: { garBageItem: ISummaryGarbageItem }) => {
   const {
-    chatId, chatTitle, level, summary, relevantMessageIds,
+    chatId, chatRoomName, level, summary, relevantMessageIds,
   } = garBageItem;
   const { openDrawer } = useDrawer();
   const showMessageDetail = (chatId: string, relevantMessageIds: number[]) => {
@@ -187,14 +176,14 @@ const SummaryGarbageItem = ({ garBageItem }: { garBageItem: ISummaryGarbageItem 
       >
         <ChatAvatar chatId={chatId} size={44} />
         <div>
-          <p className="text-[16px] font-semibold leading-[20px] mb-[4px]">{chatTitle}</p>
+          <p className="text-[16px] font-semibold leading-[20px] mb-[4px]">{chatRoomName}</p>
           <div className="flex justify-start gap-[4px]">
             {level === 'high' ? (
               <span className="text-[#FF543D] text-[14px] whitespace-nowrap">🔴 High-Risk</span>
             ) : (
               <span className="text-[#FF9B05] text-[14px] whitespace-nowrap">🟡 Low-Risk</span>
             )}
-            <span className="text-[14px] text-[#5E6272]">{summary}</span>
+            <span className="text-[14px] text-[var(--color-text-secondary)]">{summary}</span>
           </div>
         </div>
       </div>
@@ -219,7 +208,7 @@ const ActionsItems = ({
   const handleCopy = () => {
     const { summaryStartTime, summaryEndTime } = summaryInfo || {};
     const timeRange = formatTimestampRange(summaryStartTime, summaryEndTime);
-    const copyText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.subtitle).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}`;
+    const copyText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.chatRoomName}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatRoomName}: ${item.summary}`).join('\n')}`;
     copy(copyText);
     showNotification({
       message: lang('TextCopied'),
@@ -228,7 +217,7 @@ const ActionsItems = ({
   const handleVoicePlay = () => {
     const { summaryStartTime, summaryEndTime } = summaryInfo || {};
     const timeRange = formatTimestampRange(summaryStartTime, summaryEndTime);
-    const voiceText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.subtitle).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatTitle}: ${item.summary}`).join('\n')}`;
+    const voiceText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.chatRoomName}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatRoomName}: ${item.summary}`).join('\n')}`;
     if (!window.speechSynthesis) {
       console.error('Text-to-Speech is not supported in this browser.');
       return;
@@ -345,7 +334,7 @@ const MainSummaryContent = ({
   deleteMessage: () => void;
 }) => {
   return (
-    <div className="mx-auto w-[693px] rounded-[10px] bg-white pl-[82px] pr-[25px] pt-[20px] pb-[25px]">
+    <div className="mx-auto w-[693px] rounded-[10px] bg-[var(--color-background)] pl-[82px] pr-[25px] pt-[20px] pb-[25px]">
       {/* summary info  */}
       {summaryInfo && <SummaryInfoContent summaryInfo={summaryInfo} />}
       {/* customization topic  */}
@@ -425,7 +414,7 @@ const SummaryContent = ({
       )}
 
       {garbageMessage && garbageMessage.length > 0 && (
-        <div className="mx-auto w-[693px] rounded-[10px] bg-white pl-[82px] pr-[25px] pt-[20px] pb-[25px] mt-[10px]">
+        <div className="mx-auto w-[693px] rounded-[10px] bg-[var(--color-background)] pl-[82px] pr-[25px] pt-[20px] pb-[25px] mt-[10px]">
           <div className="flex items-center gap-[8px]">
             <img className="w-[52px] h-[52px] rounded-full ml-[-60px]" src={SerenaLogoPath} alt="" />
             <div>

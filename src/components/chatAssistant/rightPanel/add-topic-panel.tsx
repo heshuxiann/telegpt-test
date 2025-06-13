@@ -59,7 +59,7 @@ const AddTopicPanel = () => {
     });
   }, [openDrawer]);
   return (
-    <div className="h-full overflow-hidden px-[18px] flex flex-col">
+    <div className="urgent-topic-edit h-full overflow-hidden px-[18px] flex flex-col">
       <div className="h-full overflow-y-auto flex-1">
         <div className="text-[14px] text-[#666666] mb-[24px]">
           Please set the topics and content descriptions for which you need alerts. When a message contains these contents, an alert will be triggered.
@@ -70,16 +70,17 @@ const AddTopicPanel = () => {
           initialValues={initialValues}
         >
           <Form.Item label="Topic name" name="topicName" rules={[{ required: true, message: 'Please enter topic name' }]}>
-            <Input placeholder="Please enter the content topics" />
+            <Input className="bg-[var(--color-chat-hover)]" placeholder="Please enter the content topics" />
           </Form.Item>
           <Form.Item label="Topic description" name="topicDescription" rules={[{ required: true, message: 'Please enter topic description' }]}>
             <TextArea
+              className="bg-[var(--color-chat-hover)]"
               placeholder="Please describe the specific content or keywords that should trigger an alert. For example, if 'Vitalik' + 'ETH' + 'sell' appear, please notify me."
             />
           </Form.Item>
           <div className="mb-[24px]">
-            <div className="flex items-center justify-between px-[14px] py-[10px] bg-white rounded-[6px] mb-[12px]">
-              <span>Enable strong alerts</span>
+            <div className="flex items-center justify-between px-[14px] py-[10px] bg-[var(--color-chat-hover)] rounded-[6px] mb-[12px]">
+              <span className="text-[var(--color-text)]">Enable strong alerts</span>
               <Form.Item name="strongAlert" valuePropName="checked" noStyle>
                 <Switch onChange={strongAlertChange} />
               </Form.Item>

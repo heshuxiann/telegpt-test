@@ -14,6 +14,7 @@ import type { InfiniteScrollRef } from '../component/InfiniteScroll';
 import type { StoreMessage } from '../store/messages-store';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
+import buildClassName from '../../../util/buildClassName';
 import { Messages } from '../messages';
 import { RightPanel } from '../rightPanel/right-panel';
 import { ChataiStores } from '../store';
@@ -21,6 +22,7 @@ import { parseStoreMessage2Message } from '../store/messages-store';
 import { sendGAEvent } from '../utils/analytics';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
 import SummaryHeaderActions from './summary-header-actions';
+import TestActions from './test-actions';
 import UrgentNotification from './urgent-notification';
 
 import { InfiniteScroll } from '../component/InfiniteScroll';
@@ -28,6 +30,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { DrawerProvider } from './DrawerContext';
 
 import './global-summary.scss';
+import styles from './global-summary.module.scss';
 
 import SerenaPath from '../assets/serena.png';
 
@@ -138,8 +141,8 @@ const SummaryModalContent = (props: SummaryContentProps) => {
   const messageListRef = useRef<InfiniteScrollRef | null>(null);
   return (
     <div className="flex flex-row w-full">
-      <div className="globa-summary-container flex flex-col w-full h-full flex-1">
-        <div className="h-[56px] w-full px-[20px] flex items-center bg-white/50">
+      <div className={buildClassName(styles.globaSummaryBg, 'flex flex-col w-full h-full flex-1')}>
+        <div className="h-[56px] w-full px-[20px] flex items-center bg-[var(--color-background)]">
           <img className="w-[40px] h-[40px] rounded-full mr-[12px]" src={SerenaPath} alt="Serena" />
           <span className="text-[15px] font-semibold">Serena AI</span>
           <div className="flex items-center ml-auto gap-[20px]">
@@ -162,6 +165,7 @@ const SummaryModalContent = (props: SummaryContentProps) => {
         </div>
       </div>
       <RightPanel />
+      <TestActions />
     </div>
   );
 };

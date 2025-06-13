@@ -62,7 +62,7 @@ export const SelectedChats = (props: Props) => {
     const subtitle = getSubtitle() || '';
     const specialTitle = getTitle();
     return (
-      <div className="chat-picker-item flex-1 flex flex-row items-center gap-[12px] py-[10px] hover:bg-[#F4F4F5] rounded-[12px]">
+      <div className="chat-picker-item flex-1 flex flex-row items-center gap-[12px] py-[10px] rounded-[12px]">
         <Avatar
           peer={peer}
           isSavedMessages={isSelf}
@@ -85,7 +85,7 @@ export const SelectedChats = (props: Props) => {
     <div className="mt-[40px]">
       <h3 className="text-[18px] font-semibold">Which chats do you care about？</h3>
       <div
-        className="chat-picker-item flex cursor-pointer items-center gap-[8px] py-[10px] hover:bg-[#F4F4F5] rounded-[12px]"
+        className="chat-picker-item flex cursor-pointer items-center gap-[8px] py-[10px] rounded-[12px]"
         onClick={onOpenChatSelect}
       >
         <div

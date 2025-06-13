@@ -25,7 +25,7 @@ const TopicItem = ({ topic, onDelete }: { topic: UrgentTopic;onDelete: (id: stri
     openDrawer(DrawerKey.AddTopicPanel, topic);
   };
   return (
-    <div className="urgent-topic-item p-[20px] bg-white rounded-[8px] flex flex-row items-center justify-between gap-[24px]">
+    <div className="urgent-topic-item p-[20px] bg-[var(--color-chat-hover)] rounded-[8px] flex flex-row items-center justify-between gap-[24px]">
       <div>{topic.topicName}</div>
       <div className="urgent-topic-item-actions flex flex-row gap-[8px]">
         <Icon name="edit" className="text-[14px] cursor-pointer" onClick={handleEditTopic} />
@@ -42,7 +42,7 @@ const AddTopic = () => {
   };
   return (
     <div
-      className="urgent-topic-item p-[20px] bg-white rounded-[8px] flex flex-row items-center gap-[8px] text-[#8C42F0] cursor-pointer"
+      className="urgent-topic-item p-[20px] bg-[var(--color-chat-hover)] rounded-[8px] flex flex-row items-center gap-[8px] text-[#8C42F0] cursor-pointer"
       onClick={handleAddTopic}
     >
       <Icon name="add" />

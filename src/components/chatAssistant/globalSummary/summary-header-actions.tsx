@@ -36,17 +36,21 @@ const SummaryHeaderActions = () => {
     const translatedNames = new Intl.DisplayNames([langCode], { type: 'language' });
     const translatedName = translatedNames.of(langCode)!;
     setSummrayLanguage(translatedName);
-    globalSummaryTask.updateSummaryTemplate();
+    globalSummaryTask.updateSummaryLanguage(translatedName);
   };
 
   return (
     <>
-      <div className="cursor-pointer text-black flex flex-row gap-[6px] items-center" onClick={handleOpenLanguageModal}>
-        <LanguageIcon />
+      <div className="cursor-pointer flex flex-row gap-[6px] items-center" onClick={handleOpenLanguageModal}>
+        <span className="text-[var(--color-text-secondary)]">
+          <LanguageIcon />
+        </span>
         <span className="text-[16px] font-semibold">{summaryLanguage}</span>
       </div>
-      <div className="cursor-pointer text-black flex flex-row gap-[6px] items-center" onClick={handleShowRightPanel}>
-        <SettingIcon />
+      <div className="cursor-pointer flex flex-row gap-[6px] items-center" onClick={handleShowRightPanel}>
+        <span className="text-[var(--color-text-secondary)]">
+          <SettingIcon />
+        </span>
         <span className="text-[16px] font-semibold">Personalize</span>
       </div>
     </>

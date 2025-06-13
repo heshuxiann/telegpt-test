@@ -3,6 +3,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
 
+import type { CustomSummaryTemplate } from '../store/chatai-summary-template-store';
 import type { StoreMessage } from '../store/messages-store';
 import { type ApiMessage, MAIN_THREAD_ID } from '../../../api/types/messages';
 
@@ -14,8 +15,6 @@ import {
 } from '../../../global/selectors';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import { getOrderedIds } from '../../../util/folderManager';
-import { formatSummaryText } from '../globalSummary/formate-summary-text';
-import defaultSummaryPrompt, { getGlobalSummaryPrompt } from '../globalSummary/summary-prompt';
 import {
   ChataiStores,
   GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME,
@@ -24,16 +23,37 @@ import { SUMMARY_CHATS } from '../store/general-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
 
-import chatAIGenerate from '../utils/ChatApiGenerate';
+function getAlignedExecutionTimestamp(): number | null {
+  const date = new Date();
+  const hour = date.getHours();
+  const minute = date.getMinutes();
 
-interface SummaryMessage {
-  chatId: string;
-  chatTitle: string;
-  senderName: string;
-  senderId: string | undefined;
-  date: number;
-  messageId: number;
-  content: string;
+  const toTimestamp = (h: number, m: number = 0) => {
+    const d = new Date(date);
+    d.setHours(h, m, 0, 0);
+    return d.getTime();
+  };
+
+  // 09:00 - 12:00
+  if (hour >= 9 && hour < 12) {
+    const minutesAligned = Math.floor(minute / 30) * 30;
+    return toTimestamp(hour, minutesAligned);
+  }
+
+  // 14:00 - 17:00
+  if (hour >= 14 && hour < 17) {
+    const minutesAligned = Math.floor(minute / 30) * 30;
+    return toTimestamp(hour, minutesAligned);
+  }
+
+  // 17:00 - 23:00 每2小时执行一次
+  if (hour >= 17 && hour < 23) {
+    const baseHour = Math.floor((hour - 17) / 2) * 2 + 17;
+    return toTimestamp(baseHour, 0);
+  }
+
+  // 不在执行时间内
+  return null;
 }
 
 class GlobalSummaryTask {
@@ -43,9 +63,9 @@ class GlobalSummaryTask {
 
   private summaryChats: string[] = [];
 
-  private globalSummaryPrompt:string = defaultSummaryPrompt;
+  private customizationTemplate:CustomSummaryTemplate | undefined = undefined;
 
-  private customizationTemplate:{ title: string; prompt: string } | null = null;
+  private summaryLanguage = 'en';
 
   private unreadSummaryCount = 0;
 
@@ -62,152 +82,154 @@ class GlobalSummaryTask {
       console.log('计时任务minutes', minutes);
       // 9:00 - 12:00 每30分钟执行一次
       if (hours >= 9 && hours < 12 && minutes % 30 === 0) {
-        this.summaryPendingMessages();
+        this.initSummaryChats();
       }
 
       // 14:00 - 17:00 每30分钟执行一次
       if (hours >= 14 && hours < 17 && minutes % 30 === 0) {
-        this.summaryPendingMessages();
+        this.initSummaryChats();
       }
 
       // 17:00 - 23:00 每2小时执行一次
       if (hours >= 17 && hours < 23 && (hours - 17) % 2 === 0 && minutes === 0) {
-        this.summaryPendingMessages();
+        this.initSummaryChats();
       }
     };
 
     // 每分钟执行一次来检查时间段
     setInterval(executeTask, 60000);
-    this.updateSummaryTemplate();
     eventEmitter.on(Actions.ChatAIStoreReady, async () => {
-      this.updateSummaryTemplate();
+      await this.updateSummarySettings();
       const globalSummaryLastTime: number | undefined = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME);
       if (!globalSummaryLastTime) {
       // TODO 总结所有的未读消息
         this.summaryAllUnreadMessages();
-      } else if (globalSummaryLastTime < Date.now() - 1000 * 60 * 60 * 10) {
+      } else if (Date.now() - globalSummaryLastTime > 1000 * 60 * 60 * 10) {
+      // TODO 获取所有未读消息
         this.summaryMessageByDeadline(globalSummaryLastTime);
       }
     });
   }
 
-  summaryPendingMessages() {
-    this.startSummary(this.pendingMessages, () => {
-      this.unreadSummaryCount++;
-    });
-  }
-
-  async updateSummaryTemplate() {
-    let definePrompt = '';
-    let language = 'en';
-    try {
-      const defineTemp = await ChataiStores.general?.get('lastDefinedPrompt');
-      if (defineTemp) {
-        definePrompt = defineTemp.prompt;
-        this.customizationTemplate = defineTemp;
-      }
-      language = await CHATAI_IDB_STORE.get('summary-language') || 'en';
-    } catch (e) {
-      console.log(e);
-    }
-    this.globalSummaryPrompt = getGlobalSummaryPrompt(language, definePrompt);
-  }
-
-  async initUnSummary() {
+  async initSummaryChats() {
     const globalSummaryLastTime: number | undefined = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME);
     if (!globalSummaryLastTime) {
       // TODO 总结所有的未读消息
       this.summaryAllUnreadMessages();
-    } else if (globalSummaryLastTime < Date.now() - 1000 * 60 * 60 * 10) {
+    } else {
       this.summaryMessageByDeadline(globalSummaryLastTime);
     }
   }
 
-  async startSummary(messages:ApiMessage[], callback?:()=>void) {
-    // eslint-disable-next-line no-console
-    console.log('开始总结', messages);
+  async updateSummarySettings() {
+    try {
+      this.customizationTemplate = await ChataiStores.general?.get('lastDefinedPrompt');
+      this.summaryLanguage = await CHATAI_IDB_STORE.get('summary-language') || 'en';
+      this.summaryChats = await ChataiStores.general?.get(SUMMARY_CHATS) || [];
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  public updateSummaryLanguage(language: string) {
+    this.summaryLanguage = language;
+  }
+
+  public updateSummaryDefineTemplate(template: CustomSummaryTemplate | undefined) {
+    this.customizationTemplate = template;
+  }
+
+  public updateSummaryChats(chats:string[]) {
+    this.summaryChats = chats;
+  }
+
+  async startSummary(chats: Record<string, ApiMessage[]>, callback?:()=>void) {
     const global = getGlobal();
     const globalSummaryLastTime = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
-    const summaryTime = new Date().getTime();
-    if (!messages.length) return;
-    const summaryMessages: SummaryMessage[] = messages.map((message) => {
-      if (message.content.text?.text) {
-        const peer = message.senderId ? selectUser(global, message.senderId) : undefined;
-        const chatId = message.chatId;
-        const chat = chatId ? selectChat(global, chatId) : undefined;
-        return {
-          chatId,
-          chatTitle: chat?.title ?? 'Unknown',
-          chatType: isUserId(chatId) ? 'private' : 'group',
-          senderId: message.senderId,
-          senderName: peer ? `${peer.firstName || ''} ${peer.lastName || ''}` : '',
-          date: message.date,
-          messageId: Math.floor(message.id),
-          content: message.content.text?.text ?? '',
-        };
-      }
-      return null;
-    }).filter(Boolean);
-    if (!summaryMessages.length) return;
-    const summaryMessageContent = {
-      messageList: summaryMessages,
-    };
+    const summaryTime = getAlignedExecutionTimestamp();
+    if (!Object.keys(chats).length) return;
+    const summaryChats:any[] = [];
+    Object.keys(chats).forEach((chatId) => {
+      const chat = chatId ? selectChat(global, chatId) : undefined;
+      const chatType = isUserId(chatId) ? 'private' : 'group';
+      const messages = chats[chatId].map((message) => {
+        if (message.content.text?.text) {
+          const peer = message.senderId ? selectUser(global, message.senderId) : undefined;
+          return {
+            senderId: message.senderId,
+            senderName: peer ? `${peer.firstName || ''} ${peer.lastName || ''}` : '',
+            date: message.date,
+            messageId: Math.floor(message.id),
+            content: message.content.text?.text ?? '',
+          };
+        }
+        return null;
+      }).filter(Boolean);
+      summaryChats.push({
+        chatId,
+        chatName: chat?.title ?? 'Unknown',
+        chatType,
+        messages,
+      });
+    });
+    if (!summaryChats.length) return;
     const summaryInfo = {
       summaryStartTime: globalSummaryLastTime || null,
       summaryEndTime: summaryTime,
-      summaryMessageCount: summaryMessages.length,
-      summaryChatIds: [...new Set(messages.map((item) => item.chatId))],
+      summaryMessageCount: Object.values(chats).reduce(
+        (sum, messages) => sum + messages.length,
+        0,
+      ),
+      summaryChatIds: Object.keys(chats),
     };
-    chatAIGenerate({
-      data: {
-        messages: [{
+    fetch('https://telegpt-three.vercel.app/global-summary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: summaryChats,
+        language: this.summaryLanguage,
+        definePrompt: this.customizationTemplate?.prompt || '',
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('summary response', data);
+        const content = {
+          ...data.data,
+          summaryInfo,
+          customizationTemplate: this.customizationTemplate,
+        };
+        const newMessage: StoreMessage = {
+          chatId: GLOBAL_SUMMARY_CHATID,
+          timestamp: new Date().getTime(),
+          content: JSON.stringify(content),
           id: uuidv4(),
-          role: 'user',
-          content: `${this.globalSummaryPrompt}\n\n${JSON.stringify(summaryMessageContent)}`,
-        }],
-      },
-      onResponse: (response) => {
-        console.log('response', response);
-        ChataiStores.general?.set(GLOBAL_SUMMARY_LAST_TIME, new Date().getTime());
-        const formatResponse = formatSummaryText(response);
-        if (formatResponse) {
-          const content = {
-            ...formatResponse,
-            summaryInfo,
-            customizationTemplate: this.customizationTemplate,
-          };
-          const newMessage: StoreMessage = {
-            chatId: GLOBAL_SUMMARY_CHATID,
-            timestamp: new Date().getTime(),
-            content: JSON.stringify(content),
-            id: uuidv4(),
-            createdAt: new Date(),
-            role: 'assistant',
-            annotations: [{
-              type: 'global-summary',
-            }],
-          };
-          ChataiStores.message?.storeMessage(newMessage);
-          eventEmitter.emit(Actions.AddSummaryMessage, newMessage);
-          callback?.();
-        }
-      },
-    });
+          createdAt: new Date(),
+          role: 'assistant',
+          annotations: [{
+            type: 'global-summary',
+          }],
+        };
+        ChataiStores.message?.storeMessage(newMessage);
+        ChataiStores.general?.set(GLOBAL_SUMMARY_LAST_TIME, summaryTime);
+        eventEmitter.emit(Actions.AddSummaryMessage, newMessage);
+        callback?.();
+      });
     this.clearPendingMessages();
   }
 
   summaryAllUnreadMessages = async () => {
-    let unreadMessages: ApiMessage[] = [];
+    const unreadMessages: Record<string, ApiMessage[]> = {};
     const global = getGlobal();
     const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
-    for (let i = 0; i < orderedIds.length; i++) {
-      const chatId = orderedIds[i];
+    const summaryChatIds = this.summaryChats.length ? this.summaryChats : orderedIds;
+    for (let i = 0; i < summaryChatIds.length; i++) {
+      const chatId = summaryChatIds[i];
       const chat = selectChat(global, chatId);
       const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
       if (chat && chat.unreadCount && !chatBot) {
-        // if (chat?.membersCount && chat?.membersCount > 100) {
-        //   continue;
-        // }
         const firstUnreadId = selectFirstUnreadId(global, chatId, MAIN_THREAD_ID) || chat.lastReadInboxMessageId;
         const roomUnreadMsgs = await fetchChatUnreadMessage({
           chat,
@@ -219,28 +241,26 @@ class GlobalSummaryTask {
           maxCount: 100,
         });
         if (roomUnreadMsgs.length > 0) {
-          unreadMessages = unreadMessages.concat(roomUnreadMsgs);
+          unreadMessages[chatId] = roomUnreadMsgs;
         }
       }
     }
-    if (unreadMessages.length) {
+    if (Object.keys(unreadMessages).length) {
       this.startSummary(unreadMessages);
     }
   };
 
   async summaryMessageByDeadline(deadline: number) {
-    let unreadMessages: ApiMessage[] = [];
+    const unreadMessages: Record<string, ApiMessage[]> = {};
     const global = getGlobal();
     const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
-    for (let i = 0; i < orderedIds.length; i++) {
-      const chatId = orderedIds[i];
+    const summaryChatIds = this.summaryChats.length ? this.summaryChats : orderedIds;
+    for (let i = 0; i < summaryChatIds.length; i++) {
+      const chatId = summaryChatIds[i];
       const chat = selectChat(global, chatId);
       const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
       const chatLastMessageId = selectChatLastMessageId(global, chatId) || 0;
       if (chat && chat.unreadCount && !chatBot && chatLastMessageId) {
-        // if (chat?.membersCount && chat?.membersCount > 100) {
-        //   continue;
-        // }
         const roomUnreadMsgs = await fetchChatMessageByDeadline({
           chat,
           deadline: deadline / 1000,
@@ -250,10 +270,10 @@ class GlobalSummaryTask {
           threadId: MAIN_THREAD_ID,
           maxCount: 100,
         });
-        unreadMessages = unreadMessages.concat(roomUnreadMsgs);
+        unreadMessages[chatId] = roomUnreadMsgs;
       }
     }
-    if (unreadMessages.length) {
+    if (Object.keys(unreadMessages).length) {
       this.startSummary(unreadMessages);
     }
   }
@@ -265,23 +285,6 @@ class GlobalSummaryTask {
     }
     ChataiStores.general?.set(GLOBAL_SUMMARY_READ_TIME, new Date().getTime());
     this.unreadSummaryCount = 0;
-  }
-
-  static getTextWithoutEntities(text: string, entities: any[]): string {
-    const ranges = entities.map((entity) => ({ start: entity.offset, length: entity.length }));
-    const sortedRanges = ranges.sort((a, b) => b.start - a.start);
-
-    // eslint-disable-next-line @typescript-eslint/no-shadow
-    for (const { start, length } of sortedRanges) {
-      text = text.slice(0, start) + text.slice(start + length);
-    }
-    return text;
-  }
-
-  updateSummaryChats(chats: string[]) {
-    this.summaryChats = chats;
-    this.pendingMessages = this.pendingMessages.filter((item) => chats.includes(item.chatId));
-    // console.log('checkUrgentMessage', this.pendingMessages);
   }
 
   getSummaryChats():Promise<string[]> {

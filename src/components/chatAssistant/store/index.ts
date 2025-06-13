@@ -10,14 +10,12 @@ import MessageStore from './messages-store';
 import UrgentTopicStore from './urgent-topic-store';
 import UsersStore from './user-store';
 
-const dbVersion = 14;
+const dbVersion = 15;
 
 export const GLOBAL_SUMMARY_LAST_TIME = 'globalSummaryLastTime';
 export const GLOBAL_SUMMARY_READ_TIME = 'globalSummaryReadTime';
 
 let currentUserId!: string;
-
-let storeBuildState: boolean = false;
 
 export const ChataiStores = {
   message: null as MessageStore | null,
@@ -37,7 +35,6 @@ export function setChataiStoreBuilderCurrentUserId(_currentUserId: string) {
 }
 
 export async function initChataiStores(_currentUserId: string) {
-  storeBuildState = true;
   const dbName = `tt-chatai-${_currentUserId}`;
   const chataiStoreManager = new ChataiStoreManager(dbVersion, dbName);
   await chataiStoreManager.initDB();

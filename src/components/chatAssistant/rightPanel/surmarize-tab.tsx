@@ -57,7 +57,7 @@ const SummarizeTab = () => {
   const handleSave = useCallback(() => {
     ChataiStores.general?.set('lastDefinedPrompt', currentTemplate);
     setLastTemplate(currentTemplate);
-    globalSummaryTask.updateSummaryTemplate();
+    globalSummaryTask.updateSummaryDefineTemplate(currentTemplate);
   }, [currentTemplate]);
   const handleDelete = useCallback((e: React.MouseEvent<HTMLDivElement>, id: string) => {
     e.preventDefault();
@@ -104,14 +104,14 @@ const SummarizeTab = () => {
   return (
     <div className="h-full overflow-hidden relative">
       <div className="h-full flex flex-col px-[18px] overflow-auto">
-        <h3 className="text-[18px] font-semibold">What are you curious about?</h3>
+        <h3 className="text-[18px] font-semibold text-[var(--color-text)">What are you curious about?</h3>
         <div className="flex flex-col gap-[10px]">
           {CustomizationTemplates.map((item) => {
             return (
               <div
                 key={item.title}
                 onClick={() => handleTemplateSelect(item)}
-                className={cx('w-fit px-[20px] leading-[40px] border-[1px] border-[#B297FF] rounded-[20px] text-[15px] cursor-pointer', {
+                className={cx('w-fit px-[20px] leading-[40px] border-[1px] border-[#B297FF] rounded-[20px] text-[15px] cursor-pointer text-[var(--color-text)]', {
                   'bg-[#B297FF] text-white': currentTemplate?.id === item.id,
                 })}
               >

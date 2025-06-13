@@ -1,8 +1,12 @@
 .personalized-settings-tab{
+    color: var(--color-text);
     .ant-tabs-nav{
         margin-bottom: 0!important;
         padding-left:16px;
         padding-right: 16px;
+        .ant-tabs-tab{
+            color: var(--color-text);
+        }
     }
     .ant-tabs-content-holder{
         padding-top: 16px;

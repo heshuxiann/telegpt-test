@@ -772,7 +772,7 @@ export const CopyIcon = ({ size = 24 }: { size?: number }) => (
     width={size}
     fill="none"
   >
-    <path d="M0 4C0 1.79086 1.79086 0 4 0H20C22.2091 0 24 1.79086 24 4V20C24 22.2091 22.2091 24 20 24H4C1.79086 24 0 22.2091 0 20V4Z" fill="white" />
+    <path d="M0 4C0 1.79086 1.79086 0 4 0H20C22.2091 0 24 1.79086 24 4V20C24 22.2091 22.2091 24 20 24H4C1.79086 24 0 22.2091 0 20V4Z" />
     <path d="M9.60016 14.3991C9.60016 12.137 9.60016 11.0051 10.3033 10.3027C11.0056 9.59961 12.1375 9.59961 14.3997 9.59961H15.1996C17.4618 9.59961 18.5937 9.59961 19.296 10.3027C19.9992 11.0051 19.9992 12.137 19.9992 14.3991V15.1991C19.9992 17.4612 19.9992 18.5931 19.296 19.2955C18.5937 19.9986 17.4618 19.9986 15.1996 19.9986H14.3997C12.1375 19.9986 11.0056 19.9986 10.3033 19.2955C9.60016 18.5931 9.60016 17.4612 9.60016 15.1991V14.3991Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
     <path d="M15.9988 9.59946C15.9964 7.23409 15.9612 6.00861 15.2725 5.16949C15.1396 5.00762 14.9912 4.85919 14.8294 4.72633C13.943 4 12.6296 4 9.99942 4C7.37007 4 6.055 4 5.16949 4.72633C5.00762 4.85919 4.85919 5.00762 4.72633 5.16949C4 6.0558 4 7.36927 4 9.99942C4 12.6288 4 13.9438 4.72633 14.8294C4.85919 14.9912 5.00762 15.1396 5.16949 15.2725C6.00941 15.9604 7.23329 15.9972 9.59946 15.9988" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
   </svg>
@@ -1206,7 +1206,7 @@ export const VoiceIcon = ({ size = 24 }: { size?: number }) => {
       viewBox="0 0 24 24"
       fill="none"
     >
-      <path d="M0 4C0 1.79086 1.79086 0 4 0H20C22.2091 0 24 1.79086 24 4V20C24 22.2091 22.2091 24 20 24H4C1.79086 24 0 22.2091 0 20V4Z" fill="white" />
+      <path d="M0 4C0 1.79086 1.79086 0 4 0H20C22.2091 0 24 1.79086 24 4V20C24 22.2091 22.2091 24 20 24H4C1.79086 24 0 22.2091 0 20V4Z" />
       <path d="M13.5996 14.3449V9.65499C13.5996 7.03422 13.5996 5.72426 12.8596 5.3976C12.1187 5.07177 11.2475 5.99758 9.50496 7.8517C8.60251 8.81168 8.08807 9.02418 6.804 9.02418C5.68153 9.02418 5.11989 9.02418 4.71587 9.31084C3.87902 9.90582 4.00702 11.0683 4.00702 11.9999C4.00702 12.9316 3.87982 14.0941 4.71747 14.689C5.12069 14.9757 5.68233 14.9757 6.8048 14.9757C8.08887 14.9757 8.60331 15.1882 9.50576 16.1482C11.2483 18.0015 12.1195 18.9281 12.8604 18.6023C13.6004 18.2756 13.6004 16.9657 13.6004 14.344M15.9998 9.5C16.4998 10.1833 16.7998 11.0525 16.7998 11.9999C16.7998 12.9474 16.4998 13.8166 15.9998 14.4999M18.3999 7.83337C19.4 8.97168 20 10.4216 20 11.9999C20 13.5782 19.4 15.0282 18.3999 16.1665" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
   );
@@ -1266,12 +1266,12 @@ export const SettingIcon = ({ size = 20 }: { size?: number }) => {
   return (
 
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M22 6.5H16" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-      <path d="M6 6.5H2" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-      <path fill-rule="evenodd" clip-rule="evenodd" d="M10 10C8.067 10 6.5 8.433 6.5 6.5C6.5 4.567 8.067 3 10 3C11.933 3 13.5 4.567 13.5 6.5C13.5 8.433 11.933 10 10 10Z" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-      <path d="M22 17.5H18" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-      <path d="M8 17.5H2" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-      <path fill-rule="evenodd" clip-rule="evenodd" d="M14 21C12.067 21 10.5 19.433 10.5 17.5C10.5 15.567 12.067 14 14 14C15.933 14 17.5 15.567 17.5 17.5C17.5 19.433 15.933 21 14 21Z" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M22 6.5H16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M6 6.5H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M10 10C8.067 10 6.5 8.433 6.5 6.5C6.5 4.567 8.067 3 10 3C11.933 3 13.5 4.567 13.5 6.5C13.5 8.433 11.933 10 10 10Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M22 17.5H18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M8 17.5H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M14 21C12.067 21 10.5 19.433 10.5 17.5C10.5 15.567 12.067 14 14 14C15.933 14 17.5 15.567 17.5 17.5C17.5 19.433 15.933 21 14 21Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
 
   );
@@ -1279,8 +1279,8 @@ export const SettingIcon = ({ size = 20 }: { size?: number }) => {
 export const LanguageIcon = ({ size = 20 }: { size?: number }) => {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M2 12C2 17.523 6.477 22 12 22C17.523 22 22 17.523 22 12C22 6.477 17.523 2 12 2C6.477 2 2 6.477 2 12Z" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-      <path d="M12.9999 2.04999C12.9999 2.04999 15.9999 5.99999 15.9999 12C15.9999 18 12.9999 21.95 12.9999 21.95M10.9999 21.95C10.9999 21.95 7.99988 18 7.99988 12C7.99988 5.99999 10.9999 2.04999 10.9999 2.04999M2.62988 15.5H21.3699M2.62988 8.49999H21.3699" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M2 12C2 17.523 6.477 22 12 22C17.523 22 22 17.523 22 12C22 6.477 17.523 2 12 2C6.477 2 2 6.477 2 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M12.9999 2.04999C12.9999 2.04999 15.9999 5.99999 15.9999 12C15.9999 18 12.9999 21.95 12.9999 21.95M10.9999 21.95C10.9999 21.95 7.99988 18 7.99988 12C7.99988 5.99999 10.9999 2.04999 10.9999 2.04999M2.62988 15.5H21.3699M2.62988 8.49999H21.3699" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
   );
 };

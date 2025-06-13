@@ -50,7 +50,7 @@ const RightHeader = (props: Props) => {
     }
   }, [handleBack, drawerKey]);
   return (
-    <div className="h-[50px] flex items-center justify-center relative">
+    <div className="h-[56px] flex items-center justify-center relative">
       {drawerKey && hasBackDrawer.includes(drawerKey) ? (
         <HeaderButton className="absolute left-[18px]" icon={<LeftOutlined size={24} />} onClick={handleBack} />
       ) : null}

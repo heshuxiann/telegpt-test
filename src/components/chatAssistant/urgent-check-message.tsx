@@ -101,7 +101,7 @@ const UrgentCheckMessage = (props:IProps) => {
     openDrawer(DrawerKey.OriginalMessages, { relevantMessages: [{ chatId: item.chatId, messageIds: [item.messageId] }] });
   };
   return (
-    <div className="mx-auto w-[693px] rounded-[10px] bg-[#FFF9F9] pl-[82px] pr-[25px] pt-[20px] pb-[25px] border-[1px] border-[#FFC7C7]">
+    <div className="mx-auto w-[693px] rounded-[10px] bg-[var(--color-urgent-message-bg)] pl-[82px] pr-[25px] pt-[20px] pb-[25px] border-[1px] border-[var(--color-urgent-message-border)]">
       <div className="flex items-center gap-[8px]">
         <img className="w-[52px] h-[52px] rounded-full ml-[-60px]" src={SerenaLogoPath} alt="" />
         <div>

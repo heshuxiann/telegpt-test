@@ -8,3 +8,18 @@
         }
     }
 }
+.urgent-topic-edit{
+    .ant-form-item-label>label{
+        color: var(--color-text);
+    }
+    .ant-input{
+        background-color: var(--color-chat-hover);
+        color: var(--color-text);
+        &::placeholder{
+            color: var(--color-secondary);
+        }
+    }
+    .ant-input-outlined.ant-input-status-error:not(.ant-input-disabled){
+        background-color: var(--color-chat-hover);
+    }
+}

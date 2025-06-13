@@ -4,6 +4,7 @@
     }
     transition: padding 0.2s ease-in-out;
     &:hover{
+        background-color: var(--color-chat-hover);
         .chat-picker-del{
             display: block;
         }

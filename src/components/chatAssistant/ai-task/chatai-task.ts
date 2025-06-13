@@ -4,7 +4,6 @@ import type { ApiMessage } from '../../../api/types';
 
 import { isChatGroup, isSystemBot } from '../../../global/helpers';
 import { selectBot, selectChat } from '../../../global/selectors';
-import { globalSummaryTask } from './global-summary-task';
 import { intelligentReplyTask } from './intelligent-reply-task';
 import { urgentCheckTask } from './urgent-check-task';
 
@@ -26,8 +25,6 @@ class ChatAIMessageQuene {
           }
           urgentCheckTask.addNewMessage(message);
         }
-        // TODO 添加到自动总结消息队列
-        globalSummaryTask.addNewMessage(message);
       }
     }
   }
