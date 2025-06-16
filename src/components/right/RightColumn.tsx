@@ -19,6 +19,7 @@ import {
   selectTabState,
 } from '../../global/selectors';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
+import RoomAIWrapper from '../chatAssistant/roomAI/room-ai-wrapper';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -27,7 +28,6 @@ import useLayoutEffectWithPrevDeps from '../../hooks/useLayoutEffectWithPrevDeps
 import useMarkScrolled from '../../hooks/useMarkScrolled/useMarkScrolled';
 import useWindowSize from '../../hooks/window/useWindowSize';
 
-import RoomAIWrapper from '../chatAssistant/roomAI/RoomAIWrapper';
 import Transition from '../ui/Transition';
 import AddChatMembers from './AddChatMembers';
 import CreateTopic from './CreateTopic.async';

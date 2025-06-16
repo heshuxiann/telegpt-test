@@ -24,16 +24,19 @@ import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { sendGAEvent } from '../utils/analytics';
 import { checkGoogleAuthStatus } from '../utils/google-api';
+import RoomActions from './room-actions';
+import RoomAIDescription from './room-ai-des';
 import { RoomAIInput } from './room-ai-input';
+import { createGoogleLoginMessage, createGoogleMeetingMessage } from './room-ai-utils';
 
 import { InfiniteScroll } from '../component/InfiniteScroll';
 
-import './ChatAI.scss';
+import './room-ai.scss';
 
 interface StateProps {
   chatId: string | undefined;
 }
-const ChatAIRoomInner = (props: StateProps) => {
+const RoomAIInner = (props: StateProps) => {
   const { showNotification } = getActions();
   const { chatId } = props;
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
@@ -94,28 +97,8 @@ const ChatAIRoomInner = (props: StateProps) => {
     });
   }, [chatId, pageInfo?.lastTime, setMessages]);
 
-  const addAuthMessage = useCallback(() => {
-    setMessages((prev) => [...prev, {
-      role: 'assistant',
-      id: uuidv4(),
-      createdAt: new Date(),
-      content: 'Please login first',
-      annotations: [{
-        type: 'google-auth',
-      }],
-    }]);
-  }, [setMessages]);
-
-  const addInsertGoogleEventMessage = useCallback(() => {
-    setMessages((prev) => [...prev, {
-      role: 'assistant',
-      id: uuidv4(),
-      createdAt: new Date(),
-      content: '',
-      annotations: [{
-        type: 'google-event-insert',
-      }],
-    }]);
+  const insertMessage = useCallback((message: Message) => {
+    setMessages((prev) => [...prev, message]);
   }, [setMessages]);
 
   const handleCreateCalendarSuccess = useCallback((payload: any) => {
@@ -128,7 +111,7 @@ const ChatAIRoomInner = (props: StateProps) => {
         ChataiStores.message?.delMessage(message?.id);
         const newMessage = messages.filter((item) => item.id !== message?.id);
         setMessages(newMessage as UIMessage[]);
-        addAuthMessage();
+        insertMessage(createGoogleLoginMessage());
       }
     } else {
       ChataiStores.message?.delMessage(message?.id);
@@ -153,10 +136,8 @@ const ChatAIRoomInner = (props: StateProps) => {
       const mergeMesssage = [...newMessage, ...appendMessage];
       setMessages(mergeMesssage as UIMessage[]);
     }
-  }, [addAuthMessage, messages, setMessages]);
-  const handleGoogleAuthSuccess = useCallback(() => {
-    addInsertGoogleEventMessage();
-  }, [addInsertGoogleEventMessage]);
+  }, [insertMessage, messages, setMessages]);
+
   const updateToken = useCallback((payload:{ message:Message;token:string }) => {
     const { message, token } = payload;
     tokenRef.current = token;
@@ -165,6 +146,10 @@ const ChatAIRoomInner = (props: StateProps) => {
       setMessages((prev) => prev.filter((item) => item.id !== message.id));
     }
   }, [setMessages]);
+
+  const handleGoogleAuthSuccess = useCallback(() => {
+    insertMessage(createGoogleMeetingMessage());
+  }, [insertMessage]);
 
   useEffect(() => {
     eventEmitter.on(Actions.CreateCalendarSuccess, handleCreateCalendarSuccess);
@@ -205,9 +190,9 @@ const ChatAIRoomInner = (props: StateProps) => {
               // TODO createMeet
               const loginStatus = await checkGoogleAuthStatus();
               if (loginStatus) {
-                addInsertGoogleEventMessage();
+                insertMessage(createGoogleMeetingMessage());
               } else {
-                addAuthMessage();
+                insertMessage(createGoogleLoginMessage());
               }
               sendGAEvent('google_meet');
             } else if (toolCall.toolName === 'nullTool') {
@@ -226,6 +211,7 @@ const ChatAIRoomInner = (props: StateProps) => {
         }
       });
   };
+
   const handleInputSubmit = (value: string) => {
     const newMessage:Message = {
       role: 'user',
@@ -239,13 +225,14 @@ const ChatAIRoomInner = (props: StateProps) => {
     toolsHitCheck(newMessage);
   };
   return (
-    <div className="right-panel-chat-ai w-full h-full overflow-hidden">
+    <div className="right-panel-chat-ai h-full overflow-hidden">
       <InfiniteScroll
         className="chat-ai-output-wrapper"
         loadMore={handleLoadMore}
         hasMore={pageInfo.hasMore}
         ref={messageListRef}
       >
+        <RoomAIDescription />
         {messages.length > 0 && (
           <Messages
             isLoading={isLoading}
@@ -253,21 +240,24 @@ const ChatAIRoomInner = (props: StateProps) => {
           />
         )}
       </InfiniteScroll>
-      <form className="flex mx-auto px-[12px] pb-4  gap-2 w-full">
-        <RoomAIInput
-          isLoading={isLoading}
-          stop={stop}
-          setMessages={setMessages}
-          handleInputSubmit={handleInputSubmit}
-        />
-      </form>
+      <div>
+        <RoomActions insertMessage={insertMessage} chatId={chatId} />
+        <form className="flex mx-auto px-[12px] pb-4  gap-2 w-full">
+          <RoomAIInput
+            isLoading={isLoading}
+            stop={stop}
+            setMessages={setMessages}
+            handleInputSubmit={handleInputSubmit}
+          />
+        </form>
+      </div>
     </div>
   );
 };
 
-const ChatAIRoom = memo(ChatAIRoomInner, (prevProps, nextProps) => {
+const RoomAI = memo(RoomAIInner, (prevProps, nextProps) => {
   if (prevProps.chatId !== nextProps.chatId) return false;
   return true;
 });
 
-export default ChatAIRoom;
+export default RoomAI;

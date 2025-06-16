@@ -10,6 +10,8 @@ import GoogleEventDetailMessage from './google-event-detail-message';
 import GoogleLoginAuthMessage from './google-login-auth-message';
 import { GroupSearchMessage } from './group-search-message';
 import { PreviewMessage, ThinkingMessage } from './message';
+import RoomActionMessage from './room-actions-message';
+import RoomSummaryMessage from './room-summary-message';
 // import SummaryMessage from './summary-message';
 import UrgentCheckMessage from './urgent-check-message';
 // import { useScrollToBottom } from './use-scroll-to-bottom';
@@ -56,6 +58,14 @@ function PureMessages({
   const isGoogleEventDetail = (message:Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'google-event-detail') ?? false;
   };
+
+  const isRoomSummary = (message:Message) => {
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'room-summary') ?? false;
+  };
+
+  const isRoomActions = (message:Message) => {
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'room-actions') ?? false;
+  };
   const handleDeleteMessage = (message:Message, prevMessage:Message) => {
     deleteMessage?.(message.id);
     deleteMessage?.(prevMessage.id);
@@ -92,6 +102,18 @@ function PureMessages({
                 <GoogleEventCreateMessage message={message} />
               ) : isGoogleEventDetail(message) ? (
                 <GoogleEventDetailMessage message={message} />
+              ) : isRoomSummary(message) ? (
+                <RoomSummaryMessage
+                  message={message}
+                  // eslint-disable-next-line react/jsx-no-bind
+                  deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
+                />
+              ) : isRoomActions(message) ? (
+                <RoomActionMessage
+                  message={message}
+                  // eslint-disable-next-line react/jsx-no-bind
+                  deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
+                />
               ) : (
                 <PreviewMessage
                   message={message}

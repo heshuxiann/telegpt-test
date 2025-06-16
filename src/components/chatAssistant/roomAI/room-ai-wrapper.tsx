@@ -8,24 +8,27 @@ import React, {
 import { withGlobal } from '../../../global';
 
 import { injectComponent } from '../../../lib/injectComponent';
-
-import ChatAIRoom from './ChatAIRoom';
+import RoomAI from './room-ai';
 
 interface StateProps {
   chatId: string | undefined;
 }
-const injectMessageAI = injectComponent(ChatAIRoom);
+const injectMessageAI = injectComponent(RoomAI);
 const RoomAIWrapper = (props: StateProps) => {
   const { chatId } = props;
   const containerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
-    if (containerRef.current) {
-      injectMessageAI(containerRef.current, { ...props });
-    }
+    const timer = setTimeout(() => {
+      if (containerRef.current) {
+        injectMessageAI(containerRef.current, { ...props });
+      }
+    }, 500); // 等动画走完再注入
+
+    return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, [chatId]);
   return (
-    <div className="chat-ai-room w-full h-full overflow-hidden" ref={containerRef} />
+    <div className="chat-ai-room flex overflow-hidden" ref={containerRef} />
   );
 };
 

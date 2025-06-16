@@ -121,3 +121,46 @@ export const fetchChatMessageByDeadline = async (
 
   return messages.reverse();
 };
+
+export const fetchChatMessageByOffsetId = async (
+  props: {
+    chat: ApiChat;
+    addOffset: number;
+    offsetId: number;
+    sliceSize: number;
+    threadId: number;
+    maxCount?:number;
+  },
+): Promise<ApiMessage[]> => {
+  let messages: any[] = [];
+  let {
+    // eslint-disable-next-line prefer-const
+    offsetId, sliceSize, maxCount = 100,
+  } = props; // 记录偏移量
+
+  while (!messages.length && messages.length < maxCount) {
+    const result = await callApi('fetchMessages', {
+      ...props,
+      offsetId,
+      limit: sliceSize,
+    });
+
+    if (!result || !result.messages?.length) {
+      break; // 没有更多消息，退出循环
+    }
+    if (messages.length + result.messages.length >= maxCount) {
+      messages = messages.concat(result.messages.slice(0, maxCount - messages.length));
+      break;
+    } else {
+      messages = messages.concat(result.messages);
+    }
+
+    offsetId = result.messages[result.messages.length - 1].id; // 更新 offsetId
+
+    if (result.messages.length < props.sliceSize) {
+      break; // 本次获取的消息不足 sliceSize，说明没有更多消息了
+    }
+  }
+
+  return messages.reverse();
+};
