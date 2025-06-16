@@ -3,9 +3,10 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import React, { useCallback, useEffect, useState } from '../../../lib/teact/teact';
 
+import { chatAIGenerate } from '../../chatAssistant/utils/chat-api';
+
 import useLang from '../../../hooks/useLang';
 
-import chatAIGenerate from '../../chatAssistant/utils/ChatApiGenerate';
 import Button from '../../ui/Button';
 import Modal from '../../ui/Modal';
 import CopyIcon from './Icon/CopyIcon';

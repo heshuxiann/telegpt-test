@@ -74,6 +74,7 @@ import {
 } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import { copyTextToClipboard } from '../../../util/clipboard';
+import { chatAIGenerate } from '../../chatAssistant/utils/chat-api';
 import ScheduleMeeting from '../../chatAssistant/utils/schedule-meeting';
 import { knowledgeEmbeddingStore } from '../../chatAssistant/vector-store';
 import { getSelectionAsFormattedText } from './helpers/getSelectionAsFormattedText';
@@ -86,7 +87,6 @@ import useSchedule from '../../../hooks/useSchedule';
 import useShowTransition from '../../../hooks/useShowTransition';
 
 import eventEmitter from '../../chatAssistant/lib/EventEmitter';
-import chatAIGenerate from '../../chatAssistant/utils/ChatApiGenerate';
 import PinMessageModal from '../../common/PinMessageModal.async';
 import ConfirmDialog from '../../ui/ConfirmDialog';
 import MessageContextMenu from './MessageContextMenu';

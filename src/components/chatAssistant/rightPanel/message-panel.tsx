@@ -15,12 +15,12 @@ import { selectChatMessage } from '../../../global/selectors/messages';
 import { callApi } from '../../../api/gramjs';
 import { ArrowRightIcon, SendIcon } from '../icons';
 import { languagePrompt } from '../prompt';
+import { chatAIGenerate } from '../utils/chat-api';
 import { cn, formatTimestamp } from '../utils/util';
 import { knowledgeEmbeddingStore } from '../vector-store';
 
 import ChatAvatar from '../component/ChatAvatar';
 import ErrorBoundary from '../ErrorBoundary';
-import chatAIGenerate from '../utils/ChatApiGenerate';
 
 import './message-panel.scss';
 

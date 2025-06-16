@@ -11,12 +11,12 @@ import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import TranslateIcon from '../../chatAssistant/assets/ai-translate.png';
 import chatAILogoPath from '../../chatAssistant/assets/cgat-ai-logo.png';
 import { sendGAEvent } from '../../chatAssistant/utils/analytics';
+import { chatAIGenerate } from '../../chatAssistant/utils/chat-api';
 
 import useFlag from '../../../hooks/useFlag';
 import useLastCallback from '../../../hooks/useLastCallback';
 
 import eventEmitter from '../../chatAssistant/lib/EventEmitter';
-import chatAIGenerate from '../../chatAssistant/utils/ChatApiGenerate';
 import Icon from '../../common/icons/Icon';
 import Menu from '../../ui/Menu';
 import MenuItem from '../../ui/MenuItem';

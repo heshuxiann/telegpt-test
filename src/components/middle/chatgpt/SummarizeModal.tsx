@@ -3,7 +3,8 @@
 // import { useChat } from '@ai-sdk/react';
 import React, { useEffect, useState } from '../../../lib/teact/teact';
 
-import chatAIGenerate from '../../chatAssistant/utils/ChatApiGenerate';
+import { chatAIGenerate } from '../../chatAssistant/utils/chat-api';
+
 import Modal from '../../ui/Modal';
 import CopyIcon from './Icon/CopyIcon';
 import RefreshIcon from './Icon/RefreshIcon';
