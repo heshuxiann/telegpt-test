@@ -131,6 +131,8 @@ import {
 import { selectGroupCall } from '../../selectors/calls';
 import { selectCurrentLimit } from '../../selectors/limits';
 import { GLOBAL_SUMMARY_CHATID } from '../../../components/chatAssistant/variables';
+import { ChataiStores } from "../../../components/chatAssistant/store"
+import { GLOBAL_PRESET_TAG } from "../../../components/chatAssistant/classifyChat/preset-modal"
 
 const TOP_CHAT_MESSAGES_PRELOAD_INTERVAL = 100;
 const INFINITE_LOOP_MARKER = 100;
@@ -1016,7 +1018,6 @@ addActionHandler('toggleSavedDialogPinned', (global, actions, payload): ActionRe
 
 addActionHandler('loadChatFolders', async (global): Promise<void> => {
   const chatFolders = await callApi('fetchChatFolders');
-
   if (chatFolders) {
     global = getGlobal();
 
@@ -1025,6 +1026,45 @@ addActionHandler('loadChatFolders', async (global): Promise<void> => {
       chatFolders: {
         ...global.chatFolders,
         ...chatFolders,
+      },
+    };
+    setGlobal(global);
+  }
+  // load folder to db
+  if (chatFolders?.byId && Object.keys(chatFolders?.byId).length > 0) {
+    const allFolderDb = await ChataiStores.folder?.getAllFolders();
+    allFolderDb?.forEach(async (item)=>{
+      if (Object.keys(chatFolders?.byId).indexOf(item?.id + '') < 0) {
+        await ChataiStores.folder?.deleteFolder(item?.title);
+      }
+    })
+
+    Object.keys(chatFolders?.byId)?.forEach(async (folderId) => {
+      const exist = allFolderDb?.findIndex(o=>o?.id===folderId)
+      if (!exist || exist < 0) {
+        const folderInfo = chatFolders?.byId[Number(folderId)];
+        await ChataiStores.folder?.addFolder({
+          id: Number(folderId),
+          title: folderInfo?.title?.text,
+          includedChatIds: folderInfo?.includedChatIds,
+          excludedChatIds: folderInfo?.excludedChatIds,
+          from: 'user'
+        });
+      }
+    });
+  }
+  const allClassifyChat = await ChataiStores.chatClassify?.getAllClassify()
+  const activeTag = await ChataiStores.general?.get(GLOBAL_PRESET_TAG)
+  if (allClassifyChat && allClassifyChat?.length > 0) {
+    global = getGlobal();
+    global = {
+      ...global,
+      chatFolders: {
+        ...global.chatFolders,
+        classifys: {
+          activeTag,
+          list: allClassifyChat
+        },
       },
     };
     setGlobal(global);
@@ -1090,7 +1130,7 @@ addActionHandler('editChatFolders', (global, actions, payload): ActionReturnType
 });
 
 addActionHandler('editChatFolder', (global, actions, payload): ActionReturnType => {
-  const { id, folderUpdate } = payload;
+  const { id, folderUpdate, from = 'user' } = payload;
   const folder = selectChatFolder(global, id);
 
   if (folder) {
@@ -1101,13 +1141,21 @@ addActionHandler('editChatFolder', (global, actions, payload): ActionReturnType 
         emoticon: folder.emoticon,
         pinnedChatIds: folder.pinnedChatIds,
         ...folderUpdate,
-      },
+      }
+    });
+
+    ChataiStores.folder?.addFolder({
+      id,
+      title: folderUpdate?.title?.text,
+      includedChatIds: folderUpdate?.includedChatIds,
+      excludedChatIds: folderUpdate?.excludedChatIds,
+      from
     });
   }
 });
 
 addActionHandler('addChatFolder', async (global, actions, payload): Promise<void> => {
-  const { folder, tabId = getCurrentTabId() } = payload;
+  const { folder, tabId = getCurrentTabId(), from = 'user' } = payload;
   const { orderedIds, byId } = global.chatFolders;
 
   const limit = selectCurrentLimit(global, 'dialogFilters');
@@ -1139,6 +1187,14 @@ addActionHandler('addChatFolder', async (global, actions, payload): Promise<void
     '@type': 'updateChatFolder',
     id: newId,
     folder: folderUpdate,
+  });
+
+  await ChataiStores.folder?.addFolder({
+    id: newId,
+    title: folderUpdate?.title?.text,
+    includedChatIds: folderUpdate?.includedChatIds,
+    excludedChatIds: folderUpdate?.excludedChatIds,
+    from
   });
 
   actions.requestNextSettingsScreen({
@@ -1191,6 +1247,7 @@ addActionHandler('deleteChatFolder', async (global, actions, payload): Promise<v
 
   if (folder) {
     await callApi('deleteChatFolder', id);
+    await ChataiStores.folder?.deleteFolder(folder.title.text)
   }
 });
 

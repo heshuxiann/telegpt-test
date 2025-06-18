@@ -3,7 +3,9 @@
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import ChataiStoreManager from './chatai-store';
 import SummaryTemplateStore from './chatai-summary-template-store';
+import ChatClassifyStore from "./classify-store"
 import ContactStore from './contact-store';
+import FolderStore from "./folder-store"
 import GeneralStore from './general-store';
 import KnowledgeStore from './knowledge-store';
 import MessageStore from './messages-store';
@@ -11,10 +13,11 @@ import SummaryStore from './summary-store';
 import UrgentTopicStore from './urgent-topic-store';
 import UsersStore from './user-store';
 
-const dbVersion = 16;
+const dbVersion = 17;
 
 export const GLOBAL_SUMMARY_LAST_TIME = 'globalSummaryLastTime';
 export const GLOBAL_SUMMARY_READ_TIME = 'globalSummaryReadTime';
+export const GLOBAL_CLASSIFY_LAST_TIME = "globalClassifyLastTime";
 
 let currentUserId!: string;
 
@@ -27,6 +30,8 @@ export const ChataiStores = {
   knowledge: null as KnowledgeStore | null,
   summaryTemplate: null as SummaryTemplateStore | null,
   urgentTopic: null as UrgentTopicStore | null,
+  folder: null as FolderStore | null,
+  chatClassify: null as ChatClassifyStore | null,
 };
 
 export function setChataiStoreBuilderCurrentUserId(_currentUserId: string) {
@@ -48,6 +53,8 @@ export async function initChataiStores(_currentUserId: string) {
   ChataiStores.knowledge = new KnowledgeStore(chataiStoreManager);
   ChataiStores.summaryTemplate = new SummaryTemplateStore(chataiStoreManager);
   ChataiStores.urgentTopic = new UrgentTopicStore(chataiStoreManager);
+  ChataiStores.folder = new FolderStore(chataiStoreManager);
+  ChataiStores.chatClassify = new ChatClassifyStore(chataiStoreManager);
   eventEmitter.emit(Actions.ChatAIStoreReady);
   (window as any).downloadAllSummarys = () => {
     ChataiStores.message?.getAllMessages().then((res) => {

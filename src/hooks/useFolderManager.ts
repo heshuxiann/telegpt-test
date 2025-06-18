@@ -1,3 +1,4 @@
+import { ALL_FOLDER_ID, PRESET_FOLOLDER_ID, UNREAD_FOLDER_ID } from "../config"
 import { useEffect } from '../lib/teact/teact';
 
 import {
@@ -8,12 +9,20 @@ import {
   getOrderedIds, getUnreadChatsByFolderId,
   getUnreadCounters,
 } from '../util/folderManager';
+import { filterPresetTag } from "../util/presetTagFilter"
 import useForceUpdate from './useForceUpdate';
 
 export function useFolderManagerForOrderedIds(folderId: number) {
   const forceUpdate = useForceUpdate();
 
   useEffect(() => addOrderedIdsCallback(folderId, forceUpdate), [folderId, forceUpdate]);
+
+  if (folderId === PRESET_FOLOLDER_ID) {
+    return filterPresetTag(getOrderedIds(ALL_FOLDER_ID))
+  }
+  if (folderId === UNREAD_FOLDER_ID) {
+    return getUnreadChatsByFolderId()[ALL_FOLDER_ID]
+  }
 
   return getOrderedIds(folderId);
 }

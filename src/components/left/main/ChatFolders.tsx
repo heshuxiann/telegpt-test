@@ -1,6 +1,7 @@
 import type { FC } from '../../../lib/teact/teact';
 import React, {
   memo, useEffect, useMemo, useRef,
+  useState,
 } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
@@ -12,7 +13,7 @@ import type { MenuItemContextAction } from '../../ui/ListItem';
 import type { TabWithProperties } from '../../ui/TabList';
 import { SettingsScreens } from '../../../types';
 
-import { ALL_FOLDER_ID } from '../../../config';
+import { ALL_FOLDER_ID, PRESET_FOLOLDER_ID, UNREAD_FOLDER_ID } from '../../../config';
 import { selectCanShareFolder, selectIsCurrentUserFrozen, selectTabState } from '../../../global/selectors';
 import { selectCurrentLimit } from '../../../global/selectors/limits';
 import { IS_TOUCH_ENV } from '../../../util/browser/windowEnvironment';
@@ -36,6 +37,8 @@ import StoryRibbon from '../../story/StoryRibbon';
 import TabList from '../../ui/TabList';
 import Transition from '../../ui/Transition';
 import ChatList from './ChatList';
+import PresetTagModal from '../../chatAssistant/classifyChat/preset-modal'
+import useFlag from "../../../hooks/useFlag"
 
 type OwnProps = {
   onSettingsScreenSelect: (screen: SettingsScreens) => void;
@@ -101,6 +104,8 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
 
   // eslint-disable-next-line no-null/no-null
   const transitionRef = useRef<HTMLDivElement>(null);
+  const [shouldRenderPresetTagModal, openRenderPresetTagModal, closeRenderPresetTagModal] = useFlag();
+  const [activeTag, setActiveTag] = useState<string>('')
 
   const lang = useLang();
 
@@ -136,13 +141,36 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     } satisfies ApiChatFolder;
   }, [orderedFolderIds, lang]);
 
+  const presetChatsFolder: ApiChatFolder = useMemo(() => {
+    return {
+      id: PRESET_FOLOLDER_ID,
+      title: { text: 'Preset'},
+      includedChatIds: MEMO_EMPTY_ARRAY,
+      excludedChatIds: MEMO_EMPTY_ARRAY,
+    } satisfies ApiChatFolder;
+  }, [orderedFolderIds]);
+
+  const unreadChatsFolder: ApiChatFolder = useMemo(() => {
+    return {
+      id: UNREAD_FOLDER_ID,
+      title: { text: 'Unread'},
+      includedChatIds: MEMO_EMPTY_ARRAY,
+      excludedChatIds: MEMO_EMPTY_ARRAY,
+    } satisfies ApiChatFolder;
+  }, [orderedFolderIds]);
+
   const displayedFolders = useMemo(() => {
     return orderedFolderIds
       ? orderedFolderIds.map((id) => {
         if (id === ALL_FOLDER_ID) {
           return allChatsFolder;
         }
-
+        if (id === PRESET_FOLOLDER_ID) {
+          return presetChatsFolder;
+        }
+        if (id === UNREAD_FOLDER_ID) {
+          return unreadChatsFolder;
+        }
         return chatFoldersById[id] || {};
       }).filter(Boolean)
       : undefined;
@@ -151,6 +179,8 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   const allChatsFolderIndex = displayedFolders?.findIndex((folder) => folder.id === ALL_FOLDER_ID);
   const isInAllChatsFolder = allChatsFolderIndex === activeChatFolder;
   const isInFirstFolder = FIRST_FOLDER_INDEX === activeChatFolder;
+  const isInPresetFolder = displayedFolders?.findIndex((folder) => folder.id === PRESET_FOLOLDER_ID) === activeChatFolder;
+  const isInUnreadFolder = displayedFolders?.findIndex((folder) => folder.id === UNREAD_FOLDER_ID) === activeChatFolder;
 
   const folderUnreadChatsCountersById = useFolderManagerForUnreadChatsByFolder();
   const handleReadAllChats = useLastCallback((folderId: number) => {
@@ -218,6 +248,14 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
             handler: () => handleReadAllChats(folder.id),
           });
         }
+      } if (id === PRESET_FOLOLDER_ID || id === UNREAD_FOLDER_ID) {
+        if (folderUnreadChatsCountersById[id]?.length) {
+          contextActions.push({
+            title: lang('ChatListMarkAllAsRead'),
+            icon: 'readchats',
+            handler: () => handleReadAllChats(folder.id),
+          });
+        }
       } else {
         contextActions.push({
           title: lang('EditFolder'),
@@ -267,6 +305,11 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     setActiveChatFolder({ activeChatFolder: index }, { forceOnHeavyAnimation: true });
     if (activeChatFolder === index) {
       scrollToTop();
+    }
+    if (folderTabs![index].id === PRESET_FOLOLDER_ID) {
+      openRenderPresetTagModal()
+    } else {
+      closeRenderPresetTagModal()
     }
   });
 
@@ -356,11 +399,12 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   function renderCurrentTab(isActive: boolean) {
     const activeFolder = Object.values(chatFoldersById)
       .find(({ id }) => id === folderTabs![activeChatFolder].id);
-    const isFolder = activeFolder && !isInAllChatsFolder;
+    const isFolder = activeFolder && !isInAllChatsFolder && !isInPresetFolder && !isInPresetFolder;
+    const folderType = isInAllChatsFolder ? 'all' : isInPresetFolder ? 'preset' : isInUnreadFolder ? 'unread' : 'folder';
 
     return (
       <ChatList
-        folderType={isFolder ? 'folder' : 'all'}
+        folderType={isFolder ? 'folder' : folderType}
         folderId={isFolder ? activeFolder.id : undefined}
         isActive={isActive}
         isForumPanelOpen={isForumPanelOpen}
@@ -371,12 +415,13 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
         archiveSettings={archiveSettings}
         sessions={sessions}
         isAccountFrozen={isAccountFrozen}
+        activeTag={activeTag}
       />
     );
   }
 
   const shouldRenderFolders = folderTabs && folderTabs.length > 1;
-
+console.log('classifyTask----folderUnreadChatsCountersById', folderUnreadChatsCountersById)
   return (
     <div
       ref={ref}
@@ -397,6 +442,12 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
       ) : shouldRenderPlaceholder ? (
         <div ref={placeholderRef} className="tabs-placeholder" />
       ) : undefined}
+      {shouldRenderPresetTagModal && <PresetTagModal
+        activeTag={activeTag}
+        setActiveTag={setActiveTag}
+        isOpen={shouldRenderPresetTagModal}
+        onClose={closeRenderPresetTagModal}
+      />}
       <Transition
         ref={transitionRef}
         name={shouldSkipHistoryAnimations ? 'none' : lang.isRtl ? 'slideOptimizedRtl' : 'slideOptimized'}

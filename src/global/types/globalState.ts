@@ -48,6 +48,7 @@ import type {
   ApiWallpaper,
   ApiWebSession,
 } from '../../api/types';
+import { ClassifyChatFolder } from "../../components/chatAssistant/classifyChat/util"
 import type {
   AccountSettings,
   BotAppPermissions,
@@ -272,6 +273,10 @@ export type GlobalState = {
     byId: Record<number, ApiChatFolder>;
     invites: Record<number, ApiChatlistExportedInvite[]>;
     recommended?: ApiChatFolder[];
+    classifys?: {
+      activeTag?: string;
+      list?: ClassifyChatFolder[]
+    }
   };
 
   phoneCall?: ApiPhoneCall;

@@ -6,7 +6,7 @@ import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiChatFolder } from '../../../../api/types';
 
-import { ALL_FOLDER_ID, STICKER_SIZE_FOLDER_SETTINGS } from '../../../../config';
+import { ALL_FOLDER_ID, PRESET_FOLOLDER_ID, STICKER_SIZE_FOLDER_SETTINGS, UNREAD_FOLDER_ID } from '../../../../config';
 import { getFolderDescriptionText } from '../../../../global/helpers';
 import { selectIsCurrentUserPremium } from '../../../../global/selectors';
 import { selectCurrentLimit } from '../../../../global/selectors/limits';
@@ -138,6 +138,22 @@ const SettingsFoldersMain: FC<OwnProps & StateProps> = ({
             entities: [],
           },
         };
+      } else if (id === PRESET_FOLOLDER_ID) {
+        return {
+          id,
+          title: {
+            text: 'Preset',
+            entities: [],
+          },
+        };
+      } else if (id === UNREAD_FOLDER_ID) {
+        return {
+          id,
+          title: {
+            text: 'Preset',
+            entities: [],
+          },
+        };
       }
 
       return {
@@ -235,7 +251,7 @@ const SettingsFoldersMain: FC<OwnProps & StateProps> = ({
             const draggedTop = (state.orderedFolderIds?.indexOf(folder.id) ?? 0) * FOLDER_HEIGHT_PX;
             const top = (state.dragOrderIds?.indexOf(folder.id) ?? 0) * FOLDER_HEIGHT_PX;
 
-            if (folder.id === ALL_FOLDER_ID) {
+            if (folder.id === ALL_FOLDER_ID || folder.id === PRESET_FOLOLDER_ID || folder.id === UNREAD_FOLDER_ID) {
               return (
                 <Draggable
                   key={folder.id}

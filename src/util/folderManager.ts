@@ -9,7 +9,8 @@ import type { GlobalState } from '../global/types';
 import type { CallbackManager } from './callbacks';
 
 import {
-  ALL_FOLDER_ID, ARCHIVED_FOLDER_ID, DEBUG, SAVED_FOLDER_ID, SERVICE_NOTIFICATIONS_USER_ID,
+  ALL_FOLDER_ID, ARCHIVED_FOLDER_ID, DEBUG, PRESET_FOLOLDER_ID, SAVED_FOLDER_ID, SERVICE_NOTIFICATIONS_USER_ID,
+  UNREAD_FOLDER_ID
 } from '../config';
 import { getIsChatMuted } from '../global/helpers/notifications';
 import {
@@ -345,11 +346,15 @@ function updateFolders(
     prepared.folderSummariesById[ALL_FOLDER_ID] = buildFolderSummaryFromMainList(
       ALL_FOLDER_ID, newListIds, newPinnedIds,
     );
+    prepared.folderSummariesById[UNREAD_FOLDER_ID] = buildFolderSummaryFromMainList(
+      UNREAD_FOLDER_ID, newListIds, newPinnedIds,
+    );
 
     prevGlobal.allFolderListIds = newListIds;
     prevGlobal.allFolderPinnedIds = newPinnedIds;
 
     changedFolders.push(ALL_FOLDER_ID);
+    changedFolders.push(UNREAD_FOLDER_ID);
   }
 
   if (isArchivedFolderChanged) {
