@@ -9,22 +9,26 @@ export function injectComponent<T extends {}>(Component: React.ComponentType<T>)
     if (!domRoot) return null;
 
     if (!domRoot.$aiRoot) {
-      // const mountNode = document.createElement('div');
-      // mountNode.style.width = '100%';
-      // mountNode.style.height = '100%';
-      // domRoot.appendChild(mountNode);
-
       const root = createRoot(domRoot);
       domRoot.$aiRoot = root;
     }
+    const ref = React.createRef<any>();
 
-    // domRoot.$aiRoot.render(<Component {...(props as T)} />);
-    const ref = React.createRef<R>();
-    return new Promise((resolve) => {
-      domRoot.$aiRoot.render(<Component {...(props as T)} ref={ref} />);
-      setTimeout(() => {
-        resolve(ref.current);
-      }, 0);
-    });
+    domRoot.$aiRoot.render(<Component {...(props as T)} ref={ref} />);
+
+    return {
+      ref,
+      unmount: () => {
+        domRoot.$aiRoot?.unmount();
+        domRoot.$aiRoot = null;
+      },
+    };
+    // const ref = React.createRef<R>();
+    // return new Promise((resolve) => {
+    //   domRoot.$aiRoot.render(<Component {...(props as T)} ref={ref} />);
+    //   setTimeout(() => {
+    //     resolve(ref.current);
+    //   }, 0);
+    // });
   };
 }

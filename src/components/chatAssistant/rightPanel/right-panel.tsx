@@ -42,7 +42,7 @@ export const RightPanel = () => {
 
   if (!isOpen) return null;
   return (
-    <div className="right-panel-container w-[375px] h-full bg-[var(--color-background)] flex flex-col">
+    <div className="right-panel-container w-[375px] h-full bg-[var(--color-background)] flex flex-col border-l-[1px] border-[var(--color-borders)]">
       <RightHeader drawerKey={drawerKey} onClose={closeDrawer} />
       <div className="flex-1 overflow-hidden">
         {rightPanelContent}

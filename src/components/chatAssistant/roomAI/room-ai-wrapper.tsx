@@ -18,13 +18,17 @@ const RoomAIWrapper = (props: StateProps) => {
   const { chatId } = props;
   const containerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
+    let injected: { unmount: () => void } | undefined;
     const timer = setTimeout(() => {
       if (containerRef.current) {
-        injectMessageAI(containerRef.current, { ...props });
+        injected = injectMessageAI(containerRef.current, { ...props });
       }
     }, 500); // 等动画走完再注入
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      injected?.unmount();
+    };
   // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, [chatId]);
   return (

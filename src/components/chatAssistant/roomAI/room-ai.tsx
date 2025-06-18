@@ -23,7 +23,9 @@ import { Messages } from '../messages';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { sendGAEvent } from '../utils/analytics';
+import { getHitTools } from '../utils/chat-api';
 import { checkGoogleAuthStatus } from '../utils/google-api';
+import { toolsEmbeddingStore } from '../vector-store';
 import RoomActions from './room-actions';
 import RoomAIDescription from './room-ai-des';
 import { RoomAIInput } from './room-ai-input';
@@ -40,10 +42,11 @@ const RoomAIInner = (props: StateProps) => {
   const { showNotification } = getActions();
   const { chatId } = props;
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
+  const [isLoading, setIsLoading] = useState(false);
   const tokenRef = useRef<string | null>(null);
   const messageListRef = useRef<InfiniteScrollRef | null>(null);
   const {
-    messages, setMessages, append, isLoading, stop,
+    messages, setMessages, append, stop, status,
   } = useChat({
     api: 'https://telegpt-three.vercel.app/chat',
     id: chatId,
@@ -56,6 +59,17 @@ const RoomAIInner = (props: StateProps) => {
         tokenRef.current = token as string;
       }
     });
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      console.log('房间计时器',chatId);
+    }, 5000);
+
+    return () => {
+      clearInterval(timer);
+      console.log('定时器已清除',chatId);
+    };
   }, []);
 
   const initDate = useCallback(() => {
@@ -163,56 +177,48 @@ const RoomAIInner = (props: StateProps) => {
   }, [handleCreateCalendarSuccess, handleGoogleAuthSuccess, updateToken]);
 
   useEffect(() => {
-    if (!isLoading && chatId) {
+    if (status === 'ready' && chatId) {
       const msgs = parseMessage2StoreMessage(chatId, messages);
       ChataiStores.message?.storeMessages([...msgs]);
     }
-  }, [messages, isLoading, chatId]);
+  }, [messages, status, chatId]);
 
   const toolsHitCheck = (formMessage: Message) => {
-    fetch('https://telegpt-three.vercel.app/tool-check', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messages: [{
-          id: uuidv4(),
-          content: formMessage.content,
-          role: 'user',
-        }],
-      }),
-    }).then((res) => res.json())
-      .then((toolResults) => {
-        if (toolResults && toolResults.length > 0) {
-          toolResults.forEach(async (toolCall: any) => {
-            if (toolCall.toolName === 'checkIsCreateMeet') {
-              // TODO createMeet
-              const loginStatus = await checkGoogleAuthStatus();
-              if (loginStatus) {
-                insertMessage(createGoogleMeetingMessage());
-              } else {
-                insertMessage(createGoogleLoginMessage());
-              }
-              sendGAEvent('google_meet');
-            } else if (toolCall.toolName === 'nullTool') {
-              // eslint-disable-next-line no-console
-              console.log('没有命中工具');
-              setMessages((prev) => prev.slice(0, prev.length - 1));
-              ChataiStores.message?.delMessage(formMessage.id);
-              append({
-                role: 'user',
-                content: formMessage.content,
-                id: uuidv4(),
-                createdAt: new Date(),
-              });
+    getHitTools(formMessage.content).then((toolResults) => {
+      setIsLoading(false);
+      if (toolResults && toolResults.length > 0) {
+        toolResults.forEach(async (toolCall: any) => {
+          if (toolCall.toolName === 'checkIsCreateMeet') {
+            // TODO createMeet
+            const loginStatus = await checkGoogleAuthStatus();
+            if (loginStatus) {
+              insertMessage(createGoogleMeetingMessage());
+            } else {
+              insertMessage(createGoogleLoginMessage());
             }
-          });
-        }
-      });
+            sendGAEvent('google_meet');
+          } else if (toolCall.toolName === 'nullTool') {
+            // eslint-disable-next-line no-console
+            console.log('没有命中工具');
+            setMessages((prev) => prev.slice(0, prev.length - 1));
+            ChataiStores.message?.delMessage(formMessage.id);
+            append({
+              role: 'user',
+              content: formMessage.content,
+              id: uuidv4(),
+              createdAt: new Date(),
+            });
+          }
+        });
+      }
+    }).catch((error) => {
+      setIsLoading(false);
+      // eslint-disable-next-line no-console
+      console.log(error);
+    });
   };
 
-  const handleInputSubmit = (value: string) => {
+  const handleInputSubmit = async (value: string) => {
     const newMessage:Message = {
       role: 'user',
       content: value,
@@ -222,7 +228,21 @@ const RoomAIInner = (props: StateProps) => {
     setMessages((messages) => {
       return [...messages, newMessage];
     });
-    toolsHitCheck(newMessage);
+    setIsLoading(true);
+    // local tool embending check
+    const vectorSearchResults = await toolsEmbeddingStore.similaritySearch({
+      query: value,
+      k: 10,
+    });
+    const matchs = vectorSearchResults.similarItems.filter((item:any) => item.score > 0.8);
+    if (matchs.length > 0) {
+      toolsHitCheck(newMessage);
+    } else {
+      setIsLoading(false);
+      setMessages((prev) => prev.slice(0, prev.length - 1));
+      ChataiStores.message?.delMessage(newMessage.id);
+      append(newMessage);
+    }
   };
   return (
     <div className="right-panel-chat-ai h-full overflow-hidden">
@@ -236,6 +256,7 @@ const RoomAIInner = (props: StateProps) => {
         {messages.length > 0 && (
           <Messages
             isLoading={isLoading}
+            status={status}
             messages={messages}
           />
         )}
@@ -244,7 +265,7 @@ const RoomAIInner = (props: StateProps) => {
         <RoomActions insertMessage={insertMessage} chatId={chatId} />
         <form className="flex mx-auto px-[12px] pb-4  gap-2 w-full">
           <RoomAIInput
-            isLoading={isLoading}
+            status={status}
             stop={stop}
             setMessages={setMessages}
             handleInputSubmit={handleInputSubmit}

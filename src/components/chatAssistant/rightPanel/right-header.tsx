@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import cx from 'classnames';
 
-import { LeftOutlined, CloseIcon } from '../icons';
+import { CloseIcon, LeftOutlined } from '../icons';
 
 import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 
@@ -15,12 +15,13 @@ interface Props {
 const hasBackDrawer = [
   DrawerKey.CustomizationPrompt,
   DrawerKey.AddTopicPanel,
+  DrawerKey.ChatPicker,
 ];
 
 const HeaderButton = ({ icon, className, onClick }:{ icon:React.ReactNode;className?:string;onClick:()=>void }) => {
   return (
     <div
-      className={cx('flex items-center justify-center cursor-pointer', className)}
+      className={cx('flex items-center justify-center cursor-pointer w-[44px] h-[44px] rounded-full hover:bg-[var(--color-interactive-element-hover)]', className)}
       onClick={onClick}
     >
       {icon}
@@ -50,17 +51,13 @@ const RightHeader = (props: Props) => {
     }
   }, [handleBack, drawerKey]);
   return (
-    <div className="h-[56px] flex items-center justify-center relative">
+    <div className="h-[56px] flex items-center relative py-[0.5rem] px-[0.8125rem]">
       {drawerKey && hasBackDrawer.includes(drawerKey) ? (
-        <HeaderButton className="absolute left-[18px]" icon={<LeftOutlined size={24} />} onClick={handleBack} />
-      ) : null}
-      <span className="text-[16px] font-semibold">{title}</span>
-      <div
-        className="w-[20px] h-[20px] rounded-full bg-[#B1B1B1] flex items-center justify-center absolute right-[18px] top-[15px] cursor-pointer"
-        onClick={onClose}
-      >
-        <CloseIcon size={14} />
-      </div>
+        <HeaderButton icon={<LeftOutlined size={24} />} onClick={handleBack} />
+      ) : (
+        <HeaderButton icon={<CloseIcon size={24} />} onClick={onClose} />
+      )}
+      <div className="text-[16px] font-semibold pl-[1.375rem]">{title}</div>
     </div>
   );
 };

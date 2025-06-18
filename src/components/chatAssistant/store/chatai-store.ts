@@ -45,11 +45,11 @@ class ChataiStoreManager {
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
         // 遍历 STORE_CONFIG，确保所有表都被创建
-        if (db.objectStoreNames.contains('message')) {
-          db.deleteObjectStore('message');
-          // eslint-disable-next-line no-console
-          console.log('messages 对象存储已删除');
-        }
+        // if (db.objectStoreNames.contains('message')) {
+        //   db.deleteObjectStore('message');
+        //   // eslint-disable-next-line no-console
+        //   console.log('messages 对象存储已删除');
+        // }
         // if (db.objectStoreNames.contains('urgentTopic')) {
         //   db.deleteObjectStore('urgentTopic');
         //   // eslint-disable-next-line no-console
@@ -75,7 +75,10 @@ class ChataiStoreManager {
       };
 
       // eslint-disable-next-line no-console
-      request.onerror = () => reject(new Error('Failed to open database'));
+      request.onerror = (err) => {
+        console.error(err);
+        reject(new Error('Failed to open database'));
+      };
     });
   }
 

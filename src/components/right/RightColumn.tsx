@@ -371,7 +371,11 @@ const RightColumn: FC<OwnProps & StateProps> = ({
       case RightColumnContent.EditTopic:
         return <EditTopic onClose={close} isActive={isOpen && isActive} />;
       case RightColumnContent.ChatAI:
-        return <RoomAIWrapper chatId={chatId} threadId={threadId} onClose={close} />;
+        if (isOpen) {
+          return <RoomAIWrapper chatId={chatId} threadId={threadId} onClose={close} />;
+        } else {
+          return undefined;
+        }
     }
 
     return undefined; // Unreachable

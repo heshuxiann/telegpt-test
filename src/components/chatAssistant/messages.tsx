@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 /* eslint-disable no-null/no-null */
 import React, { memo } from 'react';
+import type { UseChatHelpers } from '@ai-sdk/react';
 import type { Message } from 'ai';
 import equal from 'fast-deep-equal';
 
@@ -22,51 +23,53 @@ import ErrorBoundary from './ErrorBoundary';
 import './messages.scss';
 
 interface MessagesProps {
-  isLoading: boolean;
+  isLoading?: boolean;
+  status: UseChatHelpers['status'];
   messages: Array<Message>;
   deleteMessage?: (messageId: string) => void;
 }
 
 function PureMessages({
   isLoading,
+  status,
   messages,
   deleteMessage,
 }: MessagesProps) {
   // const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
-  const isAuxiliary = (message:Message) => {
+  const isAuxiliary = (message: Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'isAuxiliary' in item && item.isAuxiliary === true) ?? false;
   };
-  const isGlobalSummary = (message:Message) => {
+  const isGlobalSummary = (message: Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-summary') ?? false;
   };
-  const isUrgentCheck = (message:Message) => {
+  const isUrgentCheck = (message: Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'urgent-message-check') ?? false;
   };
 
-  const isGroupSearch = (message:Message) => {
+  const isGroupSearch = (message: Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'group-search') ?? false;
   };
-  const isUserSearch = (message:Message) => {
+  const isUserSearch = (message: Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'user-search') ?? false;
   };
-  const isGoogleAuth = (message:Message) => {
+  const isGoogleAuth = (message: Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'google-auth') ?? false;
   };
-  const isGoogleEventInsert = (message:Message) => {
+  const isGoogleEventInsert = (message: Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'google-event-insert') ?? false;
   };
-  const isGoogleEventDetail = (message:Message) => {
+  const isGoogleEventDetail = (message: Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'google-event-detail') ?? false;
   };
 
-  const isRoomSummary = (message:Message) => {
+  const isRoomSummary = (message: Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'room-summary') ?? false;
   };
 
-  const isRoomActions = (message:Message) => {
+  const isRoomActions = (message: Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'room-actions') ?? false;
   };
-  const handleDeleteMessage = (message:Message, prevMessage:Message) => {
+  const handleDeleteMessage = (message: Message, prevMessage: Message) => {
     deleteMessage?.(message.id);
     deleteMessage?.(prevMessage.id);
   };
@@ -117,7 +120,7 @@ function PureMessages({
               ) : (
                 <PreviewMessage
                   message={message}
-                  isLoading={isLoading && messages.length - 1 === index}
+                  isLoading={status === 'streaming' && messages.length - 1 === index}
                 />
               )}
             </div>
@@ -127,16 +130,20 @@ function PureMessages({
         }
       })}
 
-      {isLoading
-        && messages.length > 0
-        && messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
+      {
+        (
+          (status === 'submitted'
+          && messages.length > 0
+          && messages[messages.length - 1].role === 'user') || isLoading
+        ) && <ThinkingMessage />
+      }
     </div>
   );
 }
 
 export const Messages = memo(PureMessages, (prevProps, nextProps) => {
-  if (prevProps.isLoading !== nextProps.isLoading) return false;
-  if (prevProps.isLoading && nextProps.isLoading) return false;
+  if (prevProps.status !== nextProps.status) return false;
+  if (prevProps.status && nextProps.status) return false;
   if (prevProps.messages.length !== nextProps.messages.length) return false;
   if (!equal(prevProps.messages, nextProps.messages)) return false;
 

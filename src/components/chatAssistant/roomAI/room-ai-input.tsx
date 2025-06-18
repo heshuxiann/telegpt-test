@@ -14,6 +14,7 @@ import {
   useEffect,
   useRef,
 } from 'react';
+import type { UseChatHelpers } from '@ai-sdk/react';
 import type {
   Message,
 } from 'ai';
@@ -27,13 +28,13 @@ import { Textarea } from '../component/textarea';
 import { StopIcon } from '../icons';
 
 function PureMultimodalInput({
-  isLoading,
+  status,
   stop,
   setMessages,
   handleInputSubmit,
   className,
 }: {
-  isLoading: boolean;
+  status: UseChatHelpers['status'];
   stop: () => void;
   setMessages: Dispatch<SetStateAction<Array<Message>>>;
   handleInputSubmit: (inputValue:string)=>void;
@@ -122,7 +123,7 @@ function PureMultimodalInput({
           if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
 
-            if (isLoading) {
+            if (status !== 'ready') {
               toast.error('Please wait for the model to finish its response!');
             } else {
               submitForm();
@@ -132,7 +133,7 @@ function PureMultimodalInput({
       />
 
       <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-col justify-end">
-        {isLoading ? (
+        {status === 'submitted' ? (
           <StopButton stop={stop} setMessages={setMessages} />
         ) : (
           <SendButton
@@ -148,7 +149,7 @@ function PureMultimodalInput({
 export const RoomAIInput = memo(
   PureMultimodalInput,
   (prevProps, nextProps) => {
-    if (prevProps.isLoading !== nextProps.isLoading) return false;
+    if (prevProps.status !== nextProps.status) return false;
 
     return true;
   },

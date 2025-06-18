@@ -67,6 +67,7 @@ import {
 import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
+import { GLOBAL_SUMMARY_CHATID } from '../chatAssistant/variables';
 import calculateMiddleFooterTransforms from './helpers/calculateMiddleFooterTransforms';
 
 import useAppLayout from '../../hooks/useAppLayout';
@@ -83,6 +84,7 @@ import useWindowSize from '../../hooks/window/useWindowSize';
 import usePinnedMessage from './hooks/usePinnedMessage';
 import useFluidBackgroundFilter from './message/hooks/useFluidBackgroundFilter';
 
+import GlobalSummaryWrapper from '../chatAssistant/globalSummary/GlobalSummaryWrapper';
 import Composer from '../common/Composer';
 import Icon from '../common/icons/Icon';
 import PrivacySettingsNoticeModal from '../common/PrivacySettingsNoticeModal.async';
@@ -105,8 +107,6 @@ import MiddleSearch from './search/MiddleSearch.async';
 
 import './MiddleColumn.scss';
 import styles from './MiddleColumn.module.scss';
-import { GLOBAL_SUMMARY_CHATID } from '../chatAssistant/variables';
-import GlobalSummaryWrapper from '../chatAssistant/globalSummary/GlobalSummaryWrapper';
 
 interface OwnProps {
   leftColumnRef: React.RefObject<HTMLDivElement>;
@@ -226,7 +226,7 @@ function MiddleColumn({
   paidMessagesStars,
   isAccountFrozen,
   freezeAppealChat,
-  isSerena
+  isSerena,
 }: OwnProps & StateProps) {
   const {
     openChat,
@@ -825,7 +825,7 @@ export default memo(withGlobal<OwnProps>(
     const botFreezeAppealId = global.botFreezeAppealId;
     const freezeAppealChat = botFreezeAppealId
       ? selectChat(global, botFreezeAppealId) : undefined;
-     
+
     const isSerena = chatId === GLOBAL_SUMMARY_CHATID;
 
     return {
@@ -868,7 +868,7 @@ export default memo(withGlobal<OwnProps>(
       paidMessagesStars,
       isAccountFrozen,
       freezeAppealChat,
-      isSerena
+      isSerena,
     };
   },
 )(MiddleColumn));

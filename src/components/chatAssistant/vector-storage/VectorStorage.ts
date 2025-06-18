@@ -85,6 +85,15 @@ export class VectorStorage<T> {
     }
   }
 
+  public async getText(id: string): Promise<any | undefined> {
+    if (!this.db) {
+      this.db = await this.initDB();
+    }
+    const tx = this.db.transaction('documents', 'readonly');
+    const result = await tx.objectStore('documents').get(id);
+    return result;
+  }
+
   public async addTexts(texts: string[], metadatas: T[]): Promise<Array<IVSDocument<T>>> {
     if (texts.length !== metadatas.length) {
       throw new Error('The lengths of texts and metadata arrays must match.');
@@ -241,6 +250,8 @@ export class VectorStorage<T> {
       this.db = await this.initDB();
     }
     this.documents = await this.db.getAll('documents');
+    console.log('dbName', this.dbName);
+    console.log('documents', this.documents);
     this.removeDocsLRU();
   }
 

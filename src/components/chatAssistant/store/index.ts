@@ -11,7 +11,7 @@ import SummaryStore from './summary-store';
 import UrgentTopicStore from './urgent-topic-store';
 import UsersStore from './user-store';
 
-const dbVersion = 16;
+const dbVersion = 17;
 
 export const GLOBAL_SUMMARY_LAST_TIME = 'globalSummaryLastTime';
 export const GLOBAL_SUMMARY_READ_TIME = 'globalSummaryReadTime';

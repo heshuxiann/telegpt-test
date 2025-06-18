@@ -30,5 +30,7 @@ function getVectorStore(dbName: string) {
   return vectorStoreMap.get(dbName)!;
 }
 
+export const toolsEmbeddingStore = getVectorStore('tools-embedding');
 export const messageEmbeddingStore = getVectorStore('message-embedding');
 export const knowledgeEmbeddingStore = getVectorStore('knowledge-embedding');
+(window as any).toolsEmbeddingStore = toolsEmbeddingStore;

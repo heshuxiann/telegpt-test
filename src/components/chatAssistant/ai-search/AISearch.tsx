@@ -31,7 +31,7 @@ export const AISearch = () => {
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
   const {
-    messages, setMessages, append, isLoading, input, setInput, stop, handleSubmit,
+    messages, setMessages, append, status, input, setInput, stop, handleSubmit,
   } = useChat({
     id: GLOBAL_SEARCH_CHATID,
     api: 'https://telegpt-three.vercel.app/chat',
@@ -52,11 +52,11 @@ export const AISearch = () => {
     // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, []);
   useEffect(() => {
-    if (messages.length > 0 && !isLoading) {
+    if (messages.length > 0 && status === 'ready') {
       const parsedMessage = parseMessage2StoreMessage(GLOBAL_SEARCH_CHATID, messages);
       ChataiStores.message?.storeMessages([...parsedMessage]);
     }
-  }, [isLoading, messages]);
+  }, [status, messages]);
 
   const handleLoadMore = useCallback(() => {
     return new Promise<void>((resolve) => {
@@ -219,13 +219,6 @@ export const AISearch = () => {
     }
   }, [append, global]);
 
-  useEffect(() => {
-    if (messages.length > 0 && !isLoading) {
-      const parsedMessage = parseMessage2StoreMessage(GLOBAL_SEARCH_CHATID, messages);
-      ChataiStores.message?.storeMessages([...parsedMessage]);
-    }
-  }, [isLoading, messages]);
-
   const toolsHitCheck = useCallback((inputValue: string) => {
     fetch('https://telegpt-three.vercel.app/tool-check', {
       method: 'POST',
@@ -283,13 +276,13 @@ export const AISearch = () => {
           <AISearchSugesstions handleSearch={handleSearch} />
         )}
         <Messages
-          isLoading={isLoading}
+          status={status}
           messages={messages}
         />
       </InfiniteScroll>
       <form className="flex mx-auto gap-2 w-full">
         <AISearchInput
-          isLoading={isLoading}
+          status={status}
           stop={stop}
           setMessages={setMessages}
           handleSearch={handleSearch}

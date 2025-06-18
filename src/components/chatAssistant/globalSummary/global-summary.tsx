@@ -156,7 +156,7 @@ const SummaryModalContent = (props: SummaryContentProps) => {
             ref={messageListRef}
           >
             <Messages
-              isLoading={false}
+              status="ready"
               messages={messages}
               deleteMessage={deleteMessage}
             />

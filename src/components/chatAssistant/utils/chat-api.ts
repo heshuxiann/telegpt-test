@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 interface ChatProps {
   data: any;
   onResponse: (message: string) => void;
@@ -46,6 +48,30 @@ export const getActionItems = (data:Object) => {
     }).then((res) => res.json())
       .then((res) => {
         resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const getHitTools = (text:string):Promise<Array<any>> => {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/tool-check', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: [{
+          id: uuidv4(),
+          content: text,
+          role: 'user',
+        }],
+      }),
+    }).then((res) => res.json())
+      .then((toolResults) => {
+        resolve(toolResults);
       })
       .catch((err) => {
         reject(err);
