@@ -29,7 +29,6 @@ import {
   GLOBAL_SEARCH_CONTACTS_LIMIT,
   MAX_INT_32,
   MEMBERS_LOAD_SLICE,
-  PRESET_FOLOLDER_ID,
   SERVICE_NOTIFICATIONS_USER_ID,
   TOPICS_SLICE,
   UNREAD_FOLDER_ID,
@@ -1056,7 +1055,6 @@ export async function fetchChatFolders() {
   if (defaultFolderPosition !== -1) {
     orderedIds.splice(defaultFolderPosition, 0, ALL_FOLDER_ID);
     orderedIds.splice(3, 0, UNREAD_FOLDER_ID);
-    orderedIds.push(PRESET_FOLOLDER_ID)
   }
   return {
     byId: buildCollectionByKey(

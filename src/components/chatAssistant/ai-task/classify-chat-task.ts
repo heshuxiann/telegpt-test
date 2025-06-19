@@ -1,5 +1,5 @@
 import { ApiMessage, MAIN_THREAD_ID } from "../../../api/types/messages";
-import { ALL_FOLDER_ID, PRESET_FOLOLDER_ID, SERVICE_NOTIFICATIONS_USER_ID, UNREAD_FOLDER_ID } from "../../../config";
+import { AI_FOLDER_ID, ALL_FOLDER_ID, PRESET_FOLDER_ID, SERVICE_NOTIFICATIONS_USER_ID, UNREAD_FOLDER_ID } from "../../../config";
 import { getActions, getGlobal } from "../../../global";
 import { isSystemBot } from "../../../global/helpers";
 import {
@@ -133,7 +133,7 @@ class ClassifyChatTask {
             item === (global.chatFolders.byId[Number(b)]?.title?.text ?? "")
         ) ?? 0)
     )?.map((item) => Number(item));
-    const folderIds = [0, ...ids, PRESET_FOLOLDER_ID]
+    const folderIds = [0, ...ids, PRESET_FOLDER_ID, AI_FOLDER_ID]
     folderIds.splice(3, 0, UNREAD_FOLDER_ID)
     await getActions().sortChatFolders({ folderIds});
     console.log(CLASSICATION_LOG_PRE + "sort: ", folderIds, new Date(), global.chatFolders);
@@ -151,7 +151,7 @@ class ClassifyChatTask {
       console.log(
         CLASSICATION_LOG_PRE + "pass",
         globalClassifyLastTime,
-        global.chatFolders
+        global
       );
       return;
     }

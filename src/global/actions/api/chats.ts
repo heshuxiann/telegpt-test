@@ -18,12 +18,14 @@ import {
 } from '../../../types';
 
 import {
+  AI_FOLDER_ID,
   ALL_FOLDER_ID,
   ARCHIVED_FOLDER_ID,
   CHAT_LIST_LOAD_SLICE,
   DEBUG,
   GLOBAL_SUGGESTED_CHANNELS_ID,
   MAX_INT_32,
+  PRESET_FOLDER_ID,
   RE_TG_LINK,
   SAVED_FOLDER_ID,
   SERVICE_NOTIFICATIONS_USER_ID,
@@ -132,7 +134,7 @@ import { selectGroupCall } from '../../selectors/calls';
 import { selectCurrentLimit } from '../../selectors/limits';
 import { GLOBAL_SUMMARY_CHATID } from '../../../components/chatAssistant/variables';
 import { ChataiStores } from "../../../components/chatAssistant/store"
-import { GLOBAL_PRESET_TAG } from "../../../components/chatAssistant/classifyChat/preset-modal"
+import { GLOBAL_AI_TAG, GLOBAL_PRESET_TAG } from "../../../components/chatAssistant/classifyChat/preset-modal"
 
 const TOP_CHAT_MESSAGES_PRELOAD_INTERVAL = 100;
 const INFINITE_LOOP_MARKER = 100;
@@ -1054,15 +1056,18 @@ addActionHandler('loadChatFolders', async (global): Promise<void> => {
     });
   }
   const allClassifyChat = await ChataiStores.chatClassify?.getAllClassify()
-  const activeTag = await ChataiStores.general?.get(GLOBAL_PRESET_TAG)
+  const activePresetTag = await ChataiStores.general?.get(GLOBAL_PRESET_TAG)
+  const activeAITag = await ChataiStores.general?.get(GLOBAL_AI_TAG)
   if (allClassifyChat && allClassifyChat?.length > 0) {
     global = getGlobal();
     global = {
       ...global,
       chatFolders: {
         ...global.chatFolders,
+        orderedIds: [...(chatFolders?.orderedIds ?? []), PRESET_FOLDER_ID, AI_FOLDER_ID],
         classifys: {
-          activeTag,
+          activePresetTag,
+          activeAITag,
           list: allClassifyChat
         },
       },

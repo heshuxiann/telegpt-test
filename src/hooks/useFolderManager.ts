@@ -1,4 +1,5 @@
-import { ALL_FOLDER_ID, PRESET_FOLOLDER_ID, UNREAD_FOLDER_ID } from "../config"
+import { filterAITag, filterPresetTag } from "../components/chatAssistant/classifyChat/tag-filter"
+import { AI_FOLDER_ID, ALL_FOLDER_ID, PRESET_FOLDER_ID, UNREAD_FOLDER_ID } from "../config"
 import { useEffect } from '../lib/teact/teact';
 
 import {
@@ -9,7 +10,6 @@ import {
   getOrderedIds, getUnreadChatsByFolderId,
   getUnreadCounters,
 } from '../util/folderManager';
-import { filterPresetTag } from "../util/presetTagFilter"
 import useForceUpdate from './useForceUpdate';
 
 export function useFolderManagerForOrderedIds(folderId: number) {
@@ -17,11 +17,14 @@ export function useFolderManagerForOrderedIds(folderId: number) {
 
   useEffect(() => addOrderedIdsCallback(folderId, forceUpdate), [folderId, forceUpdate]);
 
-  if (folderId === PRESET_FOLOLDER_ID) {
+  if (folderId === PRESET_FOLDER_ID) {
     return filterPresetTag(getOrderedIds(ALL_FOLDER_ID))
   }
   if (folderId === UNREAD_FOLDER_ID) {
     return getUnreadChatsByFolderId()[ALL_FOLDER_ID]
+  }
+  if (folderId === AI_FOLDER_ID) {
+    return filterAITag(getOrderedIds(ALL_FOLDER_ID))
   }
 
   return getOrderedIds(folderId);

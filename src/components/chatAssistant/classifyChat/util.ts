@@ -5,6 +5,7 @@ import { ChataiStores } from "../store"
 import { validateAndFixJsonStructure } from "../utils/util"
 import { v4 as uuidv4 } from "uuid";
 import defaultClassifyPrompt from "./prompt"
+import { GLOBAL_AI_TAG } from "./preset-modal"
 
 export interface ClassifyChatFolder {
   id?: string;
@@ -12,7 +13,7 @@ export interface ClassifyChatFolder {
   chatTitle?: string;
   categoryTag: string[];
   presetTag: string[];
-  AIGeneratedTag: string;
+  AITag: string;
 }
 export const CLASSICATION_LOG_PRE = "classifyTask----";
 export const CLASSICATION_LIST = ['Friend', 'Community', 'Work', 'Unrend', 'Spam', 'Preset', 'AI'];
@@ -65,6 +66,7 @@ export async function saveChatClassify(list: ClassifyChatFolder[]) {
     allClassifyChat.push(classifyItem)
     ChataiStores.chatClassify?.addClassify(classifyItem)
   });
+  ChataiStores.general?.set(GLOBAL_AI_TAG, [])
   global = {
     ...global,
     chatFolders: {
@@ -72,6 +74,7 @@ export async function saveChatClassify(list: ClassifyChatFolder[]) {
       classifys: {
         ...global.chatFolders?.classifys,
         list: allClassifyChat,
+        activeAITag: []
       },
     },
   };

@@ -274,7 +274,8 @@ export type GlobalState = {
     invites: Record<number, ApiChatlistExportedInvite[]>;
     recommended?: ApiChatFolder[];
     classifys?: {
-      activeTag?: string;
+      activePresetTag?: string[];
+      activeAITag?: string[];
       list?: ClassifyChatFolder[]
     }
   };
