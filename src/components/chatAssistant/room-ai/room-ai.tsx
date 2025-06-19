@@ -61,16 +61,16 @@ const RoomAIInner = (props: StateProps) => {
     });
   }, []);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      console.log('房间计时器',chatId);
-    }, 5000);
+  const handleAddSummaryMessage = useCallback((message:Message) => {
+    setMessages((prev) => [...prev, message]);
+  }, [setMessages]);
 
+  useEffect(() => {
+    eventEmitter.on(Actions.AddRoomAIMessage, handleAddSummaryMessage);
     return () => {
-      clearInterval(timer);
-      console.log('定时器已清除',chatId);
+      eventEmitter.off(Actions.AddRoomAIMessage, handleAddSummaryMessage);
     };
-  }, []);
+  }, [handleAddSummaryMessage]);
 
   const initDate = useCallback(() => {
     setMessages([]);

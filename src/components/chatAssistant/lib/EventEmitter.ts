@@ -18,6 +18,9 @@ export enum Actions {
   UpdateGoogleToken = 'UpdateGoogleToken',
   // modal
   OpenSummaryLanguageModal = 'OpenSummaryLanguageModal',
+  // room ai
+  AddRoomAIMessage = 'AddRoomAIMessage',
+  UpdateRoomAIUnreadCount = 'UpdateRoomAIUnreadCount',
 }
 class EventEmitter {
   private static instance: EventEmitter;

@@ -1,5 +1,6 @@
 import type { FC, MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import React, { memo, useMemo, useRef } from 'react';
+import { Tooltip } from 'antd';
 import { getActions } from '../../../global';
 
 import type {
@@ -9,7 +10,6 @@ import type { CustomPeer } from '../../../types';
 import { ApiMediaFormat } from '../../../api/types';
 
 import { IS_TEST } from '../../../config';
-import eventEmitter, { Actions } from '../lib/EventEmitter';
 import {
   getChatAvatarHash,
   getChatTitle,
@@ -224,6 +224,17 @@ const Avatar: FC<OwnProps> = ({
   const isPremiumGradient = isCustomPeer && peer.withPremiumGradient;
   const customColor = isCustomPeer && peer.customPeerAvatarColor;
 
+  const hoverTitle = useMemo(() => {
+    if (user) {
+      return getUserFullName(user);
+    } else if (chat) {
+      return getChatTitle(lang, chat);
+    } else if (isCustomPeer) {
+      return peer.title || lang(peer.titleKey!);
+    }
+    return '';
+  }, [chat, isCustomPeer, lang, peer, user]);
+
   const fullClassName = buildClassName(
     'Avatar',
     className,
@@ -257,21 +268,23 @@ const Avatar: FC<OwnProps> = ({
   );
 
   return (
-    <div
-      ref={ref}
-      className={fullClassName}
-      id={realPeer?.id}
-      data-peer-id={realPeer?.id}
-      data-test-sender-id={IS_TEST ? realPeer?.id : undefined}
-      aria-label={typeof content === 'string' ? author : undefined}
-      style={customStyle as unknown as React.CSSProperties}
-      onClick={handleClick}
-      onMouseDown={handleMouseDown}
-    >
-      <div className="inner">
-        {content}
+    <Tooltip placement="top" title={hoverTitle}>
+      <div
+        ref={ref}
+        className={fullClassName}
+        id={realPeer?.id}
+        data-peer-id={realPeer?.id}
+        data-test-sender-id={IS_TEST ? realPeer?.id : undefined}
+        aria-label={typeof content === 'string' ? author : undefined}
+        style={customStyle as unknown as React.CSSProperties}
+        onClick={handleClick}
+        onMouseDown={handleMouseDown}
+      >
+        <div className="inner">
+          {content}
+        </div>
       </div>
-    </div>
+    </Tooltip>
   );
 };
 

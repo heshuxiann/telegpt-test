@@ -1,4 +1,10 @@
+/* eslint-disable no-null/no-null */
+import { getGlobal } from '../../../global';
+
 import type { ApiChat, ApiMessage } from '../../../api/types';
+import type { SummaryMessage } from '../type/message';
+
+import { selectUser } from '../../../global/selectors';
 
 const { callApi } = require('../../../api/gramjs/worker/connector');
 // import { callApi } from '../../../api/gramjs/worker/connector';
@@ -163,4 +169,22 @@ export const fetchChatMessageByOffsetId = async (
   }
 
   return messages.reverse();
+};
+
+export const formateMessage2Summary = (messages: ApiMessage[]):SummaryMessage[] => {
+  const global = getGlobal();
+  const formateMessages = messages.map((message) => {
+    if (message.content.text?.text) {
+      const peer = message.senderId ? selectUser(global, message.senderId) : undefined;
+      return {
+        senderId: message?.senderId || message?.chatId,
+        senderName: peer ? `${peer.firstName || ''} ${peer.lastName || ''}` : '',
+        date: message.date,
+        messageId: Math.floor(message.id),
+        content: message.content.text?.text ?? '',
+      };
+    }
+    return null;
+  }).filter(Boolean);
+  return formateMessages;
 };

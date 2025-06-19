@@ -33,7 +33,6 @@ import {
   selectUserFullInfo,
 } from '../../global/selectors';
 import { ARE_CALLS_SUPPORTED, IS_APP } from '../../util/browser/windowEnvironment';
-import chatAILogoPath from '../chatAssistant/assets/cgat-ai-logo.png';
 
 import { useHotkeys } from '../../hooks/useHotkeys';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -141,7 +140,6 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     // setSettingOption,
     unblockUser,
     setViewForumAsMessages,
-    openChatAIWithInfo,
     // openFrozenAccountModal,
   } = getActions();
   // eslint-disable-next-line no-null/no-null
@@ -154,10 +152,6 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     setIsMenuOpen(true);
     const rect = menuButtonRef.current!.getBoundingClientRect();
     setMenuAnchor({ x: rect.right, y: rect.bottom });
-  });
-
-  const handleChatAIOpen = useLastCallback(() => {
-    openChatAIWithInfo({ chatId, threadId });
   });
 
   const handleHeaderMenuClose = useLastCallback(() => {
@@ -312,18 +306,6 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
 
   return (
     <div className="HeaderActions">
-      <Button
-        className="chat-ai-button"
-        round
-        ripple={!isMobile}
-        size="smaller"
-        color="translucent"
-        disabled={noMenu}
-        ariaLabel="Chat AI"
-        onClick={handleChatAIOpen}
-      >
-        <img src={chatAILogoPath} alt="ai" />
-      </Button>
       {/* {!isForForum && canTranslate && (
         <DropdownMenu
           className="stickers-more-menu with-menu-transitions"

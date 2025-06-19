@@ -250,8 +250,6 @@ export class VectorStorage<T> {
       this.db = await this.initDB();
     }
     this.documents = await this.db.getAll('documents');
-    console.log('dbName', this.dbName);
-    console.log('documents', this.documents);
     this.removeDocsLRU();
   }
 

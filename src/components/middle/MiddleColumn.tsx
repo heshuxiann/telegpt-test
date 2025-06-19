@@ -67,6 +67,7 @@ import {
 import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
+import RoomAIActionButton from '../chatAssistant/room-ai/room-ai-action-button';
 import { GLOBAL_SUMMARY_CHATID } from '../chatAssistant/variables';
 import calculateMiddleFooterTransforms from './helpers/calculateMiddleFooterTransforms';
 
@@ -702,6 +703,11 @@ function MiddleColumn({
                 {IS_TRANSLATION_SUPPORTED && <ChatLanguageModal isOpen={isChatLanguageModalOpen} />}
               </div>
             </Transition>
+
+            <RoomAIActionButton
+              chatId={renderingChatId!}
+              threadId={renderingThreadId!}
+            />
 
             <FloatingActionButtons
               withScrollDown={renderingIsScrollDownShown}

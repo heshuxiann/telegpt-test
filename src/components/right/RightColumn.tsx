@@ -19,7 +19,7 @@ import {
   selectTabState,
 } from '../../global/selectors';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
-import RoomAIWrapper from '../chatAssistant/roomAI/room-ai-wrapper';
+import RoomAIWrapper from '../chatAssistant/room-ai/room-ai-wrapper';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useHistoryBack from '../../hooks/useHistoryBack';

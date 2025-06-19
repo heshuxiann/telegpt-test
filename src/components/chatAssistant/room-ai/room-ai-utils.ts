@@ -7,7 +7,7 @@ import { MAIN_THREAD_ID } from '../../../api/types';
 
 import { selectChat, selectChatLastMessageId, selectUser } from '../../../global/selectors';
 import { getActionItems, summaryMessage } from '../utils/chat-api';
-import { fetchChatMessageByOffsetId } from '../utils/fetch-messages';
+import { fetchChatMessageByOffsetId, formateMessage2Summary } from '../utils/fetch-messages';
 import { checkGoogleAuthStatus } from '../utils/google-api';
 
 export const createGoogleLoginMessage = ():Message => {
@@ -56,19 +56,7 @@ export const summaryRoomMessage = async (chatId:string, insertMessage:(message:M
       threadId: MAIN_THREAD_ID,
       maxCount: 20,
     });
-    const formateMessages = messages.map((message) => {
-      if (message.content.text?.text) {
-        const peer = message.senderId ? selectUser(global, message.senderId) : undefined;
-        return {
-          senderId: message?.senderId || message?.chatId,
-          senderName: peer ? `${peer.firstName || ''} ${peer.lastName || ''}` : '',
-          date: message.date,
-          messageId: Math.floor(message.id),
-          content: message.content.text?.text ?? '',
-        };
-      }
-      return null;
-    }).filter(Boolean);
+    const formateMessages = formateMessage2Summary(messages);
     if (!formateMessages.length) return;
     const summaryInfo = {
       summaryTime: new Date().getTime(),
