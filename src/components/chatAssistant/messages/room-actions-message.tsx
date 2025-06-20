@@ -5,25 +5,25 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import type { Message } from 'ai';
 import copy from 'copy-to-clipboard';
-import { getActions, getGlobal } from '../../global';
+import { getActions, getGlobal } from '../../../global';
 
-import { isUserId } from '../../global/helpers';
-import { selectChat, selectUser } from '../../global/selectors';
-import useOldLang from './hook/useOldLang';
-import { cn, formatTimestamp } from './utils/util';
+import { isUserId } from '../../../global/helpers';
+import { selectChat, selectUser } from '../../../global/selectors';
+import useOldLang from '../hook/useOldLang';
 import {
   CopyIcon, DeleteIcon, VoiceIcon,
   VoiceingIcon,
-} from './icons';
+} from '../icons';
+import { cn, formatTimestamp } from '../utils/util';
 
-import Avatar from './component/Avatar';
-import ErrorBoundary from './ErrorBoundary';
+import Avatar from '../component/Avatar';
+import ErrorBoundary from '../ErrorBoundary';
 
-import ActionsIcon from './assets/actions.png';
-import CalendarIcon from './assets/calendar.png';
-import CheckIcon from './assets/check.png';
-import MessageIcon from './assets/message.png';
-import UserIcon from './assets/user.png';
+import ActionsIcon from '../assets/actions.png';
+import CalendarIcon from '../assets/calendar.png';
+import CheckIcon from '../assets/check.png';
+import MessageIcon from '../assets/message.png';
+import UserIcon from '../assets/user.png';
 
 interface IProps {
   message: Message;

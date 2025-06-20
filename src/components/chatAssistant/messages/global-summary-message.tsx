@@ -5,38 +5,49 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import type { Message } from 'ai';
 import copy from 'copy-to-clipboard';
-import { getActions, getGlobal } from '../../global';
+import { getActions, getGlobal } from '../../../global';
 
-import { isUserId } from '../../global/helpers';
-import { selectChat, selectUser } from '../../global/selectors';
-import useOldLang from './hook/useOldLang';
-import { cn, formatTimestamp } from './utils/util';
+import type { CustomSummaryTemplate } from '../store/chatai-summary-template-store';
+
+import { isUserId } from '../../../global/helpers';
+import { selectChat, selectUser } from '../../../global/selectors';
+import useOldLang from '../hook/useOldLang';
 import {
   CopyIcon, DeleteIcon, VoiceIcon,
   VoiceingIcon,
-} from './icons';
+} from '../icons';
+import { cn, formatTimestamp, formatTimestampRange } from '../utils/util';
 
-import Avatar from './component/Avatar';
-import ErrorBoundary from './ErrorBoundary';
+import Avatar from '../component/Avatar';
+import ErrorBoundary from '../ErrorBoundary';
+import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 
-import ActionsIcon from './assets/actions.png';
-import CalendarIcon from './assets/calendar.png';
-import CheckIcon from './assets/check.png';
-import MessageIcon from './assets/message.png';
-import UserIcon from './assets/user.png';
-import WriteIcon from './assets/write.png';
+import ActionsIcon from '../assets/actions.png';
+import CalendarIcon from '../assets/calendar.png';
+import ChainTrendIcon from '../assets/chain-trend.png';
+import CheckIcon from '../assets/check.png';
+import KeyBusinessIcon from '../assets/key-business.png';
+import MessageIcon from '../assets/message.png';
+import SerenaLogoPath from '../assets/serena.png';
+import UserIcon from '../assets/user.png';
+import UserGroupIcon from '../assets/user-group.png';
+import VectorIcon from '../assets/vector.png';
+import WriteIcon from '../assets/write.png';
 
 interface IProps {
   message: Message;
   deleteMessage: () => void;
 }
 interface ISummaryInfo {
-  summaryTime: number;
-  messageCount: number;
-  userIds: Array<string>;
+  summaryMessageCount: number;
+  summaryStartTime: number;
+  summaryEndTime: number;
+  summaryChatIds: Array<string>;
 }
 
 interface ISummaryTopicItem {
+  chatId:string;
+  chatRoomName: string;
   title: string;
   summaryItems: Array<{
     content: string;
@@ -45,19 +56,29 @@ interface ISummaryTopicItem {
 }
 
 interface ISummaryPendingItem {
+  chatId: string;
+  chatRoomName: string;
   summary: string;
   relevantMessageIds: number[];
 }
 interface ISummaryGarbageItem {
+  chatId: string;
+  chatRoomName: string;
   summary: string;
   level: 'high' | 'low';
   relevantMessageIds: number[];
 }
 
+const CustomizationTopicIcon = {
+  'Most Discussed Coins': VectorIcon,
+  'Most Active Users': UserGroupIcon,
+  'Key business updates': KeyBusinessIcon,
+  'On-Chain Trending Topics': ChainTrendIcon,
+};
+
 const ChatAvatar = ({
   chatId, classNames, size, style,
 }: { chatId: string; classNames?: string; size:number;style?: { [key:string]:string } }) => {
-  if (!chatId) return null;
   const global = getGlobal();
   let peer;
   if (isUserId(chatId)) {
@@ -78,23 +99,31 @@ const ChatAvatar = ({
 };
 
 const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; index: number }) => {
-  const { title, summaryItems } = topicItem;
+  const { title, summaryItems, chatId } = topicItem;
+  const { openDrawer } = useDrawer();
   if (!summaryItems.length) return null;
   if (!title) return null;
+  const showMessageDetail = (chatId: string, relevantMessageIds: number[]) => {
+    openDrawer(DrawerKey.OriginalMessages, {
+      relevantMessages: [{ chatId, messageIds: relevantMessageIds }],
+    });
+  };
   return (
     <ErrorBoundary>
       <div>
         <div className="flex flex-row items-center flex-wrap">
           <span className="text-[16px] font-bold mr-[24px]">{index + 1}. {title}</span>
+          {chatId && (<ChatAvatar size={20} chatId={chatId} />)}
         </div>
         <ul className="list-disc pl-[2px] text-[16px] list-inside">
           {summaryItems.map((summaryItem: any) => {
-            const { content } = summaryItem;
+            const { content, relevantMessageIds } = summaryItem;
             if (!content) return null;
             return (
               <li
                 role="button"
                 className="cursor-pointer text-[15px]"
+                onClick={() => showMessageDetail(chatId, relevantMessageIds)}
               >
                 {content}
               </li>
@@ -107,28 +136,55 @@ const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; 
 };
 
 const SummaryPenddingItem = ({ pendingItem }: { pendingItem: ISummaryPendingItem }) => {
+  const { openDrawer } = useDrawer();
+  const showMessageDetail = () => {
+    openDrawer(DrawerKey.OriginalMessages, {
+      relevantMessages: [{ chatId: pendingItem.chatId, messageIds: pendingItem.relevantMessageIds }],
+    });
+  };
   return (
     <ErrorBoundary>
-      <div className="flex gap-[8px] my-[4px] cursor-pointer">
+      <div
+        className="flex gap-[8px] my-[4px] cursor-pointer"
+        key={pendingItem.chatId}
+        onClick={showMessageDetail}
+      >
         <img className="w-[18px] h-[18px] mt-[2px]" src={CheckIcon} alt="" />
         <span className="text-[15px]">{pendingItem.summary}</span>
+        <ChatAvatar size={20} chatId={pendingItem.chatId} />
       </div>
     </ErrorBoundary>
   );
 };
 
 const SummaryGarbageItem = ({ garBageItem }: { garBageItem: ISummaryGarbageItem }) => {
-  const { level, summary } = garBageItem;
+  const {
+    chatId, chatRoomName, level, summary, relevantMessageIds,
+  } = garBageItem;
+  const { openDrawer } = useDrawer();
+  const showMessageDetail = (chatId: string, relevantMessageIds: number[]) => {
+    openDrawer(DrawerKey.OriginalMessages, {
+      relevantMessages: [{ chatId, messageIds: relevantMessageIds }],
+    });
+  };
   return (
     <ErrorBoundary>
-      <div className="flex justify-start gap-[8px] my-[16px]">
-        <div className="flex justify-start gap-[4px]">
-          {level === 'high' ? (
-            <span className="text-[#FF543D] text-[14px] whitespace-nowrap">🔴 High-Risk</span>
-          ) : (
-            <span className="text-[#FF9B05] text-[14px] whitespace-nowrap">🟡 Low-Risk</span>
-          )}
-          <span className="text-[14px] text-[var(--color-text-secondary)]">{summary}</span>
+      <div
+        className="flex justify-start gap-[8px] my-[16px]"
+        key={garBageItem.chatId}
+        onClick={() => { showMessageDetail(chatId, relevantMessageIds); }}
+      >
+        <ChatAvatar chatId={chatId} size={44} />
+        <div>
+          <p className="text-[16px] font-semibold leading-[20px] mb-[4px]">{chatRoomName}</p>
+          <div className="flex justify-start gap-[4px]">
+            {level === 'high' ? (
+              <span className="text-[#FF543D] text-[14px] whitespace-nowrap">🔴 High-Risk</span>
+            ) : (
+              <span className="text-[#FF9B05] text-[14px] whitespace-nowrap">🟡 Low-Risk</span>
+            )}
+            <span className="text-[14px] text-[var(--color-text-secondary)]">{summary}</span>
+          </div>
         </div>
       </div>
     </ErrorBoundary>
@@ -150,18 +206,18 @@ const ActionsItems = ({
   const { showNotification } = getActions();
   const [voicePlaying, setVoicePlaying] = useState(false);
   const handleCopy = () => {
-    const { summaryTime } = summaryInfo || {};
-    const time = formatTimestamp(summaryTime!);
-    const copyText = `Chat Summary\nTime: ${time}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}`;
+    const { summaryStartTime, summaryEndTime } = summaryInfo || {};
+    const timeRange = formatTimestampRange(summaryStartTime, summaryEndTime);
+    const copyText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.chatRoomName}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatRoomName}: ${item.summary}`).join('\n')}`;
     copy(copyText);
     showNotification({
       message: lang('TextCopied'),
     });
   };
   const handleVoicePlay = () => {
-    const { summaryTime } = summaryInfo || {};
-    const time = formatTimestamp(summaryTime!);
-    const voiceText = `Chat Summary\nTime: ${time}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}`;
+    const { summaryStartTime, summaryEndTime } = summaryInfo || {};
+    const timeRange = formatTimestampRange(summaryStartTime, summaryEndTime);
+    const voiceText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.chatRoomName}: ${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.chatRoomName}: ${item.summary}`).join('\n')}`;
     if (!window.speechSynthesis) {
       console.error('Text-to-Speech is not supported in this browser.');
       return;
@@ -207,36 +263,43 @@ const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
   return (
     <ErrorBoundary>
       <div>
+        <div className="flex items-center gap-[8px]">
+          <img className="w-[52px] h-[52px] rounded-full ml-[-60px]" src={SerenaLogoPath} alt="" />
+          <div>
+            <p className="text-[16px] font-semibold">Serena</p>
+            {summaryInfo?.summaryEndTime ? (
+              <p className="text-[14px] text-[#A8A6AC]">{formatTimestamp(summaryInfo.summaryEndTime)}</p>
+            ) : null}
+          </div>
+        </div>
         <p className="text-[22px] font-bold mb-[16px]">Chat Summary</p>
         <div className="flex items-center gap-[20px]">
           <p className="flex items-center gap-[8px]">
             <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
             <div className="flex items-center gap-[4px]">
-              <span className="mr-[4px] font-bold text-[14px]">Time:</span>
-              {summaryInfo?.summaryTime ? (
-                <p className="text-[14px] text-[#A8A6AC]">{formatTimestamp(summaryInfo.summaryTime)}</p>
-              ) : null}
+              <span className="mr-[4px] font-bold text-[14px]">Time range:</span>
+              {formatTimestampRange(summaryInfo?.summaryStartTime, summaryInfo?.summaryEndTime)}
             </div>
           </p>
           <p className="flex items-center gap-[8px]">
             <img className="w-[16px] h-[16px]" src={MessageIcon} alt="" />
             <div className="flex items-center gap-[4px]">
               <span className="font-bold text-[14px]">Messages:</span>
-              {summaryInfo?.messageCount ? (
-                <span>{summaryInfo?.messageCount}</span>
+              {summaryInfo?.summaryMessageCount ? (
+                <span>{summaryInfo?.summaryMessageCount}</span>
               ) : null}
             </div>
           </p>
         </div>
-        {summaryInfo?.userIds ? (
+        {summaryInfo?.summaryChatIds ? (
           <div className="flex items-center gap-[8px] mb-[18px]">
             <img className="w-[16px] h-[16px]" src={UserIcon} alt="" />
             <span className="font-bold text-[14px]">Groups/friends: </span>
             <div className="flex items-center">
-              {summaryInfo.userIds.slice(0, 10).map((id: string, index: number) => {
+              {summaryInfo.summaryChatIds.slice(0, 10).map((id: string, index: number) => {
                 return (
                   <ChatAvatar
-                    style={{ zIndex: `${String(summaryInfo.userIds.length - index)};` }}
+                    style={{ zIndex: `${String(summaryInfo.summaryChatIds.length - index)};` }}
                     chatId={id}
                     size={24}
                     classNames="summary-avatar-group !border-solid-[2px] !border-white ml-[-4px]"
@@ -244,8 +307,8 @@ const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
                   />
                 );
               })}
-              {summaryInfo.userIds.length > 10 ? (
-                <div className="w-[24px] h-[24px] rounded-full bg-[#979797] text-[12px] whitespace-nowrap flex items-center justify-center">{summaryInfo.userIds.length - 10}+</div>
+              {summaryInfo.summaryChatIds.length > 10 ? (
+                <div className="w-[24px] h-[24px] rounded-full bg-[#979797] text-[12px] whitespace-nowrap flex items-center justify-center">{summaryInfo.summaryChatIds.length - 10}+</div>
               ) : null}
             </div>
           </div>
@@ -256,20 +319,42 @@ const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
 };
 
 const MainSummaryContent = ({
+  customizationTemplate,
   summaryInfo,
+  customizationTopic,
   mainTopic,
   pendingMatters,
   deleteMessage,
 }: {
+  customizationTemplate:CustomSummaryTemplate | null;
   summaryInfo: ISummaryInfo | null;
+  customizationTopic: ISummaryTopicItem[];
   mainTopic: ISummaryTopicItem[];
   pendingMatters: ISummaryPendingItem[];
   deleteMessage: () => void;
 }) => {
   return (
-    <div className="mx-auto rounded-[10px] bg-[var(--color-background)] px-3 py-2">
+    <div className="w-max-[693px] rounded-[10px] bg-[var(--color-background)] pl-[82px] pr-[25px] pt-[20px] pb-[25px]">
       {/* summary info  */}
       {summaryInfo && <SummaryInfoContent summaryInfo={summaryInfo} />}
+      {/* customization topic  */}
+      {customizationTopic.length > 0 && customizationTemplate && (
+        <div>
+          <p className="flex items-center gap-[8px] mb-[16px]">
+            <span className="text-[18px] font-bold">{customizationTemplate.title}</span>
+            {
+              CustomizationTopicIcon?.[customizationTemplate.title as keyof typeof CustomizationTopicIcon] ? (
+                <img className="w-[16px] h-[16px]" src={CustomizationTopicIcon?.[customizationTemplate.title as keyof typeof CustomizationTopicIcon]} alt="" />
+              ) : (
+                <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
+              )
+            }
+          </p>
+          {customizationTopic.map((item, index) => (
+            <SummaryTopicItem topicItem={item} index={index} />
+          ))}
+        </div>
+      )}
       {/* maintopic  */}
       {mainTopic.length > 0 && (
         <div>
@@ -298,23 +383,29 @@ const MainSummaryContent = ({
   );
 };
 const SummaryContent = ({
+  customizationTemplate,
   summaryInfo,
+  customizationTopic,
   mainTopic,
   pendingMatters,
   garbageMessage,
   deleteMessage,
 }:
 {
+  customizationTemplate:CustomSummaryTemplate | null;
   summaryInfo: ISummaryInfo | null;
+  customizationTopic: ISummaryTopicItem[];
   mainTopic: ISummaryTopicItem[];
   pendingMatters: ISummaryPendingItem[];
   garbageMessage: ISummaryGarbageItem[];
   deleteMessage: () => void;
 }) => {
   return (
-    <div className="px-[12px] w-full">
-      {(!mainTopic.length && !pendingMatters.length) ? null : (
+    <>
+      {(!mainTopic.length && !pendingMatters.length && !customizationTopic.length) ? null : (
         <MainSummaryContent
+          customizationTemplate={customizationTemplate}
+          customizationTopic={customizationTopic}
           summaryInfo={summaryInfo}
           mainTopic={mainTopic}
           pendingMatters={pendingMatters}
@@ -323,36 +414,48 @@ const SummaryContent = ({
       )}
 
       {garbageMessage && garbageMessage.length > 0 && (
-        <div className="mx-auto px-3 py-2 rounded-[10px] bg-[var(--color-background)]">
+        <div className="w-max-[693px] rounded-[10px] bg-[var(--color-background)] pl-[82px] pr-[25px] pt-[20px] pb-[25px] mt-[10px]">
+          <div className="flex items-center gap-[8px]">
+            <img className="w-[52px] h-[52px] rounded-full ml-[-60px]" src={SerenaLogoPath} alt="" />
+            <div>
+              <p className="text-[16px] font-semibold">Serena</p>
+              {summaryInfo?.summaryEndTime ? (
+                <p className="text-[14px] text-[#A8A6AC]">{formatTimestamp(summaryInfo.summaryEndTime)}</p>
+              ) : null}
+            </div>
+          </div>
           <p className="text-[22px] font-bold mb-[16px]">Spam Filtering</p>
           <div className="flex items-center gap-[20px]">
             <p className="flex items-center gap-[8px]">
               <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
               <div className="flex items-center">
-                <span className="mr-[4px]">Time:</span>
-                {summaryInfo?.summaryTime ? (
-                  <p className="text-[14px] text-[#A8A6AC]">{formatTimestamp(summaryInfo.summaryTime)}</p>
-                ) : null}
+                <span className="mr-[4px]">Time range:</span>
+                {formatTimestampRange(summaryInfo?.summaryStartTime, summaryInfo?.summaryEndTime)}
               </div>
             </p>
           </div>
           {garbageMessage.map((item) => (<SummaryGarbageItem garBageItem={item} />))}
         </div>
       )}
-    </div>
+    </>
   );
 };
-const RoomSummaryMessage = (props: IProps) => {
+const GlobalSummaryMessage = (props: IProps) => {
   const { message, deleteMessage } = props;
   const [summaryInfo, setSummaryInfo] = useState<ISummaryInfo | null>(null);
+  const [customizationTemplate, setCustomizationTemplate] = useState<CustomSummaryTemplate | null>(null);
+  const [customizationTopic, setCustomizationTopic] = useState<ISummaryTopicItem[]>([]);
   const [mainTopic, setMainTopic] = useState<ISummaryTopicItem[]>([]);
   const [pendingMatters, setPendingMatters] = useState<ISummaryPendingItem[]>([]);
   const [garbageMessage, setGarbageMessage] = useState<ISummaryGarbageItem[]>([]);
   const parseMessage = useCallback((messageContent: string) => {
     const messageObj = JSON.parse(messageContent);
     const {
-      mainTopic, pendingMatters, garbageMessage, summaryInfo,
+      mainTopic, pendingMatters, garbageMessage, customizationTopic, summaryInfo, customizationTemplate,
     } = messageObj;
+    if (customizationTopic) {
+      setCustomizationTopic(customizationTopic as ISummaryTopicItem[]);
+    }
     if (mainTopic) {
       setMainTopic(mainTopic as ISummaryTopicItem[]);
     }
@@ -364,6 +467,9 @@ const RoomSummaryMessage = (props: IProps) => {
     }
     if (summaryInfo) {
       setSummaryInfo(summaryInfo as ISummaryInfo);
+    }
+    if (customizationTemplate) {
+      setCustomizationTemplate(customizationTemplate);
     }
   }, []);
   useEffect(() => {
@@ -379,6 +485,8 @@ const RoomSummaryMessage = (props: IProps) => {
   }
   return (
     <SummaryContent
+      customizationTopic={customizationTopic}
+      customizationTemplate={customizationTemplate}
       summaryInfo={summaryInfo}
       mainTopic={mainTopic}
       pendingMatters={pendingMatters}
@@ -388,4 +496,4 @@ const RoomSummaryMessage = (props: IProps) => {
   );
 };
 
-export default RoomSummaryMessage;
+export default GlobalSummaryMessage;

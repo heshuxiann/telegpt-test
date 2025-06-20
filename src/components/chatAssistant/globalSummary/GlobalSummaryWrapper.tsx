@@ -23,14 +23,18 @@ const GlobalSummaryWrapper = () => {
   const [languageModalOpen, setLanguageModalOpen] = useState(false);
   const [summaryLanguage, setSummrayLanguage] = useState('en');
   useEffect(() => {
+    let injected: { unmount: () => void } | undefined;
     if (containerRef.current) {
-      injectMessageAI(containerRef.current, {});
+      injected = injectMessageAI(containerRef.current, {});
     }
     CHATAI_IDB_STORE.get('summary-language').then((language:any) => {
       if (language) {
         setSummrayLanguage(language as string);
       }
     });
+    return () => {
+      injected?.unmount();
+    };
   }, []);
   useEffect(() => {
     eventEmitter.on(Actions.OpenSummaryLanguageModal, handleOpenModal);

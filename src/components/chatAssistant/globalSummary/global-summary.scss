@@ -16,3 +16,19 @@
     }
   }
 }
+.global-summary-introduce{
+  padding-top: 35px;
+  h3{
+    font-size: 30px;
+    font-weight: 600;
+    &:nth-of-type(1){
+      margin-bottom: 0;
+    }
+  }
+  &-item{
+    width: 351px;
+    height: 132px;
+    border-radius: 16px;
+    padding: 16px 120px 16px 17px;
+  }
+}

@@ -7,11 +7,11 @@ import React, {
 } from 'react';
 import type { Message } from 'ai';
 
-import eventEmitter, { Actions } from './lib/EventEmitter';
-import { CHATAI_IDB_STORE } from '../../util/browser/idb';
-import { loginWithGoogle } from './utils/google-api';
+import eventEmitter, { Actions } from '../lib/EventEmitter';
+import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
+import { loginWithGoogle } from '../utils/google-api';
 
-import GoogleIcon from './assets/google.png';
+import GoogleIcon from '../assets/google.png';
 
 const GoogleLoginAuthMessage = ({ message }:{ message:Message }) => {
   const updateToken = useCallback((accessToken:string) => {

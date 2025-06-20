@@ -5,18 +5,22 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import type { Message } from 'ai';
 import equal from 'fast-deep-equal';
 
-import GlobalSummaryMessage from './global-summary-message';
-import GoogleEventCreateMessage from './google-event-create-messages';
-import GoogleEventDetailMessage from './google-event-detail-message';
-import GoogleLoginAuthMessage from './google-login-auth-message';
-import { GroupSearchMessage } from './group-search-message';
-import { PreviewMessage, ThinkingMessage } from './message';
-import RoomActionMessage from './room-actions-message';
-import RoomSummaryMessage from './room-summary-message';
+import GlobalSummaryMessage from './messages/global-summary-message';
+import GoogleEventCreateMessage from './messages/google-event-create-messages';
+import GoogleEventDetailMessage from './messages/google-event-detail-message';
+import GoogleLoginAuthMessage from './messages/google-login-auth-message';
+import { GroupSearchMessage } from './messages/group-search-message';
+import IntroducePortraitMessage from './messages/introduce-portrait-message';
+import IntroduceSmartreplyMessage from './messages/introduce-smartreply-message';
+import IntroduceSummaryMessage from './messages/introduce-summary-message';
+import IntroduceTranslationMessage from './messages/introduce-translation-message';
+import RoomActionMessage from './messages/room-actions-message';
+import RoomSummaryMessage from './messages/room-summary-message';
 // import SummaryMessage from './summary-message';
-import UrgentCheckMessage from './urgent-check-message';
+import UrgentCheckMessage from './messages/urgent-check-message';
 // import { useScrollToBottom } from './use-scroll-to-bottom';
-import { UserSearchMessage } from './user-search-message';
+import { UserSearchMessage } from './messages/user-search-message';
+import { PreviewMessage, ThinkingMessage } from './message';
 
 import ErrorBoundary from './ErrorBoundary';
 
@@ -69,6 +73,18 @@ function PureMessages({
   const isRoomActions = (message: Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'room-actions') ?? false;
   };
+  const isSmartreplyIntroduce = (message: Message) => {
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-smartreply-introduce') ?? false;
+  };
+  const isSummaryIntroduce = (message: Message) => {
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-summary-introduce') ?? false;
+  };
+  const isTranslationIntroduce = (message: Message) => {
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-translation-introduce') ?? false;
+  };
+  const isPortraitIntroduce = (message: Message) => {
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-portrait-introduce') ?? false;
+  };
   const handleDeleteMessage = (message: Message, prevMessage: Message) => {
     deleteMessage?.(message.id);
     deleteMessage?.(prevMessage.id);
@@ -117,6 +133,14 @@ function PureMessages({
                   // eslint-disable-next-line react/jsx-no-bind
                   deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
                 />
+              ) : isSmartreplyIntroduce(message) ? (
+                <IntroduceSmartreplyMessage />
+              ) : isSummaryIntroduce(message) ? (
+                <IntroduceSummaryMessage />
+              ) : isTranslationIntroduce(message) ? (
+                <IntroduceTranslationMessage />
+              ) : isPortraitIntroduce(message) ? (
+                <IntroducePortraitMessage />
               ) : (
                 <PreviewMessage
                   message={message}

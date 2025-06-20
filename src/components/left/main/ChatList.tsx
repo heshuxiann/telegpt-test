@@ -104,6 +104,7 @@ const ChatList: FC<OwnProps> = ({
   const chatsHeight = (orderedIds?.length || 0) * CHAT_HEIGHT_PX;
   const archiveHeight = shouldDisplayArchive
     ? archiveSettings?.isMinimized ? ARCHIVE_MINIMIZED_HEIGHT : CHAT_HEIGHT_PX : 0;
+  const serenaHeight = resolvedFolderId === ALL_FOLDER_ID ? CHAT_HEIGHT_PX : 0;
   const frozenNotificationHeight = shouldShowFrozenAccountNotification ? 68 : 0;
 
   const { orderDiffById, getAnimationType } = useOrderDiff(orderedIds);
@@ -226,10 +227,8 @@ const ChatList: FC<OwnProps> = ({
 
     return viewportIds!.map((id, i) => {
       const isPinned = viewportOffset + i < pinnedCount;
-      const offset = resolvedFolderId === ALL_FOLDER_ID ? viewportOffset + i + 1 : viewportOffset + i;
-      const offsetTop = unconfirmedSessionHeight + archiveHeight + frozenNotificationHeight
-      + offset * CHAT_HEIGHT_PX;
-
+      const offsetTop = unconfirmedSessionHeight + archiveHeight + frozenNotificationHeight + serenaHeight
+      + (viewportOffset + i) * CHAT_HEIGHT_PX;
       return (
         <Chat
           key={id}
@@ -283,7 +282,12 @@ const ChatList: FC<OwnProps> = ({
         />
       )}
       {resolvedFolderId === ALL_FOLDER_ID && (
-        <ChatSerena key="serena" />
+        <ChatSerena
+          key="serena"
+          frozenNotificationHeight={frozenNotificationHeight}
+          archiveHeight={archiveHeight}
+          unconfirmedSessionHeight={unconfirmedSessionHeight}
+        />
       )}
 
       {viewportIds?.length ? (

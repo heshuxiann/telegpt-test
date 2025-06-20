@@ -14,52 +14,30 @@ import {
   useEffect,
   useRef,
 } from 'react';
+import type { UseChatHelpers } from '@ai-sdk/react';
 import type {
-  Attachment,
-  ChatRequestOptions,
-  CreateMessage,
   Message,
 } from 'ai';
 import cx from 'classnames';
-import equal from 'fast-deep-equal';
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
 import { sanitizeUIMessages } from '../../lib/utils';
-import { Button } from './ui/button';
-import { Textarea } from './ui/textarea';
-import { ArrowUpIcon, StopIcon } from './icons';
-import { PreviewAttachment } from './preview-attachment';
-import { messageEmbeddingStore } from './vector-store';
+import { Button } from './component/button';
+import { Textarea } from './component/textarea';
+import { StopIcon } from './icons';
 
 function PureMultimodalInput({
-  chatId,
-  input,
-  setInput,
-  isLoading,
+  status,
   stop,
-  attachments,
-  setAttachments,
   setMessages,
-  handleSubmit,
-  append,
+  handleInputSubmit,
   className,
 }: {
-  chatId: string;
-  input: string;
-  setInput: (value: string) => void;
-  isLoading: boolean;
+  status: UseChatHelpers['status'];
   stop: () => void;
-  attachments: Array<Attachment>;
-  setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   setMessages: Dispatch<SetStateAction<Array<Message>>>;
-  handleSubmit: (
-    event?: {
-      preventDefault?: () => void;
-    },
-    chatRequestOptions?: ChatRequestOptions,
-  ) => void;
-  append:(message: Message | CreateMessage, chatRequestOptions?: ChatRequestOptions) => Promise<string | null | undefined>;
+  handleInputSubmit: (inputValue:string)=>void;
   className?: string;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -89,6 +67,7 @@ function PureMultimodalInput({
     'input',
     '',
   );
+
   const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
@@ -105,90 +84,37 @@ function PureMultimodalInput({
   }, []);
 
   useEffect(() => {
-    setLocalStorageInput(input);
-  }, [input, setLocalStorageInput]);
+    setLocalStorageInput(inputValue);
+  }, [inputValue, setLocalStorageInput]);
 
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    // setInput(event.target.value);
     setInputValue(event.target.value);
     adjustHeight();
   };
 
-  const submitForm = useCallback(async () => {
-    // window.history.replaceState({}, '', `/chat/${chatId}`);
-    // handleSubmit(undefined, {
-    //   experimental_attachments: attachments,
-    // });
-    const vectorSearchResults = await messageEmbeddingStore.similaritySearch({
-      query: `${inputValue}`,
-      k: 100,
-      filterOptions: {
-        include: {
-          metadata: {
-            category: chatId,
-          },
-        },
-      },
-    });
-    if (vectorSearchResults.similarItems) {
-      let matchContent = '';
-      vectorSearchResults.similarItems.forEach((item) => {
-        matchContent += `${item.text}\n`;
-      });
-      if (matchContent) {
-        setMessages((messages) => {
-          return [...messages, {
-            role: 'system',
-            content: matchContent,
-            id: Math.random().toString(),
-            annotations: [{
-              isAuxiliary: true,
-            }],
-          }];
-        });
-      }
+  const submitForm = useCallback(() => {
+    if (!inputValue) {
+      return;
     }
-    append({
-      role: 'user',
-      content: inputValue,
-      id: Math.random().toString(),
-    });
-    setAttachments([]);
-    setLocalStorageInput('');
+    handleInputSubmit(inputValue);
     setInputValue('');
+    setLocalStorageInput('');
     resetHeight();
 
     if (width && width > 768) {
       textareaRef.current?.focus();
     }
-  // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
-  }, [
-    attachments,
-    handleSubmit,
-    setAttachments,
-    setLocalStorageInput,
-    width,
-    chatId,
-    inputValue,
-  ]);
+  }, [handleInputSubmit, inputValue, setLocalStorageInput, width]);
 
   return (
     <div className="relative w-full flex flex-col gap-4">
-      {(attachments.length > 0) && (
-        <div className="flex flex-row gap-2 overflow-x-scroll items-end">
-          {attachments.map((attachment) => (
-            <PreviewAttachment key={attachment.url} attachment={attachment} />
-          ))}
-        </div>
-      )}
-
       <Textarea
         ref={textareaRef}
         placeholder="Send a message..."
         value={inputValue}
         onChange={handleInput}
         className={cx(
-          'min-h-[24px] h-[76px] overflow-hidden resize-none rounded-2xl !text-base bg-muted pb-10 dark:border-zinc-700',
+          'min-h-[24px] h-[76px] overflow-hidden resize-none rounded-2xl !text-base pb-10 focus-visible:!ring-0 !ring-offset-0',
           className,
         )}
         rows={2}
@@ -197,7 +123,7 @@ function PureMultimodalInput({
           if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
 
-            if (isLoading) {
+            if (status !== 'ready') {
               toast.error('Please wait for the model to finish its response!');
             } else {
               submitForm();
@@ -207,11 +133,11 @@ function PureMultimodalInput({
       />
 
       <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-col justify-end">
-        {isLoading ? (
+        {status === 'submitted' ? (
           <StopButton stop={stop} setMessages={setMessages} />
         ) : (
           <SendButton
-            input={input}
+            input={inputValue}
             submitForm={submitForm}
           />
         )}
@@ -220,13 +146,10 @@ function PureMultimodalInput({
   );
 }
 
-export const MultimodalInput = memo(
+export const MultiInput = memo(
   PureMultimodalInput,
   (prevProps, nextProps) => {
-    if (prevProps.input !== nextProps.input) return false;
-    if (prevProps.isLoading !== nextProps.isLoading) return false;
-    if (prevProps.chatId !== nextProps.chatId) return false;
-    if (!equal(prevProps.attachments, nextProps.attachments)) return false;
+    if (prevProps.status !== nextProps.status) return false;
 
     return true;
   },
@@ -264,14 +187,15 @@ function PureSendButton({
 }) {
   return (
     <Button
-      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
+      className="!px-0 !py-0 !w-[24px] !h-[24px] !bg-transparent "
       onClick={(event) => {
         event.preventDefault();
         submitForm();
       }}
       disabled={input.length === 0}
     >
-      <ArrowUpIcon size={14} />
+      {/* <ArrowUpIcon size={14} /> */}
+      <i className="icon icon-send text-[#000000] text-[24px]" />
     </Button>
   );
 }

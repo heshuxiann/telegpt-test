@@ -4,7 +4,8 @@ import { getActions } from '../../../global';
 
 import type { ThreadId } from '../../../types';
 
-import RoomAIAssistant from '../utils/room-ai-assistant';
+import eventEmitter, { Actions } from '../lib/EventEmitter';
+import RoomAIAssistant from './room-ai-assistant';
 
 import useLastCallback from '../../../hooks/useLastCallback';
 
@@ -28,11 +29,20 @@ const RoomAIActionButton = (props: OwnProps) => {
     RoomAIAssistant.updateRoomAIData(chatId, 'unreadCount', 0);
     setUnreadCount(0);
   });
+  const updateUnreadCount = useLastCallback((param:{ chatId:string; count:number }) => {
+    if (param.chatId === chatId) {
+      setUnreadCount(param.count);
+    }
+  });
   useEffect(() => {
     const count = RoomAIAssistant.getRoomAIUnreadCount(chatId);
     setUnreadCount(count);
     RoomAIAssistant.summary(chatId);
-  }, [chatId]);
+    eventEmitter.on(Actions.UpdateRoomAIUnreadCount, updateUnreadCount);
+    return () => {
+      eventEmitter.off(Actions.UpdateRoomAIUnreadCount, updateUnreadCount);
+    };
+  }, [chatId, updateUnreadCount]);
   return (
     <div className="room-ai-floating-button">
       <Button

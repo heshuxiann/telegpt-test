@@ -7,6 +7,7 @@ import type { SummaryStoreMessage } from '../store/summary-store';
 import type { UrgentTopic } from '../store/urgent-topic-store';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
+import GlobalSummaryBadge from '../globalSummary/global-summary-badge';
 import { DefaultUrgentTopic } from '../prompt';
 import { ChataiStores } from '../store';
 import { URGENT_CHATS } from '../store/general-store';
@@ -105,6 +106,7 @@ class UrgentCheckTask {
             };
             ChataiStores.summary?.storeMessage(newMessage);
             eventEmitter.emit(Actions.AddUrgentMessage, newMessage);
+            GlobalSummaryBadge.increaseUnreadCount();
             // check strong alert
             try {
               const strongAlertPhoneNumber = getStrongAlertPhoneNumber(matchs, topics);

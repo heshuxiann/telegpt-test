@@ -4,19 +4,19 @@
 import React, { useEffect, useState } from 'react';
 import type { Message } from 'ai';
 import copy from 'copy-to-clipboard';
-import { getActions } from '../../global';
+import { getActions } from '../../../global';
 
-import useOldLang from './hook/useOldLang';
-import { formatTimestamp } from './utils/util';
+import useOldLang from '../hook/useOldLang';
 import {
   CopyIcon, DeleteIcon, VoiceIcon, VoiceingIcon,
-} from './icons';
+} from '../icons';
+import { formatTimestamp } from '../utils/util';
 
-import ChatAvatar from './component/ChatAvatar';
-import { DrawerKey, useDrawer } from './globalSummary/DrawerContext';
+import ChatAvatar from '../component/ChatAvatar';
+import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
 
-import DangerIcon from './assets/danger.png';
-import SerenaLogoPath from './assets/serena.png';
+import DangerIcon from '../assets/danger.png';
+import SerenaLogoPath from '../assets/serena.png';
 
 interface IProps {
   message: Message;
@@ -101,7 +101,7 @@ const UrgentCheckMessage = (props:IProps) => {
     openDrawer(DrawerKey.OriginalMessages, { relevantMessages: [{ chatId: item.chatId, messageIds: [item.messageId] }] });
   };
   return (
-    <div className="mx-auto w-[693px] rounded-[10px] bg-[var(--color-urgent-message-bg)] pl-[82px] pr-[25px] pt-[20px] pb-[25px] border-[1px] border-[var(--color-urgent-message-border)]">
+    <div className="w-max-[693px] rounded-[10px] bg-[var(--color-urgent-message-bg)] pl-[82px] pr-[25px] pt-[20px] pb-[25px] border-[1px] border-[var(--color-urgent-message-border)]">
       <div className="flex items-center gap-[8px]">
         <img className="w-[52px] h-[52px] rounded-full ml-[-60px]" src={SerenaLogoPath} alt="" />
         <div>

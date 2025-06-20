@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
 import { v4 as uuidv4 } from 'uuid';
-import { getGlobal } from '../../../global';
+import { getActions, getGlobal } from '../../../global';
 
 import type { CustomSummaryTemplate } from '../store/chatai-summary-template-store';
 import type { SummaryStoreMessage } from '../store/summary-store';
@@ -15,12 +15,15 @@ import {
 } from '../../../global/selectors';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import { getOrderedIds } from '../../../util/folderManager';
+import GlobalSummaryBadge from '../globalSummary/global-summary-badge';
 import {
   ChataiStores,
   GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME,
 } from '../store';
 import { SUMMARY_CHATS } from '../store/general-store';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
+import { GLOBAL_SUMMARY_CHATID } from '../variables';
+import { sendGAEvent } from '../utils/analytics';
 
 function getAlignedExecutionTimestamp(): number | null {
   const date = new Date();
@@ -164,12 +167,14 @@ class GlobalSummaryTask {
         }
         return null;
       }).filter(Boolean);
-      summaryChats.push({
-        chatId,
-        chatName: chat?.title ?? 'Unknown',
-        chatType,
-        messages,
-      });
+      if (messages.length > 0) {
+        summaryChats.push({
+          chatId,
+          chatName: chat?.title ?? 'Unknown',
+          chatType,
+          messages,
+        });
+      }
     });
     if (!summaryChats.length) return;
     const summaryInfo = {
@@ -213,6 +218,19 @@ class GlobalSummaryTask {
         ChataiStores.summary?.storeMessage(newMessage);
         ChataiStores.general?.set(GLOBAL_SUMMARY_LAST_TIME, summaryTime);
         eventEmitter.emit(Actions.AddSummaryMessage, newMessage);
+        GlobalSummaryBadge.increaseUnreadCount();
+        window.Notification.requestPermission().then((permission) => {
+          if (permission === 'granted') {
+            const notification = new Notification('Chat Summary', {
+              body: 'You have received a new Chat Summary',
+            });
+            notification.onclick = () => {
+              getActions().openChat({ id: GLOBAL_SUMMARY_CHATID });
+              sendGAEvent('summary_view');
+            };
+            setTimeout(() => notification.close(), 5000);
+          }
+        });
         callback?.();
       });
     this.clearPendingMessages();

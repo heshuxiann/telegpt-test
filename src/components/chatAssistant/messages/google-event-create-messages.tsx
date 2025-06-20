@@ -14,15 +14,15 @@ import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import type { ITimezoneOption } from 'react-timezone-select/dist/index.d';
 
-import eventEmitter, { Actions } from './lib/EventEmitter';
-import { CHATAI_IDB_STORE } from '../../util/browser/idb';
-import { CloseIcon } from './icons';
+import eventEmitter, { Actions } from '../lib/EventEmitter';
+import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
+import { CloseIcon } from '../icons';
 
-import CalendarIcon from './assets/calendar.png';
-import DefaultAvatar from './assets/default-avatar.png';
-import GoogleMeetIcon from './assets/google-meet.png';
-import UserIcon from './assets/user.png';
-import WriteIcon from './assets/write.png';
+import CalendarIcon from '../assets/calendar.png';
+import DefaultAvatar from '../assets/default-avatar.png';
+import GoogleMeetIcon from '../assets/google-meet.png';
+import UserIcon from '../assets/user.png';
+import WriteIcon from '../assets/write.png';
 
 export const FormLabel = (props: { lable: 'title' | 'time' | 'guests' | 'meet' }) => {
   const [title, setTitle] = useState('');

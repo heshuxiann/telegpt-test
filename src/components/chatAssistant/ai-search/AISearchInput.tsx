@@ -123,7 +123,7 @@ function PureMultimodalInput({
           if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
 
-          if (status !== 'ready') {
+            if (status !== 'ready') {
               toast.error('Please wait for the model to finish its response!');
             } else {
               submitForm();

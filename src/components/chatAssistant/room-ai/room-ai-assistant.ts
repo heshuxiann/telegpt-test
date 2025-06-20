@@ -7,8 +7,8 @@ import { MAIN_THREAD_ID } from '../../../api/types';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { selectChat, selectChatLastMessageId } from '../../../global/selectors';
 import { ChataiStores } from '../store';
-import { summaryMessage } from './chat-api';
-import { fetchChatMessageByOffsetId, formateMessage2Summary } from './fetch-messages';
+import { summaryMessage } from '../utils/chat-api';
+import { fetchChatMessageByOffsetId, formateMessage2Summary } from '../utils/fetch-messages';
 
 class RoomAIAssistant {
   static get global() {
@@ -18,6 +18,11 @@ class RoomAIAssistant {
   public static getRoomLastFocusTime(chatId: string) {
     const roomAIData = localStorage.getItem('room-ai-data');
     return roomAIData ? JSON.parse(roomAIData)[chatId]?.lastFocusTime || 0 : 0;
+  }
+
+  public static getRoomLastSummaryId(chatId: string) {
+    const roomAIData = localStorage.getItem('room-ai-data');
+    return roomAIData ? JSON.parse(roomAIData)[chatId]?.lastSummaryId || 0 : 0;
   }
 
   public static getRoomUnreadCount(chatId: string) {
@@ -37,16 +42,26 @@ class RoomAIAssistant {
     currentData[type] = value;
     parsedData[chatId] = currentData;
     localStorage.setItem('room-ai-data', JSON.stringify(parsedData));
+    if (type === 'unreadCount') {
+      eventEmitter.emit(Actions.UpdateRoomAIUnreadCount, { chatId, count: value });
+    }
+  }
+
+  public static increaseUnreadCount(chatId: string) {
+    const count = this.getRoomAIUnreadCount(chatId) + 1;
+    this.updateRoomAIData(chatId, 'unreadCount', count);
+    eventEmitter.emit(Actions.UpdateRoomAIUnreadCount, { chatId, count });
   }
 
   public static async summary(chatId: string) {
     const lastFocusTime = RoomAIAssistant.getRoomLastFocusTime(chatId);
+    const lastSummaryId = RoomAIAssistant.getRoomLastSummaryId(chatId);
     const unreadCount = RoomAIAssistant.getRoomUnreadCount(chatId);
-    if (unreadCount > 5 && lastFocusTime < Date.now() - 1000 * 60 * 5) {
+    const lastMessageId = selectChatLastMessageId(this.global, chatId, 'all') || 0;
+    if (unreadCount > 5 && lastMessageId - lastSummaryId > 5 && lastFocusTime < Date.now() - 1000 * 60 * 5) {
       // eslint-disable-next-line no-console
       console.log('开始总结');
       const chat = selectChat(this.global, chatId);
-      const lastMessageId = selectChatLastMessageId(this.global, chatId, 'all') || 0;
       const summaryCount = Math.max(unreadCount, 20);
       if (chat) {
         const messages = await fetchChatMessageByOffsetId({
@@ -84,8 +99,7 @@ class RoomAIAssistant {
           };
           ChataiStores.message?.storeMessage(newMessage as StoreMessage);
           eventEmitter.emit(Actions.AddRoomAIMessage, newMessage);
-          this.updateRoomAIData(chatId, 'unreadCount', this.getRoomAIUnreadCount(chatId) + 1);
-          eventEmitter.emit(Actions.UpdateRoomAIUnreadCount, newMessage);
+          this.increaseUnreadCount(chatId);
         });
       }
     }

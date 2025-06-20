@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import type { Message } from 'ai';
 
-import { formatTime } from '../../util/dates/dateFormat';
-import useOldLang from './hook/useOldLang';
+import { formatTime } from '../../../util/dates/dateFormat';
+import useOldLang from '../hook/useOldLang';
 
 enum SummaryType {
   MainTopic = 'Main Topic',
