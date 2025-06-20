@@ -1,4 +1,4 @@
-import { intersection } from "lodash";
+import { intersection, uniq } from "lodash";
 import { getGlobal } from "../../../global";
 
 export function filterPresetTag(orderedIds?: string[]) {
@@ -39,8 +39,8 @@ export function getAITags() {
   const allClassifyChat = global?.chatFolders?.classifys?.list;
 
   return (
-    allClassifyChat
-      ?.filter((o) => o?.AITag?.length)
-      ?.flatMap((o) => o?.AITag) ?? []
+    uniq(
+      allClassifyChat?.filter((o) => o?.AITag?.length)?.flatMap((o) => o?.AITag)
+    ) ?? []
   );
 }

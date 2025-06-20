@@ -1,9 +1,7 @@
 import { ApiMessage, MAIN_THREAD_ID } from "../../../api/types/messages";
 import { AI_FOLDER_ID, ALL_FOLDER_ID, PRESET_FOLDER_ID, SERVICE_NOTIFICATIONS_USER_ID, UNREAD_FOLDER_ID } from "../../../config";
 import { getActions, getGlobal } from "../../../global";
-import { isSystemBot } from "../../../global/helpers";
 import {
-  selectBot,
   selectChat,
   selectChatLastMessageId,
 } from "../../../global/selectors";
@@ -17,6 +15,7 @@ import {
   ClassifyChatFolder,
   deleteAIClassify,
   groupClassifyRes,
+  isChatBot,
   saveChatClassify,
   sleep,
 } from "../classifyChat/util";
@@ -165,9 +164,7 @@ class ClassifyChatTask {
     for (let i = 0; i < orderedIds.length; i++) {
       const chatId = orderedIds[i];
       const chat = selectChat(global, chatId);
-      const chatBot = !isSystemBot(chatId)
-        ? selectBot(global, chatId)
-        : undefined;
+      const chatBot = isChatBot(chatId);
       const chatLastMessageId = selectChatLastMessageId(global, chatId) || 0;
       if (chat && !chatBot && chatLastMessageId) {
         const roomMsgs = await fetchChatMessageByCount({

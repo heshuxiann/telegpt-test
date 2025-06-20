@@ -1,11 +1,10 @@
-import { ApiMessage } from "../../../api/types"
-import { getActions, getGlobal, setGlobal } from "../../../global"
-import { selectChat } from "../../../global/selectors"
-import { ChataiStores } from "../store"
-import { validateAndFixJsonStructure } from "../utils/util"
-import { v4 as uuidv4 } from "uuid";
-import defaultClassifyPrompt from "./prompt"
-import { GLOBAL_AI_TAG } from "./preset-modal"
+import { ApiMessage } from "../../../api/types";
+import { getActions, getGlobal, setGlobal } from "../../../global";
+import { selectBot, selectChat } from "../../../global/selectors";
+import { ChataiStores, GLOBAL_AI_TAG } from "../store";
+import { validateAndFixJsonStructure } from "../utils/util";
+import { isSystemBot } from "../../../global/helpers";
+import { SERVICE_NOTIFICATIONS_USER_ID } from "../../../config"
 
 export interface ClassifyChatFolder {
   id?: string;
@@ -16,7 +15,15 @@ export interface ClassifyChatFolder {
   AITag: string;
 }
 export const CLASSICATION_LOG_PRE = "classifyTask----";
-export const CLASSICATION_LIST = ['Friend', 'Community', 'Work', 'Unrend', 'Spam', 'Preset', 'AI'];
+export const CLASSICATION_LIST = [
+  "Friend",
+  "Community",
+  "Work",
+  "Unrend",
+  "Spam",
+  "Preset",
+  "AI",
+];
 
 export const formatJSONContent = (content: string) => {
   try {
@@ -41,13 +48,16 @@ export function sleep(ms: number) {
 }
 
 async function chatAIClassify(body: string) {
-  const res = await fetch("https://telegpt-three.vercel.app/generate", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body,
-  });
+  const res = await fetch(
+    "https://telegpt-three.vercel.app/classify-generate",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body,
+    }
+  );
   const resJson = await res.json();
   return formatJSONContent(resJson?.text);
 }
@@ -55,18 +65,18 @@ async function chatAIClassify(body: string) {
 export async function saveChatClassify(list: ClassifyChatFolder[]) {
   let global = getGlobal();
 
-  let allClassifyChat: ClassifyChatFolder[] = []
+  let allClassifyChat: ClassifyChatFolder[] = [];
   list.forEach(async (item) => {
-    const chat = selectChat(global, item.chatId + '');
+    const chat = selectChat(global, item.chatId + "");
     const classifyItem = {
-      id: item.chatId + '',
+      id: item.chatId + "",
       chatTitle: chat?.title,
       ...item,
-    }
-    allClassifyChat.push(classifyItem)
-    ChataiStores.chatClassify?.addClassify(classifyItem)
+    };
+    allClassifyChat.push(classifyItem);
+    ChataiStores.chatClassify?.addClassify(classifyItem);
   });
-  ChataiStores.general?.set(GLOBAL_AI_TAG, [])
+  ChataiStores.general?.set(GLOBAL_AI_TAG, []);
   global = {
     ...global,
     chatFolders: {
@@ -74,7 +84,7 @@ export async function saveChatClassify(list: ClassifyChatFolder[]) {
       classifys: {
         ...global.chatFolders?.classifys,
         list: allClassifyChat,
-        activeAITag: []
+        activeAITag: [],
       },
     },
   };
@@ -82,20 +92,25 @@ export async function saveChatClassify(list: ClassifyChatFolder[]) {
 }
 
 export function groupClassifyRes(list: ClassifyChatFolder[]) {
-  let data: { [key:string]: number[]} = {}
+  let data: { [key: string]: number[] } = {};
   CLASSICATION_LIST.forEach((item) => {
-    const listIds = list.filter(o => o?.categoryTag?.indexOf(item) >= 0)?.map(i => i?.chatId)
-    if (listIds?.length)  {
-      data[item] = listIds
+    const listIds = list
+      .filter((o) => o?.categoryTag?.indexOf(item) >= 0)
+      ?.map((i) => i?.chatId);
+    if (listIds?.length) {
+      data[item] = listIds;
     }
-  })
+  });
 
-  return data
+  return data;
 }
 
-export async function batchChatAIClassify(chatMessages: { [key: string]: ApiMessage[] }, batchSize: number) {
+export async function batchChatAIClassify(
+  chatMessages: { [key: string]: ApiMessage[] },
+  batchSize: number
+) {
   const chatKeys = Object.keys(chatMessages);
-  let res: ClassifyChatFolder[]  = [];
+  let res: ClassifyChatFolder[] = [];
   for (let i = 0; i < chatKeys.length; i += batchSize) {
     const batchKeys = chatKeys.slice(i, i + batchSize);
     const chatMsgs = batchKeys.map((chatId) => {
@@ -109,37 +124,37 @@ export async function batchChatAIClassify(chatMessages: { [key: string]: ApiMess
     if (chatMsgs.length) {
       const aiClassifyRes = await chatAIClassify(
         JSON.stringify({
-          messages: [
-            {
-              id: uuidv4(),
-              role: "user",
-              content: `${defaultClassifyPrompt}\n\n${JSON.stringify(
-                chatMsgs
-              )}`,
-            },
-          ],
+          messages: chatMsgs,
         })
       );
-      res = res.concat(aiClassifyRes)
+      res = res.concat(aiClassifyRes);
     }
   }
 
-  return res
+  return res;
 }
 
 export async function deleteAIClassify() {
   const { deleteChatFolder } = getActions();
 
-  const res = await ChataiStores.folder?.getAllFolders()
+  const res = await ChataiStores.folder?.getAllFolders();
   for (let i = 0; i < (res || [])?.length; i++) {
-    const folderInfoDb = res?.[i]
-    if (folderInfoDb && folderInfoDb?.from === 'AI') {
+    const folderInfoDb = res?.[i];
+    if (folderInfoDb && folderInfoDb?.from === "AI") {
       // 删除AI分类
-      console.log(CLASSICATION_LOG_PRE + "delete: " + folderInfoDb?.id, new Date());
+      console.log(
+        CLASSICATION_LOG_PRE + "delete: " + folderInfoDb?.id,
+        new Date()
+      );
       await deleteChatFolder?.({ id: Number(folderInfoDb?.id) });
       if (i < (res || [])?.length - 1) {
         await sleep(5000);
       }
     }
   }
+}
+
+export function isChatBot(chatId: string) {
+  const global = getGlobal();
+  return (isSystemBot(chatId) || chatId === SERVICE_NOTIFICATIONS_USER_ID) || selectBot(global, chatId);
 }

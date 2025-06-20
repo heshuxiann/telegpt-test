@@ -133,8 +133,7 @@ import {
 import { selectGroupCall } from '../../selectors/calls';
 import { selectCurrentLimit } from '../../selectors/limits';
 import { GLOBAL_SUMMARY_CHATID } from '../../../components/chatAssistant/variables';
-import { ChataiStores } from "../../../components/chatAssistant/store"
-import { GLOBAL_AI_TAG, GLOBAL_PRESET_TAG } from "../../../components/chatAssistant/classifyChat/preset-modal"
+import { ChataiStores, GLOBAL_AI_TAG, GLOBAL_PRESET_TAG } from "../../../components/chatAssistant/store"
 
 const TOP_CHAT_MESSAGES_PRELOAD_INTERVAL = 100;
 const INFINITE_LOOP_MARKER = 100;

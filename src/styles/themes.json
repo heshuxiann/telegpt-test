@@ -74,5 +74,9 @@
   "--color-background-menu-separator": ["#0000001a", "#ffffff1a"],
   "--color-hover-overlay": ["#00000006", "#ffffff06"],
   "--color-urgent-message-bg":["#FFF9F9","#120505"],
-  "--color-urgent-message-border":["#FFC7C7","#270F0F"]
+  "--color-urgent-message-border":["#FFC7C7","#270F0F"],
+  "--color-classify-tag-bg-active": ["#3290EC", "#8774E1"],
+  "--color-classify-tag-bg": ["#EFF8FE", "#3C3C3C"],
+  "--color-classify-tag-text": ["#000000", "#ffffff"],
+  "--color-classify-tag-border": ["#ffffff", "#212121"]
 }

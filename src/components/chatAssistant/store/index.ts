@@ -18,6 +18,10 @@ const dbVersion = 17;
 export const GLOBAL_SUMMARY_LAST_TIME = 'globalSummaryLastTime';
 export const GLOBAL_SUMMARY_READ_TIME = 'globalSummaryReadTime';
 export const GLOBAL_CLASSIFY_LAST_TIME = "globalClassifyLastTime";
+export const GLOBAL_CLASSIFY_TIP_SHOW = 'globalClassifyTipShow'
+export const GLOBAL_CLASSIFY_ENABLE = 'globalClassifyEnable'
+export const GLOBAL_PRESET_TAG = "globalPresetTag";
+export const GLOBAL_AI_TAG = "globalAITag"
 
 let currentUserId!: string;
 

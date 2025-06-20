@@ -37,10 +37,12 @@ import StoryRibbon from '../../story/StoryRibbon';
 import TabList from '../../ui/TabList';
 import Transition from '../../ui/Transition';
 import ChatList from './ChatList';
-import PresetTagModal, { GLOBAL_AI_TAG, GLOBAL_PRESET_TAG } from '../../chatAssistant/classifyChat/preset-modal'
+import PresetTagModal from '../../chatAssistant/classifyChat/preset-modal'
 import useFlag from "../../../hooks/useFlag"
-import { ChataiStores } from "../../chatAssistant/store"
+import { ChataiStores, GLOBAL_AI_TAG, GLOBAL_CLASSIFY_TIP_SHOW, GLOBAL_PRESET_TAG } from "../../chatAssistant/store"
 import { filterAITag, filterPresetTag } from "../../chatAssistant/classifyChat/tag-filter"
+import ClassifyTip from "../../chatAssistant/classifyChat/classify-tip"
+import ActiveTag from "../../chatAssistant/classifyChat/active-tag"
 
 type OwnProps = {
   onSettingsScreenSelect: (screen: SettingsScreens) => void;
@@ -109,6 +111,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   const [shouldRenderPresetTagModal, openRenderPresetTagModal, closeRenderPresetTagModal] = useFlag();
   const [activePresetTag, setActivePresetTag] = useState<string[]>([])
   const [activeAITag, setActiveAITag] = useState<string[]>([])
+  const [shouldRenderClassifyTip, openRenderClassifyTip, closeRenderClassifyTip] = useFlag();
 
   const lang = useLang();
 
@@ -417,6 +420,9 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     ChataiStores.general?.get(GLOBAL_AI_TAG)?.then((res)=>{
       setActiveAITag(res ?? [])
     })
+    ChataiStores.general?.get(GLOBAL_CLASSIFY_TIP_SHOW)?.then((res)=>{
+      res === false ? closeRenderClassifyTip() : openRenderClassifyTip()
+    })
   }, [])
 
   const {
@@ -428,11 +434,25 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     withShouldRender: true,
   });
 
+  function getFolderType() {
+    if (isInAllChatsFolder) {
+      return 'all';
+    } else if (isInPresetFolder) {
+      return 'preset';
+    } else if (isInUnreadFolder) {
+      return 'unread';
+    } else if (isInAIFolder) {
+      return 'ai';
+    } else {
+      return 'folder';
+    }
+  }
+
   function renderCurrentTab(isActive: boolean) {
     const activeFolder = Object.values(chatFoldersById)
       .find(({ id }) => id === folderTabs![activeChatFolder].id);
     const isFolder = activeFolder && !isInAllChatsFolder && !isInPresetFolder && !isInPresetFolder && !isInAIFolder;
-    const folderType = isInAllChatsFolder ? 'all' : isInPresetFolder ? 'preset' : isInUnreadFolder ? 'unread' : isInAIFolder ? 'ai' : 'folder';
+    const folderType = getFolderType();
 
     return (
       <ChatList
@@ -474,13 +494,19 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
       ) : shouldRenderPlaceholder ? (
         <div ref={placeholderRef} className="tabs-placeholder" />
       ) : undefined}
+      {shouldRenderClassifyTip && <ClassifyTip onClose={closeRenderClassifyTip} />}
       {shouldRenderPresetTagModal && <PresetTagModal
-        activeTag={folderTabs![activeChatFolder].id===PRESET_FOLDER_ID ? activePresetTag : activeAITag}
-        setActiveTag={folderTabs![activeChatFolder].id===PRESET_FOLDER_ID ? setActivePresetTag : setActiveAITag}
+        activeTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? activePresetTag : activeAITag}
+        setActiveTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? setActivePresetTag : setActiveAITag}
         isOpen={shouldRenderPresetTagModal}
         onClose={closeRenderPresetTagModal}
         folderId={folderTabs![activeChatFolder].id}
       />}
+      <ActiveTag
+        folderType={getFolderType()}
+        tags={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? activePresetTag : activeAITag}
+        setActiveTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? setActivePresetTag : setActiveAITag}
+      />
       <Transition
         ref={transitionRef}
         name={shouldSkipHistoryAnimations ? 'none' : lang.isRtl ? 'slideOptimizedRtl' : 'slideOptimized'}

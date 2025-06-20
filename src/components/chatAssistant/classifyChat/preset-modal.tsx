@@ -1,10 +1,10 @@
 import { PRESET_FOLDER_ID } from "../../../config";
 import { getGlobal, setGlobal } from "../../../global";
-import React, { memo, useEffect, useMemo } from "../../../lib/teact/teact";
+import React, { memo, useMemo } from "../../../lib/teact/teact";
 import type { FC } from "../../../lib/teact/teact";
 import buildClassName from "../../../util/buildClassName";
 import Modal from "../../ui/Modal";
-import { ChataiStores } from "../store";
+import { ChataiStores, GLOBAL_AI_TAG, GLOBAL_PRESET_TAG } from "../store";
 import { getAITags } from "./tag-filter"
 interface IProps {
   activeTag: string[];
@@ -27,16 +27,8 @@ const PRESET_TAGS = [
   "KOL & Community Growth",
   "Legal & Compliance",
 ];
-const PRESET_REGIONAL = [
-  "United States",
-  "Southeast Asia",
-  "Europe",
-  "China",
-  "Global",
-];
 
-export const GLOBAL_PRESET_TAG = "globalPresetTag";
-export const GLOBAL_AI_TAG = "globalAITag"
+
 
 const PresetTagModal: FC<IProps> = ({
   folderId,
@@ -88,15 +80,15 @@ const PresetTagModal: FC<IProps> = ({
       dialogStyle="max-width: 400px; max-height: 600px; position: absolute; left: 100px; top: 70px;"
     >
       <div className="m-[-10px]">
-        {folderId === PRESET_FOLDER_ID && <div className="text-[#676B74] text-[12px] mb-3">Industry</div>}
+        <div className="text-[#676B74] text-[12px] font-[600] mb-2">{folderId === PRESET_FOLDER_ID ? 'Industry': 'AI Tags'}</div>
         <div className="flex flex-row flex-wrap gap-2 my-2">
           {tagList.map((tag) => (
             <div
               className={buildClassName(
-                "rounded-[6px] px-3 py-2 text-[13px] hover:opacity-80 cursor-pointer",
+                "rounded-[6px] px-2 py-2 font-[500] text-[13px] hover:opacity-80 cursor-pointer",
                 activeTag.indexOf(tag) >= 0
-                  ? "bg-[#7D40FF] text-[#fff]"
-                  : "bg-[#F5F1FF] text-[#000]"
+                  ? "bg-[var(--color-classify-tag-bg-active)] text-[#fff]"
+                  : "bg-[var(--color-classify-tag-bg)] text-[var(--color-classify-tag-text)]"
               )}
               onClick={() => onClickTag(tag)}
             >
@@ -104,25 +96,6 @@ const PresetTagModal: FC<IProps> = ({
             </div>
           ))}
         </div>
-        {folderId === PRESET_FOLDER_ID && (
-          <>
-            <div className="text-[#676B74] text-[12px] my-3">Regional</div>
-            <div className="flex flex-row flex-wrap gap-2 my-2">
-              {PRESET_REGIONAL.map((tag) => (
-                <div
-                  className={buildClassName(
-                    "rounded-[6px] px-3 py-2 text-[13px] hover:opacity-80 cursor-pointer",
-                    activeTag.indexOf(tag) >= 0
-                      ? "bg-[#7D40FF] text-[#fff]"
-                      : "bg-[#F5F1FF] text-[#000]"
-                  )}
-                >
-                  {tag}
-                </div>
-              ))}
-            </div>
-          </>
-        )}
       </div>
     </Modal>
   );
