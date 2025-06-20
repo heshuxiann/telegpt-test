@@ -19,7 +19,7 @@ const ClassifyTip: FC = ({onClose}:{onClose?:()=>void}) => {
 
   return (
     <div
-      className="h-[46px] flex flex-row items-center relative px-3 gap-4"
+      className="py-2 flex flex-row items-center relative px-3 gap-4"
       style={`background-image: url(${ClassifyBG}); background-size: 100% 100%;`}
     >
       <img src={ClassifyIcon} alt="AI Chat Folder Logo" className="w-[23px] h-[23px]" />

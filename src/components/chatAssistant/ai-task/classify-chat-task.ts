@@ -1,10 +1,13 @@
 import { ApiMessage, MAIN_THREAD_ID } from "../../../api/types/messages";
-import { AI_FOLDER_ID, ALL_FOLDER_ID, PRESET_FOLDER_ID, SERVICE_NOTIFICATIONS_USER_ID, UNREAD_FOLDER_ID } from "../../../config";
-import { getActions, getGlobal } from "../../../global";
 import {
-  selectChat,
-  selectChatLastMessageId,
-} from "../../../global/selectors";
+  AI_FOLDER_ID,
+  ALL_FOLDER_ID,
+  PRESET_FOLDER_ID,
+  SERVICE_NOTIFICATIONS_USER_ID,
+  UNREAD_FOLDER_ID,
+} from "../../../config";
+import { getActions, getGlobal } from "../../../global";
+import { selectChat, selectChatLastMessageId } from "../../../global/selectors";
 import { getOrderedIds } from "../../../util/folderManager";
 import { fetchChatMessageByCount } from "../utils/fetch-messages";
 import { ChataiStores, GLOBAL_CLASSIFY_LAST_TIME } from "../store";
@@ -20,6 +23,7 @@ import {
   sleep,
 } from "../classifyChat/util";
 import { uniq } from "lodash";
+import { selectSharedSettings } from "../../../global/selectors/sharedState";
 
 const CLASSICATION_INTERVAL_TIME = 1000 * 60 * 60 * 24 * 7;
 const CLASSICATION_BATCH_SIZE = 20;
@@ -78,7 +82,7 @@ class ClassifyChatTask {
       if (content[folderTitle].length) {
         const folder = {
           id: i + 2,
-          title: { text: folderTitle, desc: 'AI' },
+          title: { text: folderTitle, desc: "AI" },
           includedChatIds: content[folderTitle].map((item) => item + ""),
           excludedChatIds: [],
         };
@@ -112,7 +116,7 @@ class ClassifyChatTask {
         }
       }
     }
-    await this.sortChatFolder()
+    await this.sortChatFolder();
     // update last classify time
     ChataiStores.general?.set(GLOBAL_CLASSIFY_LAST_TIME, new Date().getTime());
     console.log(CLASSICATION_LOG_PRE + "end", new Date());
@@ -121,25 +125,37 @@ class ClassifyChatTask {
   async sortChatFolder() {
     // sort folders
     const global = getGlobal();
-    const ids = Object.keys(global.chatFolders.byId)?.sort(
-      (a, b) =>
-        (CLASSICATION_LIST?.findIndex(
-          (item) =>
-            item === (global.chatFolders.byId[Number(a)]?.title?.text ?? "")
-        ) ?? 0) -
-        (CLASSICATION_LIST?.findIndex(
-          (item) =>
-            item === (global.chatFolders.byId[Number(b)]?.title?.text ?? "")
-        ) ?? 0)
-    )?.map((item) => Number(item));
-    const folderIds = [0, ...ids, PRESET_FOLDER_ID, AI_FOLDER_ID]
-    folderIds.splice(3, 0, UNREAD_FOLDER_ID)
-    await getActions().sortChatFolders({ folderIds});
-    console.log(CLASSICATION_LOG_PRE + "sort: ", folderIds, new Date(), global.chatFolders);
+    const ids = Object.keys(global.chatFolders.byId)
+      ?.sort(
+        (a, b) =>
+          (CLASSICATION_LIST?.findIndex(
+            (item) =>
+              item === (global.chatFolders.byId[Number(a)]?.title?.text ?? "")
+          ) ?? 0) -
+          (CLASSICATION_LIST?.findIndex(
+            (item) =>
+              item === (global.chatFolders.byId[Number(b)]?.title?.text ?? "")
+          ) ?? 0)
+      )
+      ?.map((item) => Number(item));
+    const folderIds = [0, ...ids, PRESET_FOLDER_ID, AI_FOLDER_ID];
+    folderIds.splice(3, 0, UNREAD_FOLDER_ID);
+    await getActions().sortChatFolders({ folderIds });
+    console.log(
+      CLASSICATION_LOG_PRE + "sort: ",
+      folderIds,
+      new Date(),
+      global.chatFolders
+    );
   }
 
   async classifyChatMessageByCount() {
     const global = getGlobal();
+    const { aiChatFolders } = selectSharedSettings(global);
+    if (aiChatFolders === false) {
+      console.log(CLASSICATION_LOG_PRE + "enable=false", global);
+      return;
+    }
     const globalClassifyLastTime = await ChataiStores.general?.get(
       GLOBAL_CLASSIFY_LAST_TIME
     );
@@ -160,7 +176,9 @@ class ClassifyChatTask {
       global.chatFolders
     );
     let chatMessages: { [key: string]: ApiMessage[] } = {};
-    const orderedIds = (getOrderedIds(ALL_FOLDER_ID) || [])?.filter(o=>o !== SERVICE_NOTIFICATIONS_USER_ID);
+    const orderedIds = (getOrderedIds(ALL_FOLDER_ID) || [])?.filter(
+      (o) => o !== SERVICE_NOTIFICATIONS_USER_ID
+    );
     for (let i = 0; i < orderedIds.length; i++) {
       const chatId = orderedIds[i];
       const chat = selectChat(global, chatId);

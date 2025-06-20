@@ -5,6 +5,8 @@ import { ChataiStores, GLOBAL_AI_TAG } from "../store";
 import { validateAndFixJsonStructure } from "../utils/util";
 import { isSystemBot } from "../../../global/helpers";
 import { SERVICE_NOTIFICATIONS_USER_ID } from "../../../config"
+import { getAITags } from "./tag-filter"
+import { intersection } from "lodash"
 
 export interface ClassifyChatFolder {
   id?: string;
@@ -65,6 +67,7 @@ async function chatAIClassify(body: string) {
 export async function saveChatClassify(list: ClassifyChatFolder[]) {
   let global = getGlobal();
 
+  let activeAITag: string[] = global?.chatFolders?.classifys?.activeAITag ?? [];
   let allClassifyChat: ClassifyChatFolder[] = [];
   list.forEach(async (item) => {
     const chat = selectChat(global, item.chatId + "");
@@ -76,7 +79,9 @@ export async function saveChatClassify(list: ClassifyChatFolder[]) {
     allClassifyChat.push(classifyItem);
     ChataiStores.chatClassify?.addClassify(classifyItem);
   });
-  ChataiStores.general?.set(GLOBAL_AI_TAG, []);
+  const aiAllTags = getAITags()
+  activeAITag = intersection(aiAllTags, activeAITag)
+  ChataiStores.general?.set(GLOBAL_AI_TAG, activeAITag);
   global = {
     ...global,
     chatFolders: {
@@ -84,7 +89,7 @@ export async function saveChatClassify(list: ClassifyChatFolder[]) {
       classifys: {
         ...global.chatFolders?.classifys,
         list: allClassifyChat,
-        activeAITag: [],
+        activeAITag,
       },
     },
   };
