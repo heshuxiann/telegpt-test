@@ -2,10 +2,10 @@
 import type { StoreName } from './chatai-store';
 import type ChataiDB from './chatai-store';
 
-interface ChatClassifyInfo {}
+interface AIChatFoldersInfo {}
 
-class ChatClassifyStore {
-  private storeName: StoreName = 'chatClassify';
+class AIChatFoldersStore {
+  private storeName: StoreName = 'aIChatFolders';
 
   private db: IDBDatabase | null = null;
 
@@ -16,12 +16,12 @@ class ChatClassifyStore {
     this.chataiStoreManager = dbManager;
   }
 
-  async getAllClassify(): Promise<any[]> {
+  async getAllAIChatFolders(): Promise<any[]> {
     let db: IDBDatabase;
     try {
       db = await this.chataiStoreManager.getDB();
     } catch (error) {
-      console.error('Error getting all classify:', error);
+      console.error('Error getting all aichatfolders:', error);
       return Promise.reject(error);
     }
     return new Promise((resolve, reject) => {
@@ -37,12 +37,12 @@ class ChatClassifyStore {
     })
   }
 
-  async getClassify(key: string): Promise<any | undefined> {
+  async getAIChatFolder(key: string): Promise<any | undefined> {
     let db: IDBDatabase;
     try {
       db = await this.chataiStoreManager.getDB();
     } catch (error) {
-      console.error('Error get classify:', error);
+      console.error('Error get aichatfolder:', error);
       return Promise.reject(error);
     }
     return new Promise((resolve, reject) => {
@@ -58,12 +58,12 @@ class ChatClassifyStore {
     });
   }
 
-  async deleteClassify(key:string) {
+  async deleteAIChatFolder(key:string) {
     let db: IDBDatabase;
     try {
       db = await this.chataiStoreManager.getDB();
     } catch (error) {
-      console.error('Error deleting classify:', error);
+      console.error('Error deleting aichatfolder:', error);
       return Promise.reject(error);
     }
     return new Promise((resolve, reject) => {
@@ -79,18 +79,18 @@ class ChatClassifyStore {
     });
   }
 
-  async addClassify(classify: ChatClassifyInfo) {
+  async addAIChatFolder(aiChatFolder: AIChatFoldersInfo) {
     let db: IDBDatabase;
     try {
       db = await this.chataiStoreManager.getDB();
     } catch (error) {
-      console.error('Error adding classify:', error);
+      console.error('Error adding aichatfolder:', error);
       return Promise.reject(error);
     }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readwrite');
       const store = tx.objectStore(this.storeName);
-      const request = store.put(classify);
+      const request = store.put(aiChatFolder);
       request.onsuccess = () => {
         resolve(request.result);
       };
@@ -101,4 +101,4 @@ class ChatClassifyStore {
   }
 }
 
-export default ChatClassifyStore;
+export default AIChatFoldersStore;

@@ -3,7 +3,7 @@
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import ChataiStoreManager from './chatai-store';
 import SummaryTemplateStore from './chatai-summary-template-store';
-import ChatClassifyStore from "./classify-store"
+import AIChatFoldersStore from "./ai-chatfolders-store"
 import ContactStore from './contact-store';
 import FolderStore from "./folder-store"
 import GeneralStore from './general-store';
@@ -13,12 +13,12 @@ import SummaryStore from './summary-store';
 import UrgentTopicStore from './urgent-topic-store';
 import UsersStore from './user-store';
 
-const dbVersion = 17;
+const dbVersion = 18;
 
 export const GLOBAL_SUMMARY_LAST_TIME = 'globalSummaryLastTime';
 export const GLOBAL_SUMMARY_READ_TIME = 'globalSummaryReadTime';
-export const GLOBAL_CLASSIFY_LAST_TIME = "globalClassifyLastTime";
-export const GLOBAL_CLASSIFY_TIP_SHOW = 'globalClassifyTipShow'
+export const GLOBAL_AICHATFOLDERS_LAST_TIME = "globalAiChatFoldersLastTime";
+export const GLOBAL_AICHATFOLDERS_TIP_SHOW = 'globalAiChatFoldersTipShow'
 export const GLOBAL_PRESET_TAG = "globalPresetTag";
 export const GLOBAL_AI_TAG = "globalAITag"
 
@@ -34,7 +34,7 @@ export const ChataiStores = {
   summaryTemplate: null as SummaryTemplateStore | null,
   urgentTopic: null as UrgentTopicStore | null,
   folder: null as FolderStore | null,
-  chatClassify: null as ChatClassifyStore | null,
+  aIChatFolders: null as AIChatFoldersStore | null,
 };
 
 export function setChataiStoreBuilderCurrentUserId(_currentUserId: string) {
@@ -57,7 +57,7 @@ export async function initChataiStores(_currentUserId: string) {
   ChataiStores.summaryTemplate = new SummaryTemplateStore(chataiStoreManager);
   ChataiStores.urgentTopic = new UrgentTopicStore(chataiStoreManager);
   ChataiStores.folder = new FolderStore(chataiStoreManager);
-  ChataiStores.chatClassify = new ChatClassifyStore(chataiStoreManager);
+  ChataiStores.aIChatFolders = new AIChatFoldersStore(chataiStoreManager);
   eventEmitter.emit(Actions.ChatAIStoreReady);
   (window as any).downloadAllSummarys = () => {
     ChataiStores.message?.getAllMessages().then((res) => {

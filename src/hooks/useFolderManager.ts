@@ -1,5 +1,5 @@
-import { filterAITag, filterPresetTag } from "../components/chatAssistant/classifyChat/tag-filter"
-import { isChatBot } from "../components/chatAssistant/classifyChat/util"
+import { filterAITag, filterPresetTag } from "../components/chatAssistant/ai-chatfolders/tag-filter"
+import { isChatBot } from "../components/chatAssistant/ai-chatfolders/util"
 import { AI_FOLDER_ID, ALL_FOLDER_ID, PRESET_FOLDER_ID, UNREAD_FOLDER_ID } from "../config"
 import { useEffect } from '../lib/teact/teact';
 

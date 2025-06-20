@@ -1,7 +1,7 @@
 import { getActions } from '../../../global';
 
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
-import { classifyChatTask } from "../ai-task/classify-chat-task"
+import { aiChatFoldersTask } from "../ai-task/ai-chatfolders-task"
 import { globalSummaryTask } from '../ai-task/global-summary-task';
 import { intelligentReplyTask } from '../ai-task/intelligent-reply-task';
 import { urgentCheckTask } from '../ai-task/urgent-check-task';
@@ -21,6 +21,6 @@ export const initChatAI = () => {
   intelligentReplyTask.initTask();
   // init urgent alert task
   urgentCheckTask.initTask();
-  // init classify chat task
-  classifyChatTask.initTask();
+  // init ai chat folders task
+  aiChatFoldersTask.initTask();
 };

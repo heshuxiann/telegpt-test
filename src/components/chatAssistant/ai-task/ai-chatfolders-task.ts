@@ -10,55 +10,55 @@ import { getActions, getGlobal } from "../../../global";
 import { selectChat, selectChatLastMessageId } from "../../../global/selectors";
 import { getOrderedIds } from "../../../util/folderManager";
 import { fetchChatMessageByCount } from "../utils/fetch-messages";
-import { ChataiStores, GLOBAL_CLASSIFY_LAST_TIME } from "../store";
+import { ChataiStores, GLOBAL_AICHATFOLDERS_LAST_TIME } from "../store";
 import {
-  batchChatAIClassify,
-  CLASSICATION_LIST,
-  CLASSICATION_LOG_PRE,
-  ClassifyChatFolder,
-  deleteAIClassify,
-  groupClassifyRes,
+  batchAiChatFolders,
+  AI_CHATFOLDERS_LIST,
+  AI_CHATFOLDERS_LOG_PRE,
+  AIChatFolder,
+  deleteAiChatFolders,
+  groupAiChatFoldersRes,
   isChatBot,
-  saveChatClassify,
+  saveAiChatFolders,
   sleep,
-} from "../classifyChat/util";
+} from "../ai-chatfolders/util";
 import { uniq } from "lodash";
 import { selectSharedSettings } from "../../../global/selectors/sharedState";
 
-const CLASSICATION_INTERVAL_TIME = 1000 * 60 * 60 * 24 * 7;
-const CLASSICATION_BATCH_SIZE = 20;
+const AI_CHATFOLDERS_INTERVAL_TIME = 1000 * 60 * 60 * 24 * 7;
+const AI_CHATFOLDERS_BATCH_SIZE = 20;
 
-class ClassifyChatTask {
-  private static instance: ClassifyChatTask | undefined;
+class AIChatFoldersTask {
+  private static instance: AIChatFoldersTask | undefined;
 
   public static getInstance() {
-    if (!ClassifyChatTask.instance) {
-      ClassifyChatTask.instance = new ClassifyChatTask();
+    if (!AIChatFoldersTask.instance) {
+      AIChatFoldersTask.instance = new AIChatFoldersTask();
     }
-    return ClassifyChatTask.instance;
+    return AIChatFoldersTask.instance;
   }
 
   async initTask() {
     setInterval(async () => {
       this.classifyChatMessageByCount();
-    }, CLASSICATION_INTERVAL_TIME);
+    }, AI_CHATFOLDERS_INTERVAL_TIME);
 
     setTimeout(() => {
       this.classifyChatMessageByCount();
     }, 1000);
   }
 
-  async runClassify(chatMessages: { [key: string]: ApiMessage[] }) {
+  async runAIChatFolders(chatMessages: { [key: string]: ApiMessage[] }) {
     if (!Object.keys(chatMessages).length) return;
-    // 1. ai classify chat
-    const res: ClassifyChatFolder[] = await batchChatAIClassify(
+    // 1. ai chat folders classify
+    const res: AIChatFolder[] = await batchAiChatFolders(
       chatMessages,
-      CLASSICATION_BATCH_SIZE
+      AI_CHATFOLDERS_BATCH_SIZE
     );
-    console.log(CLASSICATION_LOG_PRE + "aiClassify: ", res, new Date());
+    console.log(AI_CHATFOLDERS_LOG_PRE + "aiClassify: ", res, new Date());
     // 2. save classify result
-    saveChatClassify(res);
-    const groupedRes = groupClassifyRes(res);
+    saveAiChatFolders(res);
+    const groupedRes = groupAiChatFoldersRes(res);
     // 3. update chat folder
     this.updateChatFolder(groupedRes);
   }
@@ -69,13 +69,13 @@ class ClassifyChatTask {
 
     const { addChatFolder, editChatFolder } = getActions();
     console.log(
-      CLASSICATION_LOG_PRE + "updateChatFolder: ",
+      AI_CHATFOLDERS_LOG_PRE + "updateChatFolder: ",
       sortedKeys,
       new Date()
     );
 
     // delete all ai chat folder
-    await deleteAIClassify();
+    await deleteAiChatFolders();
     // add folders
     for (let i = 0; i < sortedKeys.length; i++) {
       const folderTitle = sortedKeys[i];
@@ -99,27 +99,28 @@ class ClassifyChatTask {
             from: "AI",
           });
           console.log(
-            CLASSICATION_LOG_PRE + "update: " + folderTitle,
+            AI_CHATFOLDERS_LOG_PRE + "update: " + folderTitle,
             folder,
             new Date()
           );
         } else {
           await addChatFolder?.({ folder, from: "AI" });
           console.log(
-            CLASSICATION_LOG_PRE + "add: " + folderTitle,
+            AI_CHATFOLDERS_LOG_PRE + "add: " + folderTitle,
             folder,
             new Date()
           );
         }
-        if (i < sortedKeys.length - 1) {
-          await sleep(5000);
-        }
+        await sleep(5000);
       }
     }
     await this.sortChatFolder();
     // update last classify time
-    ChataiStores.general?.set(GLOBAL_CLASSIFY_LAST_TIME, new Date().getTime());
-    console.log(CLASSICATION_LOG_PRE + "end", new Date());
+    ChataiStores.general?.set(
+      GLOBAL_AICHATFOLDERS_LAST_TIME,
+      new Date().getTime()
+    );
+    console.log(AI_CHATFOLDERS_LOG_PRE + "end", new Date());
   }
 
   async sortChatFolder() {
@@ -128,11 +129,11 @@ class ClassifyChatTask {
     const ids = Object.keys(global.chatFolders.byId)
       ?.sort(
         (a, b) =>
-          (CLASSICATION_LIST?.findIndex(
+          (AI_CHATFOLDERS_LIST?.findIndex(
             (item) =>
               item === (global.chatFolders.byId[Number(a)]?.title?.text ?? "")
           ) ?? 0) -
-          (CLASSICATION_LIST?.findIndex(
+          (AI_CHATFOLDERS_LIST?.findIndex(
             (item) =>
               item === (global.chatFolders.byId[Number(b)]?.title?.text ?? "")
           ) ?? 0)
@@ -142,7 +143,7 @@ class ClassifyChatTask {
     folderIds.splice(3, 0, UNREAD_FOLDER_ID);
     await getActions().sortChatFolders({ folderIds });
     console.log(
-      CLASSICATION_LOG_PRE + "sort: ",
+      AI_CHATFOLDERS_LOG_PRE + "sort: ",
       folderIds,
       new Date(),
       global.chatFolders
@@ -153,26 +154,22 @@ class ClassifyChatTask {
     const global = getGlobal();
     const { aiChatFolders } = selectSharedSettings(global);
     if (aiChatFolders === false) {
-      console.log(CLASSICATION_LOG_PRE + "enable=false", global);
+      console.log(AI_CHATFOLDERS_LOG_PRE + "enable=false", global);
       return;
     }
-    const globalClassifyLastTime = await ChataiStores.general?.get(
-      GLOBAL_CLASSIFY_LAST_TIME
+    const lastTime = await ChataiStores.general?.get(
+      GLOBAL_AICHATFOLDERS_LAST_TIME
     );
     if (
-      globalClassifyLastTime &&
-      new Date().getTime() - globalClassifyLastTime < CLASSICATION_INTERVAL_TIME
+      lastTime &&
+      new Date().getTime() - lastTime < AI_CHATFOLDERS_INTERVAL_TIME
     ) {
-      console.log(
-        CLASSICATION_LOG_PRE + "pass",
-        globalClassifyLastTime,
-        global
-      );
+      console.log(AI_CHATFOLDERS_LOG_PRE + "pass", lastTime, global);
       return;
     }
     console.log(
-      CLASSICATION_LOG_PRE + "running",
-      globalClassifyLastTime,
+      AI_CHATFOLDERS_LOG_PRE + "running",
+      lastTime,
       global.chatFolders
     );
     let chatMessages: { [key: string]: ApiMessage[] } = {};
@@ -199,12 +196,12 @@ class ClassifyChatTask {
       }
     }
     console.log(
-      CLASSICATION_LOG_PRE + "fetchMsg",
+      AI_CHATFOLDERS_LOG_PRE + "fetchMsg",
       Object.keys(chatMessages).length
     );
 
-    this.runClassify(chatMessages);
+    this.runAIChatFolders(chatMessages);
   }
 }
 
-export const classifyChatTask = new ClassifyChatTask();
+export const aiChatFoldersTask = new AIChatFoldersTask();

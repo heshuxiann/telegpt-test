@@ -37,12 +37,12 @@ import StoryRibbon from '../../story/StoryRibbon';
 import TabList from '../../ui/TabList';
 import Transition from '../../ui/Transition';
 import ChatList from './ChatList';
-import PresetTagModal from '../../chatAssistant/classifyChat/preset-modal'
+import PresetTagModal from '../../chatAssistant/ai-chatfolders/preset-modal'
 import useFlag from "../../../hooks/useFlag"
-import { ChataiStores, GLOBAL_AI_TAG, GLOBAL_CLASSIFY_TIP_SHOW, GLOBAL_PRESET_TAG } from "../../chatAssistant/store"
-import { filterAITag, filterPresetTag } from "../../chatAssistant/classifyChat/tag-filter"
-import ClassifyTip from "../../chatAssistant/classifyChat/classify-tip"
-import ActiveTag from "../../chatAssistant/classifyChat/active-tag"
+import { ChataiStores, GLOBAL_AI_TAG, GLOBAL_AICHATFOLDERS_TIP_SHOW, GLOBAL_PRESET_TAG } from "../../chatAssistant/store"
+import { filterAITag, filterPresetTag } from "../../chatAssistant/ai-chatfolders/tag-filter"
+import AIChatFoldersTip from "../../chatAssistant/ai-chatfolders/ai-chatfolders-tip"
+import ActiveTag from "../../chatAssistant/ai-chatfolders/active-tag"
 
 type OwnProps = {
   onSettingsScreenSelect: (screen: SettingsScreens) => void;
@@ -111,7 +111,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   const [shouldRenderPresetTagModal, openRenderPresetTagModal, closeRenderPresetTagModal] = useFlag();
   const [activePresetTag, setActivePresetTag] = useState<string[]>([])
   const [activeAITag, setActiveAITag] = useState<string[]>([])
-  const [shouldRenderClassifyTip, openRenderClassifyTip, closeRenderClassifyTip] = useFlag();
+  const [shouldRenderAiChatFoldersTip, openRenderAiChatFoldersTip, closeRenderAiChatFoldersTip] = useFlag();
 
   const lang = useLang();
 
@@ -420,8 +420,8 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     ChataiStores.general?.get(GLOBAL_AI_TAG)?.then((res)=>{
       setActiveAITag(res ?? [])
     })
-    ChataiStores.general?.get(GLOBAL_CLASSIFY_TIP_SHOW)?.then((res)=>{
-      res === false ? closeRenderClassifyTip() : openRenderClassifyTip()
+    ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW)?.then((res)=>{
+      res === false ? closeRenderAiChatFoldersTip() : openRenderAiChatFoldersTip()
     })
   }, [])
 
@@ -494,7 +494,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
       ) : shouldRenderPlaceholder ? (
         <div ref={placeholderRef} className="tabs-placeholder" />
       ) : undefined}
-      {shouldRenderClassifyTip && <ClassifyTip onClose={closeRenderClassifyTip} />}
+      {shouldRenderAiChatFoldersTip && <AIChatFoldersTip onClose={closeRenderAiChatFoldersTip} />}
       {shouldRenderPresetTagModal && <PresetTagModal
         activeTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? activePresetTag : activeAITag}
         setActiveTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? setActivePresetTag : setActiveAITag}

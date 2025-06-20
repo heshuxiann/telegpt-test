@@ -8,7 +8,7 @@ import { SERVICE_NOTIFICATIONS_USER_ID } from "../../../config"
 import { getAITags } from "./tag-filter"
 import { intersection } from "lodash"
 
-export interface ClassifyChatFolder {
+export interface AIChatFolder {
   id?: string;
   chatId: number;
   chatTitle?: string;
@@ -16,8 +16,8 @@ export interface ClassifyChatFolder {
   presetTag: string[];
   AITag: string;
 }
-export const CLASSICATION_LOG_PRE = "classifyTask----";
-export const CLASSICATION_LIST = [
+export const AI_CHATFOLDERS_LOG_PRE = "aiChatFoldersTask----";
+export const AI_CHATFOLDERS_LIST = [
   "Friend",
   "Community",
   "Work",
@@ -49,7 +49,7 @@ export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function chatAIClassify(body: string) {
+async function chatAIChatFolders(body: string) {
   const res = await fetch(
     "https://telegpt-three.vercel.app/classify-generate",
     {
@@ -64,11 +64,11 @@ async function chatAIClassify(body: string) {
   return formatJSONContent(resJson?.text);
 }
 
-export async function saveChatClassify(list: ClassifyChatFolder[]) {
+export async function saveAiChatFolders(list: AIChatFolder[]) {
   let global = getGlobal();
 
-  let activeAITag: string[] = global?.chatFolders?.classifys?.activeAITag ?? [];
-  let allClassifyChat: ClassifyChatFolder[] = [];
+  let activeAITag: string[] = global?.chatFolders?.aiChatFolders?.activeAITag ?? [];
+  let allAiChatFolders: AIChatFolder[] = [];
   list.forEach(async (item) => {
     const chat = selectChat(global, item.chatId + "");
     const classifyItem = {
@@ -76,8 +76,8 @@ export async function saveChatClassify(list: ClassifyChatFolder[]) {
       chatTitle: chat?.title,
       ...item,
     };
-    allClassifyChat.push(classifyItem);
-    ChataiStores.chatClassify?.addClassify(classifyItem);
+    allAiChatFolders.push(classifyItem);
+    ChataiStores.aIChatFolders?.addAIChatFolder(classifyItem);
   });
   const aiAllTags = getAITags()
   activeAITag = intersection(aiAllTags, activeAITag)
@@ -86,9 +86,9 @@ export async function saveChatClassify(list: ClassifyChatFolder[]) {
     ...global,
     chatFolders: {
       ...global.chatFolders,
-      classifys: {
-        ...global.chatFolders?.classifys,
-        list: allClassifyChat,
+      aiChatFolders: {
+        ...global.chatFolders?.aiChatFolders,
+        list: allAiChatFolders,
         activeAITag,
       },
     },
@@ -96,9 +96,9 @@ export async function saveChatClassify(list: ClassifyChatFolder[]) {
   setGlobal(global);
 }
 
-export function groupClassifyRes(list: ClassifyChatFolder[]) {
+export function groupAiChatFoldersRes(list: AIChatFolder[]) {
   let data: { [key: string]: number[] } = {};
-  CLASSICATION_LIST.forEach((item) => {
+  AI_CHATFOLDERS_LIST.forEach((item) => {
     const listIds = list
       .filter((o) => o?.categoryTag?.indexOf(item) >= 0)
       ?.map((i) => i?.chatId);
@@ -110,12 +110,12 @@ export function groupClassifyRes(list: ClassifyChatFolder[]) {
   return data;
 }
 
-export async function batchChatAIClassify(
+export async function batchAiChatFolders(
   chatMessages: { [key: string]: ApiMessage[] },
   batchSize: number
 ) {
   const chatKeys = Object.keys(chatMessages);
-  let res: ClassifyChatFolder[] = [];
+  let res: AIChatFolder[] = [];
   for (let i = 0; i < chatKeys.length; i += batchSize) {
     const batchKeys = chatKeys.slice(i, i + batchSize);
     const chatMsgs = batchKeys.map((chatId) => {
@@ -127,19 +127,19 @@ export async function batchChatAIClassify(
       };
     });
     if (chatMsgs.length) {
-      const aiClassifyRes = await chatAIClassify(
+      const aiRes = await chatAIChatFolders(
         JSON.stringify({
           messages: chatMsgs,
         })
       );
-      res = res.concat(aiClassifyRes);
+      res = res.concat(aiRes);
     }
   }
 
   return res;
 }
 
-export async function deleteAIClassify() {
+export async function deleteAiChatFolders() {
   const { deleteChatFolder } = getActions();
 
   const res = await ChataiStores.folder?.getAllFolders();
@@ -148,7 +148,7 @@ export async function deleteAIClassify() {
     if (folderInfoDb && folderInfoDb?.from === "AI") {
       // 删除AI分类
       console.log(
-        CLASSICATION_LOG_PRE + "delete: " + folderInfoDb?.id,
+        AI_CHATFOLDERS_LOG_PRE + "delete: " + folderInfoDb?.id,
         new Date()
       );
       await deleteChatFolder?.({ id: Number(folderInfoDb?.id) });

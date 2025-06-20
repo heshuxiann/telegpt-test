@@ -26,8 +26,8 @@ const ActiveTag = ({
       ...global,
       chatFolders: {
         ...global.chatFolders,
-        classifys: {
-          ...global.chatFolders.classifys,
+        aiChatFolders: {
+          ...global.chatFolders.aiChatFolders,
           [folderType === "preset" ? "activePresetTag" : "activeAITag"]:
             currentTag,
         },
@@ -41,10 +41,10 @@ const ActiveTag = ({
       <div className="flex flex-row flex-wrap items-center gap-2 px-2 pt-3">
         {tags.map((item) => {
           return (
-            <div className="bg-[var(--color-classify-tag-bg)] h-[27px] leading-[27px] text-[13px] font-[500] text-[var(--color-classify-tag-text)] rounded-[6px] px-2 relative">
+            <div className="bg-[var(--color-aichatfolders-tag-bg)] h-[27px] leading-[27px] text-[13px] font-[500] text-[var(--color-aichatfolders-tag-text)] rounded-[6px] px-2 relative">
               {item}
               <div
-                className="absolute top-[-4px] right-[-4px] w-[12px] h-[12px] flex items-center justify-center bg-[var(--color-classify-tag-bg-active)] rounded-full cursor-pointer hover:opacity-80 border-[1px] border-[var(--color-classify-tag-border)]"
+                className="absolute top-[-4px] right-[-4px] w-[12px] h-[12px] flex items-center justify-center bg-[var(--color-aichatfolders-tag-bg-active)] rounded-full cursor-pointer hover:opacity-80 border-[1px] border-[var(--color-aichatfolders-tag-border)]"
                 onClick={() => onDelete(item)}
               >
                 <CloseIcon/>

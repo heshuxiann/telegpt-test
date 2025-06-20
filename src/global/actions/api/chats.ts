@@ -1054,20 +1054,20 @@ addActionHandler('loadChatFolders', async (global): Promise<void> => {
       }
     });
   }
-  const allClassifyChat = await ChataiStores.chatClassify?.getAllClassify()
+  const allAiChatFolders = await ChataiStores.aIChatFolders?.getAllAIChatFolders()
   const activePresetTag = await ChataiStores.general?.get(GLOBAL_PRESET_TAG)
   const activeAITag = await ChataiStores.general?.get(GLOBAL_AI_TAG)
-  if (allClassifyChat && allClassifyChat?.length > 0) {
+  if (allAiChatFolders && allAiChatFolders?.length > 0) {
     global = getGlobal();
     global = {
       ...global,
       chatFolders: {
         ...global.chatFolders,
         orderedIds: [...(chatFolders?.orderedIds ?? []), PRESET_FOLDER_ID, AI_FOLDER_ID],
-        classifys: {
+        aiChatFolders: {
           activePresetTag,
           activeAITag,
-          list: allClassifyChat
+          list: allAiChatFolders
         },
       },
     };

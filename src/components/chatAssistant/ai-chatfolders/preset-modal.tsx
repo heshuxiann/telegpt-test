@@ -58,8 +58,8 @@ const PresetTagModal: FC<IProps> = ({
       ...global,
       chatFolders: {
         ...global.chatFolders,
-        classifys: {
-          ...global.chatFolders.classifys,
+        aiChatFolders: {
+          ...global.chatFolders.aiChatFolders,
           [folderId === PRESET_FOLDER_ID ? 'activePresetTag' : 'activeAITag']: currentTag,
         },
       },
@@ -87,8 +87,8 @@ const PresetTagModal: FC<IProps> = ({
               className={buildClassName(
                 "rounded-[6px] px-2 py-2 font-[500] text-[13px] hover:opacity-80 cursor-pointer",
                 activeTag.indexOf(tag) >= 0
-                  ? "bg-[var(--color-classify-tag-bg-active)] text-[#fff]"
-                  : "bg-[var(--color-classify-tag-bg)] text-[var(--color-classify-tag-text)]"
+                  ? "bg-[var(--color-aichatfolders-tag-bg-active)] text-[#fff]"
+                  : "bg-[var(--color-aichatfolders-tag-bg)] text-[var(--color-aichatfolders-tag-text)]"
               )}
               onClick={() => onClickTag(tag)}
             >
