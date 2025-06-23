@@ -1,3 +1,6 @@
+import { filterAITag, filterPresetTag } from "../components/chatAssistant/ai-chatfolders/tag-filter"
+import { isChatBot } from "../components/chatAssistant/ai-chatfolders/util"
+import { AI_FOLDER_ID, ALL_FOLDER_ID, PRESET_FOLDER_ID, UNREAD_FOLDER_ID } from "../config"
 import { useEffect } from '../lib/teact/teact';
 
 import {
@@ -14,6 +17,16 @@ export function useFolderManagerForOrderedIds(folderId: number) {
   const forceUpdate = useForceUpdate();
 
   useEffect(() => addOrderedIdsCallback(folderId, forceUpdate), [folderId, forceUpdate]);
+
+  if (folderId === UNREAD_FOLDER_ID) {
+    return getUnreadChatsByFolderId()[ALL_FOLDER_ID]
+  }
+  if (folderId === PRESET_FOLDER_ID) {
+    return filterPresetTag(getOrderedIds(ALL_FOLDER_ID)?.filter(i => !isChatBot(i)))
+  }
+  if (folderId === AI_FOLDER_ID) {
+    return filterAITag(getOrderedIds(ALL_FOLDER_ID)?.filter(i => !isChatBot(i)))
+  }
 
   return getOrderedIds(folderId);
 }

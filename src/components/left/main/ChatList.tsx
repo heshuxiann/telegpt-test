@@ -11,13 +11,16 @@ import type { SettingsScreens } from '../../../types';
 import { LeftColumnContent } from '../../../types';
 
 import {
+  AI_FOLDER_ID,
   ALL_FOLDER_ID,
   ARCHIVE_MINIMIZED_HEIGHT,
   ARCHIVED_FOLDER_ID,
   CHAT_HEIGHT_PX,
   CHAT_LIST_SLICE,
   FRESH_AUTH_PERIOD,
+  PRESET_FOLDER_ID,
   SAVED_FOLDER_ID,
+  UNREAD_FOLDER_ID,
 } from '../../../config';
 import { IS_APP, IS_MAC_OS } from '../../../util/browser/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
@@ -43,9 +46,11 @@ import EmptyFolder from './EmptyFolder';
 import FrozenAccountNotification from './FrozenAccountNotification';
 import UnconfirmedSession from './UnconfirmedSession';
 
+export type FolderType = 'all' | 'archived' | 'saved' | 'folder' | 'preset' | 'unread' | 'ai'
+
 type OwnProps = {
   className?: string;
-  folderType: 'all' | 'archived' | 'saved' | 'folder';
+  folderType: FolderType;
   folderId?: number;
   isActive: boolean;
   canDisplayArchive?: boolean;
@@ -56,6 +61,7 @@ type OwnProps = {
   onSettingsScreenSelect?: (screen: SettingsScreens) => void;
   onLeftColumnContentChange?: (content: LeftColumnContent) => void;
   isAccountFrozen?: boolean;
+  activeTag?: string[];
 };
 
 const INTERSECTION_THROTTLE = 200;
@@ -91,8 +97,11 @@ const ChatList: FC<OwnProps> = ({
   const isArchived = folderType === 'archived';
   const isAllFolder = folderType === 'all';
   const isSaved = folderType === 'saved';
+  const isPresetFolder = folderType === 'preset';
+  const isUnreadFolder = folderType === 'unread';
+  const isAIFolder = folderType === 'ai';
   const resolvedFolderId = (
-    isAllFolder ? ALL_FOLDER_ID : isArchived ? ARCHIVED_FOLDER_ID : isSaved ? SAVED_FOLDER_ID : folderId!
+    isAllFolder ? ALL_FOLDER_ID : isArchived ? ARCHIVED_FOLDER_ID : isSaved ? SAVED_FOLDER_ID : isPresetFolder ? PRESET_FOLDER_ID : isUnreadFolder ? UNREAD_FOLDER_ID : isAIFolder ? AI_FOLDER_ID : folderId!
   );
 
   const shouldDisplayArchive = isAllFolder && canDisplayArchive && archiveSettings;

@@ -16,10 +16,11 @@ import Icon from '../../common/icons/Icon';
 import Button from '../../ui/Button';
 
 import styles from './EmptyFolder.module.scss';
+import { FolderType } from "./ChatList"
 
 type OwnProps = {
   folderId?: number;
-  folderType: 'all' | 'archived' | 'saved' | 'folder';
+  folderType: FolderType;
   foldersDispatch: FolderEditDispatch;
   onSettingsScreenSelect: (screen: SettingsScreens) => void;
 };

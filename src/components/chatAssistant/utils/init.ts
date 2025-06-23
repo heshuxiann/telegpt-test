@@ -1,6 +1,7 @@
 import { getActions } from '../../../global';
 
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
+import { aiChatFoldersTask } from "../ai-task/ai-chatfolders-task"
 import { globalSummaryTask } from '../ai-task/global-summary-task';
 import { intelligentReplyTask } from '../ai-task/intelligent-reply-task';
 import { urgentCheckTask } from '../ai-task/urgent-check-task';
@@ -39,4 +40,6 @@ export const initChatAI = () => {
       toolsEmbeddingStore.addText('searching for a user/person/peer', TOOLS_SEARCH_USER_ID, {});
     }
   });
+  // init ai chat folders task
+  aiChatFoldersTask.initTask();
 };
