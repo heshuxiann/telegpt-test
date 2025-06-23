@@ -6,7 +6,7 @@ const actionItemClassName = 'h-[40px] w-fit px-[12px] py-[8px] rounded-[6px] bg-
 const RoomAIDescription = () => {
   return (
     <div className="px-[12px] pt-4">
-      <div className="px-3 py-2 rounded-xl bg-[#fff]">
+      <div className="px-3 py-2 rounded-xl bg-[var(--color-background)] text-[var(--color-text)]">
         <p className="text-[14px]">
           👋 Hi, welcome to 【BlockBeats Chats】!
           I’m Serena 🤖, your smart assistant in the group. This group mainly discusses topics related to cryptocurrency, mining, and more.

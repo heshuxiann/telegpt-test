@@ -145,10 +145,6 @@ export function validateAndFixJsonStructure(jsonString:string) {
   }
 }
 
-export const isUrgentCheckMessage = (message:Message) => {
-  return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'urgent-message-check') ?? false;
-};
-
 type ResponseMessageWithoutId = CoreToolMessage | CoreAssistantMessage;
 type ResponseMessage = ResponseMessageWithoutId & { id: string };
 

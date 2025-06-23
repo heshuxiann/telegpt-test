@@ -19,6 +19,7 @@ import type { InfiniteScrollRef } from '../component/InfiniteScroll';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
+import buildClassName from '../../../util/buildClassName';
 import { Messages } from '../messages';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
@@ -34,6 +35,7 @@ import { createGoogleLoginMessage, createGoogleMeetingMessage } from './room-ai-
 import { InfiniteScroll } from '../component/InfiniteScroll';
 
 import './room-ai.scss';
+import styles from './room-ai.module.scss';
 
 interface StateProps {
   chatId: string | undefined;
@@ -245,7 +247,7 @@ const RoomAIInner = (props: StateProps) => {
     }
   };
   return (
-    <div className="right-panel-chat-ai h-full overflow-hidden">
+    <div className={buildClassName(styles.rightPanelBg, 'right-panel-chat-ai')}>
       <InfiniteScroll
         className="chat-ai-output-wrapper"
         loadMore={handleLoadMore}

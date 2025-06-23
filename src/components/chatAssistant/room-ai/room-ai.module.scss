@@ -1,0 +1,8 @@
+.rightPanelBg {
+  background-image: url("../assets/room-ai-bg-light.png");
+  background-size: cover;
+  :global(html.theme-dark) & {
+    background-image: url("../assets/room-ai-bg-dark.png");
+    mix-blend-mode: unset;
+  }
+}
