@@ -44,8 +44,13 @@ class UrgentCheckTask {
 
   private urgentChatsInitialized: boolean = false;
 
+  private timmer: NodeJS.Timeout | undefined;
+
   initTask() {
-    setInterval(() => {
+    if (this.timmer) {
+      clearInterval(this.timmer);
+    }
+    this.timmer = setInterval(() => {
       this.checkUrgentMessage();
     }, 1000 * 60 * 5); // 每5分钟检查一次
   }

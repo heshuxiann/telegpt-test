@@ -12,8 +12,13 @@ class IntelligentReplyTask {
 
   private pendingMessages: ApiMessage[] = [];
 
+  private timmer: NodeJS.Timeout | undefined;
+
   initTask() {
-    setInterval(() => {
+    if (this.timmer) {
+      clearInterval(this.timmer);
+    }
+    this.timmer = setInterval(() => {
       this.intelligentResponse();
     }, 1000 * 10);
   }

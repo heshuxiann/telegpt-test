@@ -30,7 +30,7 @@ export const ChataiStores = {
 };
 
 export function setChataiStoreBuilderCurrentUserId(_currentUserId: string) {
-  if (!currentUserId || currentUserId !== _currentUserId) {
+  if (_currentUserId && (!currentUserId || currentUserId !== _currentUserId)) {
     initChataiStores(_currentUserId);
   }
   currentUserId = _currentUserId;

@@ -62,8 +62,8 @@ const GrammarToolWrapper = (props:GrammarToolWrapperProps) => {
     }
   };
   return (
-    <div className="chat-ai-menu flex-shrink-0 mr-[8px]">
-      <button className="Button chat-ai-logo-button" onClick={handleToggleMenu}>
+    <div className="input-ai-actions flex-shrink-0 mr-[8px]">
+      <button className="Button input-ai-actions-button" onClick={handleToggleMenu}>
         <img src={GrammerInput} alt="Chat AI Logo" />
       </button>
       {isGrammarToolOpen && (

@@ -37,3 +37,18 @@
     }
   }
 }
+.input-ai-actions{
+  align-self: flex-end;
+  .input-ai-actions-button {
+    background: none !important;
+    height: var(--base-height, 3.5rem);
+    margin: 0;
+    padding: 0;
+    align-self: flex-end;
+    img {
+      width: 24px;
+      height: 24px;
+    }
+  }
+}
+

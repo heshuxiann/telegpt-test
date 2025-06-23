@@ -21,9 +21,9 @@ import {
   GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME,
 } from '../store';
 import { SUMMARY_CHATS } from '../store/general-store';
+import { sendGAEvent } from '../utils/analytics';
 import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
-import { sendGAEvent } from '../utils/analytics';
 
 function getAlignedExecutionTimestamp(): number | null {
   const date = new Date();
@@ -73,7 +73,12 @@ class GlobalSummaryTask {
 
   private summaryChatsInitialized = false;
 
+  private timmer: NodeJS.Timeout | undefined;
+
   initTask() {
+    if (this.timmer) {
+      clearInterval(this.timmer);
+    }
     const executeTask = () => {
       const currentTime = new Date();
       const hours = currentTime.getHours();
@@ -99,7 +104,7 @@ class GlobalSummaryTask {
     };
 
     // 每分钟执行一次来检查时间段
-    setInterval(executeTask, 60000);
+    this.timmer = setInterval(executeTask, 60000);
     eventEmitter.on(Actions.ChatAIStoreReady, async () => {
       await this.updateSummarySettings();
       const globalSummaryLastTime: number | undefined = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME);
