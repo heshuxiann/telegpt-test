@@ -87,7 +87,7 @@ class AIChatFoldersTask {
           excludedChatIds: [],
         };
         const exist = await ChataiStores.folder?.getFolder(folderTitle);
-        if (exist && exist?.from !== "AI") {
+        if (exist) {
           // 用户已有自定义分类，将用户自定义标签和AI标签对比去重后取合集
           folder.id = Number(exist.id);
           folder.includedChatIds = uniq(

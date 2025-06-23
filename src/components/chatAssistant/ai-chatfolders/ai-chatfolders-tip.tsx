@@ -1,17 +1,26 @@
 import React, { FC, memo } from "../../../lib/teact/teact";
-import AiChatFoldersPreIcon from "../../../assets/ix_ai.png";
 import AiChatFoldersBg from "../../../assets/chat_ai_folder.png";
+import AiChatFoldersDarkBg from "../../../assets/chat_ai_folder_dark.png";
 import AiChatFoldersBtnBg from "../../../assets/chat_ai_folder_border.png";
 import Button from "../../ui/Button";
 import Icon from "../../common/icons/Icon";
 import { ChataiStores, GLOBAL_AICHATFOLDERS_TIP_SHOW } from "../store";
-import { getActions } from "../../../global";
-import { aiChatFoldersTask } from "../ai-task/ai-chatfolders-task"
-import { message } from "antd"
+import { getActions, withGlobal } from "../../../global";
+import { aiChatFoldersTask } from "../ai-task/ai-chatfolders-task";
+import { message } from "antd";
+import { SVGProps } from "react";
+import { selectTheme } from "../../../global/selectors";
+import { ThemeKey } from "../../../types";
 
-const AIChatFoldersTip: FC = ({ onClose }: { onClose?: () => void }) => {
+type OwnProps = {
+  theme: ThemeKey;
+  onClose?: () => void;
+};
+const AIChatFoldersTip: FC<OwnProps> = ({ theme, onClose }: OwnProps) => {
   function onCloseClick() {
-    message.info('You can enable this feature later in the settings page if needed.')
+    message.info(
+      "You can enable this feature later in the settings page if needed."
+    );
     ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_TIP_SHOW, false);
     onClose?.();
   }
@@ -20,36 +29,36 @@ const AIChatFoldersTip: FC = ({ onClose }: { onClose?: () => void }) => {
     const { setSharedSettingOption } = getActions();
 
     setSharedSettingOption({ aiChatFolders: true });
-    aiChatFoldersTask.classifyChatMessageByCount()
+    aiChatFoldersTask.classifyChatMessageByCount();
 
-    onCloseClick()
+    onCloseClick();
   }
 
   return (
     <div
-      className="py-2 flex flex-row items-center relative px-3 gap-4"
-      style={`background-image: url(${AiChatFoldersBg}); background-size: 100% 100%;`}
+      className="py-2 flex flex-row items-center relative px-3 gap-3"
+      style={`background-image: url(${
+        theme === "dark" ? AiChatFoldersDarkBg : AiChatFoldersBg
+      }); background-size: 100% 100%;`}
     >
-      <img
-        src={AiChatFoldersPreIcon}
-        alt="AI Chat Folder Logo"
-        className="w-[23px] h-[23px]"
-      />
-      <div className="leading-[16px]">
+      <div className="text-[var(--color-aichatfolders-tag-text)]">
+        <AIChatFolderIcon />
+      </div>
+      <div className="leading-[16px] text-[var(--color-aichatfolders-tag-text)]">
         Your chat has been intelligently tagged in folders by Serena AI
       </div>
       <Button
         color="translucent"
-        className="w-[46px] h-[24px] rounded-[28px] text-[12px] mr-3"
+        className="w-[46px] h-[24px] rounded-[28px] mr-3"
         style={`background-image: url(${AiChatFoldersBtnBg}); background-size: 100% 100%; text-transform: none; color: #000;`}
         onClick={onApply}
       >
-        Apply
+        <div className="text-[var(--color-aichatfolders-tag-text)] text-[12px]">Apply</div>
       </Button>
       <div className="absolute right-2 top-1">
         <Icon
           name="close"
-          className="text-[#00000029] cursor-pointer hover:opacity-50"
+          className="text-[var(--color-aichatfolders-tag-close-color)] cursor-pointer hover:opacity-50"
           style="width:6px;height:6px"
           onClick={onCloseClick}
         />
@@ -58,4 +67,25 @@ const AIChatFoldersTip: FC = ({ onClose }: { onClose?: () => void }) => {
   );
 };
 
-export default memo(AIChatFoldersTip);
+export default memo(
+  withGlobal<OwnProps>((global) => {
+    return {
+      theme: selectTheme(global),
+    };
+  })(AIChatFoldersTip)
+);
+
+const AIChatFolderIcon = (props: SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={21}
+    height={21}
+    fill="none"
+    {...props}
+  >
+    <path
+      fill="currentColor"
+      d="M13.375 7.625 9.54 6.187l3.834-1.439L14.812.917l1.44 3.831 3.831 1.44-3.832 1.437-1.439 3.833-1.437-3.833ZM5.708 15.29.917 13.375l4.791-1.917 1.917-4.792 1.916 4.792 4.792 1.917-4.792 1.916-1.916 4.792-1.917-4.791Z"
+    />
+  </svg>
+);
