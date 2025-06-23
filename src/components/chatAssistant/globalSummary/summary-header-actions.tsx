@@ -6,10 +6,10 @@ import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import { globalSummaryTask } from '../ai-task/global-summary-task';
 import { LanguageIcon, SettingIcon } from '../icons';
 
-import { DrawerKey, useDrawer } from './DrawerContext';
+import { DrawerKey, useDrawerStore } from './DrawerContext';
 
 const SummaryHeaderActions = () => {
-  const { openDrawer } = useDrawer();
+  const { openDrawer } = useDrawerStore();
   const [summaryLanguage, setSummrayLanguage] = useState('en');
 
   useEffect(() => {

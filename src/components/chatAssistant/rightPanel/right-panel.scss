@@ -1,0 +1,15 @@
+.summary-panel-container{
+    width: 0;
+    height: 100%;
+    padding-right: env(safe-area-inset-right);
+    background: var(--color-background);
+    border-left: 1px solid var(--color-borders);
+    z-index: var(--z-right-column);
+    transition: width var(--layer-transition);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    &.summary-panel-open{ 
+         width: var(--right-column-width);
+    }
+}

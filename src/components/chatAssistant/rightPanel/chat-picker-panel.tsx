@@ -24,7 +24,7 @@ import sortChatIds from '../../common/helpers/sortChatIds';
 import useOldLang from '../hook/useOldLang';
 
 import Avatar from '../component/Avatar';
-import { useDrawer } from '../globalSummary/DrawerContext';
+import { useDrawerStore } from '../globalSummary/DrawerContext';
 
 const ChatPickerPanel = () => {
   const global = getGlobal();
@@ -32,7 +32,7 @@ const ChatPickerPanel = () => {
   const {
     currentUserId,
   } = global;
-  const { drawerParams } = useDrawer();
+  const { drawerParams } = useDrawerStore();
   const selectedChats = drawerParams?.selectedChats || [];
   const [selected, setSelected] = useState<string[]>(selectedChats);
   const [search, setSearch] = useState('');

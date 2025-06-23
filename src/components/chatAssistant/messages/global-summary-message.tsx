@@ -20,7 +20,7 @@ import { cn, formatTimestamp, formatTimestampRange } from '../utils/util';
 
 import Avatar from '../component/Avatar';
 import ErrorBoundary from '../ErrorBoundary';
-import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
+import { DrawerKey, useDrawerStore } from '../globalSummary/DrawerContext';
 
 import ActionsIcon from '../assets/actions.png';
 import CalendarIcon from '../assets/calendar.png';
@@ -100,7 +100,7 @@ const ChatAvatar = ({
 
 const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; index: number }) => {
   const { title, summaryItems, chatId } = topicItem;
-  const { openDrawer } = useDrawer();
+  const { openDrawer } = useDrawerStore();
   if (!summaryItems.length) return null;
   if (!title) return null;
   const showMessageDetail = (chatId: string, relevantMessageIds: number[]) => {
@@ -122,7 +122,7 @@ const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; 
             return (
               <li
                 role="button"
-                className="cursor-pointer text-[15px]"
+                className="cursor-pointer text-[15px] break-all"
                 onClick={() => showMessageDetail(chatId, relevantMessageIds)}
               >
                 {content}
@@ -136,7 +136,7 @@ const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; 
 };
 
 const SummaryPenddingItem = ({ pendingItem }: { pendingItem: ISummaryPendingItem }) => {
-  const { openDrawer } = useDrawer();
+  const { openDrawer } = useDrawerStore();
   const showMessageDetail = () => {
     openDrawer(DrawerKey.OriginalMessages, {
       relevantMessages: [{ chatId: pendingItem.chatId, messageIds: pendingItem.relevantMessageIds }],
@@ -161,7 +161,7 @@ const SummaryGarbageItem = ({ garBageItem }: { garBageItem: ISummaryGarbageItem 
   const {
     chatId, chatRoomName, level, summary, relevantMessageIds,
   } = garBageItem;
-  const { openDrawer } = useDrawer();
+  const { openDrawer } = useDrawerStore();
   const showMessageDetail = (chatId: string, relevantMessageIds: number[]) => {
     openDrawer(DrawerKey.OriginalMessages, {
       relevantMessages: [{ chatId, messageIds: relevantMessageIds }],

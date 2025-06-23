@@ -5,13 +5,13 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { ChataiStores } from '../store';
 
-import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
+import { DrawerKey, useDrawerStore } from '../globalSummary/DrawerContext';
 
 const { TextArea } = Input;
 const CustomizationPromptPanel = () => {
   const [title, setTitle] = useState('');
   const [prompt, setPrompt] = useState('');
-  const { openDrawer } = useDrawer();
+  const { openDrawer } = useDrawerStore();
   const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
   }, []);

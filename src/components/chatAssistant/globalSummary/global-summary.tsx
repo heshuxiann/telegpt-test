@@ -10,17 +10,14 @@ import React, {
 import { useChat } from '@ai-sdk/react';
 import type { Message } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
-import { getActions, getGlobal } from '../../../global';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
-import { selectCurrentChat } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import { Messages } from '../messages';
 import { MultiInput } from '../multi-input';
 import { RightPanel } from '../rightPanel/right-panel';
 import { ChataiStores } from '../store';
 import { parseMessage2SummaryStoreMessage, parseSummaryStoreMessage2Message, type SummaryStoreMessage } from '../store/summary-store';
-import { sendGAEvent } from '../utils/analytics';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
 import GlobalSummaryIntroduce from './global-summary-introduce';
 import SummaryHeaderActions from './summary-header-actions';
@@ -28,7 +25,6 @@ import UrgentNotification from './urgent-notification';
 
 import { InfiniteScroll } from '../component/InfiniteScroll';
 import ErrorBoundary from '../ErrorBoundary';
-import { DrawerProvider } from './DrawerContext';
 
 import './global-summary.scss';
 import styles from './global-summary.module.scss';
@@ -123,43 +119,41 @@ const GlobalSummary = forwardRef(() => {
 
   return (
     <ErrorBoundary>
-      <DrawerProvider>
-        <div className="flex flex-row w-full">
-          <div className={buildClassName(styles.globaSummaryBg, 'flex flex-col w-full h-full flex-1')}>
-            <div className="h-[56px] w-full px-[20px] flex items-center bg-[var(--color-background)]">
-              <img className="w-[40px] h-[40px] rounded-full mr-[12px]" src={SerenaPath} alt="Serena" />
-              <span className="text-[15px] font-semibold">Serena AI</span>
-              <div className="flex items-center ml-auto gap-[20px]">
-                <SummaryHeaderActions />
-              </div>
-            </div>
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <InfiniteScroll
-                loadMore={handleLoadMore}
-                hasMore={pageInfo.hasMore}
-                className="px-[15%] flex-1"
-              >
-                {!pageInfo.hasMore && <GlobalSummaryIntroduce />}
-                <Messages
-                  status={status}
-                  messages={messages}
-                  deleteMessage={deleteMessage}
-                />
-              </InfiniteScroll>
-              <div className="mb-[26px] px-[15%]">
-                <MultiInput
-                  status={status}
-                  setMessages={setMessages}
-                  stop={stop}
-                  handleInputSubmit={handleInputSubmit}
-                />
-              </div>
+      <div className="flex flex-row w-full">
+        <div className={buildClassName(styles.globaSummaryBg, 'flex flex-col w-full h-full flex-1')}>
+          <div className="h-[56px] w-full px-[20px] flex items-center bg-[var(--color-background)]">
+            <img className="w-[40px] h-[40px] rounded-full mr-[12px]" src={SerenaPath} alt="Serena" />
+            <span className="text-[15px] font-semibold">Serena AI</span>
+            <div className="flex items-center ml-auto gap-[20px]">
+              <SummaryHeaderActions />
             </div>
           </div>
-          <RightPanel />
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <InfiniteScroll
+              loadMore={handleLoadMore}
+              hasMore={pageInfo.hasMore}
+              className="px-[15%] flex-1"
+            >
+              {!pageInfo.hasMore && <GlobalSummaryIntroduce />}
+              <Messages
+                status={status}
+                messages={messages}
+                deleteMessage={deleteMessage}
+              />
+            </InfiniteScroll>
+            <div className="mb-[26px] px-[15%]">
+              <MultiInput
+                status={status}
+                setMessages={setMessages}
+                stop={stop}
+                handleInputSubmit={handleInputSubmit}
+              />
+            </div>
+          </div>
         </div>
-        <UrgentNotification message={notificationMessage} />
-      </DrawerProvider>
+        <RightPanel />
+      </div>
+      <UrgentNotification message={notificationMessage} />
     </ErrorBoundary>
 
   );

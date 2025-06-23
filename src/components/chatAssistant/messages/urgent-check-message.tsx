@@ -13,7 +13,7 @@ import {
 import { formatTimestamp } from '../utils/util';
 
 import ChatAvatar from '../component/ChatAvatar';
-import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
+import { DrawerKey, useDrawerStore } from '../globalSummary/DrawerContext';
 
 import DangerIcon from '../assets/danger.png';
 import SerenaLogoPath from '../assets/serena.png';
@@ -87,7 +87,7 @@ const ActionsItems = ({
 const UrgentCheckMessage = (props:IProps) => {
   const { message, deleteMessage } = props;
   const [urgentMessage, setUrgentMessage] = useState<UrgentMessage[]>([]);
-  const { openDrawer } = useDrawer();
+  const { openDrawer } = useDrawerStore();
   useEffect(() => {
     const parsedMessage = JSON.parse(message.content);
     if (parsedMessage && typeof parsedMessage === 'object' && parsedMessage.length > 0) {

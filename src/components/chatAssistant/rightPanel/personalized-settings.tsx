@@ -7,12 +7,12 @@ import { Tabs } from 'antd';
 import SummarizeTab from './surmarize-tab';
 import UrgentAlertTab from './urgent-alert-tab';
 
-import { useDrawer } from '../globalSummary/DrawerContext';
+import { useDrawerStore } from '../globalSummary/DrawerContext';
 
 import './personalized-settings.scss';
 
 const PersonalizeSettings = () => {
-  const { drawerParams } = useDrawer();
+  const { drawerParams } = useDrawerStore();
   const [activeKey, setActiveKey] = useState(drawerParams?.activeKey || '1');
   const items: TabsProps['items'] = [
     {

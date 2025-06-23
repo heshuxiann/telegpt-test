@@ -12,12 +12,12 @@ import { URGENT_CHATS } from '../store/general-store';
 import { SelectedChats } from './selected-chats';
 
 import Icon from '../component/Icon';
-import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
+import { DrawerKey, useDrawerStore } from '../globalSummary/DrawerContext';
 
 import './urgent-alert-tab.scss';
 
 const TopicItem = ({ topic, onDelete }: { topic: UrgentTopic;onDelete: (id: string) => void }) => {
-  const { openDrawer } = useDrawer();
+  const { openDrawer } = useDrawerStore();
   const handeleDeleteTopic = () => {
     onDelete(topic.id);
   };
@@ -35,7 +35,7 @@ const TopicItem = ({ topic, onDelete }: { topic: UrgentTopic;onDelete: (id: stri
   );
 };
 const AddTopic = () => {
-  const { openDrawer } = useDrawer();
+  const { openDrawer } = useDrawerStore();
   const handleAddTopic = () => {
     console.log('add topic');
     openDrawer(DrawerKey.AddTopicPanel);
@@ -54,7 +54,7 @@ const AddTopic = () => {
 const UrgentAlertTab = () => {
   const [topics, setTopics] = useState<UrgentTopic[]>([]);
   const [selectedChats, setSelectedChats] = useState<string[]>([]);
-  const { openDrawer } = useDrawer();
+  const { openDrawer } = useDrawerStore();
   useEffect(() => {
     ChataiStores.urgentTopic?.getAllUrgentTopic().then((topics) => {
       console.log('topics', topics);

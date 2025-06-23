@@ -9,13 +9,13 @@ import type { UrgentTopic } from '../store/urgent-topic-store';
 
 import { ChataiStores } from '../store';
 
-import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
+import { DrawerKey, useDrawerStore } from '../globalSummary/DrawerContext';
 
 const { TextArea } = Input;
 
 const AddTopicPanel = () => {
   const [form] = Form.useForm();
-  const { openDrawer, drawerParams } = useDrawer();
+  const { openDrawer, drawerParams } = useDrawerStore();
   const initialValues:UrgentTopic = drawerParams || {
     id: uuidv4(),
     topicName: '',

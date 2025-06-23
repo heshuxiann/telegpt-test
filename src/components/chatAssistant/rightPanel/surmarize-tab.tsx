@@ -14,7 +14,7 @@ import { ChataiStores } from '../store';
 import { SUMMARY_CHATS } from '../store/general-store';
 import { SelectedChats } from './selected-chats';
 
-import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
+import { DrawerKey, useDrawerStore } from '../globalSummary/DrawerContext';
 
 import './surmarize-tab.scss';
 
@@ -23,7 +23,7 @@ const SummarizeTab = () => {
   const [lastTemplate, setLastTemplate] = useState<CustomSummaryTemplate | undefined>(undefined);
   const [currentTemplate, setCurrentTemplate] = useState<CustomSummaryTemplate | undefined>(undefined);
   const [selectedChats, setSelectedChats] = useState<string[]>([]);
-  const { openDrawer } = useDrawer();
+  const { openDrawer } = useDrawerStore();
   useEffect(() => {
     ChataiStores.summaryTemplate?.getAllSummaryTemplate().then((res) => {
       setUserDefinedTemplate(res || []);

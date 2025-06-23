@@ -2,6 +2,7 @@
 /* eslint-disable no-null/no-null */
 /* eslint-disable max-len */
 import React, { useEffect, useState } from 'react';
+import cx from 'classnames';
 
 import type { MessagePanelPayload } from './message-panel';
 
@@ -12,12 +13,14 @@ import MessagePanel from './message-panel';
 import PersonalizeSettings from './personalized-settings';
 import RightHeader from './right-header';
 
-import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
+import { DrawerKey, useDrawerStore } from '../globalSummary/DrawerContext';
+
+import './right-panel.scss';
 
 export const RightPanel = () => {
   const {
     isOpen, drawerKey, drawerParams, closeDrawer,
-  } = useDrawer();
+  } = useDrawerStore();
   const [rightPanelContent, setRightPanelContent] = useState<React.ReactElement | null>(null);
 
   useEffect(() => {
@@ -37,12 +40,16 @@ export const RightPanel = () => {
       case DrawerKey.AddTopicPanel:
         setRightPanelContent(<AddTopicPanel />);
         break;
+      default:
+        setRightPanelContent(null);
     }
   }, [drawerKey, drawerParams]);
 
-  if (!isOpen) return null;
   return (
-    <div className="right-panel-container w-[375px] h-full bg-[var(--color-background)] flex flex-col border-l-[1px] border-[var(--color-borders)]">
+    <div className={cx('summary-panel-container', {
+      'summary-panel-open': isOpen,
+    })}
+    >
       <RightHeader drawerKey={drawerKey} onClose={closeDrawer} />
       <div className="flex-1 overflow-hidden">
         {rightPanelContent}

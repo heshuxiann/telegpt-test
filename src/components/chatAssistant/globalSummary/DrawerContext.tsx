@@ -1,8 +1,5 @@
-/* eslint-disable no-null/no-null */
-/* eslint-disable react/jsx-no-constructed-context-values */
-import React, {
-  createContext, useCallback, useContext, useState,
-} from 'react';
+// useDrawerStore.ts
+import { create } from 'zustand';
 
 export enum DrawerKey {
   PersonalizeSettings = 'PersonalizeSettings',
@@ -12,13 +9,7 @@ export enum DrawerKey {
   AddTopicPanel = 'AddTopicPanel',
 }
 
-type DrawerMeta = {
-  isOpen: boolean;
-  drawerKey?: DrawerKey;
-  drawerParams?: any;
-};
-
-type DrawerContextType = {
+type DrawerState = {
   isOpen: boolean;
   drawerKey?: DrawerKey;
   drawerParams?: any;
@@ -26,36 +17,20 @@ type DrawerContextType = {
   closeDrawer: () => void;
 };
 
-const DrawerContext = createContext<DrawerContextType | null>(null);
+export const useDrawerStore = create<DrawerState>((set) => ({
+  isOpen: false,
+  drawerKey: undefined,
+  drawerParams: undefined,
 
-export const DrawerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [drawer, setDrawer] = useState<DrawerMeta>({ isOpen: false, drawerKey: DrawerKey.PersonalizeSettings });
+  openDrawer: (drawerKey, drawerParams) => set(() => ({
+    isOpen: true,
+    drawerKey,
+    drawerParams,
+  })),
 
-  const openDrawer = useCallback((drawerKey?: DrawerKey, drawerParams?: any) => {
-    setDrawer({ isOpen: true, drawerKey, drawerParams });
-  }, []);
-
-  const closeDrawer = useCallback(() => {
-    setDrawer({ isOpen: false, drawerKey: undefined, drawerParams: undefined });
-  }, []);
-
-  return (
-    <DrawerContext.Provider
-      value={{
-        isOpen: drawer.isOpen,
-        drawerKey: drawer.drawerKey,
-        drawerParams: drawer.drawerParams,
-        openDrawer,
-        closeDrawer,
-      }}
-    >
-      {children}
-    </DrawerContext.Provider>
-  );
-};
-
-export const useDrawer = () => {
-  const ctx = useContext(DrawerContext);
-  if (!ctx) throw new Error('useDrawer must be used within a DrawerProvider');
-  return ctx;
-};
+  closeDrawer: () => set(() => ({
+    isOpen: false,
+    drawerKey: undefined,
+    drawerParams: undefined,
+  })),
+}));

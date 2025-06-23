@@ -5,7 +5,7 @@ import cx from 'classnames';
 
 import { CloseIcon, LeftOutlined } from '../icons';
 
-import { DrawerKey, useDrawer } from '../globalSummary/DrawerContext';
+import { DrawerKey, useDrawerStore } from '../globalSummary/DrawerContext';
 
 interface Props {
   drawerKey: DrawerKey | undefined;
@@ -21,7 +21,7 @@ const hasBackDrawer = [
 const HeaderButton = ({ icon, className, onClick }:{ icon:React.ReactNode;className?:string;onClick:()=>void }) => {
   return (
     <div
-      className={cx('flex items-center justify-center cursor-pointer w-[44px] h-[44px] rounded-full hover:bg-[var(--color-interactive-element-hover)]', className)}
+      className={cx('flex items-center justify-center cursor-pointer w-[44px] h-[44px] rounded-full text-[var(--color-text-secondary)] hover:bg-[var(--color-interactive-element-hover)]', className)}
       onClick={onClick}
     >
       {icon}
@@ -31,7 +31,7 @@ const HeaderButton = ({ icon, className, onClick }:{ icon:React.ReactNode;classN
 const RightHeader = (props: Props) => {
   const { drawerKey, onClose } = props;
   const [title, setTitle] = useState('');
-  const { openDrawer } = useDrawer();
+  const { openDrawer } = useDrawerStore();
   const handleBack = useCallback(() => {
     openDrawer(DrawerKey.PersonalizeSettings, {
       activeKey: drawerKey === DrawerKey.CustomizationPrompt ? '1' : '2',
@@ -48,6 +48,9 @@ const RightHeader = (props: Props) => {
       case DrawerKey.CustomizationPrompt:
       case DrawerKey.AddTopicPanel:
         setTitle('Customization');
+        break;
+      default:
+        setTitle('');
     }
   }, [handleBack, drawerKey]);
   return (
