@@ -31,7 +31,6 @@ import {
   MEMBERS_LOAD_SLICE,
   SERVICE_NOTIFICATIONS_USER_ID,
   TOPICS_SLICE,
-  UNREAD_FOLDER_ID,
 } from '../../../config';
 import { buildCollectionByKey, omitUndefined } from '../../../util/iteratees';
 import {
@@ -1054,7 +1053,6 @@ export async function fetchChatFolders() {
   const orderedIds = dialogFilters.map(({ id }) => id);
   if (defaultFolderPosition !== -1) {
     orderedIds.splice(defaultFolderPosition, 0, ALL_FOLDER_ID);
-    orderedIds.splice(3, 0, UNREAD_FOLDER_ID);
   }
   return {
     byId: buildCollectionByKey(

@@ -7,9 +7,11 @@ import Icon from "../../common/icons/Icon";
 import { ChataiStores, GLOBAL_AICHATFOLDERS_TIP_SHOW } from "../store";
 import { getActions } from "../../../global";
 import { aiChatFoldersTask } from "../ai-task/ai-chatfolders-task"
+import { message } from "antd"
 
 const AIChatFoldersTip: FC = ({ onClose }: { onClose?: () => void }) => {
   function onCloseClick() {
+    message.info('You can enable this feature later in the settings page if needed.')
     ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_TIP_SHOW, false);
     onClose?.();
   }
@@ -18,11 +20,9 @@ const AIChatFoldersTip: FC = ({ onClose }: { onClose?: () => void }) => {
     const { setSharedSettingOption } = getActions();
 
     setSharedSettingOption({ aiChatFolders: true });
-
     aiChatFoldersTask.classifyChatMessageByCount()
 
-    ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_TIP_SHOW, false);
-    onClose?.();
+    onCloseClick()
   }
 
   return (

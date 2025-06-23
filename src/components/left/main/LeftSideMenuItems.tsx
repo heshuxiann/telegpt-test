@@ -45,6 +45,8 @@ import MenuSeparator from '../../ui/MenuSeparator';
 import Switcher from '../../ui/Switcher';
 import Toggle from '../../ui/Toggle';
 import AccountMenuItems from './AccountMenuItems';
+import { deleteAiChatFolders, sortChatFolder } from "../../chatAssistant/ai-chatfolders/util"
+import { aiChatFoldersTask } from "../../chatAssistant/ai-task/ai-chatfolders-task"
 
 type OwnProps = {
   onSelectAIKnowledge: NoneToVoidFunction;
@@ -151,10 +153,17 @@ const LeftSideMenuItems = ({
     openChatWithInfo({ id: currentUserId, shouldReplaceHistory: true, profileTab: 'stories' });
   });
 
-  const handleSwitchAIChatFolders = useLastCallback((e: React.SyntheticEvent<HTMLElement>) => {
+  const handleSwitchAIChatFolders = useLastCallback(async (e: React.SyntheticEvent<HTMLElement>) => {
     e.stopPropagation();
-
-    setSharedSettingOption({ aiChatFolders: !aiChatFolders });
+    const isOpen = !aiChatFolders
+    setSharedSettingOption({ aiChatFolders: isOpen });
+    if (!isOpen) {
+      // delete ai chat folders
+      await deleteAiChatFolders()
+      // await sortChatFolder();
+    } else {
+      aiChatFoldersTask.classifyChatMessageByCount()
+    }
   })
 
   return (
@@ -186,12 +195,15 @@ const LeftSideMenuItems = ({
         onClick={handleSwitchAIChatFolders}
       >
         <span className="menu-item-name capitalize">{oldLang('AI Chat Folders')}</span>
-        <Switcher
-          id="aiChatFolders"
-          label=""
-          checked={aiChatFolders===false ? false : true}
-          noAnimation
-        />
+        <label className='Switcher no-animation' title={''}>
+          <input
+            type="checkbox"
+            id="aiChatFolders"
+            checked={aiChatFolders === true ? true : false}
+            disabled
+          />
+          <span className="widget" />
+        </label>
       </MenuItem>
       <MenuItem
         icon="saved-messages"

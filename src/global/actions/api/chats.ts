@@ -34,6 +34,7 @@ import {
   TOP_CHAT_MESSAGES_PRELOAD_LIMIT,
   TOPICS_SLICE,
   TOPICS_SLICE_SECOND_LOAD,
+  UNREAD_FOLDER_ID,
 } from '../../../config';
 import { copyTextToClipboard } from '../../../util/clipboard';
 import { formatShareText, processDeepLink } from '../../../util/deeplink';
@@ -134,6 +135,7 @@ import { selectGroupCall } from '../../selectors/calls';
 import { selectCurrentLimit } from '../../selectors/limits';
 import { GLOBAL_SUMMARY_CHATID } from '../../../components/chatAssistant/variables';
 import { ChataiStores, GLOBAL_AI_TAG, GLOBAL_PRESET_TAG } from "../../../components/chatAssistant/store"
+import { selectSharedSettings } from "../../selectors/sharedState"
 
 const TOP_CHAT_MESSAGES_PRELOAD_INTERVAL = 100;
 const INFINITE_LOOP_MARKER = 100;
@@ -1021,7 +1023,6 @@ addActionHandler('loadChatFolders', async (global): Promise<void> => {
   const chatFolders = await callApi('fetchChatFolders');
   if (chatFolders) {
     global = getGlobal();
-
     global = {
       ...global,
       chatFolders: {
@@ -1031,43 +1032,64 @@ addActionHandler('loadChatFolders', async (global): Promise<void> => {
     };
     setGlobal(global);
   }
-  // load folder to db
-  if (chatFolders?.byId && Object.keys(chatFolders?.byId).length > 0) {
-    const allFolderDb = await ChataiStores.folder?.getAllFolders();
-    allFolderDb?.forEach(async (item)=>{
-      if (Object.keys(chatFolders?.byId).indexOf(item?.id + '') < 0) {
-        await ChataiStores.folder?.deleteFolder(item?.title);
-      }
-    })
-
-    Object.keys(chatFolders?.byId)?.forEach(async (folderId) => {
-      const exist = allFolderDb?.findIndex(o=>o?.id===folderId)
-      if (!exist || exist < 0) {
+  const { aiChatFolders } = selectSharedSettings(global);
+  if (aiChatFolders === true) {
+    // load folder to db
+    if (chatFolders?.byId && Object.keys(chatFolders?.byId).length > 0) {
+      const allFolderDb = await ChataiStores.folder?.getAllFolders();
+      allFolderDb?.forEach(async (item) => {
+        if (Object.keys(chatFolders?.byId).indexOf(item?.id + '') < 0) {
+          await ChataiStores.folder?.deleteFolder(item?.title);
+        }
+      })
+      Object.keys(chatFolders?.byId)?.forEach(async (folderId) => {
         const folderInfo = chatFolders?.byId[Number(folderId)];
-        await ChataiStores.folder?.addFolder({
-          id: Number(folderId),
-          title: folderInfo?.title?.text,
-          includedChatIds: folderInfo?.includedChatIds,
-          excludedChatIds: folderInfo?.excludedChatIds,
-          from: 'user'
-        });
-      }
-    });
-  }
-  const allAiChatFolders = await ChataiStores.aIChatFolders?.getAllAIChatFolders()
-  const activePresetTag = await ChataiStores.general?.get(GLOBAL_PRESET_TAG)
-  const activeAITag = await ChataiStores.general?.get(GLOBAL_AI_TAG)
-  if (allAiChatFolders && allAiChatFolders?.length > 0) {
+        const exist = allFolderDb?.findIndex(o=>o?.title === folderInfo.title?.text)
+        if (exist && exist < 0) {
+          await ChataiStores.folder?.addFolder({
+            id: Number(folderId),
+            title: folderInfo?.title?.text,
+            includedChatIds: folderInfo?.includedChatIds,
+            excludedChatIds: folderInfo?.excludedChatIds,
+            from: 'user'
+          });
+        }
+      });
+    }
+    const allAiChatFolders = await ChataiStores.aIChatFolders?.getAllAIChatFolders()
+    const activePresetTag = await ChataiStores.general?.get(GLOBAL_PRESET_TAG)
+    const activeAITag = await ChataiStores.general?.get(GLOBAL_AI_TAG)
+    if (allAiChatFolders && allAiChatFolders?.length > 0) {
+      global = getGlobal();
+      let orderedIds = (chatFolders?.orderedIds ?? []);
+      orderedIds.splice(3, 0, UNREAD_FOLDER_ID)
+      orderedIds.push(PRESET_FOLDER_ID)
+      orderedIds.push(AI_FOLDER_ID)
+      global = {
+        ...global,
+        chatFolders: {
+          ...global.chatFolders,
+          orderedIds,
+          aiChatFolders: {
+            activePresetTag,
+            activeAITag,
+            list: allAiChatFolders
+          },
+        },
+      };
+      setGlobal(global);
+    }
+  } else {
     global = getGlobal();
     global = {
       ...global,
       chatFolders: {
         ...global.chatFolders,
-        orderedIds: [...(chatFolders?.orderedIds ?? []), PRESET_FOLDER_ID, AI_FOLDER_ID],
+        orderedIds: (chatFolders?.orderedIds ?? []).filter((id) => id !== PRESET_FOLDER_ID && id !== AI_FOLDER_ID),
         aiChatFolders: {
-          activePresetTag,
-          activeAITag,
-          list: allAiChatFolders
+          activePresetTag: [],
+          activeAITag: [],
+          list: []
         },
       },
     };

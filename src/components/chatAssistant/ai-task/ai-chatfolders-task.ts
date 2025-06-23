@@ -111,7 +111,7 @@ class AIChatFoldersTask {
             new Date()
           );
         }
-        await sleep(5000);
+        await sleep(3000);
       }
     }
     await this.sortChatFolder();
@@ -153,8 +153,8 @@ class AIChatFoldersTask {
   async classifyChatMessageByCount() {
     const global = getGlobal();
     const { aiChatFolders } = selectSharedSettings(global);
-    if (aiChatFolders === false) {
-      console.log(AI_CHATFOLDERS_LOG_PRE + "enable=false", global);
+    if (aiChatFolders !== true) {
+      console.log(AI_CHATFOLDERS_LOG_PRE + "enable=false, pass", global);
       return;
     }
     const lastTime = await ChataiStores.general?.get(
@@ -176,6 +176,7 @@ class AIChatFoldersTask {
     const orderedIds = (getOrderedIds(ALL_FOLDER_ID) || [])?.filter(
       (o) => o !== SERVICE_NOTIFICATIONS_USER_ID
     );
+    console.log(AI_CHATFOLDERS_LOG_PRE + "orderedIds:", orderedIds);
     for (let i = 0; i < orderedIds.length; i++) {
       const chatId = orderedIds[i];
       const chat = selectChat(global, chatId);

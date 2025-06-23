@@ -43,6 +43,8 @@ import { ChataiStores, GLOBAL_AI_TAG, GLOBAL_AICHATFOLDERS_TIP_SHOW, GLOBAL_PRES
 import { filterAITag, filterPresetTag } from "../../chatAssistant/ai-chatfolders/tag-filter"
 import AIChatFoldersTip from "../../chatAssistant/ai-chatfolders/ai-chatfolders-tip"
 import ActiveTag from "../../chatAssistant/ai-chatfolders/active-tag"
+import { selectSharedSettings } from "../../../global/selectors/sharedState"
+import { filterAIFolder } from "../../chatAssistant/ai-chatfolders/util"
 
 type OwnProps = {
   onSettingsScreenSelect: (screen: SettingsScreens) => void;
@@ -176,7 +178,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
 
   const displayedFolders = useMemo(() => {
     return orderedFolderIds
-      ? orderedFolderIds.map((id) => {
+      ? orderedFolderIds?.map((id) => {
         if (id === ALL_FOLDER_ID) {
           return allChatsFolder;
         }
@@ -189,7 +191,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
         if (id === AI_FOLDER_ID) {
           return AIChatsFolder
         }
-        return chatFoldersById[id] || {};
+        return chatFoldersById?.[id] || {};
       }).filter(Boolean)
       : undefined;
   }, [chatFoldersById, allChatsFolder, orderedFolderIds]);
@@ -450,14 +452,14 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
 
   function renderCurrentTab(isActive: boolean) {
     const activeFolder = Object.values(chatFoldersById)
-      .find(({ id }) => id === folderTabs![activeChatFolder].id);
+      .find(({ id }) => id === folderTabs![activeChatFolder]?.id);
     const isFolder = activeFolder && !isInAllChatsFolder && !isInPresetFolder && !isInPresetFolder && !isInAIFolder;
     const folderType = getFolderType();
 
     return (
       <ChatList
         folderType={isFolder ? 'folder' : folderType}
-        folderId={isFolder ? activeFolder.id : undefined}
+        folderId={isFolder ? activeFolder?.id : undefined}
         isActive={isActive}
         isForumPanelOpen={isForumPanelOpen}
         foldersDispatch={foldersDispatch}
@@ -467,7 +469,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
         archiveSettings={archiveSettings}
         sessions={sessions}
         isAccountFrozen={isAccountFrozen}
-        activeTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? activePresetTag : activeAITag}
+        activeTag={shouldRenderFolders ? (folderTabs![activeChatFolder]?.id === PRESET_FOLDER_ID ? activePresetTag : activeAITag) :[]}
       />
     );
   }
@@ -495,18 +497,18 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
         <div ref={placeholderRef} className="tabs-placeholder" />
       ) : undefined}
       {shouldRenderAiChatFoldersTip && <AIChatFoldersTip onClose={closeRenderAiChatFoldersTip} />}
-      {shouldRenderPresetTagModal && <PresetTagModal
+      {shouldRenderFolders && shouldRenderPresetTagModal && <PresetTagModal
         activeTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? activePresetTag : activeAITag}
         setActiveTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? setActivePresetTag : setActiveAITag}
         isOpen={shouldRenderPresetTagModal}
         onClose={closeRenderPresetTagModal}
         folderId={folderTabs![activeChatFolder].id}
       />}
-      <ActiveTag
+      {shouldRenderFolders && <ActiveTag
         folderType={getFolderType()}
-        tags={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? activePresetTag : activeAITag}
-        setActiveTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? setActivePresetTag : setActiveAITag}
-      />
+        tags={folderTabs![activeChatFolder]?.id === PRESET_FOLDER_ID ? activePresetTag : activeAITag}
+        setActiveTag={folderTabs![activeChatFolder]?.id === PRESET_FOLDER_ID ? setActivePresetTag : setActiveAITag}
+      />}
       <Transition
         ref={transitionRef}
         name={shouldSkipHistoryAnimations ? 'none' : lang.isRtl ? 'slideOptimizedRtl' : 'slideOptimized'}
@@ -524,7 +526,6 @@ export default memo(withGlobal<OwnProps>(
     const {
       chatFolders: {
         byId: chatFoldersById,
-        orderedIds: orderedFolderIds,
         invites: folderInvitesById,
       },
       chats: {
@@ -543,9 +544,14 @@ export default memo(withGlobal<OwnProps>(
       currentUserId,
       archiveSettings,
     } = global;
+    let orderedFolderIds = global.chatFolders.orderedIds;
     const { shouldSkipHistoryAnimations, activeChatFolder } = selectTabState(global);
     const { storyViewer: { isRibbonShown: isStoryRibbonShown } } = selectTabState(global);
     const isAccountFrozen = selectIsCurrentUserFrozen(global);
+    const { aiChatFolders } = selectSharedSettings(global);
+    if (aiChatFolders !== true) {
+      orderedFolderIds = filterAIFolder(orderedFolderIds);
+    }
 
     return {
       chatFoldersById,

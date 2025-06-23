@@ -1,12 +1,21 @@
 import { ApiMessage } from "../../../api/types";
 import { getActions, getGlobal, setGlobal } from "../../../global";
 import { selectBot, selectChat } from "../../../global/selectors";
-import { ChataiStores, GLOBAL_AI_TAG } from "../store";
+import {
+  ChataiStores,
+  GLOBAL_AI_TAG,
+  GLOBAL_AICHATFOLDERS_LAST_TIME,
+} from "../store";
 import { validateAndFixJsonStructure } from "../utils/util";
 import { isSystemBot } from "../../../global/helpers";
-import { SERVICE_NOTIFICATIONS_USER_ID } from "../../../config"
-import { getAITags } from "./tag-filter"
-import { intersection } from "lodash"
+import {
+  AI_FOLDER_ID,
+  PRESET_FOLDER_ID,
+  SERVICE_NOTIFICATIONS_USER_ID,
+  UNREAD_FOLDER_ID,
+} from "../../../config";
+import { getAITags } from "./tag-filter";
+import { intersection } from "lodash";
 
 export interface AIChatFolder {
   id?: string;
@@ -67,7 +76,8 @@ async function chatAIChatFolders(body: string) {
 export async function saveAiChatFolders(list: AIChatFolder[]) {
   let global = getGlobal();
 
-  let activeAITag: string[] = global?.chatFolders?.aiChatFolders?.activeAITag ?? [];
+  let activeAITag: string[] =
+    global?.chatFolders?.aiChatFolders?.activeAITag ?? [];
   let allAiChatFolders: AIChatFolder[] = [];
   list.forEach(async (item) => {
     const chat = selectChat(global, item.chatId + "");
@@ -79,8 +89,8 @@ export async function saveAiChatFolders(list: AIChatFolder[]) {
     allAiChatFolders.push(classifyItem);
     ChataiStores.aIChatFolders?.addAIChatFolder(classifyItem);
   });
-  const aiAllTags = getAITags()
-  activeAITag = intersection(aiAllTags, activeAITag)
+  const aiAllTags = getAITags();
+  activeAITag = intersection(aiAllTags, activeAITag);
   ChataiStores.general?.set(GLOBAL_AI_TAG, activeAITag);
   global = {
     ...global,
@@ -152,14 +162,35 @@ export async function deleteAiChatFolders() {
         new Date()
       );
       await deleteChatFolder?.({ id: Number(folderInfoDb?.id) });
-      if (i < (res || [])?.length - 1) {
-        await sleep(5000);
-      }
+      await sleep(3000);
     }
   }
+  ChataiStores.general?.delete(GLOBAL_AICHATFOLDERS_LAST_TIME);
 }
 
 export function isChatBot(chatId: string) {
   const global = getGlobal();
-  return (isSystemBot(chatId) || chatId === SERVICE_NOTIFICATIONS_USER_ID) || selectBot(global, chatId);
+  return (
+    isSystemBot(chatId) ||
+    chatId === SERVICE_NOTIFICATIONS_USER_ID ||
+    selectBot(global, chatId)
+  );
+}
+
+export async function sortChatFolder() {
+  const global = getGlobal();
+  let ids =
+    Object.keys(global.chatFolders.byId)?.map((item) => Number(item)) || [];
+  if (ids?.length) {
+    ids = [0, ...ids];
+  }
+  console.log(AI_CHATFOLDERS_LOG_PRE + "sort: ", ids);
+  await getActions().sortChatFolders({ folderIds: ids });
+}
+
+export function filterAIFolder(ids: number[] | undefined) {
+  return ids?.filter(
+    (id) =>
+      id !== AI_FOLDER_ID && id !== PRESET_FOLDER_ID && id !== UNREAD_FOLDER_ID
+  );
 }

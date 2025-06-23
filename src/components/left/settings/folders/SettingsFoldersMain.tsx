@@ -27,6 +27,8 @@ import Button from '../../../ui/Button';
 import Draggable from '../../../ui/Draggable';
 import ListItem from '../../../ui/ListItem';
 import Loading from '../../../ui/Loading';
+import { selectSharedSettings } from "../../../../global/selectors/sharedState"
+import { filterAIFolder } from "../../../chatAssistant/ai-chatfolders/util"
 
 type OwnProps = {
   isActive?: boolean;
@@ -150,7 +152,7 @@ const SettingsFoldersMain: FC<OwnProps & StateProps> = ({
         return {
           id,
           title: {
-            text: 'Preset',
+            text: 'Unread',
             entities: [],
           },
         };
@@ -397,10 +399,15 @@ const SettingsFoldersMain: FC<OwnProps & StateProps> = ({
 export default memo(withGlobal<OwnProps>(
   (global): StateProps => {
     const {
-      orderedIds: folderIds,
       byId: foldersById,
       recommended: recommendedChatFolders,
     } = global.chatFolders;
+
+    let folderIds = global.chatFolders.orderedIds;
+    const { aiChatFolders } = selectSharedSettings(global);
+    if (aiChatFolders !== true) {
+      folderIds = filterAIFolder(folderIds);
+    }
 
     return {
       folderIds,
