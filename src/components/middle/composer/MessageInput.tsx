@@ -43,7 +43,7 @@ import Icon from '../../common/icons/Icon';
 import Button from '../../ui/Button';
 import TextTimer from '../../ui/TextTimer';
 import TextFormatter from './TextFormatter.async';
-import InputGrammarWrapper from '../../chatAssistant/component/InputGrammar/InputGrammarWrapper';
+import InputGrammarWrapper from '../../chatAssistant/component/input-grammar/InputGrammarWrapper';
 
 // eslint-disable-next-line import/no-relative-packages
 

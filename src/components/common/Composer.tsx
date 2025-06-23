@@ -157,9 +157,8 @@ import usePaidMessageConfirmation from '../middle/composer/hooks/usePaidMessageC
 import useStickerTooltip from '../middle/composer/hooks/useStickerTooltip';
 import useVoiceRecording from '../middle/composer/hooks/useVoiceRecording';
 
-import GrammarToolWrapper from '../chatAssistant/component/InputGrammar/GrammarToolWrapper';
+import GrammarToolWrapper from '../chatAssistant/component/input-grammar/GrammarToolWrapper';
 import eventEmitter from '../chatAssistant/lib/EventEmitter';
-import InputAIMenu from '../middle/chatgpt/InputAIMenu';
 import AttachmentModal from '../middle/composer/AttachmentModal.async';
 import AttachMenu from '../middle/composer/AttachMenu';
 import BotCommandMenu from '../middle/composer/BotCommandMenu.async';
@@ -192,6 +191,7 @@ import PaymentMessageConfirmDialog from './PaymentMessageConfirmDialog';
 import ReactionAnimatedEmoji from './reactions/ReactionAnimatedEmoji';
 
 import './Composer.scss';
+// import InputTranslate from '../chatAssistant/component/input-translate/input-translate';
 
 type ComposerType = 'messageList' | 'story';
 
@@ -2135,7 +2135,7 @@ const Composer: FC<OwnProps & StateProps> = ({
             </span>
           )}
           <GrammarToolWrapper getHtml={getHtml} setHtml={setHtml} />
-          <InputAIMenu getHtml={getHtml} chat={chat} />
+          {/* <InputTranslate chatId={chatId} /> */}
           {!isNeedPremium && (
             <AttachMenu
               chatId={chatId}
