@@ -6,7 +6,7 @@ import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiChatFolder } from '../../../../api/types';
 
-import { ALL_FOLDER_ID, STICKER_SIZE_FOLDER_SETTINGS } from '../../../../config';
+import { AI_FOLDER_ID, ALL_FOLDER_ID, PRESET_FOLDER_ID, STICKER_SIZE_FOLDER_SETTINGS, UNREAD_FOLDER_ID } from '../../../../config';
 import { getFolderDescriptionText } from '../../../../global/helpers';
 import { selectIsCurrentUserPremium } from '../../../../global/selectors';
 import { selectCurrentLimit } from '../../../../global/selectors/limits';
@@ -27,6 +27,8 @@ import Button from '../../../ui/Button';
 import Draggable from '../../../ui/Draggable';
 import ListItem from '../../../ui/ListItem';
 import Loading from '../../../ui/Loading';
+import { selectSharedSettings } from "../../../../global/selectors/sharedState"
+import { filterAIFolder } from "../../../chatAssistant/ai-chatfolders/util"
 
 type OwnProps = {
   isActive?: boolean;
@@ -138,6 +140,30 @@ const SettingsFoldersMain: FC<OwnProps & StateProps> = ({
             entities: [],
           },
         };
+      } else if (id === PRESET_FOLDER_ID) {
+        return {
+          id,
+          title: {
+            text: 'Preset',
+            entities: [],
+          },
+        };
+      } else if (id === UNREAD_FOLDER_ID) {
+        return {
+          id,
+          title: {
+            text: 'Unread',
+            entities: [],
+          },
+        };
+      } else if (id === AI_FOLDER_ID) {
+        return {
+          id,
+          title: {
+            text: 'AI',
+            entities: [],
+          },
+        };
       }
 
       return {
@@ -235,7 +261,7 @@ const SettingsFoldersMain: FC<OwnProps & StateProps> = ({
             const draggedTop = (state.orderedFolderIds?.indexOf(folder.id) ?? 0) * FOLDER_HEIGHT_PX;
             const top = (state.dragOrderIds?.indexOf(folder.id) ?? 0) * FOLDER_HEIGHT_PX;
 
-            if (folder.id === ALL_FOLDER_ID) {
+            if (folder.id === ALL_FOLDER_ID || folder.id === PRESET_FOLDER_ID || folder.id === UNREAD_FOLDER_ID || folder.id === AI_FOLDER_ID) {
               return (
                 <Draggable
                   key={folder.id}
@@ -373,10 +399,15 @@ const SettingsFoldersMain: FC<OwnProps & StateProps> = ({
 export default memo(withGlobal<OwnProps>(
   (global): StateProps => {
     const {
-      orderedIds: folderIds,
       byId: foldersById,
       recommended: recommendedChatFolders,
     } = global.chatFolders;
+
+    let folderIds = global.chatFolders.orderedIds;
+    const { aiChatFolders } = selectSharedSettings(global);
+    if (aiChatFolders !== true) {
+      folderIds = filterAIFolder(folderIds);
+    }
 
     return {
       folderIds,

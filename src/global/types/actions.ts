@@ -379,9 +379,11 @@ export interface ActionPayloads {
   editChatFolder: {
     id: number;
     folderUpdate: Omit<ApiChatFolder, 'id' | 'description' | 'emoticon'>;
+    from?: 'user' | 'AI'
   };
   addChatFolder: {
     folder: ApiChatFolder;
+    from?: 'user' | 'AI'
   } & WithTabId;
   deleteChatFolder: {
     id: number;

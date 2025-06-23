@@ -30,6 +30,7 @@ export type SharedState = {
     shouldDebugExportedSenders?: boolean;
     shouldWarnAboutSvg?: boolean;
     shouldSkipWebAppCloseConfirmation: boolean;
+    aiChatFolders?: boolean
   };
   isInitial?: true;
 };

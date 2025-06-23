@@ -48,6 +48,7 @@ import type {
   ApiWallpaper,
   ApiWebSession,
 } from '../../api/types';
+import { AIChatFolder } from "../../components/chatAssistant/ai-chatfolders/util"
 import type {
   AccountSettings,
   BotAppPermissions,
@@ -272,6 +273,11 @@ export type GlobalState = {
     byId: Record<number, ApiChatFolder>;
     invites: Record<number, ApiChatlistExportedInvite[]>;
     recommended?: ApiChatFolder[];
+    aiChatFolders?: {
+      activePresetTag?: string[];
+      activeAITag?: string[];
+      list?: AIChatFolder[]
+    }
   };
 
   phoneCall?: ApiPhoneCall;

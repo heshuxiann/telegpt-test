@@ -188,3 +188,34 @@ export const formateMessage2Summary = (messages: ApiMessage[]):SummaryMessage[] 
   }).filter(Boolean);
   return formateMessages;
 };
+
+export const fetchChatMessageByCount = async (props:{
+  chat: ApiChat;
+  offsetId: number;
+  addOffset: number;
+  sliceSize: number;
+  threadId: number;
+  maxCount?:number;
+}): Promise<ApiMessage[]> => {
+  let messages: any[] = [];
+  let { offsetId, sliceSize, maxCount = 100 } = props;
+  while (!messages.length || messages.length < maxCount) {
+    const result = await callApi('fetchMessages', {
+      ...props,
+      offsetId,
+      limit: sliceSize,
+    });
+
+    if (!result || !result.messages?.length) {
+      break;
+    }
+    messages = messages.concat(result.messages);
+
+    offsetId = result.messages[result.messages.length - 1].id;
+
+    if (result.messages.length < props.sliceSize) {
+      break;
+    }
+  }
+  return messages.reverse();
+}

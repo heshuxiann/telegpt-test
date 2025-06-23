@@ -32,6 +32,7 @@ import { getPromptInstall } from '../../../util/installPrompt';
 import { switchPermanentWebVersion } from '../../../util/permanentWebVersion';
 import AIKnowledgeIcon from '../../chatAssistant/assets/ai-knowledge.png';
 import AITranslateIcon from '../../chatAssistant/assets/ai-translate.png';
+import AIChatFolderIcon from '../../chatAssistant/assets/ai-chat-folder.png';
 
 import { useFolderManagerForUnreadCounters } from '../../../hooks/useFolderManager';
 import useLang from '../../../hooks/useLang';
@@ -44,6 +45,8 @@ import MenuSeparator from '../../ui/MenuSeparator';
 import Switcher from '../../ui/Switcher';
 import Toggle from '../../ui/Toggle';
 import AccountMenuItems from './AccountMenuItems';
+import { deleteAiChatFolders, sortChatFolder } from "../../chatAssistant/ai-chatfolders/util"
+import { aiChatFoldersTask } from "../../chatAssistant/ai-task/ai-chatfolders-task"
 
 type OwnProps = {
   onSelectAIKnowledge: NoneToVoidFunction;
@@ -62,6 +65,7 @@ type StateProps = {
   attachBots: GlobalState['attachMenu']['bots'];
   currentUser?: ApiUser;
   accountsTotalLimit: number;
+  aiChatFolders?: boolean
 } & Pick<GlobalState, 'currentUserId' | 'archiveSettings'>;
 
 const LeftSideMenuItems = ({
@@ -73,6 +77,7 @@ const LeftSideMenuItems = ({
   attachBots,
   currentUser,
   accountsTotalLimit,
+  aiChatFolders,
   onSelectArchived,
   onSelectContacts,
   onSelectSettings,
@@ -148,6 +153,19 @@ const LeftSideMenuItems = ({
     openChatWithInfo({ id: currentUserId, shouldReplaceHistory: true, profileTab: 'stories' });
   });
 
+  const handleSwitchAIChatFolders = useLastCallback(async (e: React.SyntheticEvent<HTMLElement>) => {
+    e.stopPropagation();
+    const isOpen = !aiChatFolders
+    setSharedSettingOption({ aiChatFolders: isOpen });
+    if (!isOpen) {
+      // delete ai chat folders
+      await deleteAiChatFolders()
+      // await sortChatFolder();
+    } else {
+      aiChatFoldersTask.classifyChatMessageByCount()
+    }
+  })
+
   return (
     <>
       {IS_MULTIACCOUNT_SUPPORTED && currentUser && (
@@ -171,6 +189,21 @@ const LeftSideMenuItems = ({
         onClick={onSelectAITranslate}
       >
         {oldLang('AI Translate')}
+      </MenuItem>
+      <MenuItem
+        customIcon={<img className="icon" src={AIChatFolderIcon} alt="ai-chat-folders" style={buildStyle('width: 24px;height: 24px;max-width: 24px; padding:3px;')} />}
+        onClick={handleSwitchAIChatFolders}
+      >
+        <span className="menu-item-name capitalize">{oldLang('AI Chat Folders')}</span>
+        <label className='Switcher no-animation' title={''}>
+          <input
+            type="checkbox"
+            id="aiChatFolders"
+            checked={aiChatFolders === true ? true : false}
+            disabled
+          />
+          <span className="widget" />
+        </label>
       </MenuItem>
       <MenuItem
         icon="saved-messages"
@@ -284,7 +317,7 @@ export default memo(withGlobal<OwnProps>(
     const {
       currentUserId, archiveSettings,
     } = global;
-    const { animationLevel } = selectSharedSettings(global);
+    const { animationLevel, aiChatFolders } = selectSharedSettings(global);
     const attachBots = global.attachMenu.bots;
 
     return {
@@ -296,6 +329,7 @@ export default memo(withGlobal<OwnProps>(
       archiveSettings,
       attachBots,
       accountsTotalLimit: selectPremiumLimit(global, 'moreAccounts'),
+      aiChatFolders
     };
   },
 )(LeftSideMenuItems));

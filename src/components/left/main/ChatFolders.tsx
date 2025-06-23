@@ -1,6 +1,7 @@
 import type { FC } from '../../../lib/teact/teact';
 import React, {
   memo, useEffect, useMemo, useRef,
+  useState,
 } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
@@ -12,7 +13,7 @@ import type { MenuItemContextAction } from '../../ui/ListItem';
 import type { TabWithProperties } from '../../ui/TabList';
 import { SettingsScreens } from '../../../types';
 
-import { ALL_FOLDER_ID } from '../../../config';
+import { AI_FOLDER_ID, ALL_FOLDER_ID, PRESET_FOLDER_ID, UNREAD_FOLDER_ID } from '../../../config';
 import { selectCanShareFolder, selectIsCurrentUserFrozen, selectTabState } from '../../../global/selectors';
 import { selectCurrentLimit } from '../../../global/selectors/limits';
 import { IS_TOUCH_ENV } from '../../../util/browser/windowEnvironment';
@@ -36,6 +37,14 @@ import StoryRibbon from '../../story/StoryRibbon';
 import TabList from '../../ui/TabList';
 import Transition from '../../ui/Transition';
 import ChatList from './ChatList';
+import PresetTagModal from '../../chatAssistant/ai-chatfolders/preset-modal'
+import useFlag from "../../../hooks/useFlag"
+import { ChataiStores, GLOBAL_AI_TAG, GLOBAL_AICHATFOLDERS_TIP_SHOW, GLOBAL_PRESET_TAG } from "../../chatAssistant/store"
+import { filterAITag, filterPresetTag } from "../../chatAssistant/ai-chatfolders/tag-filter"
+import AIChatFoldersTip from "../../chatAssistant/ai-chatfolders/ai-chatfolders-tip"
+import ActiveTag from "../../chatAssistant/ai-chatfolders/active-tag"
+import { selectSharedSettings } from "../../../global/selectors/sharedState"
+import { filterAIFolder } from "../../chatAssistant/ai-chatfolders/util"
 
 type OwnProps = {
   onSettingsScreenSelect: (screen: SettingsScreens) => void;
@@ -101,6 +110,10 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
 
   // eslint-disable-next-line no-null/no-null
   const transitionRef = useRef<HTMLDivElement>(null);
+  const [shouldRenderPresetTagModal, openRenderPresetTagModal, closeRenderPresetTagModal] = useFlag();
+  const [activePresetTag, setActivePresetTag] = useState<string[]>([])
+  const [activeAITag, setActiveAITag] = useState<string[]>([])
+  const [shouldRenderAiChatFoldersTip, openRenderAiChatFoldersTip, closeRenderAiChatFoldersTip] = useFlag();
 
   const lang = useLang();
 
@@ -136,14 +149,49 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     } satisfies ApiChatFolder;
   }, [orderedFolderIds, lang]);
 
+  const presetChatsFolder: ApiChatFolder = useMemo(() => {
+    return {
+      id: PRESET_FOLDER_ID,
+      title: { text: 'Preset'},
+      includedChatIds: MEMO_EMPTY_ARRAY,
+      excludedChatIds: MEMO_EMPTY_ARRAY,
+    } satisfies ApiChatFolder;
+  }, [orderedFolderIds]);
+
+  const unreadChatsFolder: ApiChatFolder = useMemo(() => {
+    return {
+      id: UNREAD_FOLDER_ID,
+      title: { text: 'Unread'},
+      includedChatIds: MEMO_EMPTY_ARRAY,
+      excludedChatIds: MEMO_EMPTY_ARRAY,
+    } satisfies ApiChatFolder;
+  }, [orderedFolderIds]);
+
+  const AIChatsFolder: ApiChatFolder = useMemo(() => {
+    return {
+      id: AI_FOLDER_ID,
+      title: { text: 'AI'},
+      includedChatIds: MEMO_EMPTY_ARRAY,
+      excludedChatIds: MEMO_EMPTY_ARRAY,
+    } satisfies ApiChatFolder;
+  }, [orderedFolderIds]);
+
   const displayedFolders = useMemo(() => {
     return orderedFolderIds
-      ? orderedFolderIds.map((id) => {
+      ? orderedFolderIds?.map((id) => {
         if (id === ALL_FOLDER_ID) {
           return allChatsFolder;
         }
-
-        return chatFoldersById[id] || {};
+        if (id === PRESET_FOLDER_ID) {
+          return presetChatsFolder;
+        }
+        if (id === UNREAD_FOLDER_ID) {
+          return unreadChatsFolder;
+        }
+        if (id === AI_FOLDER_ID) {
+          return AIChatsFolder
+        }
+        return chatFoldersById?.[id] || {};
       }).filter(Boolean)
       : undefined;
   }, [chatFoldersById, allChatsFolder, orderedFolderIds]);
@@ -151,6 +199,9 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   const allChatsFolderIndex = displayedFolders?.findIndex((folder) => folder.id === ALL_FOLDER_ID);
   const isInAllChatsFolder = allChatsFolderIndex === activeChatFolder;
   const isInFirstFolder = FIRST_FOLDER_INDEX === activeChatFolder;
+  const isInPresetFolder = displayedFolders?.findIndex((folder) => folder.id === PRESET_FOLDER_ID) === activeChatFolder;
+  const isInUnreadFolder = displayedFolders?.findIndex((folder) => folder.id === UNREAD_FOLDER_ID) === activeChatFolder;
+  const isInAIFolder = displayedFolders?.findIndex((folder) => folder.id === AI_FOLDER_ID) === activeChatFolder;
 
   const folderUnreadChatsCountersById = useFolderManagerForUnreadChatsByFolder();
   const handleReadAllChats = useLastCallback((folderId: number) => {
@@ -173,6 +224,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
       const isBlocked = id !== ALL_FOLDER_ID && i > maxFolders - 1;
       const canShareFolder = selectCanShareFolder(getGlobal(), id);
       const contextActions: MenuItemContextAction[] = [];
+      let badgeCount = folderCountersById[id]?.chatsCount
 
       if (canShareFolder) {
         contextActions.push({
@@ -218,6 +270,19 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
             handler: () => handleReadAllChats(folder.id),
           });
         }
+      } if (id === PRESET_FOLDER_ID || id === UNREAD_FOLDER_ID || id === AI_FOLDER_ID) {
+        if (folderUnreadChatsCountersById[id]?.length) {
+          contextActions.push({
+            title: lang('ChatListMarkAllAsRead'),
+            icon: 'readchats',
+            handler: () => handleReadAllChats(folder.id),
+          });
+        }
+        if (id === PRESET_FOLDER_ID) {
+          badgeCount = filterPresetTag(folderUnreadChatsCountersById[id])?.length
+        } else if (id === AI_FOLDER_ID) {
+          badgeCount = filterAITag(folderUnreadChatsCountersById[id])?.length
+        }
       } else {
         contextActions.push({
           title: lang('EditFolder'),
@@ -252,7 +317,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
           entities: title.entities,
           noCustomEmojiPlayback: folder.noTitleAnimations,
         }),
-        badgeCount: folderCountersById[id]?.chatsCount,
+        badgeCount,
         isBadgeActive: Boolean(folderCountersById[id]?.notificationsCount),
         isBlocked,
         contextActions: contextActions?.length ? contextActions : undefined,
@@ -260,13 +325,19 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     });
   }, [
     displayedFolders, maxFolders, folderCountersById, lang, chatFoldersById, maxChatLists, folderInvitesById,
-    maxFolderInvites, folderUnreadChatsCountersById, onSettingsScreenSelect,
+    maxFolderInvites, folderUnreadChatsCountersById, onSettingsScreenSelect, activePresetTag, filterPresetTag,
+    activeAITag, filterAITag
   ]);
 
   const handleSwitchTab = useLastCallback((index: number) => {
     setActiveChatFolder({ activeChatFolder: index }, { forceOnHeavyAnimation: true });
     if (activeChatFolder === index) {
       scrollToTop();
+    }
+    if (folderTabs![index].id === PRESET_FOLDER_ID || folderTabs![index].id === AI_FOLDER_ID) {
+      openRenderPresetTagModal()
+    } else {
+      closeRenderPresetTagModal()
     }
   });
 
@@ -344,6 +415,18 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     };
   }, [currentUserId, folderTabs, openChat, setActiveChatFolder]);
 
+  useEffect(()=>{
+    ChataiStores.general?.get(GLOBAL_PRESET_TAG)?.then((res)=>{
+      setActivePresetTag(res ?? [])
+    })
+    ChataiStores.general?.get(GLOBAL_AI_TAG)?.then((res)=>{
+      setActiveAITag(res ?? [])
+    })
+    ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW)?.then((res)=>{
+      res === false ? closeRenderAiChatFoldersTip() : openRenderAiChatFoldersTip()
+    })
+  }, [])
+
   const {
     ref: placeholderRef,
     shouldRender: shouldRenderPlaceholder,
@@ -353,15 +436,30 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     withShouldRender: true,
   });
 
+  function getFolderType() {
+    if (isInAllChatsFolder) {
+      return 'all';
+    } else if (isInPresetFolder) {
+      return 'preset';
+    } else if (isInUnreadFolder) {
+      return 'unread';
+    } else if (isInAIFolder) {
+      return 'ai';
+    } else {
+      return 'folder';
+    }
+  }
+
   function renderCurrentTab(isActive: boolean) {
     const activeFolder = Object.values(chatFoldersById)
-      .find(({ id }) => id === folderTabs![activeChatFolder].id);
-    const isFolder = activeFolder && !isInAllChatsFolder;
+      .find(({ id }) => id === folderTabs![activeChatFolder]?.id);
+    const isFolder = activeFolder && !isInAllChatsFolder && !isInPresetFolder && !isInPresetFolder && !isInAIFolder;
+    const folderType = getFolderType();
 
     return (
       <ChatList
-        folderType={isFolder ? 'folder' : 'all'}
-        folderId={isFolder ? activeFolder.id : undefined}
+        folderType={isFolder ? 'folder' : folderType}
+        folderId={isFolder ? activeFolder?.id : undefined}
         isActive={isActive}
         isForumPanelOpen={isForumPanelOpen}
         foldersDispatch={foldersDispatch}
@@ -371,6 +469,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
         archiveSettings={archiveSettings}
         sessions={sessions}
         isAccountFrozen={isAccountFrozen}
+        activeTag={shouldRenderFolders ? (folderTabs![activeChatFolder]?.id === PRESET_FOLDER_ID ? activePresetTag : activeAITag) :[]}
       />
     );
   }
@@ -397,6 +496,19 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
       ) : shouldRenderPlaceholder ? (
         <div ref={placeholderRef} className="tabs-placeholder" />
       ) : undefined}
+      {shouldRenderAiChatFoldersTip && <AIChatFoldersTip onClose={closeRenderAiChatFoldersTip} />}
+      {shouldRenderFolders && shouldRenderPresetTagModal && <PresetTagModal
+        activeTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? activePresetTag : activeAITag}
+        setActiveTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? setActivePresetTag : setActiveAITag}
+        isOpen={shouldRenderPresetTagModal}
+        onClose={closeRenderPresetTagModal}
+        folderId={folderTabs![activeChatFolder].id}
+      />}
+      {shouldRenderFolders && <ActiveTag
+        folderType={getFolderType()}
+        tags={folderTabs![activeChatFolder]?.id === PRESET_FOLDER_ID ? activePresetTag : activeAITag}
+        setActiveTag={folderTabs![activeChatFolder]?.id === PRESET_FOLDER_ID ? setActivePresetTag : setActiveAITag}
+      />}
       <Transition
         ref={transitionRef}
         name={shouldSkipHistoryAnimations ? 'none' : lang.isRtl ? 'slideOptimizedRtl' : 'slideOptimized'}
@@ -414,7 +526,6 @@ export default memo(withGlobal<OwnProps>(
     const {
       chatFolders: {
         byId: chatFoldersById,
-        orderedIds: orderedFolderIds,
         invites: folderInvitesById,
       },
       chats: {
@@ -433,9 +544,14 @@ export default memo(withGlobal<OwnProps>(
       currentUserId,
       archiveSettings,
     } = global;
+    let orderedFolderIds = global.chatFolders.orderedIds;
     const { shouldSkipHistoryAnimations, activeChatFolder } = selectTabState(global);
     const { storyViewer: { isRibbonShown: isStoryRibbonShown } } = selectTabState(global);
     const isAccountFrozen = selectIsCurrentUserFrozen(global);
+    const { aiChatFolders } = selectSharedSettings(global);
+    if (aiChatFolders !== true) {
+      orderedFolderIds = filterAIFolder(orderedFolderIds);
+    }
 
     return {
       chatFoldersById,
