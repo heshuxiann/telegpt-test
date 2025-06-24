@@ -26,19 +26,24 @@ export type OwnProps = {
   isOpen?: boolean;
   translateLanguage: string | undefined;
   closeInputLanguageModal: () => void;
-  updateTranslateLanguage: (langCode: string) => void;
+  updateTranslateLanguage: (langCode: string | undefined) => void;
 };
 
 const InputLanguageModal: FC<OwnProps> = ({
   isOpen,
-  translateLanguage = 'en',
+  translateLanguage,
   closeInputLanguageModal,
   updateTranslateLanguage,
 }) => {
   const [search, setSearch] = useState('');
   const lang = useOldLang();
   const handleSelect = useLastCallback((langCode: string) => {
-    updateTranslateLanguage(langCode);
+    if (langCode === translateLanguage) {
+      updateTranslateLanguage(undefined);
+    } else {
+      updateTranslateLanguage(langCode);
+    }
+
     closeInputLanguageModal();
   });
 
@@ -101,6 +106,7 @@ const InputLanguageModal: FC<OwnProps> = ({
             disabled={translateLanguage === langCode}
             multiline
             narrow
+            allowDisabledClick
             // eslint-disable-next-line react/jsx-no-bind
             onClick={() => handleSelect(langCode)}
           >

@@ -17,9 +17,13 @@ const injectMessageAI = injectComponent(InputGrammar);
 const InputGrammarWrapper = (props:InputGrammerProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
+    let injected: { unmount: () => void } | undefined;
     if (containerRef.current) {
-      injectMessageAI(containerRef.current, { ...props });
+      injected = injectMessageAI(containerRef.current, { ...props });
     }
+    return () => {
+      injected?.unmount();
+    };
   }, [props]);
   return (
     <div className="absolute left-0 top-0 w-full h-full pointer-events-none" ref={containerRef} />

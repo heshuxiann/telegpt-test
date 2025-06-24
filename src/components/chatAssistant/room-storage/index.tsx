@@ -33,7 +33,7 @@ class RoomStorage {
     return roomAIData ? JSON.parse(roomAIData)?.[chatId]?.translateLanguage || '' : '';
   }
 
-  public static updateRoomTranslateLanguage(chatId: string, language: string) {
+  public static updateRoomTranslateLanguage(chatId: string, language: string | undefined) {
     const roomAIData = localStorage.getItem('room-ai-data');
     const data = roomAIData ? JSON.parse(roomAIData) : {};
     data[chatId] = {

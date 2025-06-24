@@ -328,13 +328,13 @@ function sendToAIAgent(data: ApiUpdate) {
           date: date ? new Date(date * 1000).toISOString().split('T')[0] : '0',
         });
       }
-      const { autoTranslate } = getGlobal().settings.byKey;
-      if (chatId && id && autoTranslate) {
-        getActions().requestMessageTranslation({
-          chatId,
-          id,
-        });
-      }
+      // const { autoTranslate } = getGlobal().settings.byKey;
+      // if (chatId && id && autoTranslate) {
+      //   getActions().requestMessageTranslation({
+      //     chatId,
+      //     id,
+      //   });
+      // }
     }
   }
 }

@@ -34,9 +34,13 @@ const GrammarToolWrapper = (props:GrammarToolWrapperProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { getHtml, setHtml } = props;
   useEffect(() => {
+    let injected: { unmount: () => void } | undefined;
     if (containerRef.current && isGrammarToolOpen) {
-      injectMessageAI(containerRef.current, { getHtml, setHtml, onClose: closeGrammarTool });
+      injected = injectMessageAI(containerRef.current, { getHtml, setHtml, onClose: closeGrammarTool });
     }
+    return () => {
+      injected?.unmount();
+    };
   // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, [isGrammarToolOpen, closeGrammarTool]);
 

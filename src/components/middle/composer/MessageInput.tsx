@@ -275,6 +275,7 @@ const MessageInput: FC<OwnProps & StateProps> = ({
 
     if (html !== inputRef.current!.innerHTML) {
       inputRef.current!.innerHTML = html;
+      inputRef.current!.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
     if (html !== cloneRef.current!.innerHTML) {

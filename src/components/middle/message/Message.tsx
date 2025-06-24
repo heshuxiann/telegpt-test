@@ -282,7 +282,6 @@ type StateProps = {
   hasUnreadReaction?: boolean;
   isTranscribing?: boolean;
   transcribedText?: string;
-  autoTranslate?: boolean;
   isTranscriptionError?: boolean;
   hasTranslation?: boolean;
   isPremium: boolean;
@@ -414,7 +413,6 @@ const Message: FC<OwnProps & StateProps> = ({
   messageTopic,
   hasTopicChip,
   chatTranslations,
-  autoTranslate,
   areTranslationsEnabled,
   shouldDetectChatLanguage,
   requestedTranslationLanguage,
@@ -444,7 +442,6 @@ const Message: FC<OwnProps & StateProps> = ({
     animateUnreadReaction,
     focusLastMessage,
     markMentionsRead,
-    requestMessageTranslation,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -1760,7 +1757,6 @@ export default memo(withGlobal<OwnProps>(
       focusedMessage, forwardMessages, activeReactions, activeEmojiInteractions,
       loadingThread,
     } = selectTabState(global);
-    const { autoTranslate } = global.settings.byKey;
     const {
       message, album, withSenderName, withAvatar, threadId, messageListType, isLastInDocumentGroup, isFirstInGroup,
     } = ownProps;
@@ -1952,7 +1948,6 @@ export default memo(withGlobal<OwnProps>(
       hasUnreadReaction,
       isTranscribing: transcriptionId !== undefined && global.transcriptions[transcriptionId]?.isPending,
       transcribedText: transcriptionId !== undefined ? global.transcriptions[transcriptionId]?.text : undefined,
-      autoTranslate,
       hasTranslation,
       isPremium,
       senderAdminMember,

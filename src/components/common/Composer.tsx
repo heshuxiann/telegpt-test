@@ -120,6 +120,9 @@ import parseHtmlAsFormattedText from '../../util/parseHtmlAsFormattedText';
 import { insertHtmlInSelection } from '../../util/selection';
 import { getServerTime } from '../../util/serverTime';
 import windowSize from '../../util/windowSize';
+import { callApi } from '../../api/gramjs';
+import InputTranslate from '../chatAssistant/component/input-translate/input-translate';
+import RoomStorage from '../chatAssistant/room-storage';
 import applyIosAutoCapitalizationFix from '../middle/composer/helpers/applyIosAutoCapitalizationFix';
 import buildAttachment, { prepareAttachmentsToSend } from '../middle/composer/helpers/buildAttachment';
 import { buildCustomEmojiHtml } from '../middle/composer/helpers/customEmoji';
@@ -191,7 +194,6 @@ import PaymentMessageConfirmDialog from './PaymentMessageConfirmDialog';
 import ReactionAnimatedEmoji from './reactions/ReactionAnimatedEmoji';
 
 import './Composer.scss';
-// import InputTranslate from '../chatAssistant/component/input-translate/input-translate';
 
 type ComposerType = 'messageList' | 'story';
 
@@ -1213,6 +1215,26 @@ const Composer: FC<OwnProps & StateProps> = ({
         )];
       }
     }
+    // TODO:translate text
+    setIsInlineAILoading(true);
+    const { text } = parseHtmlAsFormattedText(getHtml());
+    // TODO:translate text
+    const langCode = RoomStorage.getRoomTranslateLanguage(chatId);
+    if (langCode && text) {
+      try {
+        const result = await callApi('translateText', {
+          text: [{ text }],
+          toLanguageCode: langCode,
+        });
+        if (result && result[0].text) {
+          setHtml(result[0].text);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.log(error);
+      }
+    }
+    setIsInlineAILoading(false);
 
     handleSendCore(currentAttachments, isSilent, scheduledAt);
   });
@@ -2135,7 +2157,7 @@ const Composer: FC<OwnProps & StateProps> = ({
             </span>
           )}
           <GrammarToolWrapper getHtml={getHtml} setHtml={setHtml} />
-          {/* <InputTranslate chatId={chatId} /> */}
+          <InputTranslate chatId={chatId} />
           {!isNeedPremium && (
             <AttachMenu
               chatId={chatId}
