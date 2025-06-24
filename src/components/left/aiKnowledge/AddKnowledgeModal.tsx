@@ -26,14 +26,18 @@ const AddKnowledgeModal = ({
 }: OwnProps) => {
   const editorRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
+    let injected: { unmount: () => void } | undefined;
     if (editorRef.current) {
-      injectEditor(editorRef.current, {
+      injected = injectEditor(editorRef.current, {
         onClose,
         onUpdate,
         knowledge,
         type,
       });
     }
+    return () => {
+      injected?.unmount();
+    };
   }, [knowledge, onClose, onUpdate, type]);
   return (
     <Modal

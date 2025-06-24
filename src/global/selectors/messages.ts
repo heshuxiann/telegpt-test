@@ -1410,8 +1410,10 @@ export function selectMessageTranslations<T extends GlobalState>(
 export function selectRequestedMessageTranslationLanguage<T extends GlobalState>(
   global: T, chatId: string, messageId: number, ...[tabId = getCurrentTabId()]: TabArgs<T>
 ): string | undefined {
-  const requestedInChat = selectTabState(global, tabId).requestedTranslations.byChatId[chatId];
-  return requestedInChat?.toLanguage || requestedInChat?.manualMessages?.[messageId];
+  const { autoTranslate, autoTranslateLanguage } = global.settings.byKey;
+  return autoTranslate ? autoTranslateLanguage : undefined;
+  // const requestedInChat = selectTabState(global, tabId).requestedTranslations.byChatId[chatId];
+  // return requestedInChat?.toLanguage || requestedInChat?.manualMessages?.[messageId];
 }
 export function selectReplyCanBeSentToChat<T extends GlobalState>(
   global: T,

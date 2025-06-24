@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from '../../../../lib/teact/t
 
 import RoomStorage from '../../room-storage';
 import InputLanguageModal from './input-language-modal';
+import InputTranslateTip from './input-translate-tip';
 
 import useFlag from '../../../../hooks/useFlag';
 
@@ -13,13 +14,20 @@ const InputTranslate = (props:{ chatId:string }) => {
   const { chatId } = props;
   const [inputLanguageModalOpen, openInputLanguageModal, closeInputLanguageModal] = useFlag();
   const [translateLanguage, setTranslateLanguage] = useState<string | undefined>(undefined);
+  const [tooltipOpen, openTooltip, closeTooltip] = useFlag();
   useEffect(() => {
     setTranslateLanguage(RoomStorage.getRoomTranslateLanguage(chatId));
   }, [chatId]);
-  const updateTranslateLanguage = useCallback((langCode: string) => {
+  const updateTranslateLanguage = useCallback((langCode: string | undefined) => {
     RoomStorage.updateRoomTranslateLanguage(chatId, langCode);
     setTranslateLanguage(langCode);
-  }, [chatId]);
+    if (!translateLanguage && langCode) {
+      openTooltip();
+      setTimeout(() => {
+        closeTooltip();
+      }, 5000);
+    }
+  }, [chatId, translateLanguage]);
   return (
     <div className="input-ai-actions">
       <button className="Button input-ai-actions-button" onClick={openInputLanguageModal}>
@@ -35,6 +43,9 @@ const InputTranslate = (props:{ chatId:string }) => {
             )
         }
       </button>
+      {tooltipOpen && (
+        <InputTranslateTip />
+      )}
       <InputLanguageModal
         translateLanguage={translateLanguage}
         isOpen={inputLanguageModalOpen}

@@ -203,14 +203,19 @@ export function useGrammarChecker(
 
   const handleInputChange = useCallback(() => {
     const newText = inputRef.current?.innerText || '';
+    lastTextRef.current = newText;
     if (errorRanges.length > 0) {
       const updatedErrors = updateErrorOffsetsWithInvalidate(lastTextRef.current, newText, errorRanges);
       setErrorRanges(updatedErrors);
       highLightErrors(updatedErrors);
     }
-    lastTextRef.current = newText;
+    if (newText.trim().length === 0) {
+      setErrorRanges([]);
+      setErrorMarkers([]);
+      return;
+    }
     inputNlpRuleCheck();
-  }, [errorRanges, highLightErrors, inputNlpRuleCheck, inputRef]);
+  }, [errorRanges, highLightErrors, inputNlpRuleCheck, inputRef, setErrorMarkers]);
 
   useEffect(() => {
     const editor = inputRef.current;

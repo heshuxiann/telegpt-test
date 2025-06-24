@@ -19,6 +19,24 @@ export const chatAIGenerate = (props:ChatProps) => {
     });
 };
 
+export const chatAITranslate = (data:{ langCode:string; text:string }):Promise<{ text:string } > => {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/translate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
 export const summaryMessage = (data:Object) => {
   return new Promise((resolve, reject) => {
     fetch('https://telegpt-three.vercel.app/summary', {
