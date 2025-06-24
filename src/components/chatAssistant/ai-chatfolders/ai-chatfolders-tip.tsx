@@ -29,6 +29,7 @@ const AIChatFoldersTip: FC<OwnProps> = ({ theme, onClose }: OwnProps) => {
   }
 
   async function onApply() {
+    if (loading) return;
     const { setSharedSettingOption } = getActions();
 
     setSharedSettingOption({ aiChatFolders: true });
