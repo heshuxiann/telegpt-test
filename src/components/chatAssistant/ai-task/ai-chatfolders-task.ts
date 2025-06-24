@@ -60,7 +60,7 @@ class AIChatFoldersTask {
     saveAiChatFolders(res);
     const groupedRes = groupAiChatFoldersRes(res);
     // 3. update chat folder
-    this.updateChatFolder(groupedRes);
+    await this.updateChatFolder(groupedRes);
   }
 
   async updateChatFolder(content: { [key: string]: number[] }) {
@@ -201,7 +201,7 @@ class AIChatFoldersTask {
       Object.keys(chatMessages).length
     );
 
-    this.runAIChatFolders(chatMessages);
+    await this.runAIChatFolders(chatMessages);
   }
 }
 

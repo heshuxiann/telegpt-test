@@ -1,8 +1,7 @@
-import React, { FC, memo } from "../../../lib/teact/teact";
+import React, { FC, memo, useState } from "../../../lib/teact/teact";
 import AiChatFoldersBg from "../../../assets/chat_ai_folder.png";
 import AiChatFoldersDarkBg from "../../../assets/chat_ai_folder_dark.png";
 import AiChatFoldersBtnBg from "../../../assets/chat_ai_folder_border.png";
-import Button from "../../ui/Button";
 import Icon from "../../common/icons/Icon";
 import { ChataiStores, GLOBAL_AICHATFOLDERS_TIP_SHOW } from "../store";
 import { getActions, withGlobal } from "../../../global";
@@ -11,12 +10,16 @@ import { message } from "antd";
 import { SVGProps } from "react";
 import { selectTheme } from "../../../global/selectors";
 import { ThemeKey } from "../../../types";
+import Spinner from "../../ui/Spinner";
+import buildClassName from "../../../util/buildClassName";
 
 type OwnProps = {
   theme: ThemeKey;
   onClose?: () => void;
 };
 const AIChatFoldersTip: FC<OwnProps> = ({ theme, onClose }: OwnProps) => {
+  const [loading, setLoading] = useState<boolean>(false);
+
   function onCloseClick() {
     message.info(
       "You can enable this feature later in the settings page if needed."
@@ -25,11 +28,13 @@ const AIChatFoldersTip: FC<OwnProps> = ({ theme, onClose }: OwnProps) => {
     onClose?.();
   }
 
-  function onApply() {
+  async function onApply() {
     const { setSharedSettingOption } = getActions();
 
     setSharedSettingOption({ aiChatFolders: true });
-    aiChatFoldersTask.classifyChatMessageByCount();
+    setLoading(true);
+    await aiChatFoldersTask.classifyChatMessageByCount();
+    setLoading(false);
 
     onCloseClick();
   }
@@ -47,21 +52,29 @@ const AIChatFoldersTip: FC<OwnProps> = ({ theme, onClose }: OwnProps) => {
       <div className="leading-[16px] text-[var(--color-aichatfolders-tag-text)]">
         Your chat has been intelligently tagged in folders by Serena AI
       </div>
-      <Button
+      <div
         color="translucent"
-        className="w-[46px] h-[24px] rounded-[28px] mr-3"
+        className={buildClassName(
+          "flex flex-row items-center justify-center gap-1 py-[6px] mr-3 rounded-[28px] cursor-pointer hover:opacity-80",
+          loading ? "px-2" : "px-3"
+        )}
         style={`background-image: url(${AiChatFoldersBtnBg}); background-size: 100% 100%; text-transform: none; color: #000;`}
         onClick={onApply}
       >
-        <div className="text-[var(--color-aichatfolders-tag-text)] text-[12px]">Apply</div>
-      </Button>
+        {loading && <Spinner className="flex-shrink-0 w-[12px] h-[12px]" />}
+        <div className="text-[var(--color-aichatfolders-tag-text)] text-[12px]">
+          Apply
+        </div>
+      </div>
       <div className="absolute right-2 top-1">
-        <Icon
-          name="close"
-          className="text-[var(--color-aichatfolders-tag-close-color)] cursor-pointer hover:opacity-50"
-          style="width:6px;height:6px"
-          onClick={onCloseClick}
-        />
+        {!loading && (
+          <Icon
+            name="close"
+            className="text-[var(--color-aichatfolders-tag-close-color)] cursor-pointer hover:opacity-50"
+            style="width:6px;height:6px"
+            onClick={onCloseClick}
+          />
+        )}
       </div>
     </div>
   );
