@@ -47,6 +47,7 @@ import Toggle from '../../ui/Toggle';
 import AccountMenuItems from './AccountMenuItems';
 import { deleteAiChatFolders, sortChatFolder } from "../../chatAssistant/ai-chatfolders/util"
 import { aiChatFoldersTask } from "../../chatAssistant/ai-task/ai-chatfolders-task"
+import { Modal } from "antd"
 
 type OwnProps = {
   onSelectAIKnowledge: NoneToVoidFunction;
@@ -156,12 +157,20 @@ const LeftSideMenuItems = ({
   const handleSwitchAIChatFolders = useLastCallback(async (e: React.SyntheticEvent<HTMLElement>) => {
     e.stopPropagation();
     const isOpen = !aiChatFolders
-    setSharedSettingOption({ aiChatFolders: isOpen });
     if (!isOpen) {
-      // delete ai chat folders
-      await deleteAiChatFolders()
-      // await sortChatFolder();
+      Modal.confirm({
+        title: 'Are you sure?',
+        content: 'This will delete all AI Chat Folders',
+        onOk: async () => {
+          // delete ai chat folders
+          await deleteAiChatFolders()
+          // await sortChatFolder();
+          setSharedSettingOption({ aiChatFolders: isOpen });
+        },
+        onCancel: () => {},
+      })
     } else {
+      setSharedSettingOption({ aiChatFolders: isOpen });
       aiChatFoldersTask.classifyChatMessageByCount()
     }
   })

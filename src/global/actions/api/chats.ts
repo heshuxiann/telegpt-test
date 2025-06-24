@@ -1032,30 +1032,30 @@ addActionHandler('loadChatFolders', async (global): Promise<void> => {
     };
     setGlobal(global);
   }
+  // load folder to db
+  if (chatFolders?.byId && Object.keys(chatFolders?.byId).length > 0) {
+    const allFolderDb = await ChataiStores.folder?.getAllFolders();
+    allFolderDb?.forEach(async (item) => {
+      if (Object.keys(chatFolders?.byId).indexOf(item?.id + '') < 0) {
+        await ChataiStores.folder?.deleteFolder(item?.title);
+      }
+    })
+    Object.keys(chatFolders?.byId)?.forEach(async (folderId) => {
+      const folderInfo = chatFolders?.byId[Number(folderId)];
+      const exist = allFolderDb?.findIndex(o=>o?.title === folderInfo.title?.text)
+      if (exist && exist < 0) {
+        await ChataiStores.folder?.addFolder({
+          id: Number(folderId),
+          title: folderInfo?.title?.text,
+          includedChatIds: folderInfo?.includedChatIds,
+          excludedChatIds: folderInfo?.excludedChatIds,
+          from: 'user'
+        });
+      }
+    });
+  }
   const { aiChatFolders } = selectSharedSettings(global);
   if (aiChatFolders === true) {
-    // load folder to db
-    if (chatFolders?.byId && Object.keys(chatFolders?.byId).length > 0) {
-      const allFolderDb = await ChataiStores.folder?.getAllFolders();
-      allFolderDb?.forEach(async (item) => {
-        if (Object.keys(chatFolders?.byId).indexOf(item?.id + '') < 0) {
-          await ChataiStores.folder?.deleteFolder(item?.title);
-        }
-      })
-      Object.keys(chatFolders?.byId)?.forEach(async (folderId) => {
-        const folderInfo = chatFolders?.byId[Number(folderId)];
-        const exist = allFolderDb?.findIndex(o=>o?.title === folderInfo.title?.text)
-        if (exist && exist < 0) {
-          await ChataiStores.folder?.addFolder({
-            id: Number(folderId),
-            title: folderInfo?.title?.text,
-            includedChatIds: folderInfo?.includedChatIds,
-            excludedChatIds: folderInfo?.excludedChatIds,
-            from: 'user'
-          });
-        }
-      });
-    }
     const allAiChatFolders = await ChataiStores.aIChatFolders?.getAllAIChatFolders()
     const activePresetTag = await ChataiStores.general?.get(GLOBAL_PRESET_TAG)
     const activeAITag = await ChataiStores.general?.get(GLOBAL_AI_TAG)
