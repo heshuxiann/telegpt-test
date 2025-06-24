@@ -60,7 +60,7 @@ class AIChatFoldersTask {
     saveAiChatFolders(res);
     const groupedRes = groupAiChatFoldersRes(res);
     // 3. update chat folder
-    this.updateChatFolder(groupedRes);
+    await this.updateChatFolder(groupedRes);
   }
 
   async updateChatFolder(content: { [key: string]: number[] }) {
@@ -87,7 +87,7 @@ class AIChatFoldersTask {
           excludedChatIds: [],
         };
         const exist = await ChataiStores.folder?.getFolder(folderTitle);
-        if (exist && exist?.from !== "AI") {
+        if (exist) {
           // 用户已有自定义分类，将用户自定义标签和AI标签对比去重后取合集
           folder.id = Number(exist.id);
           folder.includedChatIds = uniq(
@@ -201,7 +201,7 @@ class AIChatFoldersTask {
       Object.keys(chatMessages).length
     );
 
-    this.runAIChatFolders(chatMessages);
+    await this.runAIChatFolders(chatMessages);
   }
 }
 
