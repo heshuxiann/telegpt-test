@@ -12,21 +12,25 @@ const actionItemClassName = 'py-[6px] px-[12px] border-[1px] border-[#E4E4E4] ro
 interface OwnProps {
   chatId: string | undefined;
   insertMessage: (message: Message) => void;
+  setIsLoading: (isLoading: boolean) => void;
 }
-const RoomActions = ({ chatId, insertMessage }:OwnProps) => {
+const RoomActions = ({ chatId, insertMessage, setIsLoading }:OwnProps) => {
   const handleScheduleMeeting = () => {
-    scheduleGoogleMeeting(insertMessage);
+    setIsLoading(true);
+    scheduleGoogleMeeting(insertMessage, () => setIsLoading(false));
   };
 
   const handleSummarize = () => {
     if (chatId) {
-      summaryRoomMessage(chatId, insertMessage);
+      setIsLoading(true);
+      summaryRoomMessage(chatId, insertMessage, () => setIsLoading(false));
     }
   };
 
   const handleActionItems = () => {
     if (chatId) {
-      generateRoomActionItems(chatId, insertMessage);
+      setIsLoading(true);
+      generateRoomActionItems(chatId, insertMessage, () => setIsLoading(false));
     }
   };
 

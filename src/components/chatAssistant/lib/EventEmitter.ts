@@ -11,13 +11,10 @@ export enum Actions {
   AddSummaryMessage = 'AddSummaryMessage',
   // summary chats
   UpdateSummaryChats = 'UpdateSummaryChats',
-  SummaryLanguageChange = 'SummaryLanguageChange',
   // google
   CreateCalendarSuccess = 'CreateCalendarSuccess',
   GoogleAuthSuccess = 'GoogleAuthSuccess',
   UpdateGoogleToken = 'UpdateGoogleToken',
-  // modal
-  OpenSummaryLanguageModal = 'OpenSummaryLanguageModal',
   // room ai
   AddRoomAIMessage = 'AddRoomAIMessage',
   UpdateRoomAIUnreadCount = 'UpdateRoomAIUnreadCount',

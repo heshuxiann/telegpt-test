@@ -10,6 +10,7 @@ import { getActions, getGlobal } from '../../../global';
 import { isUserId } from '../../../global/helpers';
 import { selectChat, selectUser } from '../../../global/selectors';
 import useOldLang from '../hook/useOldLang';
+import { useSpeechPlayer } from '../hook/useSpeechPlayer';
 import {
   CopyIcon, DeleteIcon, VoiceIcon,
   VoiceingIcon,
@@ -75,45 +76,41 @@ const SummaryPenddingItem = ({ pendingItem }: { pendingItem: ISummaryPendingItem
 };
 
 const ActionsItems = ({
+  messageId,
   pendingMatters,
   deleteMessage,
 }: {
+  messageId: string;
   pendingMatters: ISummaryPendingItem[];
   deleteMessage: () => void;
 }) => {
   const lang = useOldLang();
   const { showNotification } = getActions();
-  const [voicePlaying, setVoicePlaying] = useState(false);
+  const { isSpeaking, speak, stop } = useSpeechPlayer(messageId);
   const handleCopy = () => {
-    const copyText = `Actions Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}`;
+    const copyText = `Actions Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}`;
     copy(copyText);
     showNotification({
       message: lang('TextCopied'),
     });
   };
   const handleVoicePlay = () => {
-    const voiceText = `Actions Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}`;
-    if (!window.speechSynthesis) {
-      console.error('Text-to-Speech is not supported in this browser.');
-      return;
+    const voiceText = `Actions Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}\n`;
+    if (isSpeaking) {
+      stop();
+    } else {
+      speak(voiceText);
     }
-    const utterance = new SpeechSynthesisUtterance(voiceText);
-    window.speechSynthesis.speak(utterance);
-    setVoicePlaying(true);
-  };
-  const handleVoiceStop = () => {
-    window.speechSynthesis.cancel();
-    setVoicePlaying(false);
   };
   return (
     <div className="flex items-center gap-[8px]">
       <div className="w-[24px] h-[24px] text-[#676B74] cursor-pointer" onClick={handleCopy}>
         <CopyIcon size={24} />
       </div>
-      {voicePlaying ? (
+      {isSpeaking ? (
         <div
           className="w-[24px] h-[24px] text-[#676B74] cursor-pointer"
-          onClick={handleVoiceStop}
+          onClick={stop}
           title="Stop Voice"
         >
           <VoiceingIcon size={24} />
@@ -227,7 +224,7 @@ const RoomActionMessage = (props: IProps) => {
             </div>
           )}
           {/* action buttons  */}
-          <ActionsItems pendingMatters={pendingMatters} deleteMessage={deleteMessage} />
+          <ActionsItems messageId={message.id} pendingMatters={pendingMatters} deleteMessage={deleteMessage} />
         </div>
       )}
     </div>

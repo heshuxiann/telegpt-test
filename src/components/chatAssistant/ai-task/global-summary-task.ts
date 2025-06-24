@@ -67,8 +67,6 @@ class GlobalSummaryTask {
 
   private customizationTemplate:CustomSummaryTemplate | undefined = undefined;
 
-  private summaryLanguage = 'en';
-
   private unreadSummaryCount = 0;
 
   private summaryChatsInitialized = false;
@@ -131,15 +129,10 @@ class GlobalSummaryTask {
   async updateSummarySettings() {
     try {
       this.customizationTemplate = await ChataiStores.general?.get('lastDefinedPrompt');
-      this.summaryLanguage = await CHATAI_IDB_STORE.get('summary-language') || 'en';
       this.summaryChats = await ChataiStores.general?.get(SUMMARY_CHATS) || [];
     } catch (e) {
       console.log(e);
     }
-  }
-
-  public updateSummaryLanguage(language: string) {
-    this.summaryLanguage = language;
   }
 
   public updateSummaryDefineTemplate(template: CustomSummaryTemplate | undefined) {
@@ -152,6 +145,7 @@ class GlobalSummaryTask {
 
   async startSummary(chats: Record<string, ApiMessage[]>, callback?:()=>void) {
     const global = getGlobal();
+    const { autoTranslateLanguage } = global.settings.byKey;
     const globalSummaryLastTime = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
     const summaryTime = getAlignedExecutionTimestamp();
     if (!Object.keys(chats).length) return;
@@ -198,7 +192,7 @@ class GlobalSummaryTask {
       },
       body: JSON.stringify({
         messages: summaryChats,
-        language: this.summaryLanguage,
+        language: autoTranslateLanguage,
         definePrompt: this.customizationTemplate?.prompt || '',
       }),
     })
