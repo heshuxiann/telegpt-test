@@ -4,6 +4,7 @@ node_modules
 .env
 src/lib/gramjs/build/
 build-contest/
+dist/
 dist-electron/
 tests/
 .idea
@@ -14,4 +15,3 @@ dev/perf/screenshot*
 !.github/workflows/package-and-publish.yml
 public/build-stats.json
 public/statoscope-report.html
-dist/build-stats.json
