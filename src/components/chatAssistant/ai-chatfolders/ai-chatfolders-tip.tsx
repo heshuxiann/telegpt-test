@@ -11,7 +11,8 @@ import { SVGProps } from "react";
 import { selectTheme } from "../../../global/selectors";
 import { ThemeKey } from "../../../types";
 import Spinner from "../../ui/Spinner";
-import buildClassName from "../../../util/buildClassName";
+import "./ai-chatfolders-tip.scss";
+import Button from "../../ui/Button";
 
 type OwnProps = {
   theme: ThemeKey;
@@ -21,9 +22,12 @@ const AIChatFoldersTip: FC<OwnProps> = ({ theme, onClose }: OwnProps) => {
   const [loading, setLoading] = useState<boolean>(false);
 
   function onCloseClick() {
-    message.info(
-      "You can enable this feature later in the settings page if needed."
-    );
+    message.open({
+      content:
+        "You can enable this feature later in the settings page if needed.",
+      icon: null,
+      className: "aichatfolders-tip-message",
+    });
     ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_TIP_SHOW, false);
     onClose?.();
   }
@@ -53,20 +57,23 @@ const AIChatFoldersTip: FC<OwnProps> = ({ theme, onClose }: OwnProps) => {
       <div className="leading-[16px] text-[var(--color-aichatfolders-tag-text)]">
         Your chat has been intelligently tagged in folders by Serena AI
       </div>
-      <div
+      <Button
         color="translucent"
-        className={buildClassName(
-          "flex flex-row items-center justify-center gap-1 py-[6px] mr-3 rounded-[28px] cursor-pointer hover:opacity-80",
-          loading ? "px-2" : "px-3"
-        )}
+        className="w-[46px] h-[24px] mr-3 rounded-[28px] cursor-pointer hover:opacity-80"
         style={`background-image: url(${AiChatFoldersBtnBg}); background-size: 100% 100%; text-transform: none; color: #000;`}
         onClick={onApply}
       >
-        {loading && <Spinner className="flex-shrink-0 w-[12px] h-[12px]" />}
-        <div className="text-[var(--color-aichatfolders-tag-text)] text-[12px]">
-          Apply
-        </div>
-      </div>
+        {loading ? (
+          <Spinner
+            className="w-[12px] h-[12px]"
+            color={theme === "dark" ? "white" : "black"}
+          />
+        ) : (
+          <div className="text-[var(--color-aichatfolders-tag-text)] text-[12px]">
+            Apply
+          </div>
+        )}
+      </Button>
       <div className="absolute right-2 top-1">
         {!loading && (
           <Icon

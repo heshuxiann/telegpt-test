@@ -160,7 +160,7 @@ const LeftSideMenuItems = ({
     if (!isOpen) {
       Modal.confirm({
         title: 'Are you sure?',
-        content: 'This will delete all AI Chat Folders',
+        content: 'This will hide all AI chat folders, but you can enable this feature again.',
         onOk: async () => {
           // delete ai chat folders
           await deleteAiChatFolders();
