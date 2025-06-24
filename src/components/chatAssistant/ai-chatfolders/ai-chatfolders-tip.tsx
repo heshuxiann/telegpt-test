@@ -12,6 +12,7 @@ import { selectTheme } from "../../../global/selectors";
 import { ThemeKey } from "../../../types";
 import Spinner from "../../ui/Spinner";
 import buildClassName from "../../../util/buildClassName";
+import "./ai-chatfolders-tip.scss";
 
 type OwnProps = {
   theme: ThemeKey;
@@ -21,9 +22,12 @@ const AIChatFoldersTip: FC<OwnProps> = ({ theme, onClose }: OwnProps) => {
   const [loading, setLoading] = useState<boolean>(false);
 
   function onCloseClick() {
-    message.info(
-      "You can enable this feature later in the settings page if needed."
-    );
+    message.open({
+      content:
+        "You can enable this feature later in the settings page if needed.",
+      icon: null,
+      className: "aichatfolders-tip-message",
+    });
     ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_TIP_SHOW, false);
     onClose?.();
   }
