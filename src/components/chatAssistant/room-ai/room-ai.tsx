@@ -246,6 +246,11 @@ const RoomAIInner = (props: StateProps) => {
       append(newMessage);
     }
   };
+  const deleteMessage = useCallback((messageId: string) => {
+    ChataiStores.message?.delMessage(messageId).then(() => {
+      setMessages((prev) => prev.filter((message) => message.id !== messageId));
+    });
+  }, [setMessages]);
   return (
     <div className={buildClassName(styles.rightPanelBg, 'right-panel-chat-ai')}>
       <InfiniteScroll
@@ -254,17 +259,18 @@ const RoomAIInner = (props: StateProps) => {
         hasMore={pageInfo.hasMore}
         ref={messageListRef}
       >
-        <RoomAIDescription />
+        <RoomAIDescription chatId={chatId!} />
         {messages.length > 0 && (
           <Messages
             isLoading={isLoading}
             status={status}
             messages={messages}
+            deleteMessage={deleteMessage}
           />
         )}
       </InfiniteScroll>
       <div>
-        <RoomActions insertMessage={insertMessage} chatId={chatId} />
+        <RoomActions setIsLoading={(status) => setIsLoading(status)} insertMessage={insertMessage} chatId={chatId} />
         <form className="flex mx-auto px-[12px] pb-4  gap-2 w-full">
           <RoomAIInput
             status={status}

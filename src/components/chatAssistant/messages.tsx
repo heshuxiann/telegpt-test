@@ -87,16 +87,6 @@ function PureMessages({
   const isPortraitIntroduce = (message: Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-portrait-introduce') ?? false;
   };
-  const isReplyMention = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'room-ai-reply-mention') ?? false;
-  }
-  const isAIImageSummary = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'room-ai-image-summary') ?? false;
-  }
-  const handleDeleteMessage = (message: Message, prevMessage: Message) => {
-    deleteMessage?.(message.id);
-    deleteMessage?.(prevMessage.id);
-  };
   return (
     <div
       className="flex flex-col min-w-0 gap-[10px] flex-1 pt-4 ai-message-container"
@@ -110,14 +100,14 @@ function PureMessages({
                   <GlobalSummaryMessage
                     message={message}
                     // eslint-disable-next-line react/jsx-no-bind
-                    deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
+                    deleteMessage={() => deleteMessage?.(message.id)}
                   />
                 </ErrorBoundary>
               ) : isUrgentCheck(message) ? (
                 <UrgentCheckMessage
                   message={message}
                   // eslint-disable-next-line react/jsx-no-bind
-                  deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
+                  deleteMessage={() => deleteMessage?.(message.id)}
                 />
               ) : isGroupSearch(message) ? (
                 <GroupSearchMessage message={message} />
@@ -133,13 +123,13 @@ function PureMessages({
                 <RoomSummaryMessage
                   message={message}
                   // eslint-disable-next-line react/jsx-no-bind
-                  deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
+                  deleteMessage={() => deleteMessage?.(message.id)}
                 />
               ) : isRoomActions(message) ? (
                 <RoomActionMessage
                   message={message}
                   // eslint-disable-next-line react/jsx-no-bind
-                  deleteMessage={() => handleDeleteMessage(message, messages[index - 1])}
+                  deleteMessage={() => deleteMessage?.(message.id)}
                 />
               ) : isSmartreplyIntroduce(message) ? (
                 <IntroduceSmartreplyMessage />

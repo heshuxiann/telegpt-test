@@ -103,7 +103,9 @@ export const InfiniteScroll = forwardRef<InfiniteScrollRef, InfiniteScrollProps>
     const end = endRef.current;
 
     if (container && end) {
-      const observer = new MutationObserver(() => {
+      const observer = new MutationObserver((mutations) => {
+        const isOnlyButtonChanged = mutations.every((mutation) => (mutation.target as HTMLElement).closest('.message-actions') !== null);
+        if (isOnlyButtonChanged) return;
         if (autoScrollToBottom) {
           end.scrollIntoView({ behavior: 'instant', block: 'end' });
         } else {

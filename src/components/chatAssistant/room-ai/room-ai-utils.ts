@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
 import type { Message } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
@@ -34,17 +35,23 @@ export const createGoogleMeetingMessage = ():Message => {
   };
 };
 
-export const scheduleGoogleMeeting = async (insertMessage:(message:Message)=>void) => {
+export const scheduleGoogleMeeting = async (insertMessage:(message:Message)=>void, callback?:()=>void) => {
   const loginStatus = await checkGoogleAuthStatus();
   if (loginStatus) {
     insertMessage(createGoogleMeetingMessage());
   } else {
     insertMessage(createGoogleLoginMessage());
   }
+  callback?.();
 };
 
-export const summaryRoomMessage = async (chatId:string, insertMessage:(message:Message)=>void) => {
+export const summaryRoomMessage = async (
+  chatId:string,
+  insertMessage:(message:Message)=>void,
+  callback?:()=>void,
+) => {
   const global = getGlobal();
+  const { autoTranslateLanguage } = global.settings.byKey;
   const chat = selectChat(global, chatId);
   const lastMessageId = selectChatLastMessageId(global, chatId, 'all') || 0;
   if (chat) {
@@ -65,6 +72,7 @@ export const summaryRoomMessage = async (chatId:string, insertMessage:(message:M
     };
     summaryMessage({
       messages: formateMessages,
+      language: autoTranslateLanguage,
     }).then((res:any) => {
       const content = {
         ...res.data,
@@ -81,12 +89,21 @@ export const summaryRoomMessage = async (chatId:string, insertMessage:(message:M
         }],
       };
       insertMessage(newMessage as Message);
+      callback?.();
+    }).catch((err) => {
+      console.log(err);
+      callback?.();
     });
   }
 };
 
-export const generateRoomActionItems = async (chatId:string, insertMessage:(message:Message)=>void) => {
+export const generateRoomActionItems = async (
+  chatId:string,
+  insertMessage:(message:Message)=>void,
+  callback?:()=>void,
+) => {
   const global = getGlobal();
+  const { autoTranslateLanguage } = global.settings.byKey;
   const chat = selectChat(global, chatId);
   const lastMessageId = selectChatLastMessageId(global, chatId, 'all') || 0;
   if (chat) {
@@ -119,6 +136,7 @@ export const generateRoomActionItems = async (chatId:string, insertMessage:(mess
     };
     getActionItems({
       messages: formateMessages,
+      language: autoTranslateLanguage,
     }).then((res:any) => {
       const content = {
         ...res.data,
@@ -135,6 +153,10 @@ export const generateRoomActionItems = async (chatId:string, insertMessage:(mess
         }],
       };
       insertMessage(newMessage as Message);
+      callback?.();
+    }).catch((err) => {
+      console.log(err);
+      callback?.();
     });
   }
 };

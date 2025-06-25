@@ -7,6 +7,7 @@ import copy from 'copy-to-clipboard';
 import { getActions } from '../../../global';
 
 import useOldLang from '../hook/useOldLang';
+import { useSpeechPlayer } from '../hook/useSpeechPlayer';
 import {
   CopyIcon, DeleteIcon, VoiceIcon, VoiceingIcon,
 } from '../icons';
@@ -30,15 +31,17 @@ interface UrgentMessage {
 }
 
 const ActionsItems = ({
+  messageId,
   messages,
   deleteMessage,
 }: {
+  messageId:string;
   messages:UrgentMessage[];
   deleteMessage: () => void;
 }) => {
   const lang = useOldLang();
   const { showNotification } = getActions();
-  const [voicePlaying, setVoicePlaying] = useState(false);
+  const { isSpeaking, speak, stop } = useSpeechPlayer(messageId);
   const handleCopy = () => {
     const copyText = `Urgent Alert\n${messages.map((item) => `${item.content}`).join('\n')}`;
     copy(copyText);
@@ -48,23 +51,21 @@ const ActionsItems = ({
   };
   const handleVoicePlay = () => {
     const voiceText = `Urgent Alert\n${messages.map((item) => `${item.content}`).join('\n')}`;
-    const utterance = new SpeechSynthesisUtterance(voiceText);
-    window.speechSynthesis.speak(utterance);
-    setVoicePlaying(true);
-  };
-  const handleVoiceStop = () => {
-    window.speechSynthesis.cancel();
-    setVoicePlaying(false);
+    if (isSpeaking) {
+      stop();
+    } else {
+      speak(voiceText);
+    }
   };
   return (
-    <div className="flex items-center gap-[8px]">
+    <div className="message-actions flex items-center gap-[8px]">
       <div className="w-[24px] h-[24px] text-[#676B74] cursor-pointer" onClick={handleCopy}>
         <CopyIcon size={24} />
       </div>
-      {voicePlaying ? (
+      {isSpeaking ? (
         <div
           className="w-[24px] h-[24px] text-[#676B74] cursor-pointer"
-          onClick={handleVoiceStop}
+          onClick={stop}
           title="Stop Voice"
         >
           <VoiceingIcon size={24} />
@@ -125,7 +126,7 @@ const UrgentCheckMessage = (props:IProps) => {
           );
         })}
       </ul>
-      <ActionsItems messages={urgentMessage} deleteMessage={deleteMessage} />
+      <ActionsItems messageId={message.id} messages={urgentMessage} deleteMessage={deleteMessage} />
     </div>
   );
 };

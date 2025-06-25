@@ -22,7 +22,7 @@ import {
   saveAiChatFolders,
   sleep,
 } from "../ai-chatfolders/util";
-import { uniq } from "lodash";
+import { flatMap, uniq } from "lodash";
 import { selectSharedSettings } from "../../../global/selectors/sharedState";
 import RoomAIMessageListener from "../room-ai/room-ai-message-listener"
 
@@ -132,7 +132,10 @@ class AIChatFoldersTask {
           includedChatIds: content[folderTitle].map((item) => item + ""),
           excludedChatIds: [],
         };
-        const exist = await ChataiStores.folder?.getFolder(folderTitle);
+        const existDb = await ChataiStores.folder?.getFolder(folderTitle);
+        const globalFolders = getGlobal().chatFolders?.byId;
+        const existFolder = flatMap(globalFolders)?.find(o=>o?.title?.text === folderTitle)
+        const exist = existDb ? existDb : existFolder
         if (exist) {
           // 用户已有自定义分类，将用户自定义标签和AI标签对比去重后取合集
           folder.id = Number(exist.id);

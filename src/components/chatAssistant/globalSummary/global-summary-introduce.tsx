@@ -1,7 +1,9 @@
 /* eslint-disable max-len */
 import React from 'react';
+import { getGlobal } from '../../../global';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
+import { selectUser } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import { ChataiStores } from '../store';
 import {
@@ -12,6 +14,9 @@ import './global-summary.scss';
 import styles from './global-summary.module.scss';
 
 const GlobalSummaryIntroduce = () => {
+  const global = getGlobal();
+  const { currentUserId } = global;
+  const currentUser = currentUserId ? selectUser(global, currentUserId) : undefined;
   const sendSmartreplyIntroduceMessage = () => {
     const message = createIntroduceReplyMessage();
     ChataiStores.summary?.storeMessage(message);
@@ -34,7 +39,7 @@ const GlobalSummaryIntroduce = () => {
   };
   return (
     <div className="global-summary-introduce">
-      <h3>Hi Jeams 👋</h3>
+      <h3>Hi {[currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(' ')} 👋</h3>
       <h3>How can I help you today！</h3>
       <div className="bg-[var(--color-background)] rounded-[16px] p-[15px] grid grid-cols-2 gap-[12px] w-[743px] mt-[10px] mb-[20px]">
         <div

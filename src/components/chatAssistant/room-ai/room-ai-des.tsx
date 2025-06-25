@@ -1,15 +1,20 @@
 /* eslint-disable max-len */
 import React from 'react';
+import { getGlobal } from '../../../global';
+
+import { selectChat } from '../../../global/selectors';
 
 const actionItemClassName = 'h-[40px] w-fit px-[12px] py-[8px] rounded-[6px] bg-[#F5F1FF] text-[14px] text-[var(--color-text)]';
 
-const RoomAIDescription = () => {
+const RoomAIDescription = ({ chatId }:{ chatId:string }) => {
+  const global = getGlobal();
+  const chat = selectChat(global, chatId);
   return (
     <div className="px-[12px] pt-4">
       <div className="px-3 py-2 rounded-xl bg-[var(--color-background)] text-[var(--color-text)]">
         <p className="text-[14px]">
-          👋 Hi, welcome to 【BlockBeats Chats】!
-          I’m Serena 🤖, your smart assistant in the group. This group mainly discusses topics related to cryptocurrency, mining, and more.
+          👋 Hi, welcome to 【{chat?.title}】!
+          I’m Serena 🤖, your smart assistant in the group.
         </p>
         <div>
           <h3 className="mt-[0.5rem] text-[14px] font-semibold">🚀 Here’s what I can help you with:</h3>

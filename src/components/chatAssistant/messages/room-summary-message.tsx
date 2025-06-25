@@ -10,6 +10,7 @@ import { getActions, getGlobal } from '../../../global';
 import { isUserId } from '../../../global/helpers';
 import { selectChat, selectUser } from '../../../global/selectors';
 import useOldLang from '../hook/useOldLang';
+import { useSpeechPlayer } from '../hook/useSpeechPlayer';
 import {
   CopyIcon, DeleteIcon, VoiceIcon,
   VoiceingIcon,
@@ -136,11 +137,13 @@ const SummaryGarbageItem = ({ garBageItem }: { garBageItem: ISummaryGarbageItem 
 };
 
 const ActionsItems = ({
+  messageId,
   summaryInfo,
   mainTopic,
   pendingMatters,
   deleteMessage,
 }: {
+  messageId: string;
   summaryInfo: ISummaryInfo | null;
   mainTopic: ISummaryTopicItem[];
   pendingMatters: ISummaryPendingItem[];
@@ -148,11 +151,11 @@ const ActionsItems = ({
 }) => {
   const lang = useOldLang();
   const { showNotification } = getActions();
-  const [voicePlaying, setVoicePlaying] = useState(false);
+  const { isSpeaking, speak, stop } = useSpeechPlayer(messageId);
   const handleCopy = () => {
     const { summaryTime } = summaryInfo || {};
     const time = formatTimestamp(summaryTime!);
-    const copyText = `Chat Summary\nTime: ${time}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}`;
+    const copyText = `Chat Summary\nTime: ${time}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}`;
     copy(copyText);
     showNotification({
       message: lang('TextCopied'),
@@ -161,28 +164,22 @@ const ActionsItems = ({
   const handleVoicePlay = () => {
     const { summaryTime } = summaryInfo || {};
     const time = formatTimestamp(summaryTime!);
-    const voiceText = `Chat Summary\nTime: ${time}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}\n\nAction Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}`;
-    if (!window.speechSynthesis) {
-      console.error('Text-to-Speech is not supported in this browser.');
-      return;
+    const voiceText = `Chat Summary\nTime: ${time}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}`;
+    if (isSpeaking) {
+      stop();
+    } else {
+      speak(voiceText);
     }
-    const utterance = new SpeechSynthesisUtterance(voiceText);
-    window.speechSynthesis.speak(utterance);
-    setVoicePlaying(true);
-  };
-  const handleVoiceStop = () => {
-    window.speechSynthesis.cancel();
-    setVoicePlaying(false);
   };
   return (
     <div className="flex items-center gap-[8px]">
       <div className="w-[24px] h-[24px] text-[#676B74] cursor-pointer" onClick={handleCopy}>
         <CopyIcon size={24} />
       </div>
-      {voicePlaying ? (
+      {isSpeaking ? (
         <div
           className="w-[24px] h-[24px] text-[#676B74] cursor-pointer"
-          onClick={handleVoiceStop}
+          onClick={stop}
           title="Stop Voice"
         >
           <VoiceingIcon size={24} />
@@ -256,11 +253,13 @@ const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
 };
 
 const MainSummaryContent = ({
+  messageId,
   summaryInfo,
   mainTopic,
   pendingMatters,
   deleteMessage,
 }: {
+  messageId:string;
   summaryInfo: ISummaryInfo | null;
   mainTopic: ISummaryTopicItem[];
   pendingMatters: ISummaryPendingItem[];
@@ -293,52 +292,13 @@ const MainSummaryContent = ({
         </div>
       )}
       {/* action buttons  */}
-      <ActionsItems summaryInfo={summaryInfo} mainTopic={mainTopic} pendingMatters={pendingMatters} deleteMessage={deleteMessage} />
-    </div>
-  );
-};
-const SummaryContent = ({
-  summaryInfo,
-  mainTopic,
-  pendingMatters,
-  garbageMessage,
-  deleteMessage,
-}:
-{
-  summaryInfo: ISummaryInfo | null;
-  mainTopic: ISummaryTopicItem[];
-  pendingMatters: ISummaryPendingItem[];
-  garbageMessage: ISummaryGarbageItem[];
-  deleteMessage: () => void;
-}) => {
-  return (
-    <div className="px-[12px] w-full">
-      {(!mainTopic.length && !pendingMatters.length) ? null : (
-        <MainSummaryContent
-          summaryInfo={summaryInfo}
-          mainTopic={mainTopic}
-          pendingMatters={pendingMatters}
-          deleteMessage={deleteMessage}
-        />
-      )}
-
-      {garbageMessage && garbageMessage.length > 0 && (
-        <div className="mx-auto px-3 py-2 rounded-[10px] bg-[var(--color-background)] mt-[10px]">
-          <p className="text-[22px] font-bold mb-[16px]">Spam Filtering</p>
-          <div className="flex items-center gap-[20px]">
-            <p className="flex items-center gap-[8px]">
-              <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
-              <div className="flex items-center">
-                <span className="mr-[4px]">Time:</span>
-                {summaryInfo?.summaryTime ? (
-                  <p className="text-[14px] text-[#A8A6AC]">{formatTimestamp(summaryInfo.summaryTime)}</p>
-                ) : null}
-              </div>
-            </p>
-          </div>
-          {garbageMessage.map((item) => (<SummaryGarbageItem garBageItem={item} />))}
-        </div>
-      )}
+      <ActionsItems
+        messageId={messageId}
+        summaryInfo={summaryInfo}
+        mainTopic={mainTopic}
+        pendingMatters={pendingMatters}
+        deleteMessage={deleteMessage}
+      />
     </div>
   );
 };
@@ -378,13 +338,35 @@ const RoomSummaryMessage = (props: IProps) => {
     return null;
   }
   return (
-    <SummaryContent
-      summaryInfo={summaryInfo}
-      mainTopic={mainTopic}
-      pendingMatters={pendingMatters}
-      garbageMessage={garbageMessage}
-      deleteMessage={deleteMessage}
-    />
+    <div className="px-[12px] w-full">
+      {(!mainTopic.length && !pendingMatters.length) ? null : (
+        <MainSummaryContent
+          messageId={message.id}
+          summaryInfo={summaryInfo}
+          mainTopic={mainTopic}
+          pendingMatters={pendingMatters}
+          deleteMessage={deleteMessage}
+        />
+      )}
+
+      {garbageMessage && garbageMessage.length > 0 && (
+        <div className="mx-auto px-3 py-2 rounded-[10px] bg-[var(--color-background)] mt-[10px]">
+          <p className="text-[22px] font-bold mb-[16px]">Spam Filtering</p>
+          <div className="flex items-center gap-[20px]">
+            <p className="flex items-center gap-[8px]">
+              <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
+              <div className="flex items-center">
+                <span className="mr-[4px]">Time:</span>
+                {summaryInfo?.summaryTime ? (
+                  <p className="text-[14px] text-[#A8A6AC]">{formatTimestamp(summaryInfo.summaryTime)}</p>
+                ) : null}
+              </div>
+            </p>
+          </div>
+          {garbageMessage.map((item) => (<SummaryGarbageItem garBageItem={item} />))}
+        </div>
+      )}
+    </div>
   );
 };
 
