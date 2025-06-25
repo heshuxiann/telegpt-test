@@ -96,3 +96,24 @@ export const getHitTools = (text:string):Promise<Array<any>> => {
       });
   });
 };
+
+export async function imageAISummary(imageBase64:string) {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/image-summary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: imageBase64,
+      }),
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+
+}
