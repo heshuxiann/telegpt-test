@@ -12,10 +12,9 @@ import React, {
 import type { Message } from '@ai-sdk/react';
 import { useChat } from '@ai-sdk/react';
 import type { UIMessage } from 'ai';
+import { useSWRConfig } from 'swr';
 import { v4 as uuidv4 } from 'uuid';
 import { getActions } from '../../../global';
-
-import type { InfiniteScrollRef } from '../component/InfiniteScroll';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
@@ -28,11 +27,9 @@ import { getHitTools } from '../utils/chat-api';
 import { checkGoogleAuthStatus } from '../utils/google-api';
 import { toolsEmbeddingStore } from '../vector-store';
 import RoomActions from './room-actions';
-import RoomAIDescription from './room-ai-des';
+// import RoomAIDescription from './room-ai-des';
 import { RoomAIInput } from './room-ai-input';
-import { createGoogleLoginMessage, createGoogleMeetingMessage } from './room-ai-utils';
-
-import { InfiniteScroll } from '../component/InfiniteScroll';
+import { createGoogleLoginMessage, createGoogleMeetingMessage, createRoomDescriptionMessage } from './room-ai-utils';
 
 import './room-ai.scss';
 import styles from './room-ai.module.scss';
@@ -46,13 +43,16 @@ const RoomAIInner = (props: StateProps) => {
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
   const [isLoading, setIsLoading] = useState(false);
   const tokenRef = useRef<string | null>(null);
-  const messageListRef = useRef<InfiniteScrollRef | null>(null);
+  const { mutate } = useSWRConfig();
   const {
     messages, setMessages, append, stop, status,
   } = useChat({
     api: 'https://telegpt-three.vercel.app/chat',
     id: chatId,
     sendExtraMessageFields: true,
+    onResponse: () => {
+      mutate('messages:should-scroll', 'auto');
+    },
   });
 
   useEffect(() => {
@@ -83,9 +83,12 @@ const RoomAIInner = (props: StateProps) => {
     if (chatId) {
       initDate();
       ChataiStores.message?.getMessages(chatId, undefined, 10)?.then((res) => {
-        if (res.messages) {
+        if (res.messages.length > 0) {
           const localChatAiMessages = parseStoreMessage2Message(res.messages);
           setMessages(localChatAiMessages);
+        } else {
+          const roomDescription = createRoomDescriptionMessage(chatId);
+          setMessages([roomDescription]);
         }
         setPageInfo({
           lastTime: res.lastTime,
@@ -151,8 +154,9 @@ const RoomAIInner = (props: StateProps) => {
       ];
       const mergeMesssage = [...newMessage, ...appendMessage];
       setMessages(mergeMesssage as UIMessage[]);
+      mutate('messages:should-scroll', 'smooth');
     }
-  }, [insertMessage, messages, setMessages]);
+  }, [insertMessage, messages, mutate, setMessages]);
 
   const updateToken = useCallback((payload:{ message:Message;token:string }) => {
     const { message, token } = payload;
@@ -185,6 +189,22 @@ const RoomAIInner = (props: StateProps) => {
     }
   }, [messages, status, chatId]);
 
+  useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
+    if (status === 'streaming') {
+      timer = setInterval(() => {
+        mutate('messages:should-scroll', 'smooth');
+      }, 100);
+    } else if (timer !== undefined) {
+      clearInterval(timer);
+    }
+    return () => {
+      if (timer !== undefined) {
+        clearInterval(timer);
+      }
+    };
+  }, [mutate, status]);
+
   const toolsHitCheck = (formMessage: Message) => {
     getHitTools(formMessage.content).then((toolResults) => {
       setIsLoading(false);
@@ -210,6 +230,7 @@ const RoomAIInner = (props: StateProps) => {
               id: uuidv4(),
               createdAt: new Date(),
             });
+            mutate('messages:should-scroll', 'smooth');
           }
         });
       }
@@ -244,6 +265,7 @@ const RoomAIInner = (props: StateProps) => {
       setMessages((prev) => prev.slice(0, prev.length - 1));
       ChataiStores.message?.delMessage(newMessage.id);
       append(newMessage);
+      mutate('messages:should-scroll', 'smooth');
     }
   };
   const deleteMessage = useCallback((messageId: string) => {
@@ -253,22 +275,16 @@ const RoomAIInner = (props: StateProps) => {
   }, [setMessages]);
   return (
     <div className={buildClassName(styles.rightPanelBg, 'right-panel-chat-ai')}>
-      <InfiniteScroll
-        className="chat-ai-output-wrapper"
+      <Messages
+        className="chat-ai-output-wrapper flex-1"
+        isLoading={isLoading}
+        status={status}
+        messages={messages}
+        deleteMessage={deleteMessage}
         loadMore={handleLoadMore}
         hasMore={pageInfo.hasMore}
-        ref={messageListRef}
-      >
-        <RoomAIDescription chatId={chatId!} />
-        {messages.length > 0 && (
-          <Messages
-            isLoading={isLoading}
-            status={status}
-            messages={messages}
-            deleteMessage={deleteMessage}
-          />
-        )}
-      </InfiniteScroll>
+        chatId={chatId!}
+      />
       <div>
         <RoomActions setIsLoading={(status) => setIsLoading(status)} insertMessage={insertMessage} chatId={chatId} />
         <form className="flex mx-auto px-[12px] pb-4  gap-2 w-full">

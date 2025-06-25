@@ -20,6 +20,7 @@ import {
 } from '../../global/selectors';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 import RoomAIWrapper from '../chatAssistant/room-ai/room-ai-wrapper';
+import { GLOBAL_SUMMARY_CHATID } from '../chatAssistant/variables';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -109,6 +110,7 @@ const RightColumn: FC<OwnProps & StateProps> = ({
     closeBoostStatistics,
     setShouldCloseRightColumn,
     closeMonetizationStatistics,
+    openChatAIWithInfo,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -303,10 +305,15 @@ const RightColumn: FC<OwnProps & StateProps> = ({
       || contentKey === RightColumnContent.AddingMembers
       || contentKey === RightColumnContent.CreateTopic
       || contentKey === RightColumnContent.EditTopic
-      || contentKey === RightColumnContent.ChatAI
     ),
     onBack: () => close(false),
   });
+
+  useEffect(() => {
+    if (renderingContentKey === -1 && chatId && !shouldCloseRightColumn && chatId !== GLOBAL_SUMMARY_CHATID) {
+      openChatAIWithInfo({ chatId });
+    }
+  }, [chatId, renderingContentKey, shouldCloseRightColumn, threadId]);
 
   function renderContent(isActive: boolean) {
     if (renderingContentKey === -1) {
@@ -371,11 +378,7 @@ const RightColumn: FC<OwnProps & StateProps> = ({
       case RightColumnContent.EditTopic:
         return <EditTopic onClose={close} isActive={isOpen && isActive} />;
       case RightColumnContent.ChatAI:
-        if (isOpen) {
-          return <RoomAIWrapper chatId={chatId} threadId={threadId} onClose={close} />;
-        } else {
-          return undefined;
-        }
+        return <RoomAIWrapper chatId={chatId} threadId={threadId} onClose={close} />;
     }
 
     return undefined; // Unreachable

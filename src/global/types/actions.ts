@@ -349,7 +349,9 @@ export interface ActionPayloads {
     forceScrollProfileTab?: boolean;
   } & WithTabId;
   openThreadWithInfo: ActionPayloads['openThread'] & WithTabId;
-  openChatAIWithInfo: ActionPayloads['openThread'] & WithTabId;
+  openChatAIWithInfo: {
+    chatId: string;
+  };
   openLinkedChat: { id: string } & WithTabId;
   loadMoreMembers: WithTabId | undefined;
   setActiveChatFolder: {

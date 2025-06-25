@@ -829,29 +829,6 @@ export const ChevronDownIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-export const SparklesIcon = ({ size = 16 }: { size?: number }) => (
-  <svg
-    height={size}
-    strokeLinejoin="round"
-    viewBox="0 0 16 16"
-    width={size}
-    style={{ color: 'currentcolor' } as React.CSSProperties}
-  >
-    <path
-      d="M2.5 0.5V0H3.5V0.5C3.5 1.60457 4.39543 2.5 5.5 2.5H6V3V3.5H5.5C4.39543 3.5 3.5 4.39543 3.5 5.5V6H3H2.5V5.5C2.5 4.39543 1.60457 3.5 0.5 3.5H0V3V2.5H0.5C1.60457 2.5 2.5 1.60457 2.5 0.5Z"
-      fill="currentColor"
-    />
-    <path
-      d="M14.5 4.5V5H13.5V4.5C13.5 3.94772 13.0523 3.5 12.5 3.5H12V3V2.5H12.5C13.0523 2.5 13.5 2.05228 13.5 1.5V1H14H14.5V1.5C14.5 2.05228 14.9477 2.5 15.5 2.5H16V3V3.5H15.5C14.9477 3.5 14.5 3.94772 14.5 4.5Z"
-      fill="currentColor"
-    />
-    <path
-      d="M8.40706 4.92939L8.5 4H9.5L9.59294 4.92939C9.82973 7.29734 11.7027 9.17027 14.0706 9.40706L15 9.5V10.5L14.0706 10.5929C11.7027 10.8297 9.82973 12.7027 9.59294 15.0706L9.5 16H8.5L8.40706 15.0706C8.17027 12.7027 6.29734 10.8297 3.92939 10.5929L3 10.5V9.5L3.92939 9.40706C6.29734 9.17027 8.17027 7.29734 8.40706 4.92939Z"
-      fill="currentColor"
-    />
-  </svg>
-);
-
 export const CheckCircleFillIcon = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
@@ -1281,6 +1258,25 @@ export const LanguageIcon = ({ size = 20 }: { size?: number }) => {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M2 12C2 17.523 6.477 22 12 22C17.523 22 22 17.523 22 12C22 6.477 17.523 2 12 2C6.477 2 2 6.477 2 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
       <path d="M12.9999 2.04999C12.9999 2.04999 15.9999 5.99999 15.9999 12C15.9999 18 12.9999 21.95 12.9999 21.95M10.9999 21.95C10.9999 21.95 7.99988 18 7.99988 12C7.99988 5.99999 10.9999 2.04999 10.9999 2.04999M2.62988 15.5H21.3699M2.62988 8.49999H21.3699" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  );
+};
+
+export const LoadingIcon = ({ size = 20 }: { size?: number }) => {
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" fill="#3498db">
+      <circle cx="10" cy="20" r="4">
+        <animate attributeName="opacity" from="0.3" to="1" dur="1.2s" begin="0s" repeatCount="indefinite" />
+        <animate attributeName="r" from="3" to="4" dur="1.2s" begin="0s" repeatCount="indefinite" />
+      </circle>
+      <circle cx="20" cy="20" r="4">
+        <animate attributeName="opacity" from="0.3" to="1" dur="1.2s" begin="0.2s" repeatCount="indefinite" />
+        <animate attributeName="r" from="3" to="4" dur="1.2s" begin="0.2s" repeatCount="indefinite" />
+      </circle>
+      <circle cx="30" cy="20" r="4">
+        <animate attributeName="opacity" from="0.3" to="1" dur="1.2s" begin="0.4s" repeatCount="indefinite" />
+        <animate attributeName="r" from="3" to="4" dur="1.2s" begin="0.4s" repeatCount="indefinite" />
+      </circle>
     </svg>
   );
 };

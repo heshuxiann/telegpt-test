@@ -1,149 +1,87 @@
 /* eslint-disable max-len */
 /* eslint-disable no-null/no-null */
-import React, { memo } from 'react';
+import React, {
+  memo, useRef,
+} from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { Message } from 'ai';
 import equal from 'fast-deep-equal';
+import { motion } from 'framer-motion';
 
-import GlobalSummaryMessage from './messages/global-summary-message';
-import GoogleEventCreateMessage from './messages/google-event-create-messages';
-import GoogleEventDetailMessage from './messages/google-event-detail-message';
-import GoogleLoginAuthMessage from './messages/google-login-auth-message';
-import { GroupSearchMessage } from './messages/group-search-message';
-import IntroducePortraitMessage from './messages/introduce-portrait-message';
-import IntroduceSmartreplyMessage from './messages/introduce-smartreply-message';
-import IntroduceSummaryMessage from './messages/introduce-summary-message';
-import IntroduceTranslationMessage from './messages/introduce-translation-message';
-import RoomActionMessage from './messages/room-actions-message';
-import RoomSummaryMessage from './messages/room-summary-message';
-// import SummaryMessage from './summary-message';
-import UrgentCheckMessage from './messages/urgent-check-message';
-// import { useScrollToBottom } from './use-scroll-to-bottom';
-import { UserSearchMessage } from './messages/user-search-message';
+import { useMessages } from './hook/use-messages';
+import { cn } from './utils/util';
 import { PreviewMessage, ThinkingMessage } from './message';
-
-import ErrorBoundary from './ErrorBoundary';
 
 import './messages.scss';
 
 interface MessagesProps {
+  chatId: string;
+  className?: string;
   isLoading?: boolean;
   status: UseChatHelpers['status'];
   messages: Array<Message>;
+  hasMore?: boolean;
   deleteMessage?: (messageId: string) => void;
+  loadMore: () => Promise<void>;
 }
-
 function PureMessages({
+  chatId,
+  className,
   isLoading,
   status,
   messages,
+  hasMore,
   deleteMessage,
+  loadMore,
 }: MessagesProps) {
-  // const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
+  const upLoadRef = useRef(false);
+  const anchorRef = useRef<HTMLDivElement | null>(null);
+  const {
+    containerRef: messagesContainerRef,
+    endRef: messagesEndRef,
+    onViewportEnter,
+    onViewportLeave,
+  } = useMessages({
+    chatId: chatId!,
+    status,
+  });
   const isAuxiliary = (message: Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'isAuxiliary' in item && item.isAuxiliary === true) ?? false;
   };
-  const isGlobalSummary = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-summary') ?? false;
-  };
-  const isUrgentCheck = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'urgent-message-check') ?? false;
-  };
+  const handleScroll = () => {
+    const container = messagesContainerRef.current;
+    if (!container || upLoadRef.current) return;
 
-  const isGroupSearch = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'group-search') ?? false;
-  };
-  const isUserSearch = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'user-search') ?? false;
-  };
-  const isGoogleAuth = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'google-auth') ?? false;
-  };
-  const isGoogleEventInsert = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'google-event-insert') ?? false;
-  };
-  const isGoogleEventDetail = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'google-event-detail') ?? false;
-  };
+    const { scrollTop } = container;
 
-  const isRoomSummary = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'room-summary') ?? false;
-  };
-
-  const isRoomActions = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'room-actions') ?? false;
-  };
-  const isSmartreplyIntroduce = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-smartreply-introduce') ?? false;
-  };
-  const isSummaryIntroduce = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-summary-introduce') ?? false;
-  };
-  const isTranslationIntroduce = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-translation-introduce') ?? false;
-  };
-  const isPortraitIntroduce = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-portrait-introduce') ?? false;
+    if (scrollTop === 0 && hasMore) {
+      upLoadRef.current = true;
+      const anchor = container.firstChild?.firstChild as HTMLDivElement || null;
+      anchorRef.current = anchor;
+      loadMore().finally(() => {
+        upLoadRef.current = false;
+        if (anchorRef.current) {
+          anchorRef.current.scrollIntoView({ behavior: 'instant', block: 'start' });
+        }
+        // scrollBuffer.current = calculateBuffer();
+      });
+    }
   };
   return (
     <div
-      className="flex flex-col min-w-0 gap-[10px] flex-1 pt-4 ai-message-container"
+      ref={messagesContainerRef}
+      onScroll={handleScroll}
+      className={cn('flex flex-col min-w-0 gap-[10px] h-full overflow-y-auto relative pt-4 ai-message-container', className)}
     >
       {messages.map((message, index) => {
         if (!isAuxiliary(message)) {
           return (
-            <div data-message-id={message.id} key={message.id}>
-              {isGlobalSummary(message) ? (
-                <ErrorBoundary>
-                  <GlobalSummaryMessage
-                    message={message}
-                    // eslint-disable-next-line react/jsx-no-bind
-                    deleteMessage={() => deleteMessage?.(message.id)}
-                  />
-                </ErrorBoundary>
-              ) : isUrgentCheck(message) ? (
-                <UrgentCheckMessage
-                  message={message}
-                  // eslint-disable-next-line react/jsx-no-bind
-                  deleteMessage={() => deleteMessage?.(message.id)}
-                />
-              ) : isGroupSearch(message) ? (
-                <GroupSearchMessage message={message} />
-              ) : isUserSearch(message) ? (
-                <UserSearchMessage message={message} />
-              ) : isGoogleAuth(message) ? (
-                <GoogleLoginAuthMessage message={message} />
-              ) : isGoogleEventInsert(message) ? (
-                <GoogleEventCreateMessage message={message} />
-              ) : isGoogleEventDetail(message) ? (
-                <GoogleEventDetailMessage message={message} />
-              ) : isRoomSummary(message) ? (
-                <RoomSummaryMessage
-                  message={message}
-                  // eslint-disable-next-line react/jsx-no-bind
-                  deleteMessage={() => deleteMessage?.(message.id)}
-                />
-              ) : isRoomActions(message) ? (
-                <RoomActionMessage
-                  message={message}
-                  // eslint-disable-next-line react/jsx-no-bind
-                  deleteMessage={() => deleteMessage?.(message.id)}
-                />
-              ) : isSmartreplyIntroduce(message) ? (
-                <IntroduceSmartreplyMessage />
-              ) : isSummaryIntroduce(message) ? (
-                <IntroduceSummaryMessage />
-              ) : isTranslationIntroduce(message) ? (
-                <IntroduceTranslationMessage />
-              ) : isPortraitIntroduce(message) ? (
-                <IntroducePortraitMessage />
-              ) : (
-                <PreviewMessage
-                  message={message}
-                  isLoading={status === 'streaming' && messages.length - 1 === index}
-                />
-              )}
-            </div>
+            <PreviewMessage
+              message={message}
+              deleteMessage={deleteMessage}
+              key={message.id}
+              isLoading={status === 'streaming' && messages.length - 1 === index}
+            />
           );
         } else {
           return null;
@@ -157,10 +95,16 @@ function PureMessages({
           && messages[messages.length - 1].role === 'user') || isLoading
         ) && <ThinkingMessage />
       }
+      <motion.div
+        ref={messagesEndRef}
+        className="shrink-0 min-w-[24px] min-h-[24px]"
+        onViewportLeave={onViewportLeave}
+        onViewportEnter={onViewportEnter}
+      />
     </div>
+
   );
 }
-
 export const Messages = memo(PureMessages, (prevProps, nextProps) => {
   if (prevProps.status !== nextProps.status) return false;
   if (prevProps.status && nextProps.status) return false;

@@ -11,6 +11,17 @@ import { getActionItems, summaryMessage } from '../utils/chat-api';
 import { fetchChatMessageByOffsetId, formateMessage2Summary } from '../utils/fetch-messages';
 import { checkGoogleAuthStatus } from '../utils/google-api';
 
+export const createRoomDescriptionMessage = (chatId:string):Message => {
+  return {
+    role: 'assistant',
+    id: uuidv4(),
+    createdAt: new Date(),
+    content: chatId,
+    annotations: [{
+      type: 'room-ai-description',
+    }],
+  };
+};
 export const createGoogleLoginMessage = ():Message => {
   return {
     role: 'assistant',

@@ -180,7 +180,6 @@ const ActionsItems = ({
         <div
           className="w-[24px] h-[24px] text-[#676B74] cursor-pointer"
           onClick={stop}
-          title="Stop Voice"
         >
           <VoiceingIcon size={24} />
         </div>
@@ -188,7 +187,6 @@ const ActionsItems = ({
         <div
           className="w-[24px] h-[24px] text-[#676B74] cursor-pointer"
           onClick={handleVoicePlay}
-          title="Play Voice"
         >
           <VoiceIcon size={24} />
         </div>

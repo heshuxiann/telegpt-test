@@ -1,0 +1,32 @@
+.introduceSummary {
+  background-image: url("../assets/summary-introduce/summarize-item-light.png");
+  background-size: cover;
+  :global(html.theme-dark) & {
+    background-image: url("../assets/summary-introduce/summarize-item-dark.png");
+    mix-blend-mode: unset;
+  }
+}
+.introducePortrait {
+  background-image: url("../assets/summary-introduce/portrait-item-light.png");
+  background-size: cover;
+  :global(html.theme-dark) & {
+    background-image: url("../assets/summary-introduce/portrait-item-dark.png");
+    mix-blend-mode: unset;
+  }
+}
+.introduceTranslation {
+  background-image: url("../assets/summary-introduce/translation-item-light.png");
+  background-size: cover;
+  :global(html.theme-dark) & {
+    background-image: url("../assets/summary-introduce/translation-item-dark.png");
+    mix-blend-mode: unset;
+  }
+}
+.introduceSmartreply {
+  background-image: url("../assets/summary-introduce/smartreply-item-light.png");
+  background-size: cover;
+  :global(html.theme-dark) & {
+    background-image: url("../assets/summary-introduce/smartreply-item-dark.png");
+    mix-blend-mode: unset;
+  }
+}

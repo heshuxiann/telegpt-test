@@ -16,7 +16,7 @@
         background-color: var(--color-chat-hover);
         color: var(--color-text);
         &::placeholder{
-            color: var(--color-secondary);
+            color: var(--color-placeholders);
         }
     }
     .ant-input-outlined.ant-input-status-error:not(.ant-input-disabled){
