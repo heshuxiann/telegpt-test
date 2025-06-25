@@ -63,8 +63,8 @@ const ReplyMentionMessage = (props: IProps) => {
   }
 
   return (
-    <div className="rounded-[16px] bg-[var(--color-background)] mx-2 p-3 w-full text-[14px]">
-      <div className="text-[#181818] font-[600]">You were mentioned:</div>
+    <div className="rounded-[16px] bg-[var(--color-background)] text-[var(--color-text)] mx-2 p-3 w-full text-[14px]">
+      <div className="font-[600]">You were mentioned:</div>
       <div>"{content?.content}"</div>
       <div>Here are a few reply suggestions for you 👇</div>
       <div className="flex flex-col gap-[6px] mt-2">

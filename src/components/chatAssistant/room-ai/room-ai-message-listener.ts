@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiMessage } from "../../../api/types"
 import { getGlobal } from "../../../global"
-import { chatAIGenerate, imageAISummary } from "../utils/chat-api"
+import { chatAIGenerate, imageAISummary, webPageAISummary } from "../utils/chat-api"
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import type { StoreMessage } from '../store/messages-store';
 import { ChataiStores } from "../store"
@@ -20,7 +20,7 @@ class RoomAIMessageListener {
     if (message.isMentioned) {
       this.replyToMention(message)
     } else if (webPage) {
-
+      this.webPageSummary(message);
     } else if (photo) {
       this.analyzePhoto(message);
     } else if (video) {
@@ -79,27 +79,58 @@ class RoomAIMessageListener {
   }
 
   private static analyzePhoto(message: ApiMessage) {
-    debugger
     const image = message.content?.photo?.thumbnail?.dataUri
     if (!image) return
     imageAISummary(image).then((response: any)=>{
-      const content = {
-        message: message,
-        summaryInfo: response?.text
+      if (response?.text) {
+        const content = {
+          message: message,
+          summaryInfo: response?.text?.summaryInfo,
+          webPageTitle: response?.text?.webPageTitle,
+        }
+        const newMessage = {
+          chatId: message.chatId,
+          timestamp: new Date().getTime(),
+          content: JSON.stringify(content),
+          id: uuidv4(),
+          createdAt: new Date(),
+          role: 'assistant',
+          annotations: [{
+            type: 'room-ai-image-summary',
+          }],
+        };
+        ChataiStores.message?.storeMessage(newMessage as StoreMessage);
+        eventEmitter.emit(Actions.AddRoomAIMessage, newMessage);
       }
-      const newMessage = {
-        chatId: message.chatId,
-        timestamp: new Date().getTime(),
-        content: JSON.stringify(content),
-        id: uuidv4(),
-        createdAt: new Date(),
-        role: 'assistant',
-        annotations: [{
-          type: 'room-ai-image-summary',
-        }],
-      };
-      ChataiStores.message?.storeMessage(newMessage as StoreMessage);
-      eventEmitter.emit(Actions.AddRoomAIMessage, newMessage);
+    }).catch((err)=>{
+      console.log('error', err)
+    })
+  }
+
+  private static webPageSummary(message: ApiMessage) {
+    debugger
+    const webPage = message.content?.webPage
+    if (!webPage) return
+    webPageAISummary(webPage?.url).then((response: any)=>{
+      if (response?.text) {
+        const content = {
+          message: message,
+          summaryInfo: response?.text
+        }
+        const newMessage = {
+          chatId: message.chatId,
+          timestamp: new Date().getTime(),
+          content: JSON.stringify(content),
+          id: uuidv4(),
+          createdAt: new Date(),
+          role: 'assistant',
+          annotations: [{
+            type: 'room-ai-webpage-summary',
+          }],
+        };
+        ChataiStores.message?.storeMessage(newMessage as StoreMessage);
+        eventEmitter.emit(Actions.AddRoomAIMessage, newMessage);
+      }
     }).catch((err)=>{
       console.log('error', err)
     })

@@ -27,6 +27,7 @@ import ErrorBoundary from './ErrorBoundary';
 import './messages.scss';
 import ReplyMentionMessage from "./messages/reply-mention-message"
 import ImageSummaryMessage from "./messages/image-summary-message"
+import WebPageSummaryMessage from "./messages/webpage-summary-message"
 
 interface MessagesProps {
   isLoading?: boolean;
@@ -87,6 +88,17 @@ function PureMessages({
   const isPortraitIntroduce = (message: Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'global-portrait-introduce') ?? false;
   };
+  const isReplyMention = (message: Message) => {
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'room-ai-reply-mention') ?? false;
+  }
+  const isAIImageSummary = (message: Message) => {
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'room-ai-image-summary') ?? false;
+  }
+
+  const isWebPageSummary = (message: Message) => {
+    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'room-ai-webpage-summary') ?? false;
+  }
+
   return (
     <div
       className="flex flex-col min-w-0 gap-[10px] flex-1 pt-4 ai-message-container"
@@ -143,6 +155,8 @@ function PureMessages({
                 <ReplyMentionMessage message={message}/>
               ) : isAIImageSummary(message) ? (
                 <ImageSummaryMessage message={message}/>
+              ) : isWebPageSummary(message) ? (
+                <WebPageSummaryMessage message={message}/>
               ) : (
                 <PreviewMessage
                   message={message}

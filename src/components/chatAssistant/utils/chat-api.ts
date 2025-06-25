@@ -115,5 +115,22 @@ export async function imageAISummary(imageBase64:string) {
         reject(err);
       });
   });
+}
 
+export async function webPageAISummary(url:string) {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/webpage-summary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url }),
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
 }
