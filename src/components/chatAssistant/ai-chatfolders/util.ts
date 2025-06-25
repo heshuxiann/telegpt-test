@@ -70,7 +70,13 @@ async function chatAIChatFolders(body: string) {
     }
   );
   const resJson = await res.json();
-  return formatJSONContent(resJson?.text);
+  const jsonString =  resJson?.text?.replaceAll('\n', '')?.replace('```json', '')?.replace('```', '')?.trim();
+  try {
+    return JSON.parse(jsonString);
+  } catch (error) {
+    return [];
+  }
+  // return formatJSONContent(resJson?.text);
 }
 
 export async function saveAiChatFolders(list: AIChatFolder[]) {
@@ -140,6 +146,7 @@ export async function batchAiChatFolders(
       const aiRes = await chatAIChatFolders(
         JSON.stringify({
           messages: chatMsgs,
+          flag: true
         })
       );
       res = res.concat(aiRes);

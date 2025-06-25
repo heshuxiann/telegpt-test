@@ -6,7 +6,8 @@ import React, {
   useCallback, useEffect, useRef, useState,
 } from 'react';
 import { useChat } from '@ai-sdk/react';
-import type { Attachment, UIMessage } from 'ai';
+import type { Message, UIMessage } from 'ai';
+import { useSWRConfig } from 'swr';
 import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
 
@@ -19,36 +20,50 @@ import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/m
 import { sendGAEvent } from '../utils/analytics';
 import { messageEmbeddingStore } from '../vector-store';
 
-import { InfiniteScroll } from '../component/InfiniteScroll';
 import { AISearchInput } from './AISearchInput';
-import AISearchSugesstions from './AISearchSugesstions';
 
 const GLOBAL_SEARCH_CHATID = '777889';
 
 export const AISearch = () => {
   const global = getGlobal();
-  const messageListRef = useRef<InfiniteScrollRef | null>(null);
-  const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
+  const { mutate } = useSWRConfig();
   const {
-    messages, setMessages, append, status, input, setInput, stop, handleSubmit,
+    messages, setMessages, append, status, stop,
   } = useChat({
     id: GLOBAL_SEARCH_CHATID,
     api: 'https://telegpt-three.vercel.app/chat',
     sendExtraMessageFields: true,
+    onResponse: () => {
+      mutate('messages:should-scroll', 'auto');
+    },
   });
 
   useEffect(() => {
     ChataiStores.message?.getMessages(GLOBAL_SEARCH_CHATID, undefined, 20)?.then((res) => {
-      if (res.messages) {
+      if (res.messages.length > 0) {
         const localChatAiMessages = parseStoreMessage2Message(res.messages);
         setMessages((prev) => [...localChatAiMessages, ...prev]);
+      } else {
+        const suggestionMessage:Message = {
+          role: 'assistant',
+          id: uuidv4(),
+          createdAt: new Date(),
+          content: '',
+          annotations: [{
+            type: 'ai-search-sugesstion',
+          }],
+        };
+        setMessages([suggestionMessage]);
       }
       setPageInfo({
         lastTime: res.lastTime,
         hasMore: res.hasMore,
       });
     });
+    return () => {
+      setMessages([]);
+    };
     // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, []);
   useEffect(() => {
@@ -128,7 +143,8 @@ export const AISearch = () => {
       };
       setMessages((prev) => [...prev, message]);
     }
-  }, [setMessages]);
+    mutate('messages:should-scroll', 'auto');
+  }, [mutate, setMessages]);
 
   const searchUser = useCallback(async (query: string) => {
     const vectorSearchResults = await messageEmbeddingStore.similaritySearch({
@@ -177,7 +193,8 @@ export const AISearch = () => {
       };
       setMessages((prev) => [...prev, message]);
     }
-  }, [setMessages]);
+    mutate('messages:should-scroll', 'auto');
+  }, [mutate, setMessages]);
   const searchMessage = useCallback(async (query: string) => {
     const vectorSearchResults = await messageEmbeddingStore.similaritySearch({
       query,
@@ -216,8 +233,9 @@ export const AISearch = () => {
           isAuxiliary: true,
         }],
       });
+      mutate('messages:should-scroll', 'auto');
     }
-  }, [append, global]);
+  }, [append, global, mutate]);
 
   const toolsHitCheck = useCallback((inputValue: string) => {
     fetch('https://telegpt-three.vercel.app/tool-check', {
@@ -259,27 +277,21 @@ export const AISearch = () => {
         createdAt: new Date(),
       }];
     });
+    mutate('messages:should-scroll', 'auto');
     toolsHitCheck(query);
-    messageListRef.current?.scrollToBottom();
     sendGAEvent('ai_search');
-  }, [setMessages, toolsHitCheck]);
+  }, [mutate, setMessages, toolsHitCheck]);
 
   return (
     <div className="pb-[28px] flex-1 flex flex-col h-full gap-[8px] overflow-hidden">
-      <InfiniteScroll
+      <Messages
         className="chat-ai-output-wrapper flex-1"
+        status={status}
+        messages={messages}
         loadMore={handleLoadMore}
         hasMore={pageInfo.hasMore}
-        ref={messageListRef}
-      >
-        {!pageInfo.hasMore && (
-          <AISearchSugesstions handleSearch={handleSearch} />
-        )}
-        <Messages
-          status={status}
-          messages={messages}
-        />
-      </InfiniteScroll>
+        chatId={GLOBAL_SEARCH_CHATID!}
+      />
       <form className="flex mx-auto gap-2 w-full">
         <AISearchInput
           status={status}

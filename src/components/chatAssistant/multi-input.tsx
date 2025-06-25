@@ -43,23 +43,17 @@ function PureMultimodalInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
 
-  useEffect(() => {
-    if (textareaRef.current) {
-      adjustHeight();
-    }
-  }, []);
-
   const adjustHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight + 2}px`;
+      textareaRef.current.style.height = `${Math.min(200, Math.max(90, textareaRef.current.scrollHeight + 2))}px`;
     }
   };
 
   const resetHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = '98px';
+      textareaRef.current.style.height = '90px';
     }
   };
 
@@ -77,11 +71,13 @@ function PureMultimodalInput({
       const finalValue = domValue || localStorageInput || '';
       // setInput(finalValue);
       setInputValue(finalValue);
-      adjustHeight();
+      if (finalValue) {
+        adjustHeight();
+      }
     }
     // Only run once after hydration
     // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks-static-deps/exhaustive-deps
-  }, []);
+  }, [localStorageInput]);
 
   useEffect(() => {
     setLocalStorageInput(inputValue);
@@ -114,7 +110,7 @@ function PureMultimodalInput({
         value={inputValue}
         onChange={handleInput}
         className={cx(
-          'min-h-[24px] h-[76px] overflow-hidden resize-none rounded-2xl !text-base pb-10 focus-visible:!ring-0 !ring-offset-0',
+          'h-[90px] overflow-y-auto border-[#7D40FF] resize-none rounded-2xl !text-base pb-10 focus-visible:!ring-0 !ring-offset-0',
           className,
         )}
         rows={2}

@@ -21,6 +21,7 @@ import {
   isChatBot,
   saveAiChatFolders,
   sleep,
+  formatJSONContent,
 } from "../ai-chatfolders/util";
 import { flatMap, uniq } from "lodash";
 import { selectSharedSettings } from "../../../global/selectors/sharedState";

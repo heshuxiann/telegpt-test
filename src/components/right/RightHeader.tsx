@@ -336,7 +336,7 @@ const RightHeader: FC<OwnProps & StateProps> = ({
     HeaderContent.EditTopic
   ) : isMonetizationStatistics ? (
     HeaderContent.MonetizationStatistics
-  ) : undefined; // When column is closed
+  ) : HeaderContent.ChatAI; // When column is closed
 
   const renderingContentKey = useCurrentOrPrev(contentKey, true) ?? -1;
 
