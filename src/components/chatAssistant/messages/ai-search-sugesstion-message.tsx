@@ -10,7 +10,7 @@ const suggestions = [
   'Which friends do Paulo and I share?',
   'Find messages about Twitter Space collaboration.',
 ];
-const AISearchSugesstions = (props:{ handleSearch: (query:string)=>void }) => {
+const AISearchSugesstionsMessage = (props:{ handleSearch: (query:string)=>void }) => {
   const { handleSearch } = props;
   return (
     <div className="flex flex-col mx-[22px]">
@@ -28,4 +28,4 @@ const AISearchSugesstions = (props:{ handleSearch: (query:string)=>void }) => {
   );
 };
 
-export default AISearchSugesstions;
+export default AISearchSugesstionsMessage;

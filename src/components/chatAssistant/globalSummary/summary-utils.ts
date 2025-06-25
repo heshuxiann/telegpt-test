@@ -50,3 +50,16 @@ export const createIntroducePortraitMessage = ():SummaryStoreMessage => {
     }],
   };
 };
+
+export const createGlobalIntroduceMessage = ():SummaryStoreMessage => {
+  return {
+    timestamp: new Date().getTime(),
+    content: '',
+    id: uuidv4(),
+    createdAt: new Date(),
+    role: 'assistant',
+    annotations: [{
+      type: 'global-introduce',
+    }],
+  };
+};

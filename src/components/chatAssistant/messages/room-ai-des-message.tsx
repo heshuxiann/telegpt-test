@@ -1,12 +1,14 @@
 /* eslint-disable max-len */
 import React from 'react';
+import type { Message } from '@ai-sdk/react';
 import { getGlobal } from '../../../global';
 
 import { selectChat } from '../../../global/selectors';
 
 const actionItemClassName = 'h-[40px] w-fit px-[12px] py-[8px] rounded-[6px] bg-[#F5F1FF] text-[14px] text-[var(--color-text)]';
 
-const RoomAIDescription = ({ chatId }:{ chatId:string }) => {
+const RoomAIDescriptionMessage = ({ message }:{ message:Message }) => {
+  const { content: chatId } = message;
   const global = getGlobal();
   const chat = selectChat(global, chatId);
   return (
@@ -53,4 +55,4 @@ const RoomAIDescription = ({ chatId }:{ chatId:string }) => {
   );
 };
 
-export default RoomAIDescription;
+export default RoomAIDescriptionMessage;

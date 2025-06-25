@@ -706,7 +706,6 @@ function MiddleColumn({
 
             <RoomAIActionButton
               chatId={renderingChatId!}
-              threadId={renderingThreadId!}
             />
 
             <FloatingActionButtons

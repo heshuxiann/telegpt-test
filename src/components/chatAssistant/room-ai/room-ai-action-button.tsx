@@ -17,15 +17,14 @@ import SerenaLogoPath from '../assets/serena.png';
 
 interface OwnProps {
   chatId: string;
-  threadId: ThreadId;
 }
 
 const RoomAIActionButton = (props: OwnProps) => {
-  const { chatId, threadId } = props;
+  const { chatId } = props;
   const { openChatAIWithInfo } = getActions();
   const [unreadCount, setUnreadCount] = useState(0);
   const onClick = useLastCallback(() => {
-    openChatAIWithInfo({ chatId, threadId });
+    openChatAIWithInfo({ chatId });
     RoomAIAssistant.updateRoomAIData(chatId, 'unreadCount', 0);
     setUnreadCount(0);
   });

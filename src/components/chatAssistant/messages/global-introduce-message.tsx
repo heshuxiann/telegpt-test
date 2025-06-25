@@ -1,19 +1,21 @@
 /* eslint-disable max-len */
 import React from 'react';
+import { useSWRConfig } from 'swr';
 import { getGlobal } from '../../../global';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { selectUser } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
-import { ChataiStores } from '../store';
 import {
   createIntroducePortraitMessage, createIntroduceReplyMessage, createIntroduceSummaryMessage, createIntroduceTranslationMessage,
-} from './summary-utils';
+} from '../globalSummary/summary-utils';
+import { ChataiStores } from '../store';
 
-import './global-summary.scss';
-import styles from './global-summary.module.scss';
+import './global-intoduce-message.scss';
+import styles from './global-intoduce-message.module.scss';
 
-const GlobalSummaryIntroduce = () => {
+export const GlobalIntroduceMessage = () => {
+  const { mutate } = useSWRConfig();
   const global = getGlobal();
   const { currentUserId } = global;
   const currentUser = currentUserId ? selectUser(global, currentUserId) : undefined;
@@ -21,21 +23,25 @@ const GlobalSummaryIntroduce = () => {
     const message = createIntroduceReplyMessage();
     ChataiStores.summary?.storeMessage(message);
     eventEmitter.emit(Actions.AddSummaryMessage, message);
+    mutate('messages:should-scroll', 'smooth');
   };
   const sendSmmaryIntroduceMessage = () => {
     const message = createIntroduceSummaryMessage();
     ChataiStores.summary?.storeMessage(message);
     eventEmitter.emit(Actions.AddSummaryMessage, message);
+    mutate('messages:should-scroll', 'smooth');
   };
   const sendPortraitIntroduceMessage = () => {
     const message = createIntroducePortraitMessage();
     ChataiStores.summary?.storeMessage(message);
     eventEmitter.emit(Actions.AddSummaryMessage, message);
+    mutate('messages:should-scroll', 'smooth');
   };
   const sendTranslationIntroduceMessage = () => {
     const message = createIntroduceTranslationMessage();
     ChataiStores.summary?.storeMessage(message);
     eventEmitter.emit(Actions.AddSummaryMessage, message);
+    mutate('messages:should-scroll', 'smooth');
   };
   return (
     <div className="global-summary-introduce">
@@ -104,5 +110,3 @@ const GlobalSummaryIntroduce = () => {
     </div>
   );
 };
-
-export default GlobalSummaryIntroduce;

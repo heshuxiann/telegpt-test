@@ -5,10 +5,12 @@
 // import type { Dispatch, SetStateAction } from 'react';
 import React, {
   forwardRef,
+  memo,
   useCallback, useEffect, useState,
 } from 'react';
 import { useChat } from '@ai-sdk/react';
 import type { Message } from 'ai';
+import { useSWRConfig } from 'swr';
 import { v4 as uuidv4 } from 'uuid';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
@@ -19,11 +21,10 @@ import { RightPanel } from '../rightPanel/right-panel';
 import { ChataiStores } from '../store';
 import { parseMessage2SummaryStoreMessage, parseSummaryStoreMessage2Message, type SummaryStoreMessage } from '../store/summary-store';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
-import GlobalSummaryIntroduce from './global-summary-introduce';
 import SummaryHeaderActions from './summary-header-actions';
+import { createGlobalIntroduceMessage } from './summary-utils';
 import UrgentNotification from './urgent-notification';
 
-import { InfiniteScroll } from '../component/InfiniteScroll';
 import ErrorBoundary from '../ErrorBoundary';
 
 import './global-summary.scss';
@@ -32,6 +33,7 @@ import styles from './global-summary.module.scss';
 import SerenaPath from '../assets/serena.png';
 
 const GlobalSummary = forwardRef(() => {
+  const { mutate } = useSWRConfig();
   const [notificationMessage, setNotificationMessage] = useState<Message | null>(null);
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
   const {
@@ -40,6 +42,9 @@ const GlobalSummary = forwardRef(() => {
     api: 'https://telegpt-three.vercel.app/chat',
     id: GLOBAL_SUMMARY_CHATID,
     sendExtraMessageFields: true,
+    onFinish: () => {
+      mutate('messages:should-scroll', 'auto');
+    },
   });
   const handleLoadMore = useCallback(() => {
     return new Promise<void>((resolve) => {
@@ -67,9 +72,12 @@ const GlobalSummary = forwardRef(() => {
 
   const getSummaryHistory = useCallback(() => {
     ChataiStores.summary?.getMessages(undefined, 10)?.then((res) => {
-      if (res.messages) {
+      if (res.messages.length > 0) {
         const localChatAiMessages = parseSummaryStoreMessage2Message(res.messages);
         setMessages((prev) => [...localChatAiMessages, ...prev]);
+      } else {
+        const globalIntroduce = createGlobalIntroduceMessage();
+        setMessages([globalIntroduce]);
       }
       setPageInfo({
         lastTime: res.lastTime,
@@ -86,8 +94,9 @@ const GlobalSummary = forwardRef(() => {
       eventEmitter.off(Actions.AddUrgentMessage, handleAddUrgentMessage);
       eventEmitter.off(Actions.AddSummaryMessage, handleAddSummaryMessage);
       eventEmitter.off(Actions.ChatAIStoreReady, getSummaryHistory);
+      setMessages([]);
     };
-  }, [getSummaryHistory, handleAddSummaryMessage, handleAddUrgentMessage]);
+  }, [getSummaryHistory, handleAddSummaryMessage, handleAddUrgentMessage, setMessages]);
 
   useEffect(() => {
     if (ChataiStores.summary) {
@@ -108,7 +117,8 @@ const GlobalSummary = forwardRef(() => {
       id: uuidv4(),
       createdAt: new Date(),
     });
-  }, [append]);
+    mutate('messages:should-scroll', 'smooth');
+  }, [append, mutate]);
 
   useEffect(() => {
     if (status === 'ready') {
@@ -116,6 +126,22 @@ const GlobalSummary = forwardRef(() => {
       ChataiStores.summary?.storeMessages(msgs);
     }
   }, [messages, status]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
+    if (status === 'streaming') {
+      timer = setInterval(() => {
+        mutate('messages:should-scroll', 'smooth');
+      }, 500);
+    } else if (timer !== undefined) {
+      clearInterval(timer);
+    }
+    return () => {
+      if (timer !== undefined) {
+        clearInterval(timer);
+      }
+    };
+  }, [mutate, status]);
 
   return (
     <ErrorBoundary>
@@ -129,7 +155,7 @@ const GlobalSummary = forwardRef(() => {
             </div>
           </div>
           <div className="flex-1 flex flex-col overflow-hidden">
-            <InfiniteScroll
+            {/* <InfiniteScroll
               loadMore={handleLoadMore}
               hasMore={pageInfo.hasMore}
               className="px-[15%] flex-1"
@@ -140,7 +166,16 @@ const GlobalSummary = forwardRef(() => {
                 messages={messages}
                 deleteMessage={deleteMessage}
               />
-            </InfiniteScroll>
+            </InfiniteScroll> */}
+            <Messages
+              className="px-[15%] flex-1"
+              status={status}
+              messages={messages}
+              deleteMessage={deleteMessage}
+              loadMore={handleLoadMore}
+              hasMore={pageInfo.hasMore}
+              chatId={GLOBAL_SUMMARY_CHATID}
+            />
             <div className="mb-[26px] px-[15%]">
               <MultiInput
                 status={status}
@@ -159,4 +194,4 @@ const GlobalSummary = forwardRef(() => {
   );
 });
 
-export default GlobalSummary;
+export default memo(GlobalSummary);

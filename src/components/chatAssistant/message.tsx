@@ -1,78 +1,172 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable jsx-quotes */
 /* eslint-disable max-len */
 /* eslint-disable no-null/no-null */
 // @ts-nocheck
 
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import type { Message } from 'ai';
 import cx from 'classnames';
 import equal from 'fast-deep-equal';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import { cn } from '../../lib/utils';
-// import { SparklesIcon } from './icons';
+import AISearchSugesstionsMessage from './messages/ai-search-sugesstion-message';
+import { GlobalIntroduceMessage } from './messages/global-introduce-message';
+import GlobalSummaryMessage from './messages/global-summary-message';
+import GoogleEventCreateMessage from './messages/google-event-create-messages';
+import GoogleEventDetailMessage from './messages/google-event-detail-message';
+import GoogleLoginAuthMessage from './messages/google-login-auth-message';
+import { GroupSearchMessage } from './messages/group-search-message';
+import IntroducePortraitMessage from './messages/introduce-portrait-message';
+import IntroduceSmartreplyMessage from './messages/introduce-smartreply-message';
+import IntroduceSummaryMessage from './messages/introduce-summary-message';
+import IntroduceTranslationMessage from './messages/introduce-translation-message';
+import RoomActionMessage from './messages/room-actions-message';
+import RoomAIDescriptionMessage from './messages/room-ai-des-message';
+import RoomSummaryMessage from './messages/room-summary-message';
+// import SummaryMessage from './summary-message';
+import UrgentCheckMessage from './messages/urgent-check-message';
+// import { useScrollToBottom } from './use-scroll-to-bottom';
+import { UserSearchMessage } from './messages/user-search-message';
+import { LoadingIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageReasoning } from './message-reasoning';
 import { PreviewAttachment } from './preview-attachment';
 
+import ErrorBoundary from './ErrorBoundary';
+
+export enum AIMessageType {
+  GlobalSummary = 'global-summary',
+  UrgentCheck = 'urgent-message-check',
+  GroupSearch = 'group-search',
+  UserSearch = 'user-search',
+  GoogleAuth = 'google-auth',
+  GoogleEventInsert = 'google-event-insert',
+  GoogleEventDetail = 'google-event-detail',
+  RoomSummary = 'room-summary',
+  RoomActions = 'room-actions',
+  SmartreplyIntroduce = 'global-smartreply-introduce',
+  SummaryIntroduce = 'global-summary-introduce',
+  TranslationIntroduce = 'global-translation-introduce',
+  PortraitIntroduce = 'global-portrait-introduce',
+  GlobalIntroduce = 'global-introduce',
+  RoomAIDescription = 'room-ai-description',
+  AISearchSugesstion = 'ai-search-sugesstion',
+  Default = 'default',
+}
+
+const DefaultMessage = ({ message, isLoading }:{ message: Message;isLoading:boolean }) => {
+  return (
+    <motion.div
+      className="w-full px-[12px] group/message"
+      initial={{ y: 5, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      data-role={message.role}
+    >
+      <div className='flex gap-4 w-full group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl'>
+        <div className="flex flex-col gap-4 w-full">
+          {message.experimental_attachments && (
+            <div className="flex flex-row justify-end gap-2">
+              {message.experimental_attachments.map((attachment) => (
+                <PreviewAttachment
+                  key={attachment.url}
+                  attachment={attachment}
+                />
+              ))}
+            </div>
+          )}
+
+          {message.reasoning && (
+            <MessageReasoning
+              isLoading={isLoading}
+              reasoning={message.reasoning}
+            />
+          )}
+
+          {(message.content || message.reasoning) && (
+            <div className="flex flex-row gap-2 items-start w-full">
+              <div
+                className={cn('w-auto flex flex-col gap-4 bg-[var(--color-background)] text-[var(--color-text)] px-3 py-2 rounded-xl', {
+                  'bg-[#E8D7FF] text-black ml-auto':
+                      message.role === 'user',
+                })}
+              >
+                <Markdown>{message.content as string}</Markdown>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 const PurePreviewMessage = ({
   message,
   isLoading,
+  deleteMessage,
 }: {
   message: Message;
   isLoading: boolean;
+  deleteMessage?: (messageId: string) => void;
 }) => {
+  const messageType:AIMessageType | undefined = useMemo(() => {
+    const matched = message?.annotations?.find(
+      (item) => item
+      && typeof item === 'object'
+      && 'type' in item
+      && Object.values(AIMessageType).includes(item.type as AIMessageType),
+    );
+
+    const type = matched?.type as AIMessageType || AIMessageType.Default;
+    return type;
+  }, [message]);
+
   return (
     <AnimatePresence>
-      <motion.div
-        className="w-full px-[12px] group/message"
-        initial={{ y: 5, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        data-role={message.role}
-      >
-        <div className='flex gap-4 w-full group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl'>
-          {/* {message.role === 'assistant' && (
-            <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border bg-background">
-              <div className="translate-y-px">
-                <SparklesIcon size={14} />
-              </div>
-            </div>
-          )} */}
-
-          <div className="flex flex-col gap-4 w-full">
-            {message.experimental_attachments && (
-              <div className="flex flex-row justify-end gap-2">
-                {message.experimental_attachments.map((attachment) => (
-                  <PreviewAttachment
-                    key={attachment.url}
-                    attachment={attachment}
-                  />
-                ))}
-              </div>
-            )}
-
-            {message.reasoning && (
-              <MessageReasoning
-                isLoading={isLoading}
-                reasoning={message.reasoning}
-              />
-            )}
-
-            {(message.content || message.reasoning) && (
-              <div className="flex flex-row gap-2 items-start w-full">
-                <div
-                  className={cn('w-auto flex flex-col gap-4 bg-[var(--color-background)] text-[var(--color-text)] px-3 py-2 rounded-xl', {
-                    'bg-[#E8D7FF] text-black ml-auto':
-                      message.role === 'user',
-                  })}
-                >
-                  <Markdown>{message.content as string}</Markdown>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </motion.div>
+      {messageType === AIMessageType.GLOBAL_SUMMARY && (
+        <ErrorBoundary>
+          <GlobalSummaryMessage
+            message={message}
+            // eslint-disable-next-line react/jsx-no-bind
+            deleteMessage={() => deleteMessage?.(message.id)}
+          />
+        </ErrorBoundary>
+      )}
+      {messageType === AIMessageType.UrgentCheck && (
+        <UrgentCheckMessage
+          message={message}
+          // eslint-disable-next-line react/jsx-no-bind
+          deleteMessage={() => deleteMessage?.(message.id)}
+        />
+      )}
+      {messageType === AIMessageType.GroupSearch && (<GroupSearchMessage message={message} />)}
+      {messageType === AIMessageType.UserSearch && (<UserSearchMessage message={message} />)}
+      {messageType === AIMessageType.GoogleAuth && (<GoogleLoginAuthMessage message={message} />)}
+      {messageType === AIMessageType.GoogleEventInsert && (<GoogleEventCreateMessage message={message} />)}
+      {messageType === AIMessageType.GoogleEventDetail && (<GoogleEventDetailMessage message={message} />)}
+      {messageType === AIMessageType.Default && (
+        <RoomSummaryMessage
+          message={message}
+          // eslint-disable-next-line react/jsx-no-bind
+          deleteMessage={() => deleteMessage?.(message.id)}
+        />
+      )}
+      {messageType === AIMessageType.RoomActions && (
+        <RoomActionMessage
+          message={message}
+          // eslint-disable-next-line react/jsx-no-bind
+          deleteMessage={() => deleteMessage?.(message.id)}
+        />
+      )}
+      {messageType === AIMessageType.SmartreplyIntroduce && (<IntroduceSmartreplyMessage />)}
+      {messageType === AIMessageType.SummaryIntroduce && (<IntroduceSummaryMessage />)}
+      {messageType === AIMessageType.TranslationIntroduce && (<IntroduceTranslationMessage />)}
+      {messageType === AIMessageType.PortraitIntroduce && (<IntroducePortraitMessage />)}
+      {messageType === AIMessageType.GlobalIntroduce && (<GlobalIntroduceMessage />)}
+      {messageType === AIMessageType.RoomAIDescription && (<RoomAIDescriptionMessage message={message} />)}
+      {messageType === AIMessageType.AISearchSugesstion && (<AISearchSugesstionsMessage />)}
+      {messageType === AIMessageType.Default && (<DefaultMessage message={message} isLoading={isLoading} />)}
     </AnimatePresence>
   );
 };
@@ -111,15 +205,7 @@ export const ThinkingMessage = () => {
           },
         )}
       >
-        {/* <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
-          <SparklesIcon size={14} />
-        </div> */}
-
-        <div className="flex flex-col gap-2 w-full rounded-xl">
-          <div className="flex flex-col gap-4 text-muted-foreground">
-            Thinking...
-          </div>
-        </div>
+        <LoadingIcon size={40} />
       </div>
     </motion.div>
   );
