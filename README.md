@@ -128,3 +128,19 @@ Publish configuration in `src/electron/config.yml` config file allows to set Git
 
 ## Bug reports and Suggestions
 If you find an issue with this app, let Telegram know using the [Suggestions Platform](https://bugs.telegram.org/c/4002).
+
+
+## Docker 
+
+```bash
+# build image
+docker build -t ai-tg-web .
+
+
+# run container
+docker run -e OPEN_API_KEY=your_open_api_key \
+  -e TELEGRAM_API_HASH=your_telegram_api_hash \
+  -e TELEGRAM_API_ID=your_telegram_api_id \
+  -p 8610:3000 \
+  ai-tg-web
+```
