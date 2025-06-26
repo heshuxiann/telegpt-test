@@ -133,7 +133,7 @@ If you find an issue with this app, let Telegram know using the [Suggestions Pla
 ## Docker 
 
 ```bash
-# build image
+# build and push image
 ./docker_deploy.sh
 
 # run container

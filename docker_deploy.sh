@@ -29,15 +29,6 @@ IMAGE_TAG=$(git describe --tags)
 DOCKER_PUSH_REGISTRY=${DOCKER_PUSH_REGISTRY:-maven-wh.niub.la:8482}
 service=ai-tg-web
 
-# Prepare for docker build
-echo "Prepare for docker build..."
-
-if [ -e "bin/$service" ]; then
-  echo "bin/$service build success"
-else
-  echo "bin/$service build fail"
-  exit 1
-fi
 
 # docker build
 echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
