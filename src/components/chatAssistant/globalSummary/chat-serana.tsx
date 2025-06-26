@@ -29,14 +29,13 @@ const ChatSerena = (props: OwnProps & StateProps) => {
     unconfirmedSessionHeight,
   } = props;
   const offsetTop = frozenNotificationHeight + archiveHeight + unconfirmedSessionHeight;
-  const { openChat, setShouldCloseRightColumn } = getActions();
+  const { openChat } = getActions();
   const chatClassName = buildClassName(
     'Chat chat-item-clickable',
     isSelected && 'selected',
   );
   const unreadCount = useGlobalSummaryBadge();
   const handleClick = () => {
-    setShouldCloseRightColumn({ value: true });
     openChat({ id: GLOBAL_SUMMARY_CHATID });
     GlobalSummaryBadge.updateRoomData('unreadCount', 0);
   };

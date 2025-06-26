@@ -775,6 +775,7 @@ export default memo(withGlobal<OwnProps>(
     };
 
     if (!currentMessageList) {
+      getActions().openChat({ id: GLOBAL_SUMMARY_CHATID });
       return state;
     }
 

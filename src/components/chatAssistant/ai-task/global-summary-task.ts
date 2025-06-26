@@ -13,7 +13,6 @@ import { isSystemBot, isUserId } from '../../../global/helpers';
 import {
   selectBot, selectChat, selectChatLastMessageId, selectFirstUnreadId, selectUser,
 } from '../../../global/selectors';
-import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import { getOrderedIds } from '../../../util/folderManager';
 import GlobalSummaryBadge from '../globalSummary/global-summary-badge';
 import {
@@ -145,7 +144,7 @@ class GlobalSummaryTask {
 
   async startSummary(chats: Record<string, ApiMessage[]>, callback?:()=>void) {
     const global = getGlobal();
-    const { autoTranslateLanguage } = global.settings.byKey;
+    const { autoTranslateLanguage = 'en' } = global.settings.byKey;
     const globalSummaryLastTime = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
     const summaryTime = getAlignedExecutionTimestamp();
     if (!Object.keys(chats).length) return;
@@ -192,7 +191,7 @@ class GlobalSummaryTask {
       },
       body: JSON.stringify({
         messages: summaryChats,
-        language: autoTranslateLanguage,
+        language: new Intl.DisplayNames([autoTranslateLanguage], { type: 'language' }).of(autoTranslateLanguage),
         definePrompt: this.customizationTemplate?.prompt || '',
       }),
     })

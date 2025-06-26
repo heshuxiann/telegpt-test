@@ -118,7 +118,7 @@ const UrgentCheckMessage = (props:IProps) => {
         {urgentMessage.map((item) => {
           return (
             <li className="flex flex-row items-top gap-[8px]">
-              <span className="text-[15px]" onClick={() => showMessageDetail(item)}>{item.content}</span>
+              <span className="text-[15px] break-words" onClick={() => showMessageDetail(item)}>{item.content}</span>
               <ChatAvatar size={20} chatId={item.chatId} />
             </li>
           );

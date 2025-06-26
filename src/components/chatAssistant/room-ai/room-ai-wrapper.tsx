@@ -8,6 +8,7 @@ import React, {
 import { withGlobal } from '../../../global';
 
 import { injectComponent } from '../../../lib/injectComponent';
+import { GLOBAL_SUMMARY_CHATID } from '../variables';
 import RoomAI from './room-ai';
 
 interface StateProps {
@@ -20,7 +21,7 @@ const RoomAIWrapper = (props: StateProps) => {
   useEffect(() => {
     let injected: { unmount: () => void } | undefined;
     const timer = setTimeout(() => {
-      if (containerRef.current) {
+      if (containerRef.current && chatId && chatId !== GLOBAL_SUMMARY_CHATID) {
         injected = injectMessageAI(containerRef.current, { ...props });
       }
     }, 500); // 等动画走完再注入

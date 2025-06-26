@@ -305,20 +305,16 @@ const RoomSummaryMessage = (props: IProps) => {
   const [summaryInfo, setSummaryInfo] = useState<ISummaryInfo | null>(null);
   const [mainTopic, setMainTopic] = useState<ISummaryTopicItem[]>([]);
   const [pendingMatters, setPendingMatters] = useState<ISummaryPendingItem[]>([]);
-  const [garbageMessage, setGarbageMessage] = useState<ISummaryGarbageItem[]>([]);
   const parseMessage = useCallback((messageContent: string) => {
     const messageObj = JSON.parse(messageContent);
     const {
-      mainTopic, pendingMatters, garbageMessage, summaryInfo,
+      mainTopic, pendingMatters, summaryInfo,
     } = messageObj;
     if (mainTopic) {
       setMainTopic(mainTopic as ISummaryTopicItem[]);
     }
     if (pendingMatters) {
       setPendingMatters(pendingMatters as ISummaryPendingItem[]);
-    }
-    if (garbageMessage) {
-      setGarbageMessage(garbageMessage as ISummaryGarbageItem[]);
     }
     if (summaryInfo) {
       setSummaryInfo(summaryInfo as ISummaryInfo);
@@ -345,24 +341,6 @@ const RoomSummaryMessage = (props: IProps) => {
           pendingMatters={pendingMatters}
           deleteMessage={deleteMessage}
         />
-      )}
-
-      {garbageMessage && garbageMessage.length > 0 && (
-        <div className="mx-auto px-3 py-2 rounded-[10px] bg-[var(--color-background)] mt-[10px]">
-          <p className="text-[22px] font-bold mb-[16px]">Spam Filtering</p>
-          <div className="flex items-center gap-[20px]">
-            <p className="flex items-center gap-[8px]">
-              <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
-              <div className="flex items-center">
-                <span className="mr-[4px]">Time:</span>
-                {summaryInfo?.summaryTime ? (
-                  <p className="text-[14px] text-[#A8A6AC]">{formatTimestamp(summaryInfo.summaryTime)}</p>
-                ) : null}
-              </div>
-            </p>
-          </div>
-          {garbageMessage.map((item) => (<SummaryGarbageItem garBageItem={item} />))}
-        </div>
       )}
     </div>
   );
