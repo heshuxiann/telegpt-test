@@ -124,7 +124,7 @@ const PurePreviewMessage = ({
 
   return (
     <AnimatePresence>
-      {messageType === AIMessageType.GLOBAL_SUMMARY && (
+      {messageType === AIMessageType.GlobalSummary && (
         <ErrorBoundary>
           <GlobalSummaryMessage
             message={message}
@@ -145,7 +145,7 @@ const PurePreviewMessage = ({
       {messageType === AIMessageType.GoogleAuth && (<GoogleLoginAuthMessage message={message} />)}
       {messageType === AIMessageType.GoogleEventInsert && (<GoogleEventCreateMessage message={message} />)}
       {messageType === AIMessageType.GoogleEventDetail && (<GoogleEventDetailMessage message={message} />)}
-      {messageType === AIMessageType.Default && (
+      {messageType === AIMessageType.RoomSummary && (
         <RoomSummaryMessage
           message={message}
           // eslint-disable-next-line react/jsx-no-bind
