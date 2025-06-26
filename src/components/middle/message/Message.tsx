@@ -292,6 +292,7 @@ type StateProps = {
   areTranslationsEnabled?: boolean;
   shouldDetectChatLanguage?: boolean;
   requestedTranslationLanguage?: string;
+  autoTranslate?: boolean;
   requestedChatTranslationLanguage?: string;
   withAnimatedEffects?: boolean;
   webPageStory?: ApiTypeStory;
@@ -416,6 +417,7 @@ const Message: FC<OwnProps & StateProps> = ({
   areTranslationsEnabled,
   shouldDetectChatLanguage,
   requestedTranslationLanguage,
+  autoTranslate,
   requestedChatTranslationLanguage,
   withAnimatedEffects,
   webPageStory,
@@ -442,6 +444,7 @@ const Message: FC<OwnProps & StateProps> = ({
     animateUnreadReaction,
     focusLastMessage,
     markMentionsRead,
+    requestMessageTranslation,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -755,7 +758,6 @@ const Message: FC<OwnProps & StateProps> = ({
     getIsMessageListReady,
   );
   useDetectChatLanguage(message, detectedLanguage, !shouldDetectChatLanguage, getIsMessageListReady);
-
   const shouldTranslate = isMessageTranslatable(message, !requestedChatTranslationLanguage);
   const { isPending: isTranslationPending, translatedText } = useMessageTranslation(
     chatTranslations, chatId, shouldTranslate ? messageId : undefined, requestedTranslationLanguage,
@@ -836,12 +838,12 @@ const Message: FC<OwnProps & StateProps> = ({
 
   // 自动翻译
   // eslint-disable-next-line max-len
-  // if (autoTranslate && shouldTranslate && textMessage && !isTranslationPending && !currentTranslatedText && !webPage && !emojiSize && !isInvertedMedia && !webPage && !hasTranslation && !message.isOutgoing) {
-  //   requestMessageTranslation({
-  //     chatId,
-  //     id: messageId,
-  //   });
-  // }
+  if (autoTranslate && shouldTranslate && textMessage && !isTranslationPending && !currentTranslatedText && !webPage && !emojiSize && !isInvertedMedia && !hasTranslation) {
+    requestMessageTranslation({
+      chatId,
+      id: messageId,
+    });
+  }
 
   useEnsureMessage(
     replyToPeerId || chatId,
@@ -1893,6 +1895,8 @@ export default memo(withGlobal<OwnProps>(
       : undefined;
     const isAccountFrozen = selectIsCurrentUserFrozen(global);
 
+    const { autoTranslate } = global.settings.byKey;
+
     return {
       theme: selectTheme(global),
       forceSenderName,
@@ -1957,6 +1961,7 @@ export default memo(withGlobal<OwnProps>(
       areTranslationsEnabled,
       shouldDetectChatLanguage: selectShouldDetectChatLanguage(global, chatId),
       requestedTranslationLanguage,
+      autoTranslate,
       requestedChatTranslationLanguage,
       hasLinkedChat: Boolean(chatFullInfo?.linkedChatId),
       withAnimatedEffects: selectPerformanceSettingsValue(global, 'stickerEffects'),
