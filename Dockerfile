@@ -21,8 +21,13 @@ COPY . .
 
 RUN npm run build:production
 
-RUN npm install -g serve
+# RUN npm install -g serve
 
+# EXPOSE 3000
+
+# CMD ["serve", "-s", "dist", "-l", "3000"]
+
+# 启动 Node.js 后端服务（express）
 EXPOSE 3000
 
-CMD ["serve", "-s", "dist", "-l", "3000"]
+CMD ["node", "server.js"]

@@ -138,7 +138,7 @@ If you find an issue with this app, let Telegram know using the [Suggestions Pla
 
 # run container
 docker run -d --restart unless-stopped --name ai-tg-web \
- -v "$(pwd)/.env:/app/.env" \
+ --env-file .env \
  -p 8610:3000 \
  hiseas/ai-tg-web:latest
 
