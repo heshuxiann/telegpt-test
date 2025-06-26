@@ -258,6 +258,7 @@ const MessageContextMenu: FC<OwnProps> = ({
   const shouldShowGiftButton = isUserId(message.chatId)
     && canGift && (isPremiumGift || isGiftCode || isStarGift || isStarGiftUnique);
   const canAISummarize = message.content?.photo;
+  const canSerenaAI = canAISummarize || canScheduleMeeting || canSmartReply
 
   const [areItemsHidden, hideItems] = useFlag();
   const [isReady, markIsReady, unmarkIsReady] = useFlag();
@@ -427,7 +428,7 @@ const MessageContextMenu: FC<OwnProps> = ({
           <MenuItem icon="schedule" onClick={onReschedule}>{lang('MessageScheduleEditTime')}</MenuItem>
         )}
 
-        <MenuItem
+        {canSerenaAI && <MenuItem
           customIcon={(
             <img
               src={SerenaPath}
@@ -473,7 +474,7 @@ const MessageContextMenu: FC<OwnProps> = ({
           }
         >
           {lang('SerenaAI')}
-        </MenuItem>
+        </MenuItem>}
 
         {canReply && (
           <MenuItem icon="reply" onClick={onReply}>
