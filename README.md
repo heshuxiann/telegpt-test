@@ -134,13 +134,12 @@ If you find an issue with this app, let Telegram know using the [Suggestions Pla
 
 ```bash
 # build image
-docker build -t ai-tg-web .
-
+./docker_deploy.sh
 
 # run container
-docker run -e OPEN_API_KEY=your_open_api_key \
-  -e TELEGRAM_API_HASH=your_telegram_api_hash \
-  -e TELEGRAM_API_ID=your_telegram_api_id \
-  -p 8610:3000 \
-  ai-tg-web
+docker run -d --restart unless-stopped --name ai-tg-web \
+ -v "$(pwd)/.env:/app/.env" \
+ -p 8610:3000 \
+ hiseas/ai-tg-web:latest
+
 ```
