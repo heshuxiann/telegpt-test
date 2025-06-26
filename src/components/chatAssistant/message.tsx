@@ -33,6 +33,10 @@ import { LoadingIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageReasoning } from './message-reasoning';
 import { PreviewAttachment } from './preview-attachment';
+import AIReplyMentionMessage from "./messages/room-ai-reply-mention-message"
+import AIImageSummaryMessage from "./messages/room-ai-image-summary-message"
+import AIWebPageSummaryMessage from "./messages/room-ai-webpage-summary-message"
+
 
 import ErrorBoundary from './ErrorBoundary';
 
@@ -53,6 +57,9 @@ export enum AIMessageType {
   GlobalIntroduce = 'global-introduce',
   RoomAIDescription = 'room-ai-description',
   AISearchSugesstion = 'ai-search-sugesstion',
+  AIReplyMention = 'room-ai-reply-mention',
+  AIImageSummary = 'room-ai-image-summary',
+  AIWebPageSummary = 'room-ai-webpage-summary',
   Default = 'default',
 }
 
@@ -166,6 +173,9 @@ const PurePreviewMessage = ({
       {messageType === AIMessageType.GlobalIntroduce && (<GlobalIntroduceMessage />)}
       {messageType === AIMessageType.RoomAIDescription && (<RoomAIDescriptionMessage message={message} />)}
       {messageType === AIMessageType.AISearchSugesstion && (<AISearchSugesstionsMessage />)}
+      {messageType === AIMessageType.AIReplyMention && (<AIReplyMentionMessage message={message} />)}
+      {messageType === AIMessageType.AIImageSummary && (<AIImageSummaryMessage message={message} />)}
+      {messageType === AIMessageType.AIWebPageSummary && (<AIWebPageSummaryMessage message={message} />)}
       {messageType === AIMessageType.Default && (<DefaultMessage message={message} isLoading={isLoading} />)}
     </AnimatePresence>
   );

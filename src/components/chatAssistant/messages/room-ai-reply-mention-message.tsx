@@ -78,9 +78,9 @@ const ReplyMentionMessage = (props: IProps) => {
                   : "cursor-pointer hover:opacity-80"
               )}
               key={index}
-              onClick={() => onReplyClick(reply)}
+              onClick={() => onReplyClick(reply?.reply)}
             >
-              "{reply}"
+              "{reply?.reply}"
             </div>
           );
         })}

@@ -16,8 +16,6 @@ const WebPageSummaryMessage = (props: IProps) => {
     summaryInfo = JSON.parse(content?.summaryInfo);
   } catch (error) {}
 
-  console.log("aiChatFoldersTask----content", content, summaryInfo);
-
   return (
     <div className="flex flex-col gap-2 px-3 text-[14px]">
       <div className="rounded-[16px] bg-[var(--color-background)] p-3 text-[var(--color-text)] break-all">
@@ -29,7 +27,7 @@ const WebPageSummaryMessage = (props: IProps) => {
         </div>
         <div className="flex flex-col gap-[6px] mt-3">
           <div className="font-[600]">Key Highlights:</div>
-          <div>
+          <div className="flex flex-col">
             {summaryInfo?.highlights?.map((item: any, index: number) => {
               return (
                 <div className="flex flex-col">
@@ -38,16 +36,9 @@ const WebPageSummaryMessage = (props: IProps) => {
                       {index + 1}. {item?.title}
                     </span>
                   </div>
-                  <ul className="list-disc list-inside ml-3">
+                  <ul className="list-disc list-inside ml-3 mb-1">
                     {item?.content?.map((contentItem: any) => {
-                      return (
-                        <li
-                          role="button"
-                          className="cursor-pointer break-word"
-                        >
-                          {contentItem}
-                        </li>
-                      );
+                      return <li className="break-word">{contentItem}</li>;
                     })}
                   </ul>
                 </div>

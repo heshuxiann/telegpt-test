@@ -90,6 +90,7 @@ import eventEmitter from '../../chatAssistant/lib/EventEmitter';
 import PinMessageModal from '../../common/PinMessageModal.async';
 import ConfirmDialog from '../../ui/ConfirmDialog';
 import MessageContextMenu from './MessageContextMenu';
+import { photoSummary } from "../../chatAssistant/utils/ai-analyse-message"
 
 export type OwnProps = {
   isOpen: boolean;
@@ -270,6 +271,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
     addLocalPaidReaction,
     openPaidReactionModal,
     reportMessages,
+    openChatAIWithInfo
   } = getActions();
 
   const lang = useOldLang();
@@ -682,6 +684,17 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
     });
   });
 
+  const handleSummarize = useLastCallback(() => {
+    const { photo } = message.content
+    if (photo) {
+      openChatAIWithInfo({
+        chatId: message.chatId
+      });
+      photoSummary(message)
+    }
+    closeMenu();
+  })
+
   if (noOptions) {
     closeMenu();
 
@@ -779,6 +792,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         onTranslate={handleTranslate}
         onShowOriginal={handleShowOriginal}
         onSelectLanguage={handleSelectLanguage}
+        onSummarize={handleSummarize}
         userFullName={userFullName}
         canGift={canGift}
       />

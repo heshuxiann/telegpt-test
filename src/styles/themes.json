@@ -79,5 +79,6 @@
   "--color-aichatfolders-tag-bg": ["#EFF8FE", "#3C3C3C"],
   "--color-aichatfolders-tag-text": ["#000000", "#ffffff"],
   "--color-aichatfolders-tag-border": ["#ffffff", "#212121"],
-  "--color-aichatfolders-tag-close-color": ["#00000029", "#FFFFFF33"]
+  "--color-aichatfolders-tag-close-color": ["#00000029", "#FFFFFF33"],
+  "--color-menu-submenu-bg": ["#f2f9ef", "#312f3b"]
 }

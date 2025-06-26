@@ -13,9 +13,6 @@ import { cn } from './utils/util';
 import { PreviewMessage, ThinkingMessage } from './message';
 
 import './messages.scss';
-import ReplyMentionMessage from "./messages/reply-mention-message"
-import ImageSummaryMessage from "./messages/image-summary-message"
-import WebPageSummaryMessage from "./messages/webpage-summary-message"
 
 interface MessagesProps {
   chatId: string;
@@ -70,16 +67,6 @@ function PureMessages({
       });
     }
   };
-  const isReplyMention = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'room-ai-reply-mention') ?? false;
-  }
-  const isAIImageSummary = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'room-ai-image-summary') ?? false;
-  }
-
-  const isWebPageSummary = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'type' in item && item.type === 'room-ai-webpage-summary') ?? false;
-  }
 
   return (
     <div
