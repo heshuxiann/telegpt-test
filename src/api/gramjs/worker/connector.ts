@@ -341,7 +341,7 @@ function sendToAIAgent(data: ApiUpdate) {
   }
 }
 
-function sendToAIChat(data: ApiUpdate) {
+function sendToCurrentChatAI(data: ApiUpdate) {
   if (data['@type'] === 'newMessage') {
     const global = getGlobal()
     const currentChat = selectCurrentChat(global);
@@ -363,7 +363,7 @@ function subscribeToWorker(onUpdate: OnApiUpdate) {
         }
         payload.updates.forEach(sendToAIAgent);
         payload.updates.forEach(onUpdate);
-        payload.updates.forEach(sendToAIChat)
+        payload.updates.forEach(sendToCurrentChatAI)
 
         if (DEBUG) {
           const duration = performance.now() - DEBUG_startAt!;

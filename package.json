@@ -169,6 +169,7 @@
     "os-browserify": "^0.3.0",
     "pako": "^2.1.0",
     "path-browserify": "^1.0.1",
+    "pdfjs-dist": "^2.16.105",
     "qr-code-styling": "github:zubiden/qr-code-styling#dbbfed0",
     "rc-virtual-list": "^3.18.4",
     "react": "^18.3.1",

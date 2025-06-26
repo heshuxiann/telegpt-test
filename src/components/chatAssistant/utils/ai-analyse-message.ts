@@ -8,6 +8,9 @@ import { formatJSONContent } from "../ai-chatfolders/util";
 import { getMediaHash } from "../../../global/helpers";
 import * as mediaLoader from "../../../util/mediaLoader";
 import { message as showMessage } from "antd";
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
 
 const mammoth = require("mammoth");
 
@@ -142,20 +145,32 @@ export async function documentSummary(
 
   const arrayBuffer = await blob.arrayBuffer();
   let text = "";
-  if (document.mimeType === "application/pdf") {
-  } else if (
-    document.mimeType ===
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-    document.mimeType === "application/msword"
-  ) {
-    const result = await mammoth.extractRawText({ arrayBuffer });
-    text = result.value;
-  } else {
-    showMessage.info('The file cannot be summarized at the moment.')
-    return;
+  switch (document.mimeType) {
+    case "text/plain":
+      text = new TextDecoder().decode(arrayBuffer);
+      break;
+    case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+    case "application/msword":
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      text = result.value;
+      break;
+    case "application/pdf":
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let pdfText = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const pageText = content.items.map((item: any) => item.str).join(' ');
+        pdfText += pageText + '\n';
+      }
+      text = pdfText;
+      break;
+    default:
+      showMessage.info("The file can't be summarized right now, comming soon.")
+      return;
   }
   if (text === '') {
-    showMessage.info('The file content is empty, no summary needed.')
+    showMessage.info('The file is empty, no summary required.')
     return
   }
 
