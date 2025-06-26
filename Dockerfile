@@ -1,12 +1,11 @@
 FROM node:20-alpine
 
-ARG OPEN_API_KEY
-ARG TELEGRAM_API_HASH
-ARG TELEGRAM_API_ID
-
-ENV OPEN_API_KEY=$OPEN_API_KEY
-ENV TELEGRAM_API_HASH=6a66d08513c1a86a70be2658edfae544
 ENV TELEGRAM_API_ID=29547651
+ENV TELEGRAM_API_HASH=6a66d08513c1a86a70be2658edfae544
+ENV BASE_URL=https://web.telegram.org/a/
+ENV OPEN_API_KEY=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
+ENV ALIBABA_CLOUD_ACCESS_KEY_ID=LTAI5t5otr95Wi9gwHijkjpF
+ENV ALIBABA_CLOUD_ACCESS_KEY_SECRET=ZuxxPNN36VTPviNbe9GUWuBqsrDVzv
 
 WORKDIR /app
 
@@ -21,13 +20,8 @@ COPY . .
 
 RUN npm run build:production
 
-# RUN npm install -g serve
+RUN npm install -g serve
 
-# EXPOSE 3000
-
-# CMD ["serve", "-s", "dist", "-l", "3000"]
-
-# 启动 Node.js 后端服务（express）
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+CMD ["serve", "-s", "dist", "-l", "3000"]
