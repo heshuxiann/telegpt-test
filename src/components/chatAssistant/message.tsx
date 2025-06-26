@@ -36,7 +36,7 @@ import { PreviewAttachment } from './preview-attachment';
 import AIReplyMentionMessage from "./messages/room-ai-reply-mention-message"
 import AIImageSummaryMessage from "./messages/room-ai-image-summary-message"
 import AIWebPageSummaryMessage from "./messages/room-ai-webpage-summary-message"
-
+import AIDocumentSummaryMessage from "./messages/room-ai-document-summary-message"
 
 import ErrorBoundary from './ErrorBoundary';
 
@@ -60,6 +60,7 @@ export enum AIMessageType {
   AIReplyMention = 'room-ai-reply-mention',
   AIImageSummary = 'room-ai-image-summary',
   AIWebPageSummary = 'room-ai-webpage-summary',
+  AIDocumentSummary = 'room-ai-document-summary',
   Default = 'default',
 }
 
@@ -176,6 +177,7 @@ const PurePreviewMessage = ({
       {messageType === AIMessageType.AIReplyMention && (<AIReplyMentionMessage message={message} />)}
       {messageType === AIMessageType.AIImageSummary && (<AIImageSummaryMessage message={message} />)}
       {messageType === AIMessageType.AIWebPageSummary && (<AIWebPageSummaryMessage message={message} />)}
+      {messageType === AIMessageType.AIDocumentSummary && (<AIDocumentSummaryMessage message={message} />)}
       {messageType === AIMessageType.Default && (<DefaultMessage message={message} isLoading={isLoading} />)}
     </AnimatePresence>
   );

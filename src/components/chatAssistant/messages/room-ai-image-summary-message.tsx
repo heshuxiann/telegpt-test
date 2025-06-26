@@ -7,6 +7,7 @@ import buildClassName from "../../../util/buildClassName";
 import useMedia from "../hook/useMedia";
 import { getActions } from "../../../global";
 import SerenaPath from "../../chatAssistant/assets/serena.png";
+import { AIRoomBubble } from "./room-ai-webpage-summary-message"
 
 type IProps = {
   theme?: ThemeKey;
@@ -49,12 +50,7 @@ const ImageSummaryMessage = (props: IProps) => {
     <div className="flex flex-col gap-2 px-3">
       {!isAuto && (
         <div className="text-right">
-          <div className="bg-[#E5D9FF] py-2 px-3 rounded-t-[16px] rounded-bl-[16px] text-right inline-flex relative">
-            Summarize this image
-            <div className="absolute bottom-[-2px] right-[-9px] text-[#E5D9FF]">
-              <AppendixIcon />
-            </div>
-          </div>
+          <AIRoomBubble>Summarize this image</AIRoomBubble>
         </div>
       )}
       {fullMediaData && (

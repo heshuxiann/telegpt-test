@@ -20,12 +20,10 @@ import {
   groupAiChatFoldersRes,
   isChatBot,
   saveAiChatFolders,
-  sleep,
-  formatJSONContent,
+  sleep
 } from "../ai-chatfolders/util";
 import { flatMap, uniq } from "lodash";
 import { selectSharedSettings } from "../../../global/selectors/sharedState";
-import RoomAIMessageListener from "../room-ai/room-ai-message-listener"
 
 const AI_CHATFOLDERS_INTERVAL_TIME = 1000 * 60 * 60 * 24 * 7;
 const AI_CHATFOLDERS_BATCH_SIZE = 20;
@@ -46,52 +44,7 @@ class AIChatFoldersTask {
     }, AI_CHATFOLDERS_INTERVAL_TIME);
 
     setTimeout(() => {
-      const message: ApiMessage = {
-        "id": 23,
-        "chatId": "5974693797",
-        "isOutgoing": false,
-        "content": {
-            // text: {
-            //   text: '开心生活每一天'
-            // },
-            "photo": {
-                "mediaType": "photo",
-                "id": "6167787841711619945",
-                "thumbnail": {
-                    "dataUri": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDACgcHiMeGSgjISMtKygwPGRBPDc3PHtYXUlkkYCZlo+AjIqgtObDoKrarYqMyP/L2u71////m8H////6/+b9//j/2wBDASstLTw1PHZBQXb4pYyl+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj/wAARCAAoABMDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDIVSegJFPk3nkhuPU5pVTgHI/OnvGSuWkU+2eaLgQYB5yKKUjntRQBZW7KRqPKiOB3T/69RTXJmxmONcf3Rio+3b8qb0NJRS1HdiljnoKKQ4z1H5UUxDgzHgEdPSnvGAflfIwOSMc0UUAIY2z99f8AvoUUUUidT//Z",
-                    "width": 148,
-                    "height": 320
-                },
-                "sizes": [
-                    {
-                        "width": 148,
-                        "height": 320,
-                        "type": "m"
-                    },
-                    {
-                        "width": 360,
-                        "height": 779,
-                        "type": "x"
-                    }
-                ],
-                "isSpoiler": false,
-                "date": 1731401229
-            }
-        },
-        "date": 1731401229,
-        "isScheduled": false,
-        "isFromScheduled": false,
-        "isSilent": false,
-        "isPinned": false,
-        "isEdited": false,
-        "isMediaUnread": false,
-        "hasUnreadMention": false,
-        "isMentioned": false,
-        "isProtected": false,
-        "isForwardingAllowed": true,
-      }
-      // RoomAIMessageListener.messageListener(message)
-      // this.classifyChatMessageByCount();
+      this.classifyChatMessageByCount();
     }, 1000);
   }
 
@@ -135,8 +88,10 @@ class AIChatFoldersTask {
         };
         const existDb = await ChataiStores.folder?.getFolder(folderTitle);
         const globalFolders = getGlobal().chatFolders?.byId;
-        const existFolder = flatMap(globalFolders)?.find(o=>o?.title?.text === folderTitle)
-        const exist = existDb ? existDb : existFolder
+        const existFolder = flatMap(globalFolders)?.find(
+          (o) => o?.title?.text === folderTitle
+        );
+        const exist = existDb ? existDb : existFolder;
         if (exist) {
           // 用户已有自定义分类，将用户自定义标签和AI标签对比去重后取合集
           folder.id = Number(exist.id);

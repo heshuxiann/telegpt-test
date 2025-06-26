@@ -162,6 +162,7 @@
     "idb-keyval": "^6.2.1",
     "lodash.debounce": "^4.0.8",
     "lowlight": "^2.9.0",
+    "mammoth": "^1.9.1",
     "mp4box": "^0.5.2",
     "nlprule-wasm": "file:./src/components/chatAssistant/nlprule-wasm",
     "opus-recorder": "github:Ajaxy/opus-recorder",
