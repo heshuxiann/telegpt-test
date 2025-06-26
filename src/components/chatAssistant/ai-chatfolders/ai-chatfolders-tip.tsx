@@ -15,7 +15,7 @@ import "./ai-chatfolders-tip.scss";
 import Button from "../../ui/Button";
 
 type OwnProps = {
-  theme: ThemeKey;
+  theme?: ThemeKey;
   onClose?: () => void;
 };
 const AIChatFoldersTip: FC<OwnProps> = ({ theme, onClose }: OwnProps) => {
@@ -54,7 +54,7 @@ const AIChatFoldersTip: FC<OwnProps> = ({ theme, onClose }: OwnProps) => {
       <div className="text-[var(--color-aichatfolders-tag-text)]">
         <AIChatFolderIcon />
       </div>
-      <div className="leading-[16px] text-[var(--color-aichatfolders-tag-text)]">
+      <div className="leading-[16px] text-[13px] text-[var(--color-aichatfolders-tag-text)]">
         Your chat has been intelligently tagged in folders by Serena AI
       </div>
       <Button
