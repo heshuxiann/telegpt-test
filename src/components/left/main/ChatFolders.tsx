@@ -451,8 +451,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   }
 
   function renderCurrentTab(isActive: boolean) {
-    const activeFolder = Object.values(chatFoldersById)
-      .find(({ id }) => id === folderTabs![activeChatFolder]?.id);
+    const activeFolder = Object.values(chatFoldersById)?.find(({ id }) => id === folderTabs![activeChatFolder]?.id);
     const isFolder = activeFolder && !isInAllChatsFolder && !isInPresetFolder && !isInPresetFolder && !isInAIFolder;
     const folderType = getFolderType();
 
