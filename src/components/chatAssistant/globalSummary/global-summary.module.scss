@@ -2,7 +2,7 @@
   background-image: url("../assets/ai-bg.png");
   background-size: cover;
   :global(html.theme-dark) & {
-    background-image: url("../assets/ai-bg-dark.png");
-    mix-blend-mode: unset;
+    background-image: unset;
+    background-color: var(--color-background);
   }
 }

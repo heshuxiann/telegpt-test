@@ -7,14 +7,17 @@ import type { ITimezone } from 'react-timezone-select';
 import TimezoneSelect from 'react-timezone-select';
 import type { Message } from 'ai';
 import {
-  Button, DatePicker, Input,
+  Button, ConfigProvider, DatePicker, Input,
+  theme,
 } from 'antd';
 import type { RangePickerProps } from 'antd/es/date-picker';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import type { ITimezoneOption } from 'react-timezone-select/dist/index.d';
+import { getGlobal } from '../../../global';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
+import { selectTheme } from '../../../global/selectors';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import { CloseIcon } from '../icons';
 
@@ -93,6 +96,8 @@ const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
   const [selectedTimezone, setSelectedTimezone] = useState<ITimezone>(
     Intl.DateTimeFormat().resolvedOptions().timeZone,
   );
+  const global = getGlobal();
+  const themeKey = selectTheme(global);
   useEffect(() => {
     console.log('selectedTimezone', selectedTimezone);
   }, [selectedTimezone]);
@@ -204,53 +209,59 @@ const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
     });
   }, [emails, endDate, message, selectedTimezone, startDate, title]);
   return (
-    <div className="google-event-create-message px-[12px]">
-      <div className="p-[10px] border border-solid border-[#D9D9D9] rounded-[16px] bg-white w-[326px]">
-        <span className="text-[14px] font-semibold mb-[16px]">Please tell me the event details. </span>
-        <div className="flex flex-col gap-[8px] mb-[12px]">
-          <FormLabel lable="title" />
-          <Input value={title} onChange={handleTitleChange} />
-          {titleError && <ErrorTip message={titleError} />}
-        </div>
-        <div className="flex flex-col gap-[8px] mb-[12px]">
-          <FormLabel lable="time" />
-          <div className="flex flex-col items-center gap-[8px]">
-            <RangePicker
-              disabledDate={disabledDate}
-              presets={[
-                {
-                  label: <span aria-label="Current Time to End of Day">Now ~ EOD</span>,
-                  value: () => [dayjs(), dayjs().endOf('day')], // 5.8.0+ support function
-                },
-              ]}
-              showTime
-              format="YYYY/MM/DD HH:mm"
-              onChange={handleTimeChange}
-            />
-            <TimezoneSelect value={selectedTimezone} onChange={handleTimeZoomChange} />
+    <ConfigProvider theme={{ algorithm: themeKey === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
+      <div className="google-event-create-message px-[12px]">
+        <div className="p-[10px] border border-solid border-[#D9D9D9] rounded-[16px] w-[326px] bg-white dark:bg-[#292929] dark:border-[#292929]">
+          <span className="text-[14px] font-semibold mb-[16px]">Please tell me the event details. </span>
+          <div className="flex flex-col gap-[8px] mb-[12px]">
+            <FormLabel lable="title" />
+            <Input value={title} onChange={handleTitleChange} />
+            {titleError && <ErrorTip message={titleError} />}
           </div>
-          {dateError && <ErrorTip message={dateError} />}
+          <div className="flex flex-col gap-[8px] mb-[12px]">
+            <FormLabel lable="time" />
+            <div className="flex flex-col items-center gap-[8px]">
+              <RangePicker
+                disabledDate={disabledDate}
+                presets={[
+                  {
+                    label: <span aria-label="Current Time to End of Day">Now ~ EOD</span>,
+                    value: () => [dayjs(), dayjs().endOf('day')], // 5.8.0+ support function
+                  },
+                ]}
+                showTime
+                format="YYYY/MM/DD HH:mm"
+                onChange={handleTimeChange}
+              />
+              <TimezoneSelect
+                className="bg-white dark:bg-[#141414]"
+                value={selectedTimezone}
+                onChange={handleTimeZoomChange}
+              />
+            </div>
+            {dateError && <ErrorTip message={dateError} />}
+          </div>
+          <div className="flex flex-col gap-[8px] mb-[12px]">
+            <FormLabel lable="guests" />
+            <Input
+              value={email}
+              onChange={handleEmailChange}
+              onBlur={handleEmailComplete}
+              onPressEnter={handleEmailEnter}
+            />
+            {emailError && <ErrorTip message={emailError} />}
+            {emails.length > 0 && (
+              emails.map((email) => (
+                <EmailItem email={email} key={email} onDelete={handleDeleteEmail} />
+              ))
+            )}
+          </div>
+          <Button type="primary" className="!bg-[#8C42F0] w-full" htmlType="submit" onClick={handleSubmit}>
+            Confirm
+          </Button>
         </div>
-        <div className="flex flex-col gap-[8px] mb-[12px]">
-          <FormLabel lable="guests" />
-          <Input
-            value={email}
-            onChange={handleEmailChange}
-            onBlur={handleEmailComplete}
-            onPressEnter={handleEmailEnter}
-          />
-          {emailError && <ErrorTip message={emailError} />}
-          {emails.length > 0 && (
-            emails.map((email) => (
-              <EmailItem email={email} key={email} onDelete={handleDeleteEmail} />
-            ))
-          )}
-        </div>
-        <Button type="primary" className="!bg-[#8C42F0] w-full" htmlType="submit" onClick={handleSubmit}>
-          Confirm
-        </Button>
       </div>
-    </div>
+    </ConfigProvider>
   );
 };
 

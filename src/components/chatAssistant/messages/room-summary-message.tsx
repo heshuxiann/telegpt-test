@@ -228,7 +228,7 @@ const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
             <img className="w-[16px] h-[16px]" src={UserIcon} alt="" />
             <span className="font-bold text-[14px]">Groups/friends: </span>
             <div className="flex items-center">
-              {summaryInfo.userIds.slice(0, 10).map((id: string, index: number) => {
+              {summaryInfo.userIds.slice(0, 5).map((id: string, index: number) => {
                 return (
                   <ChatAvatar
                     style={{ zIndex: `${String(summaryInfo.userIds.length - index)};` }}
@@ -264,7 +264,7 @@ const MainSummaryContent = ({
   deleteMessage: () => void;
 }) => {
   return (
-    <div className="mx-auto rounded-[10px] bg-[var(--color-background)] px-3 py-2">
+    <div className="mx-auto rounded-[10px] bg-white px-3 py-2 dark:bg-[#292929]">
       {/* summary info  */}
       {summaryInfo && <SummaryInfoContent summaryInfo={summaryInfo} />}
       {/* maintopic  */}

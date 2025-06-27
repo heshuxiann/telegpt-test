@@ -31,7 +31,7 @@ const GoogleLoginAuthMessage = ({ message }:{ message:Message }) => {
 
   return (
     <div className="px-[12px]">
-      <div className="p-[10px] border-solid border-[#D9D9D9] rounded-[16px] bg-white w-[316px]">
+      <div className="p-[10px] border-solid border-[#D9D9D9] rounded-[16px] w-[316px] bg-white dark:bg-[#292929]">
         <span>This service requires access to your Google Calendar.</span>
         <div
           className="w-auto flex items-center cursor-pointer hover:opacity-80 gap-[8px] bg-[#F3F3F3] px-[12px] py-[10px] rounded-[6px]"

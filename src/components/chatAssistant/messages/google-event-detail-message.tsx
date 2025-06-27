@@ -21,7 +21,7 @@ const GoogleEventDetailMessage = ({ message }:{ message:Message }) => {
   }
   return (
     <div className="px-[12px]">
-      <div className="flex-col gap-[12px] p-[10px] border border-solid  border-[#D9D9D9] rounded-[16px] bg-white w-[326px]">
+      <div className="flex-col gap-[12px] p-[10px] border border-solid  border-[#D9D9D9] rounded-[16px] w-[326px]bg-white dark:bg-[#292929] dark:border-[#292929]">
         <div className="text-[14px] font-semibold">Event details</div>
         <div>
           <FormLabel lable="title" />

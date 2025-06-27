@@ -47,7 +47,7 @@ export const GlobalIntroduceMessage = () => {
     <div className="global-summary-introduce">
       <h3>Hi {[currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(' ')} 👋</h3>
       <h3>How can I help you today！</h3>
-      <div className="bg-[var(--color-background)] rounded-[16px] p-[15px] grid grid-cols-2 gap-[12px] w-[743px] mt-[10px] mb-[20px]">
+      <div className="rounded-[16px] p-[15px] grid grid-cols-2 gap-[12px] w-[743px] mt-[10px] mb-[20px] bg-white dark:bg-[#292929]">
         <div
           className={buildClassName(styles.introduceSummary, 'global-summary-introduce-item')}
           onClick={sendSmmaryIntroduceMessage}

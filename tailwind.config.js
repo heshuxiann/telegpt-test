@@ -1,7 +1,7 @@
 /* eslint-disable global-require */
 // @ts-nocheck
 const config = {
-  darkMode: ['class'],
+  darkMode: ['class', 'html.theme-dark'],
   content: [
     './src/**/*.{ts,tsx,js,jsx,htm,html}',
   ],
