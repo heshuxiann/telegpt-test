@@ -33,11 +33,8 @@ import { LoadingIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageReasoning } from './message-reasoning';
 import { PreviewAttachment } from './preview-attachment';
-import AIReplyMentionMessage from "./messages/room-ai-reply-mention-message"
-import AIImageSummaryMessage from "./messages/room-ai-image-summary-message"
-import AIWebPageSummaryMessage from "./messages/room-ai-webpage-summary-message"
-import AIDocumentSummaryMessage from "./messages/room-ai-document-summary-message"
-
+import RoomAIMediaMessage from "./messages/room-ai-media-message";
+import ReplyMentionMessage from "./messages/room-ai-reply-mention-message"
 import ErrorBoundary from './ErrorBoundary';
 
 export enum AIMessageType {
@@ -58,9 +55,7 @@ export enum AIMessageType {
   RoomAIDescription = 'room-ai-description',
   AISearchSugesstion = 'ai-search-sugesstion',
   AIReplyMention = 'room-ai-reply-mention',
-  AIImageSummary = 'room-ai-image-summary',
-  AIWebPageSummary = 'room-ai-webpage-summary',
-  AIDocumentSummary = 'room-ai-document-summary',
+  AIMediaSummary = 'room-ai-media-summary',
   Default = 'default',
 }
 
@@ -174,10 +169,8 @@ const PurePreviewMessage = ({
       {messageType === AIMessageType.GlobalIntroduce && (<GlobalIntroduceMessage />)}
       {messageType === AIMessageType.RoomAIDescription && (<RoomAIDescriptionMessage message={message} />)}
       {messageType === AIMessageType.AISearchSugesstion && (<AISearchSugesstionsMessage />)}
-      {messageType === AIMessageType.AIReplyMention && (<AIReplyMentionMessage message={message} />)}
-      {messageType === AIMessageType.AIImageSummary && (<AIImageSummaryMessage message={message} />)}
-      {messageType === AIMessageType.AIWebPageSummary && (<AIWebPageSummaryMessage message={message} />)}
-      {messageType === AIMessageType.AIDocumentSummary && (<AIDocumentSummaryMessage message={message} />)}
+      {messageType === AIMessageType.AIReplyMention && (<ReplyMentionMessage message={message} />)}
+      {messageType === AIMessageType.AIMediaSummary && (<RoomAIMediaMessage message={message} />)}
       {messageType === AIMessageType.Default && (<DefaultMessage message={message} isLoading={isLoading} />)}
     </AnimatePresence>
   );

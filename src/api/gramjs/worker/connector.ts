@@ -35,6 +35,7 @@ import eventEmitter, {
 } from '../../../components/chatAssistant/lib/EventEmitter';
 import { selectCurrentChat, selectTabState } from "../../../global/selectors"
 import RoomAIMessageListener from "../../../components/chatAssistant/room-ai/room-ai-message-listener"
+import { selectSharedSettings } from "../../../global/selectors/sharedState"
 
 type RequestState = {
   messageId: string;
@@ -345,8 +346,9 @@ function sendToCurrentChatAI(data: ApiUpdate) {
   if (data['@type'] === 'newMessage') {
     const global = getGlobal()
     const currentChat = selectCurrentChat(global);
+    const { realTimeAssistant } = selectSharedSettings(global);
     const isChatAIShown = selectTabState(global, getCurrentTabId()).isChatAIShown
-    if (currentChat?.id === data.message?.chatId && isChatAIShown) {
+    if (realTimeAssistant && currentChat?.id === data.message?.chatId && isChatAIShown) {
       RoomAIMessageListener.messageListener(data.message as ApiMessage)
     }
   }

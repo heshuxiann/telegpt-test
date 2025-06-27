@@ -257,7 +257,7 @@ const MessageContextMenu: FC<OwnProps> = ({
   const isStarGiftUnique = message.content.action?.type === 'starGiftUnique';
   const shouldShowGiftButton = isUserId(message.chatId)
     && canGift && (isPremiumGift || isGiftCode || isStarGift || isStarGiftUnique);
-  const canAISummarize = message.content?.photo || message.content?.document || message.content?.webPage;
+  const canAISummarize = message.content?.photo || message.content?.document || message.content?.webPage || message.content?.voice || message.content?.audio;
   const canSerenaAI = canAISummarize || canScheduleMeeting || canSmartReply
 
   const [areItemsHidden, hideItems] = useFlag();

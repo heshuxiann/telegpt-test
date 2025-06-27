@@ -70,13 +70,7 @@ async function chatAIChatFolders(body: string) {
     }
   );
   const resJson = await res.json();
-  const jsonString =  resJson?.text?.replaceAll('\n', '')?.replace('```json', '')?.replace('```', '')?.trim();
-  try {
-    return JSON.parse(jsonString);
-  } catch (error) {
-    return [];
-  }
-  // return formatJSONContent(resJson?.text);
+  return replaceToJSON(resJson?.text);
 }
 
 export async function saveAiChatFolders(list: AIChatFolder[]) {
@@ -146,7 +140,7 @@ export async function batchAiChatFolders(
       const aiRes = await chatAIChatFolders(
         JSON.stringify({
           messages: chatMsgs,
-          flag: true
+          flag: true,
         })
       );
       res = res.concat(aiRes);
@@ -200,4 +194,17 @@ export function filterAIFolder(ids: number[] | undefined) {
     (id) =>
       id !== AI_FOLDER_ID && id !== PRESET_FOLDER_ID && id !== UNREAD_FOLDER_ID
   );
+}
+
+export function replaceToJSON(text: string) {
+  const jsonString = text
+    ?.replaceAll("\n", "")
+    ?.replace("```json", "")
+    ?.replace("```", "")
+    ?.trim();
+  try {
+    return JSON.parse(jsonString);
+  } catch (error) {
+    return undefined;
+  }
 }

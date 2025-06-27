@@ -90,7 +90,7 @@ import eventEmitter from '../../chatAssistant/lib/EventEmitter';
 import PinMessageModal from '../../common/PinMessageModal.async';
 import ConfirmDialog from '../../ui/ConfirmDialog';
 import MessageContextMenu from './MessageContextMenu';
-import { documentSummary, photoSummary, webPageSummary } from "../../chatAssistant/utils/ai-analyse-message"
+import { documentSummary, photoSummary, voiceSummary, webPageSummary } from "../../chatAssistant/utils/ai-analyse-message"
 
 export type OwnProps = {
   isOpen: boolean;
@@ -684,17 +684,17 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
     });
   });
 
-  const handleSummarize = useLastCallback(() => {
-    const { photo, document, webPage } = message.content
-    openChatAIWithInfo({
-      chatId: message.chatId
-    });
+  const handleSummarize = useLastCallback(async () => {
+    const { photo, document, webPage, voice, audio } = message.content
+    await openChatAIWithInfo({ chatId: message.chatId });
     if (photo) {
       photoSummary(message)
     } else if (webPage) {
       webPageSummary(message)
     } else if (document) {
       documentSummary(message)
+    } else if (voice || audio) {
+      voiceSummary(message)
     }
     closeMenu();
   })

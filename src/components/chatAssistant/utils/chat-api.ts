@@ -134,3 +134,20 @@ export async function webPageAISummary(url:string) {
       });
   });
 }
+
+export async function documentAISummary(content:string) {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/document-summary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content }),
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      }).catch((err) => {
+        reject(err);
+      });
+  })
+}

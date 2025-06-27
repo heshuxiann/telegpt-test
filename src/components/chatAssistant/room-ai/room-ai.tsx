@@ -64,7 +64,15 @@ const RoomAIInner = (props: StateProps) => {
   }, []);
 
   const handleAddSummaryMessage = useCallback((message:Message) => {
-    setMessages((prev) => [...prev, message]);
+    setMessages((prev) => {
+    const index = prev.findIndex((item) => item.id === message.id);
+    if (index !== -1) {
+      const newMessages = [...prev];
+      newMessages[index] = message;
+      return newMessages;
+    }
+    return [...prev, message];
+  });
   }, [setMessages]);
 
   useEffect(() => {
