@@ -212,7 +212,7 @@ const RoomActionMessage = (props: IProps) => {
   return (
     <div className="px-[12px] w-full">
       {(!pendingMatters.length) ? null : (
-        <div className="mx-auto rounded-[10px] bg-[var(--color-background)] px-3 py-2">
+        <div className="mx-auto rounded-[10px] px-3 py-2 bg-white dark:bg-[#292929]">
           {/* summary info  */}
           {summaryInfo && <ActionInfoContent summaryInfo={summaryInfo} />}
           {/* pending actions  */}

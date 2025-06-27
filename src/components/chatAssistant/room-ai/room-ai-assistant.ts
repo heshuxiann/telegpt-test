@@ -54,6 +54,7 @@ class RoomAIAssistant {
   }
 
   public static async summary(chatId: string) {
+    const { autoTranslateLanguage = 'en' } = this.global.settings.byKey;
     const lastFocusTime = RoomAIAssistant.getRoomLastFocusTime(chatId);
     const lastSummaryId = RoomAIAssistant.getRoomLastSummaryId(chatId);
     const unreadCount = RoomAIAssistant.getRoomUnreadCount(chatId);
@@ -81,6 +82,7 @@ class RoomAIAssistant {
         };
         summaryMessage({
           messages: formateMessages,
+          language: new Intl.DisplayNames([autoTranslateLanguage], { type: 'language' }).of(autoTranslateLanguage),
         }).then((res:any) => {
           const content = {
             ...res.data,

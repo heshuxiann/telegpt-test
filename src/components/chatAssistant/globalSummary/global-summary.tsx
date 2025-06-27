@@ -155,18 +155,6 @@ const GlobalSummary = forwardRef(() => {
             </div>
           </div>
           <div className="flex-1 flex flex-col overflow-hidden">
-            {/* <InfiniteScroll
-              loadMore={handleLoadMore}
-              hasMore={pageInfo.hasMore}
-              className="px-[15%] flex-1"
-            >
-              {!pageInfo.hasMore && <GlobalSummaryIntroduce />}
-              <Messages
-                status={status}
-                messages={messages}
-                deleteMessage={deleteMessage}
-              />
-            </InfiniteScroll> */}
             <Messages
               className="px-[15%] flex-1"
               status={status}

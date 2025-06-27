@@ -65,7 +65,7 @@ export const GroupSearchMessage = ({ message }: { message: Message }) => {
     return <span>未找到相关群组</span>;
   }
   return (
-    <div className="p-[10px] mx-[22px] rounded-[16px] border-[1px] border-[#D9D9D9]">
+    <div className="p-[10px] mx-[22px] rounded-[16px] border-[1px] border-[#D9D9D9] bg-white dark:bg-[#292929]">
       <div className="flex flex-col gap-[12px]">
         {chatIds.splice(0, 10).map((id) => {
           return (

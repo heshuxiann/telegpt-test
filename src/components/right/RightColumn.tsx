@@ -384,6 +384,10 @@ const RightColumn: FC<OwnProps & StateProps> = ({
     return undefined; // Unreachable
   }
 
+  if (chatId === GLOBAL_SUMMARY_CHATID) {
+    return undefined;
+  }
+
   return (
     <div
       id="RightColumn-wrapper"

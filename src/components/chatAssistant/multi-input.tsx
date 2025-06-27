@@ -46,14 +46,15 @@ function PureMultimodalInput({
   const adjustHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(200, Math.max(90, textareaRef.current.scrollHeight + 2))}px`;
+      const height = Math.min(200, Math.max(45, textareaRef.current.scrollHeight + 2));
+      textareaRef.current.style.height = `${height}px`;
     }
   };
 
   const resetHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = '90px';
+      textareaRef.current.style.height = '45px';
     }
   };
 
@@ -110,7 +111,7 @@ function PureMultimodalInput({
         value={inputValue}
         onChange={handleInput}
         className={cx(
-          'h-[90px] overflow-y-auto border-[#7D40FF] resize-none rounded-2xl !text-base pb-10 focus-visible:!ring-0 !ring-offset-0',
+          'h-[45px] overflow-y-auto border-[#7D40FF] resize-none rounded-2xl !text-base pb-10 focus-visible:!ring-0 !ring-offset-0 dark:border-[#2F2F2F]',
           className,
         )}
         rows={2}
@@ -191,7 +192,7 @@ function PureSendButton({
       disabled={input.length === 0}
     >
       {/* <ArrowUpIcon size={14} /> */}
-      <i className="icon icon-send text-[#000000] text-[24px]" />
+      <i className="icon icon-send text-[#000000] text-[24px] dark:text-[#AAAAAA]" />
     </Button>
   );
 }

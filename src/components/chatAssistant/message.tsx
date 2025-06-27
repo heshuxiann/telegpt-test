@@ -95,8 +95,8 @@ const DefaultMessage = ({ message, isLoading }:{ message: Message;isLoading:bool
           {(message.content || message.reasoning) && (
             <div className="flex flex-row gap-2 items-start w-full">
               <div
-                className={cn('w-auto flex flex-col gap-4 bg-[var(--color-background)] text-[var(--color-text)] px-3 py-2 rounded-xl', {
-                  'bg-[#E8D7FF] text-black ml-auto':
+                className={cn('w-auto flex flex-col gap-4 bg-white text-[var(--color-text)] px-3 py-2 rounded-xl dark:bg-[#292929]', {
+                  '!bg-[#E8D7FF] text-black ml-auto':
                       message.role === 'user',
                 })}
               >
@@ -132,7 +132,7 @@ const PurePreviewMessage = ({
 
   return (
     <AnimatePresence>
-      {messageType === AIMessageType.GLOBAL_SUMMARY && (
+      {messageType === AIMessageType.GlobalSummary && (
         <ErrorBoundary>
           <GlobalSummaryMessage
             message={message}
@@ -153,7 +153,7 @@ const PurePreviewMessage = ({
       {messageType === AIMessageType.GoogleAuth && (<GoogleLoginAuthMessage message={message} />)}
       {messageType === AIMessageType.GoogleEventInsert && (<GoogleEventCreateMessage message={message} />)}
       {messageType === AIMessageType.GoogleEventDetail && (<GoogleEventDetailMessage message={message} />)}
-      {messageType === AIMessageType.Default && (
+      {messageType === AIMessageType.RoomSummary && (
         <RoomSummaryMessage
           message={message}
           // eslint-disable-next-line react/jsx-no-bind

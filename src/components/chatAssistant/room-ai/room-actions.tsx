@@ -7,7 +7,7 @@ import { generateRoomActionItems, scheduleGoogleMeeting, summaryRoomMessage } fr
 
 import './room-ai.scss';
 
-const actionItemClassName = 'py-[6px] px-[12px] border-[1px] border-[#E4E4E4] rounded-[8px] whitespace-nowrap cursor-pointer';
+const actionItemClassName = 'py-[6px] px-[12px] border-[1px] border-[#E4E4E4] rounded-[8px] whitespace-nowrap cursor-pointer dark:border-[#292929]';
 
 interface OwnProps {
   chatId: string | undefined;

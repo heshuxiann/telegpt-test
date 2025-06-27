@@ -6,7 +6,7 @@ import SummaryBg from '../assets/summary-introduce/summarize.png';
 const listStyle = 'text-[15px] text-[var(--color-text)]';
 const IntroduceTranslationMessage = () => {
   return (
-    <div className="rounded-[16px] bg-[var(--color-background)] w-[488px]">
+    <div className="rounded-[16px] w-[488px] bg-white dark:bg-[#292929]">
       <img src={SummaryBg} alt="" className="w-[490px] h-[259px]" />
       <div className="py-[14px] px-[12px]">
 

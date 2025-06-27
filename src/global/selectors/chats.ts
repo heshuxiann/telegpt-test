@@ -30,6 +30,7 @@ export function selectChat<T extends GlobalState>(global: T, chatId: string): Ap
     return {
       id: GLOBAL_SUMMARY_CHATID,
       isSerena: true,
+      title: 'AI Serena',
     } as ApiChat;
   }
   return global.chats.byId[chatId];
@@ -287,16 +288,16 @@ export function selectCanShareFolder<T extends GlobalState>(global: T, folderId:
 export function selectShouldDetectChatLanguage<T extends GlobalState>(
   global: T, chatId: string,
 ) {
-  const { autoTranslate } = global.settings.byKey;
-  return autoTranslate;
-  // const chat = selectChat(global, chatId);
-  // if (!chat) return false;
-  // const { canTranslateChats } = global.settings.byKey;
+  // const { autoTranslate } = global.settings.byKey;
+  // return autoTranslate;
+  const chat = selectChat(global, chatId);
+  if (!chat) return false;
+  const { canTranslateChats } = global.settings.byKey;
 
-  // const isPremium = selectIsCurrentUserPremium(global);
-  // const isSavedMessages = selectIsChatWithSelf(global, chatId);
+  const isPremium = selectIsCurrentUserPremium(global);
+  const isSavedMessages = selectIsChatWithSelf(global, chatId);
 
-  // return IS_TRANSLATION_SUPPORTED && canTranslateChats && isPremium && !isSavedMessages;
+  return IS_TRANSLATION_SUPPORTED && canTranslateChats && isPremium && !isSavedMessages;
 }
 
 export function selectCanTranslateChat<T extends GlobalState>(
@@ -304,16 +305,15 @@ export function selectCanTranslateChat<T extends GlobalState>(
 ) {
   const chat = selectChat(global, chatId);
   if (!chat) return false;
-  return true;
-  // const requestedTranslation = selectRequestedChatTranslationLanguage(global, chatId, tabId);
-  // if (requestedTranslation) return true; // Prevent translation dropping on reevaluation
+  const requestedTranslation = selectRequestedChatTranslationLanguage(global, chatId, tabId);
+  if (requestedTranslation) return true; // Prevent translation dropping on reevaluation
 
-  // const isLanguageDetectable = selectShouldDetectChatLanguage(global, chatId);
-  // const detectedLanguage = chat.detectedLanguage;
+  const isLanguageDetectable = selectShouldDetectChatLanguage(global, chatId);
+  const detectedLanguage = chat.detectedLanguage;
 
-  // const { doNotTranslate } = global.settings.byKey;
+  const { doNotTranslate } = global.settings.byKey;
 
-  // return Boolean(isLanguageDetectable && detectedLanguage && !doNotTranslate.includes(detectedLanguage));
+  return Boolean(isLanguageDetectable && detectedLanguage && !doNotTranslate.includes(detectedLanguage));
 }
 
 export function selectRequestedChatTranslationLanguage<T extends GlobalState>(

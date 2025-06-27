@@ -62,7 +62,7 @@ export const summaryRoomMessage = async (
   callback?:()=>void,
 ) => {
   const global = getGlobal();
-  const { autoTranslateLanguage } = global.settings.byKey;
+  const { autoTranslateLanguage = 'en' } = global.settings.byKey;
   const chat = selectChat(global, chatId);
   const lastMessageId = selectChatLastMessageId(global, chatId, 'all') || 0;
   if (chat) {
@@ -83,7 +83,7 @@ export const summaryRoomMessage = async (
     };
     summaryMessage({
       messages: formateMessages,
-      language: autoTranslateLanguage,
+      language: new Intl.DisplayNames([autoTranslateLanguage], { type: 'language' }).of(autoTranslateLanguage),
     }).then((res:any) => {
       const content = {
         ...res.data,
