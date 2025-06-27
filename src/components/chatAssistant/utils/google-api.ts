@@ -3,6 +3,7 @@
 import { gapi, loadAuth2 } from 'gapi-script';
 
 export const GOOGLE_APP_CLIENT_ID = '847573679345-qq64ofbqhv7gg61e04dbrk8b92djf1fb.apps.googleusercontent.com';
+export const GOOGLE_API_KEY = 'AIzaSyAtEl_iCCVN7Gv-xs1kfpcGCfD9IYO-UhU';
 export const SCOPES = [
   'https://www.googleapis.com/auth/calendar',
   'https://www.googleapis.com/auth/calendar.events',

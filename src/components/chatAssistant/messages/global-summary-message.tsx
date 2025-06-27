@@ -332,7 +332,7 @@ const MainSummaryContent = ({
   deleteMessage: () => void;
 }) => {
   return (
-    <div className="w-max-[693px] rounded-[10px] pl-[82px] pr-[25px] pt-[20px] pb-[25px] bg-white dark:bg-[#292929]">
+    <div className="w-max-[693px] rounded-[10px] pl-[82px] pr-[25px] pt-[20px] pb-[25px] bg-[var(--color-background)]">
       {/* summary info  */}
       {summaryInfo && <SummaryInfoContent summaryInfo={summaryInfo} />}
       {/* customization topic  */}

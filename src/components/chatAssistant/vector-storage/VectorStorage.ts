@@ -1,3 +1,4 @@
+/* eslint-disable no-null/no-null */
 /* eslint-disable no-async-without-await/no-async-without-await */
 /* eslint-disable no-console */
 /* eslint-disable class-methods-use-this */
@@ -249,8 +250,24 @@ export class VectorStorage<T> {
     if (!this.db) {
       this.db = await this.initDB();
     }
-    this.documents = await this.db.getAll('documents');
+    const tx = this.db.transaction('documents', 'readonly');
+    const store = tx.store;
+    const index = store.index('timestamp');
+
+    const result = [];
+    let count = 0;
+
+    for await (const cursor of index.iterate(null, 'prev')) {
+      result.push(cursor.value);
+      count++;
+      if (count >= 3000) break;
+    }
+
+    await tx.done;
+    this.documents = result;
+    // this.documents = await this.db.getAll('documents');
     this.removeDocsLRU();
+    // TODO 检测indexdb的存储空间是否超出限制,定期清除
   }
 
   private async saveToIndexDbStorage(): Promise<void> {

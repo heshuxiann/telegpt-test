@@ -3,6 +3,6 @@
   background-size: cover;
   :global(html.theme-dark) & {
     background-image: unset;
-    background-color: var(--color-background);
+    background-color: var(--theme-background-color);
   }
 }

@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-null/no-null */
 import eventEmitter, { Actions } from '../lib/EventEmitter';
+import AIChatFoldersStore from './ai-chatfolders-store';
 import ChataiStoreManager from './chatai-store';
 import SummaryTemplateStore from './chatai-summary-template-store';
-import AIChatFoldersStore from "./ai-chatfolders-store"
 import ContactStore from './contact-store';
-import FolderStore from "./folder-store"
+import FolderStore from './folder-store';
 import GeneralStore from './general-store';
 import KnowledgeStore from './knowledge-store';
 import MessageStore from './messages-store';
@@ -17,10 +17,10 @@ const dbVersion = 18;
 
 export const GLOBAL_SUMMARY_LAST_TIME = 'globalSummaryLastTime';
 export const GLOBAL_SUMMARY_READ_TIME = 'globalSummaryReadTime';
-export const GLOBAL_AICHATFOLDERS_LAST_TIME = "globalAiChatFoldersLastTime";
-export const GLOBAL_AICHATFOLDERS_TIP_SHOW = 'globalAiChatFoldersTipShow'
-export const GLOBAL_PRESET_TAG = "globalPresetTag";
-export const GLOBAL_AI_TAG = "globalAITag"
+export const GLOBAL_AICHATFOLDERS_LAST_TIME = 'globalAiChatFoldersLastTime';
+export const GLOBAL_AICHATFOLDERS_TIP_SHOW = 'globalAiChatFoldersTipShow';
+export const GLOBAL_PRESET_TAG = 'globalPresetTag';
+export const GLOBAL_AI_TAG = 'globalAITag';
 
 let currentUserId!: string;
 
