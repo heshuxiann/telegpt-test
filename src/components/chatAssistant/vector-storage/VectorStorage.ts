@@ -12,7 +12,7 @@ import type { IVSOptions } from './types/IVSOptions';
 import type { IVSSimilaritySearchParams } from './types/IVSSimilaritySearchParams';
 
 import { constants } from './common/constants';
-import { filterDocuments, getObjectSizeInMB } from './common/helpers';
+import { filterDocuments } from './common/helpers';
 
 export class VectorStorage<T> {
   private db!: IDBPDatabase<any>;
@@ -41,7 +41,8 @@ export class VectorStorage<T> {
     if (!this.openaiApiKey && !options.embedTextsFn) {
       console.error('VectorStorage: pass as an option either an OpenAI API key or a custom embedTextsFn function.');
     } else {
-      this.loadFromIndexDbStorage();
+      // this.loadFromIndexDbStorage();
+      // TODO 检测indexdb的存储空间是否超出限制,定期清除
     }
   }
 
@@ -73,7 +74,7 @@ export class VectorStorage<T> {
   }
 
   public async deleteText(id: string): Promise<void> {
-    this.documents = this.documents.filter((doc) => doc.id !== id);
+    // this.documents = this.documents.filter((doc) => doc.id !== id);
     if (!this.db) {
       this.db = await this.initDB();
     }
@@ -118,15 +119,16 @@ export class VectorStorage<T> {
     } = params;
     const queryEmbedding = await this.embedText(query);
     const queryMagnitude = await this.calculateMagnitude(queryEmbedding);
-    const filteredDocuments = filterDocuments(this.documents, filterOptions);
+    const allDocuments = await this.loadFromIndexDbStorage();
+    const filteredDocuments = filterDocuments(allDocuments, filterOptions);
     const scoresPairs: Array<[IVSDocument<T>, number]> = this.calculateSimilarityScores(filteredDocuments, queryEmbedding, queryMagnitude);
     const sortedPairs = scoresPairs.sort((a, b) => b[1] - a[1]);
     const results = sortedPairs.slice(0, k).map((pair) => ({ ...pair[0], score: pair[1] }));
     this.updateHitCounters(results);
-    if (results.length > 0) {
-      this.removeDocsLRU();
-      // await this.saveToIndexDbStorage();
-    }
+    // if (results.length > 0) {
+    //   this.removeDocsLRU();
+    //   await this.saveToIndexDbStorage();
+    // }
     if (!includeValues) {
       results.forEach((result) => {
         delete result.vector;
@@ -159,43 +161,43 @@ export class VectorStorage<T> {
 
   private async addDocuments(documents: Array<IVSDocument<T>>): Promise<Array<IVSDocument<T>>> {
     // filter out already existing documents
-    const newDocuments = documents.filter((doc) => !this.documents.some((d) => d.text === doc.text));
+    // const newDocuments = documents.filter((doc) => !this.documents.some((d) => d.text === doc.text));
     // If there are no new documents, return an empty array
-    if (newDocuments.length === 0) {
-      return [];
-    }
-    const newVectors = await this.embedTextsFn(newDocuments.map((doc) => doc.text));
+    // if (newDocuments.length === 0) {
+    //   return [];
+    // }
+    const newVectors = await this.embedTextsFn(documents.map((doc) => doc.text));
     // Assign vectors and precompute vector magnitudes for new documents
-    newDocuments.forEach((doc, index) => {
+    documents.forEach((doc, index) => {
       doc.vector = newVectors[index];
       doc.vectorMag = calcVectorMagnitude(doc);
     });
     // Add new documents to the store
-    this.documents.push(...newDocuments);
-    this.removeDocsLRU();
+    // this.documents.push(...newDocuments);
+    // this.removeDocsLRU();
     // Save to index db storage
-    await this.addToIndexDbStorage(newDocuments);
-    return newDocuments;
+    await this.addToIndexDbStorage(documents);
+    return documents;
   }
 
   private async updateDocument(document: IVSDocument<T>): Promise<IVSDocument<T>> {
     const newVectors = await this.embedTextsFn([document.text]);
     document.vector = newVectors[0];
     document.vectorMag = calcVectorMagnitude(document);
-    const oldDoc = this.documents.find((doc) => doc.id === document.id);
-    if (oldDoc) {
-      // Add new documents to the store
-      this.documents = this.documents.map((doc) => {
-        if (doc.id === document.id) {
-          return document;
-        }
-        return doc;
-      });
-    } else {
-      this.documents.push(document);
-    }
+    // const oldDoc = this.documents.find((doc) => doc.id === document.id);
+    // if (oldDoc) {
+    //   // Add new documents to the store
+    //   this.documents = this.documents.map((doc) => {
+    //     if (doc.id === document.id) {
+    //       return document;
+    //     }
+    //     return doc;
+    //   });
+    // } else {
+    //   this.documents.push(document);
+    // }
 
-    this.removeDocsLRU();
+    // this.removeDocsLRU();
     // Save to index db storage
     await this.addToIndexDbStorage([document]);
     return document;
@@ -246,7 +248,7 @@ export class VectorStorage<T> {
     });
   }
 
-  private async loadFromIndexDbStorage(): Promise<void> {
+  private async loadFromIndexDbStorage(): Promise<IVSDocument<T>[]> {
     if (!this.db) {
       this.db = await this.initDB();
     }
@@ -264,28 +266,28 @@ export class VectorStorage<T> {
     }
 
     await tx.done;
-    this.documents = result;
+    return result;
+    // this.documents = result;
     // this.documents = await this.db.getAll('documents');
-    this.removeDocsLRU();
-    // TODO 检测indexdb的存储空间是否超出限制,定期清除
+    // this.removeDocsLRU();
   }
 
-  private async saveToIndexDbStorage(): Promise<void> {
-    if (!this.db) {
-      this.db = await this.initDB();
-    }
-    try {
-      const tx = this.db.transaction('documents', 'readwrite');
-      await tx.objectStore('documents').clear();
-      for (const doc of this.documents) {
-        // eslint-disable-next-line no-await-in-loop
-        await tx.objectStore('documents').put(doc);
-      }
-      await tx.done;
-    } catch (error: any) {
-      console.error('Failed to save to IndexedDB:', error.message);
-    }
-  }
+  // private async saveToIndexDbStorage(): Promise<void> {
+  //   if (!this.db) {
+  //     this.db = await this.initDB();
+  //   }
+  //   try {
+  //     const tx = this.db.transaction('documents', 'readwrite');
+  //     await tx.objectStore('documents').clear();
+  //     for (const doc of this.documents) {
+  //       // eslint-disable-next-line no-await-in-loop
+  //       await tx.objectStore('documents').put(doc);
+  //     }
+  //     await tx.done;
+  //   } catch (error: any) {
+  //     console.error('Failed to save to IndexedDB:', error.message);
+  //   }
+  // }
 
   private async addToIndexDbStorage(documents:Array<IVSDocument<T>>): Promise<void> {
     if (!this.db) {
@@ -303,17 +305,17 @@ export class VectorStorage<T> {
     }
   }
 
-  private removeDocsLRU(): void {
-    if (getObjectSizeInMB(this.documents) > this.maxSizeInMB) {
-      // Sort documents by hit counter (ascending) and then by timestamp (ascending)
-      this.documents.sort((a, b) => (a.hits ?? 0) - (b.hits ?? 0) || a.timestamp - b.timestamp);
+  // private removeDocsLRU(): void {
+  //   if (getObjectSizeInMB(this.documents) > this.maxSizeInMB) {
+  //     // Sort documents by hit counter (ascending) and then by timestamp (ascending)
+  //     this.documents.sort((a, b) => (a.hits ?? 0) - (b.hits ?? 0) || a.timestamp - b.timestamp);
 
-      // Remove documents until the size is below the limit
-      while (getObjectSizeInMB(this.documents) > this.maxSizeInMB) {
-        this.documents.shift();
-      }
-    }
-  }
+  //     // Remove documents until the size is below the limit
+  //     while (getObjectSizeInMB(this.documents) > this.maxSizeInMB) {
+  //       this.documents.shift();
+  //     }
+  //   }
+  // }
 }
 
 function calcVectorMagnitude(doc: IVSDocument<any>): number {
