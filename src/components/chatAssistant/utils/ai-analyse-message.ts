@@ -133,7 +133,8 @@ export async function webPageSummary(
   isAuto: boolean = false
 ) {
   const webPage = message.content?.webPage;
-  if (!webPage) return;
+  const url = webPage ? webPage?.url : message.content?.text?.text;
+  if (!url || url === "") return;
 
   let newMessage: StoreMessage = {
     chatId: message.chatId,
@@ -146,7 +147,7 @@ export async function webPageSummary(
   };
   await sendMessageToAIRoom(newMessage);
 
-  webPageAISummary(webPage?.url)
+  webPageAISummary(url)
     .then((response: any) => {
       if (response?.text) {
         newMessage = {
@@ -557,4 +558,18 @@ async function handleAudioToSummaryText({
     };
     await sendMessageToAIRoom(newMessage);
   }
+}
+
+export function canSummarize(message: ApiMessage) {
+  const { photo, document, webPage, voice, audio, text } = message?.content;
+  const isUrl = checkIsUrl(text?.text);
+
+  return photo || document || webPage || voice || audio || text || isUrl;
+}
+
+export function checkIsUrl(text?: string) {
+  return (
+    typeof text === "string" &&
+    /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w\-./?%&=]*)?$/i.test(text)
+  );
 }

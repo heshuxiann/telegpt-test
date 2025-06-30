@@ -11,6 +11,7 @@ import { useWaveformCanvas } from "../../common/Audio";
 import useMedia from "../hook/useMedia";
 import { MediaViewerOrigin } from "../../../types";
 import SerenaPath from "../../chatAssistant/assets/serena.png";
+import { checkIsUrl } from "../utils/ai-analyse-message";
 
 type IProps = {
   message: Message;
@@ -24,7 +25,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
 
   let content: any = {};
   let message: ApiMessage | undefined = undefined;
-  let summaryInfo: any = {};
+  let summaryInfo: any = undefined;
   let isAuto: boolean = false;
   let status: MessageStatus = "loading";
   try {
@@ -59,7 +60,8 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
     if (!message) return "";
 
     const { webPage, photo, document, audio, voice } = message?.content;
-    if (webPage) {
+    const isUrl = checkIsUrl(message?.content?.text?.text);
+    if (webPage || isUrl) {
       return "Summarize this webpage";
     } else if (photo) {
       return "Summarize this image";
@@ -88,11 +90,14 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
     if (!message) return "";
 
     const { webPage, photo, document, audio, voice } = message?.content;
-    if (webPage) {
+    const isUrl = checkIsUrl(message?.content?.text?.text);
+    if (webPage || isUrl) {
       return (
         <div className={buildClassName("flex", !isAuto ? "justify-end" : "")}>
           <div className="rounded-[16px] bg-[var(--color-background)] p-3 text-[var(--color-text)] break-all">
-            {message?.content?.webPage?.url}
+            {webPage
+              ? message?.content?.webPage?.url
+              : message?.content?.text?.text}
           </div>
         </div>
       );
@@ -159,8 +164,9 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
     if (!message) return "";
 
     const { webPage, photo } = message?.content;
-    if (webPage) {
-      return (
+    const isUrl = checkIsUrl(message?.content?.text?.text);
+    if (webPage || isUrl) {
+      return summaryInfo?.title ? (
         <div className="rounded-[16px] bg-[var(--color-background)] p-3 text-[var(--color-text)]">
           <div className="font-[600] text-[16px]">
             Summary of the Article: "{summaryInfo?.title}"
@@ -187,6 +193,8 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
             </div>
           </div>
         </div>
+      ) : (
+        <NoSummaryContent content="website page" />
       );
     } else if (photo) {
       return (
@@ -229,7 +237,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
     }
   }
 
-
+  console.log("aiChatFoldersTask----message", content);
 
   return (
     <div className="flex flex-col gap-2 px-3 text-[14px]">
@@ -301,3 +309,14 @@ export const AppendixIcon = (props: SVGProps<SVGSVGElement>) => (
     </g>
   </svg>
 );
+
+const NoSummaryContent = ({ content }: { content: string }) => {
+  return (
+    <div className="rounded-[16px] bg-[var(--color-background)] p-3 text-[var(--color-text)]">
+      I couldn’t find any accessible content from the {content} you provided. It
+      appears the search query didn’t return any results. Could you please paste
+      the text you want summarized? That way, I can give you a clear and
+      accurate summary!
+    </div>
+  );
+};

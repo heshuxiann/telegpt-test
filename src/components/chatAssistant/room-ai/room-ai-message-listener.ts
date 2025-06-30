@@ -1,12 +1,13 @@
 import { ApiMessage } from "../../../api/types";
-import { audioSummary, documentSummary, photoSummary, replyToMention, voiceSummary, webPageSummary } from "../utils/ai-analyse-message"
+import { audioSummary, checkIsUrl, documentSummary, photoSummary, replyToMention, voiceSummary, webPageSummary } from "../utils/ai-analyse-message"
 
 class RoomAIMessageListener {
   public static messageListener(message: ApiMessage) {
-    const { webPage, photo, video, audio, voice, document } = message.content;
+    const { webPage, photo, video, audio, voice, document, text } = message.content;
+    const isUrl = checkIsUrl(text?.text)
     if (message.isMentioned) {
       replyToMention(message, true);
-    } else if (webPage) {
+    } else if (webPage || isUrl) {
       webPageSummary(message, true);
     } else if (photo) {
       // photoSummary(message, true);
