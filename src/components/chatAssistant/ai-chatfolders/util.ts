@@ -10,9 +10,12 @@ import { validateAndFixJsonStructure } from "../utils/util";
 import { isSystemBot } from "../../../global/helpers";
 import {
   AI_FOLDER_ID,
+  AI_FOLDER_TITLE,
   PRESET_FOLDER_ID,
+  PRESET_FOLDER_TITLE,
   SERVICE_NOTIFICATIONS_USER_ID,
   UNREAD_FOLDER_ID,
+  UNREAD_FOLDER_TITLE,
 } from "../../../config";
 import { getAITags } from "./tag-filter";
 import { intersection } from "lodash";
@@ -70,13 +73,7 @@ async function chatAIChatFolders(body: string) {
     }
   );
   const resJson = await res.json();
-  const jsonString =  resJson?.text?.replaceAll('\n', '')?.replace('```json', '')?.replace('```', '')?.trim();
-  try {
-    return JSON.parse(jsonString);
-  } catch (error) {
-    return [];
-  }
-  // return formatJSONContent(resJson?.text);
+  return replaceToJSON(resJson?.text);
 }
 
 export async function saveAiChatFolders(list: AIChatFolder[]) {
@@ -146,7 +143,7 @@ export async function batchAiChatFolders(
       const aiRes = await chatAIChatFolders(
         JSON.stringify({
           messages: chatMsgs,
-          flag: true
+          flag: true,
         })
       );
       res = res.concat(aiRes);
@@ -162,14 +159,21 @@ export async function deleteAiChatFolders() {
   const res = await ChataiStores.folder?.getAllFolders();
   for (let i = 0; i < (res || [])?.length; i++) {
     const folderInfoDb = res?.[i];
-    if (folderInfoDb && folderInfoDb?.from === "AI") {
-      // 删除AI分类
-      console.log(
-        AI_CHATFOLDERS_LOG_PRE + "delete: " + folderInfoDb?.id,
-        new Date()
-      );
-      await deleteChatFolder?.({ id: Number(folderInfoDb?.id) });
-      await sleep(3000);
+    if (folderInfoDb) {
+      if (
+        folderInfoDb?.from === "AI" ||
+        folderInfoDb.title === UNREAD_FOLDER_TITLE ||
+        folderInfoDb?.title === PRESET_FOLDER_TITLE ||
+        folderInfoDb?.title === AI_FOLDER_TITLE
+      ) {
+        // 删除AI分类, Unread分类, Preset分类, AI分类
+        console.log(
+          AI_CHATFOLDERS_LOG_PRE + "delete: " + folderInfoDb?.id,
+          new Date()
+        );
+        await deleteChatFolder?.({ id: Number(folderInfoDb?.id) });
+        await sleep(3000);
+      }
     }
   }
   ChataiStores.general?.delete(GLOBAL_AICHATFOLDERS_LAST_TIME);
@@ -200,4 +204,17 @@ export function filterAIFolder(ids: number[] | undefined) {
     (id) =>
       id !== AI_FOLDER_ID && id !== PRESET_FOLDER_ID && id !== UNREAD_FOLDER_ID
   );
+}
+
+export function replaceToJSON(text: string) {
+  const jsonString = text
+    ?.replaceAll("\n", "")
+    ?.replace("```json", "")
+    ?.replace("```", "")
+    ?.trim();
+  try {
+    return JSON.parse(jsonString);
+  } catch (error) {
+    return undefined;
+  }
 }

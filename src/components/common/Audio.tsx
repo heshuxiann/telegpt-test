@@ -627,7 +627,7 @@ function renderVoice(
   );
 }
 
-function useWaveformCanvas(
+export function useWaveformCanvas(
   theme: ThemeKey,
   media?: ApiVoice | ApiVideo,
   playProgress = 0,

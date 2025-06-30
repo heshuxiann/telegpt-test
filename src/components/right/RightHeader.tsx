@@ -48,6 +48,8 @@ import SearchInput from '../ui/SearchInput';
 import Transition from '../ui/Transition';
 
 import './RightHeader.scss';
+import { AISettingIcon, RealTimeAIIcon } from "../chatAssistant/utils/icons"
+import { selectSharedSettings } from "../../global/selectors/sharedState"
 
 type OwnProps = {
   chatId?: string;
@@ -93,6 +95,7 @@ type StateProps = {
   isInsideTopic?: boolean;
   canEditTopic?: boolean;
   isSavedMessages?: boolean;
+  realTimeAssistant?: boolean;
 };
 
 const COLUMN_ANIMATION_DURATION = 450 + ANIMATION_END_DELAY;
@@ -181,6 +184,7 @@ const RightHeader: FC<OwnProps & StateProps> = ({
   giftProfileFilter,
   canUseGiftFilter,
   canUseGiftAdminFilter,
+  realTimeAssistant
 }) => {
   const {
     setStickerSearchQuery,
@@ -192,6 +196,7 @@ const RightHeader: FC<OwnProps & StateProps> = ({
     deleteExportedChatInvite,
     openEditTopicPanel,
     updateGiftProfileFilter,
+    setSharedSettingOption
   } = getActions();
 
   const [isDeleteDialogOpen, openDeleteDialog, closeDeleteDialog] = useFlag();
@@ -247,6 +252,11 @@ const RightHeader: FC<OwnProps & StateProps> = ({
   const handleClose = useLastCallback(() => {
     onClose(!isSavedMessages);
   });
+
+  const handleSwitchRealTimeAssistant = useLastCallback((e: React.SyntheticEvent<HTMLElement>)=> {
+    e.stopPropagation();
+    setSharedSettingOption({ realTimeAssistant: !realTimeAssistant });
+  })
 
   const [shouldSkipTransition, setShouldSkipTransition] = useState(!isColumnOpen);
 
@@ -372,6 +382,22 @@ const RightHeader: FC<OwnProps & StateProps> = ({
         ariaLabel={lang('AccDescrOpenMenu2')}
       >
         <Icon name="more" />
+      </Button>
+    );
+  }, [isMobile, lang]);
+
+  const AISettingMenuButton: FC<{ onTrigger: () => void; isOpen?: boolean }> = useMemo(() => {
+    return ({ onTrigger, isOpen }) => (
+      <Button
+        round
+        ripple={!isMobile}
+        size="smaller"
+        color="translucent"
+        className={isOpen ? 'active' : ''}
+        onClick={onTrigger}
+        ariaLabel=''
+      >
+        <AISettingIcon/>
       </Button>
     );
   }, [isMobile, lang]);
@@ -593,9 +619,43 @@ const RightHeader: FC<OwnProps & StateProps> = ({
         );
       case HeaderContent.ChatAI:
         return (
-          <div className="header chat-ai-header">
-            <img className="rounded-full" src={SerenaLogoPath} alt="Serena AI" />
-            <h3 className="title">{oldLang('Serena AI')}</h3>
+          <div className="header chat-ai-header w-full flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <img className="rounded-full" src={SerenaLogoPath} alt="Serena AI" />
+              <h3 className="title">{oldLang('Serena AI')}</h3>
+            </div>
+            <DropdownMenu
+              trigger={AISettingMenuButton}
+              positionX="right"
+              autoClose={false}
+            >
+              <div className="p-2">
+                <MenuItem
+                  customIcon={<div className="mr-[10px] mb-[40px]">
+                    <RealTimeAIIcon/>
+                  </div>}
+                  onClick={handleSwitchRealTimeAssistant}
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      Real-time assistant
+                      <label className="Switcher no-animation" title="">
+                        <input
+                          type="checkbox"
+                          id="realTimeAssistant"
+                          checked={realTimeAssistant === true}
+                          disabled
+                        />
+                        <span className="widget" />
+                      </label>
+                    </div>
+                    <div className="mt-2 text-[12px] text-[#666666] leading-[15px] ml-[-35px]">
+                      When enabled, the assistant will monitor <br/> chats in real time to assist you.
+                    </div>
+                  </div>
+                </MenuItem>
+              </div>
+            </DropdownMenu>
           </div>
         );
       default:
@@ -742,6 +802,8 @@ export default withGlobal<OwnProps>(
     const canUseGiftFilter = chatId ? selectCanUseGiftProfileFilter(global, chatId) : false;
     const canUseGiftAdminFilter = chatId ? selectCanUseGiftProfileAdminFilter(global, chatId) : false;
 
+    const { realTimeAssistant } = selectSharedSettings(global);
+
     return {
       canManage,
       canAddContact,
@@ -762,6 +824,7 @@ export default withGlobal<OwnProps>(
       giftProfileFilter,
       canUseGiftFilter,
       canUseGiftAdminFilter,
+      realTimeAssistant
     };
   },
 )(RightHeader);

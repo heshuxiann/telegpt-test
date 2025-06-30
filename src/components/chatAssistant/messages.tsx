@@ -67,6 +67,7 @@ function PureMessages({
       });
     }
   };
+
   return (
     <div
       ref={messagesContainerRef}

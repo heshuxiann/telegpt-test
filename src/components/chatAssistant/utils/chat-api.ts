@@ -97,6 +97,78 @@ export const getHitTools = (text:string):Promise<Array<any>> => {
   });
 };
 
+export function imageAISummary(imageBase64:string) {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/image-summary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: imageBase64,
+      }),
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}
+
+export function webPageAISummary(url:string) {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/webpage-summary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url }),
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}
+
+export function documentAISummary(content:string) {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/document-summary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content }),
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      }).catch((err) => {
+        reject(err);
+      });
+  });
+}
+
+export function audioAISummary(content:string) {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/audio-summary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content }),
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      }).catch((err) => {
+        reject(err);
+      });
+  });
+}
+
 export const translateTextByTencentApi = (data:Object):Promise<Array<string>> => {
   return new Promise((resolve, reject) => {
     fetch('http://localhost:3000/tencent-translate', {

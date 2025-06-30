@@ -8,7 +8,8 @@
   align-items: center;
   padding: 0.75rem 1rem;
   position: relative;
-  overflow: hidden;
+  // overflow: hidden;
+  overflow: visible;
   line-height: 1.5rem;
   white-space: nowrap;
   color: var(--color-text);
@@ -177,4 +178,24 @@
     font-size: small;
     line-height: 1.125rem;
   }
+}
+.MenuItem__submenu {
+  position: absolute;
+  top: -5px;
+  min-width: 160px;
+  background: var(--color-menu-submenu-bg);
+  box-shadow: 0 0.25rem 0.5rem 0.125rem var(--color-default-shadow);
+  border-radius: var(--border-radius-default);
+  padding: 0.25rem 0;
+  z-index: 100;
+  transform: translateX(0.3rem);
+}
+.MenuItem__submenu--right {
+  left: 100%;
+  right: auto;
+}
+.MenuItem__submenu--left {
+  right: 100%;
+  left: auto;
+  transform: translateX(-0.3rem);
 }

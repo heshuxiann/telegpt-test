@@ -20,8 +20,7 @@ import {
   groupAiChatFoldersRes,
   isChatBot,
   saveAiChatFolders,
-  sleep,
-  formatJSONContent,
+  sleep
 } from "../ai-chatfolders/util";
 import { flatMap, uniq } from "lodash";
 import { selectSharedSettings } from "../../../global/selectors/sharedState";
@@ -89,8 +88,10 @@ class AIChatFoldersTask {
         };
         const existDb = await ChataiStores.folder?.getFolder(folderTitle);
         const globalFolders = getGlobal().chatFolders?.byId;
-        const existFolder = flatMap(globalFolders)?.find(o=>o?.title?.text === folderTitle)
-        const exist = existDb ? existDb : existFolder
+        const existFolder = flatMap(globalFolders)?.find(
+          (o) => o?.title?.text === folderTitle
+        );
+        const exist = existDb ? existDb : existFolder;
         if (exist) {
           // 用户已有自定义分类，将用户自定义标签和AI标签对比去重后取合集
           folder.id = Number(exist.id);
