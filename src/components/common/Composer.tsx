@@ -1216,11 +1216,11 @@ const Composer: FC<OwnProps & StateProps> = ({
       }
     }
     // TODO:translate text
-    setIsInlineAILoading(true);
     const { text } = parseHtmlAsFormattedText(getHtml());
     // TODO:translate text
     const langCode = RoomStorage.getRoomTranslateLanguage(chatId);
     if (langCode && text) {
+      setIsInlineAILoading(true);
       try {
         const result = await callApi('translateTextByTencent', {
           text: [{ text }],
@@ -1233,9 +1233,8 @@ const Composer: FC<OwnProps & StateProps> = ({
         // eslint-disable-next-line no-console
         console.log(error);
       }
+      setIsInlineAILoading(false);
     }
-    setIsInlineAILoading(false);
-
     handleSendCore(currentAttachments, isSilent, scheduledAt);
   });
 
