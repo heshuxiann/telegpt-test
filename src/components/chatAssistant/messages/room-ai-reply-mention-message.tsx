@@ -73,7 +73,7 @@ const ReplyMentionMessage = (props: IProps) => {
       {status == "loading" ? (
         <ThinkingMessage />
       ) : status === "error" ? (
-        <div className="rounded-[16px] bg-[#FFF9F9] text-[var(--color-text)] p-3 text-[14px] border-[1px] border-[#FFC7C7]">
+        <div className="rounded-[16px] bg-[#FFF9F9] text-[#000] p-3 text-[14px] border-[1px] border-[#FFC7C7]">
           {content?.errorMsg}
         </div>
       ) : (

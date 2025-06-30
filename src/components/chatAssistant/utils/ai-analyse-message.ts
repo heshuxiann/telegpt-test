@@ -4,6 +4,7 @@ import eventEmitter, { Actions } from "../lib/EventEmitter";
 import { ChataiStores } from "../store";
 import { StoreMessage } from "../store/messages-store";
 import {
+  audioAISummary,
   chatAIGenerate,
   documentAISummary,
   imageAISummary,
@@ -376,12 +377,27 @@ export async function voiceSummary(
     });
 }
 
-export async function audioAISummary(
+export async function audioSummary(
   message: ApiMessage,
   isAuto: boolean = false
 ) {
   const audio = message.content?.audio;
   if (!audio) return;
+
+  let newMessage: StoreMessage = {
+    chatId: message.chatId,
+    timestamp: new Date().getTime(),
+    id: uuidv4(),
+    createdAt: new Date(),
+    role: "assistant",
+    annotations: [{ type: "room-ai-media-summary" }],
+    content: JSON.stringify({
+      message,
+      isAuto,
+      status: "loading",
+    }),
+  };
+  await sendMessageToAIRoom(newMessage);
 
   const mediaHash = getMediaHash(audio, "download");
   if (!mediaHash) return;
@@ -394,6 +410,27 @@ export async function audioAISummary(
   const blob = await response.blob();
 
   const arrayBuffer = await blob.arrayBuffer();
+  const arrayBase64 = '';//arrayBufferToBase64(arrayBuffer);
+
+  audioAISummary(arrayBase64)
+    .then((response: any) => {
+      if (response?.text) {
+        newMessage = {
+          ...newMessage,
+          content: JSON.stringify({
+            message,
+            summaryInfo: response?.text,
+            isAuto,
+            status: "success",
+          }),
+        };
+        sendMessageToAIRoom(newMessage);
+      }
+    })
+    .catch((err) => {
+      console.log("error", err);
+    });
+
 }
 
 async function sendMessageToAIRoom(newMessage: StoreMessage) {
