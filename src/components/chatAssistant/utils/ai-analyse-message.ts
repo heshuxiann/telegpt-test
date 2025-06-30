@@ -491,13 +491,14 @@ async function handleAudioToSummaryText({
   message: ApiMessage;
   isAuto: boolean;
 }) {
-  if (size && size * (4 / 3) > 4 * 1024 * 1024) {
-    showMessage.info("File size exceeds limit (4 MB)");
+  // check size
+  if (size && size > 4.5 * 1024 * 1024) {
+    showMessage.info("File size exceeds limit (4.5 MB)");
     newMessage = {
       ...newMessage,
       content: JSON.stringify({
         message,
-        errorMsg: "File size exceeds limit (4 MB)",
+        errorMsg: "File size exceeds limit (4.5 MB)",
         isAuto,
         status: "error",
       }),
@@ -525,44 +526,35 @@ async function handleAudioToSummaryText({
 
   const response = await fetch(blobUrl);
   const blob = await response.blob();
-
-  const reader = new FileReader();
-  reader.onloadend = function () {
-    const base64Data = reader.result?.toString().split(",")[1] || "";
-    audioAISummary(
-      JSON.stringify({
-        audioData: base64Data,
-        mimeType: mimeType,
-        filename: filename,
-      })
-    )
-      .then((response: any) => {
-        if (response?.text) {
-          newMessage = {
-            ...newMessage,
-            content: JSON.stringify({
-              message,
-              summaryInfo: response?.text,
-              isAuto,
-              status: "success",
-            }),
-          };
-          sendMessageToAIRoom(newMessage);
-        }
-      })
-      .catch((err) => {
-        console.log("error", err);
-        newMessage = {
-          ...newMessage,
-          content: JSON.stringify({
-            message,
-            errorMsg: "Summary error",
-            isAuto,
-            status: "error",
-          }),
-        };
-        sendMessageToAIRoom(newMessage);
-      });
-  };
-  reader.readAsDataURL(blob);
+  //
+  const formData = new FormData();
+  formData.append("file", blob, filename || "audio.ogg");
+  if (mimeType) formData.append("mimeType", mimeType);
+  try {
+    const summaryResponse: any = await audioAISummary(formData);
+    if (summaryResponse?.text) {
+      newMessage = {
+        ...newMessage,
+        content: JSON.stringify({
+          message,
+          summaryInfo: summaryResponse?.text,
+          isAuto,
+          status: "success",
+        }),
+      };
+      await sendMessageToAIRoom(newMessage);
+    }
+  } catch (err) {
+    console.log("error", err);
+    newMessage = {
+      ...newMessage,
+      content: JSON.stringify({
+        message,
+        errorMsg: "Summary error",
+        isAuto,
+        status: "error",
+      }),
+    };
+    await sendMessageToAIRoom(newMessage);
+  }
 }
