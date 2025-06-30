@@ -199,6 +199,7 @@
     "messages.sendWebViewResultMessage",
     "messages.sendWebViewData",
     "messages.transcribeAudio",
+    "messages.transcribeAudioByOpenai",
     "messages.getCustomEmojiDocuments",
     "messages.getEmojiStickers",
     "messages.getFeaturedEmojiStickers",

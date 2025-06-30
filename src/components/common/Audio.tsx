@@ -110,7 +110,7 @@ const Audio: FC<OwnProps> = ({
   onDateClick,
 }) => {
   const {
-    cancelMediaDownload, downloadMedia, transcribeAudio, openOneTimeMediaModal,
+    cancelMediaDownload, downloadMedia, transcribeAudioByOpenai, openOneTimeMediaModal,
   } = getActions();
 
   const {
@@ -280,7 +280,7 @@ const Audio: FC<OwnProps> = ({
   });
 
   const handleTranscribe = useLastCallback(() => {
-    transcribeAudio({ chatId: message.chatId, messageId: message.id });
+    transcribeAudioByOpenai({ chatId: message.chatId, messageId: message.id });
   });
 
   useEffect(() => {

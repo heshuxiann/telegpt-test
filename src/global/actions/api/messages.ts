@@ -51,11 +51,14 @@ import {
 import { getMessageKey, isLocalMessageId } from '../../../util/keys/messageKey';
 import { getTranslationFn, type RegularLangFnParameters } from '../../../util/localization';
 import { formatStarsAsText } from '../../../util/localization/format';
+import * as mediaLoader from '../../../util/mediaLoader';
 import { oldTranslate } from '../../../util/oldLangProvider';
 import { debounce, onTickEnd, rafPromise } from '../../../util/schedulers';
 import { callApi, cancelApiProgress } from '../../../api/gramjs';
+import { audioToText } from '../../../components/chatAssistant/utils/chat-api';
 import {
   getIsSavedDialog,
+  getMediaHash,
   getUserFullName,
   isChatChannel,
   isChatSuperGroup,
@@ -1282,6 +1285,55 @@ addActionHandler('transcribeAudio', async (global, actions, payload): Promise<vo
   global = getGlobal();
   global = updateChatMessage(global, chatId, messageId, {
     transcriptionId: result,
+    isTranscriptionError: !result,
+  });
+
+  setGlobal(global);
+});
+
+addActionHandler('transcribeAudioByOpenai', async (global, actions, payload): Promise<void> => {
+  const { messageId, chatId } = payload;
+  const message = selectChatMessage(global, chatId, messageId);
+
+  const chat = selectChat(global, chatId);
+
+  if (!chat) return;
+  global = updateChatMessage(global, chatId, messageId, {
+    transcriptionId: '',
+  });
+
+  setGlobal(global);
+
+  const voice = message?.content?.voice;
+  if (!voice) return;
+
+  const mediaHash = getMediaHash(voice, 'download');
+  if (!mediaHash) return;
+
+  await mediaLoader.fetch(mediaHash, 0);
+  const blobUrl = mediaLoader.getFromMemory(mediaHash);
+  if (!blobUrl) return;
+
+  const response = await fetch(blobUrl);
+  const blob = await response.blob();
+
+  const formData = new FormData();
+
+  formData.append(
+    'file',
+    blob,
+    'audio.ogg',
+  );
+
+  const result = await audioToText(formData);
+
+  const transcriptionId = `${chat?.id}-${messageId}`;
+
+  callApi('transcribeAudioByOpenai', { transcriptionId, transcriptionText: result.text });
+
+  global = getGlobal();
+  global = updateChatMessage(global, chatId, messageId, {
+    transcriptionId,
     isTranscriptionError: !result,
   });
 

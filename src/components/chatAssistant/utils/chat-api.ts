@@ -186,3 +186,17 @@ export const translateTextByTencentApi = (data:Object):Promise<Array<string>> =>
       });
   });
 };
+
+export function audioToText(formData: FormData):Promise<{ text:string }> {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/audio-to-text', {
+      method: 'POST',
+      body: formData,
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      }).catch((err) => {
+        reject(err);
+      });
+  });
+}

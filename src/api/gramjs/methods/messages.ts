@@ -1957,6 +1957,18 @@ export async function transcribeAudio({
 
   return result.transcriptionId.toString();
 }
+export function transcribeAudioByOpenai({
+  transcriptionId, transcriptionText,
+}: {
+  transcriptionId:string;transcriptionText:string;
+}) {
+  sendApiUpdate({
+    '@type': 'updateTranscribedAudio',
+    isPending: false,
+    transcriptionId,
+    text: transcriptionText,
+  });
+}
 
 export async function translateText(params: TranslateTextParams) {
   let result;
@@ -1994,7 +2006,6 @@ export async function translateText(params: TranslateTextParams) {
 }
 
 export async function translateTextByTencent(params: TranslateTextParams) {
-  console.log('腾讯翻译');
   const isMessageTranslation = 'chat' in params;
   const { text, toLanguageCode } = params;
   const SourceTextList = text?.map((t: ApiFormattedText) => t.text);
@@ -2007,7 +2018,6 @@ export async function translateTextByTencent(params: TranslateTextParams) {
 
   const formattedText = result.map((r) => { return { text: r, entities: [] }; });
   if (isMessageTranslation) {
-    console.log('通知消息翻译更新');
     sendApiUpdate({
       '@type': 'updateMessageTranslations',
       chatId: params.chat.id,

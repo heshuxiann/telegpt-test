@@ -2404,6 +2404,11 @@ export interface ActionPayloads {
     messageId: number;
   };
 
+  transcribeAudioByOpenai: {
+    chatId: string;
+    messageId: number;
+  };
+
   loadPremiumGifts: undefined;
   loadStarGifts: undefined;
   loadDefaultTopicIcons: undefined;
