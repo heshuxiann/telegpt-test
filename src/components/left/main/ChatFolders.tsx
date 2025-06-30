@@ -194,7 +194,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
         return chatFoldersById?.[id] || {};
       }).filter(Boolean)
       : undefined;
-  }, [chatFoldersById, allChatsFolder, orderedFolderIds]);
+  }, [chatFoldersById, allChatsFolder, JSON.stringify(orderedFolderIds), presetChatsFolder, unreadChatsFolder, AIChatsFolder]);
 
   const allChatsFolderIndex = displayedFolders?.findIndex((folder) => folder.id === ALL_FOLDER_ID);
   const isInAllChatsFolder = allChatsFolderIndex === activeChatFolder;
