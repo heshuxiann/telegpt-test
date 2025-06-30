@@ -44,7 +44,7 @@ export default function useMessageTranslation(
 const throttledProcessPending = throttle(processPending, THROTTLE_DELAY);
 
 function processPending() {
-  const { translateMessages } = getActions();
+  const { translateMessagesByTencent } = getActions();
   let hasUnprocessed = false;
   PENDING_TRANSLATIONS.forEach((chats, toLanguageCode) => {
     chats.forEach((messageIds, chatId) => {
@@ -54,7 +54,7 @@ function processPending() {
         hasUnprocessed = true;
       }
 
-      translateMessages({ chatId, messageIds: messageIdsToTranslate, toLanguageCode });
+      translateMessagesByTencent({ chatId, messageIds: messageIdsToTranslate, toLanguageCode });
 
       removePendingTranslations(chatId, messageIdsToTranslate, toLanguageCode);
     });

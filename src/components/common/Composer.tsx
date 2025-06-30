@@ -1222,7 +1222,7 @@ const Composer: FC<OwnProps & StateProps> = ({
     const langCode = RoomStorage.getRoomTranslateLanguage(chatId);
     if (langCode && text) {
       try {
-        const result = await callApi('translateText', {
+        const result = await callApi('translateTextByTencent', {
           text: [{ text }],
           toLanguageCode: langCode,
         });

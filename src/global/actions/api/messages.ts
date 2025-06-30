@@ -76,7 +76,6 @@ import {
   removeOutlyingList,
   removeRequestedMessageTranslation,
   removeUnreadMentions,
-  replaceSettings,
   replaceThreadParam,
   replaceUserStatuses,
   safeReplacePinnedIds,
@@ -2305,6 +2304,30 @@ addActionHandler('translateMessages', (global, actions, payload): ActionReturnTy
   callApi('translateText', {
     chat,
     messageIds,
+    toLanguageCode,
+  });
+
+  return global;
+});
+
+addActionHandler('translateMessagesByTencent', (global, actions, payload): ActionReturnType => {
+  const {
+    chatId, messageIds, toLanguageCode = selectLanguageCode(global),
+  } = payload;
+
+  const chat = selectChat(global, chatId);
+  if (!chat) return undefined;
+
+  actions.markMessagesTranslationPending({ chatId, messageIds, toLanguageCode });
+  const texts = messageIds.map((messageId) => {
+    const message = selectChatMessage(global, chatId, messageId);
+    return message?.content.text!;
+  });
+
+  callApi('translateTextByTencent', {
+    chat,
+    messageIds,
+    text: texts,
     toLanguageCode,
   });
 

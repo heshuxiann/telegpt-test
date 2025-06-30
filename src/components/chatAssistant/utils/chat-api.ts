@@ -96,3 +96,21 @@ export const getHitTools = (text:string):Promise<Array<any>> => {
       });
   });
 };
+
+export const translateTextByTencentApi = (data:Object):Promise<Array<string>> => {
+  return new Promise((resolve, reject) => {
+    fetch('http://localhost:3000/tencent-translate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};

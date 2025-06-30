@@ -189,6 +189,7 @@
     "messages.getAvailableEffects",
     "messages.setDefaultReaction",
     "messages.translateText",
+    "messages.translateTextByTencent",
     "messages.getAttachMenuBots",
     "messages.getAttachMenuBot",
     "messages.toggleBotInAttachMenu",

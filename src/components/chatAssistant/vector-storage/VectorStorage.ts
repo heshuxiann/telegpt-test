@@ -148,7 +148,7 @@ export class VectorStorage<T> {
           autoIncrement: true,
           keyPath: 'id',
         });
-        documentStore.createIndex('text', 'text', { unique: true });
+        documentStore.createIndex('text', 'text', { unique: false });
         documentStore.createIndex('metadata', 'metadata');
         documentStore.createIndex('timestamp', 'timestamp');
         documentStore.createIndex('vector', 'vector');

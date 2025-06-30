@@ -49,6 +49,7 @@ import { compact, split } from '../../../util/iteratees';
 import { getMessageKey } from '../../../util/keys/messageKey';
 import { getServerTime, getServerTimeOffset } from '../../../util/serverTime';
 import { interpolateArray } from '../../../util/waveform';
+import { translateTextByTencentApi } from '../../../components/chatAssistant/utils/chat-api';
 import {
   buildApiChatFromPreview,
   buildApiSendAsPeerId,
@@ -108,6 +109,7 @@ type TranslateTextParams = ({
 } | {
   chat: ApiChat;
   messageIds: number[];
+  text?: ApiFormattedText[];
 }) & {
   toLanguageCode: string;
 };
@@ -1988,6 +1990,32 @@ export async function translateText(params: TranslateTextParams) {
     });
   }
 
+  return formattedText;
+}
+
+export async function translateTextByTencent(params: TranslateTextParams) {
+  console.log('腾讯翻译');
+  const isMessageTranslation = 'chat' in params;
+  const { text, toLanguageCode } = params;
+  const SourceTextList = text?.map((t: ApiFormattedText) => t.text);
+  const result = await translateTextByTencentApi({
+    texts: SourceTextList,
+    target: toLanguageCode,
+  });
+
+  if (!result) return undefined;
+
+  const formattedText = result.map((r) => { return { text: r, entities: [] }; });
+  if (isMessageTranslation) {
+    console.log('通知消息翻译更新');
+    sendApiUpdate({
+      '@type': 'updateMessageTranslations',
+      chatId: params.chat.id,
+      messageIds: params.messageIds,
+      translations: formattedText,
+      toLanguageCode: params.toLanguageCode,
+    });
+  }
   return formattedText;
 }
 

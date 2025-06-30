@@ -1399,6 +1399,11 @@ export interface ActionPayloads {
     messageIds: number[];
     toLanguageCode?: string;
   };
+  translateMessagesByTencent: {
+    chatId: string;
+    messageIds: number[];
+    toLanguageCode?: string;
+  };
 
   // Reactions
   loadTopReactions: undefined;
