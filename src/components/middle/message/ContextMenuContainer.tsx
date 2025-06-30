@@ -90,7 +90,7 @@ import eventEmitter from '../../chatAssistant/lib/EventEmitter';
 import PinMessageModal from '../../common/PinMessageModal.async';
 import ConfirmDialog from '../../ui/ConfirmDialog';
 import MessageContextMenu from './MessageContextMenu';
-import { audioSummary, checkIsUrl, documentSummary, photoSummary, voiceSummary, webPageSummary } from "../../chatAssistant/utils/ai-analyse-message"
+import { audioSummary, checkIsUrl, documentSummary, photoSummary, voiceToAudioSummary, webPageSummary } from "../../chatAssistant/utils/ai-analyse-message"
 
 export type OwnProps = {
   isOpen: boolean;
@@ -695,7 +695,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
     } else if (document) {
       documentSummary(message)
     } else if (voice) {
-      voiceSummary(message)
+      voiceToAudioSummary(message)
     } else if (audio) {
       audioSummary(message)
     }

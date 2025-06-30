@@ -1,5 +1,5 @@
 import { ApiMessage } from "../../../api/types";
-import { audioSummary, checkIsUrl, documentSummary, photoSummary, replyToMention, voiceSummary, webPageSummary } from "../utils/ai-analyse-message"
+import { audioSummary, checkIsUrl, documentSummary, photoSummary, replyToMention, voiceToAudioSummary, webPageSummary } from "../utils/ai-analyse-message"
 
 class RoomAIMessageListener {
   public static messageListener(message: ApiMessage) {
@@ -12,7 +12,7 @@ class RoomAIMessageListener {
     } else if (photo) {
       // photoSummary(message, true);
     } else if (voice) {
-      voiceSummary(message, true)
+      voiceToAudioSummary(message, true)
     } else if (audio) {
       audioSummary(message, true)
     } else if (document) {

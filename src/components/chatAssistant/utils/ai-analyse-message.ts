@@ -5,13 +5,12 @@ import { ChataiStores } from "../store";
 import { StoreMessage } from "../store/messages-store";
 import {
   audioAISummary,
-  chatAIGenerate,
   documentAISummary,
   imageAISummary,
   mentionReply,
   webPageAISummary,
 } from "./chat-api";
-import { replaceToJSON, sleep } from "../ai-chatfolders/util";
+import { sleep } from "../ai-chatfolders/util";
 import { getMediaHash } from "../../../global/helpers";
 import * as mediaLoader from "../../../util/mediaLoader";
 import { message as showMessage } from "antd";
