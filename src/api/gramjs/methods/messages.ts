@@ -49,6 +49,7 @@ import { compact, split } from '../../../util/iteratees';
 import { getMessageKey } from '../../../util/keys/messageKey';
 import { getServerTime, getServerTimeOffset } from '../../../util/serverTime';
 import { interpolateArray } from '../../../util/waveform';
+import { translateTextByTencentApi } from '../../../components/chatAssistant/utils/chat-api';
 import {
   buildApiChatFromPreview,
   buildApiSendAsPeerId,
@@ -108,6 +109,7 @@ type TranslateTextParams = ({
 } | {
   chat: ApiChat;
   messageIds: number[];
+  text?: ApiFormattedText[];
 }) & {
   toLanguageCode: string;
 };
@@ -1955,6 +1957,18 @@ export async function transcribeAudio({
 
   return result.transcriptionId.toString();
 }
+export function transcribeAudioByOpenai({
+  transcriptionId, transcriptionText,
+}: {
+  transcriptionId:string;transcriptionText:string;
+}) {
+  sendApiUpdate({
+    '@type': 'updateTranscribedAudio',
+    isPending: false,
+    transcriptionId,
+    text: transcriptionText,
+  });
+}
 
 export async function translateText(params: TranslateTextParams) {
   let result;
@@ -1988,6 +2002,30 @@ export async function translateText(params: TranslateTextParams) {
     });
   }
 
+  return formattedText;
+}
+
+export async function translateTextByTencent(params: TranslateTextParams) {
+  const isMessageTranslation = 'chat' in params;
+  const { text, toLanguageCode } = params;
+  const SourceTextList = text?.map((t: ApiFormattedText) => t.text);
+  const result = await translateTextByTencentApi({
+    texts: SourceTextList,
+    target: toLanguageCode,
+  });
+
+  if (!result) return undefined;
+
+  const formattedText = result.map((r) => { return { text: r, entities: [] }; });
+  if (isMessageTranslation) {
+    sendApiUpdate({
+      '@type': 'updateMessageTranslations',
+      chatId: params.chat.id,
+      messageIds: params.messageIds,
+      translations: formattedText,
+      toLanguageCode: params.toLanguageCode,
+    });
+  }
   return formattedText;
 }
 

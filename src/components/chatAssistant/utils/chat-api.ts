@@ -97,7 +97,7 @@ export const getHitTools = (text:string):Promise<Array<any>> => {
   });
 };
 
-export async function imageAISummary(imageBase64:string) {
+export function imageAISummary(imageBase64:string) {
   return new Promise((resolve, reject) => {
     fetch('https://telegpt-three.vercel.app/image-summary', {
       method: 'POST',
@@ -117,7 +117,7 @@ export async function imageAISummary(imageBase64:string) {
   });
 }
 
-export async function webPageAISummary(url:string) {
+export function webPageAISummary(url:string) {
   return new Promise((resolve, reject) => {
     fetch('https://telegpt-three.vercel.app/webpage-summary', {
       method: 'POST',
@@ -135,7 +135,7 @@ export async function webPageAISummary(url:string) {
   });
 }
 
-export async function documentAISummary(content:string) {
+export function documentAISummary(content:string) {
   return new Promise((resolve, reject) => {
     fetch('https://telegpt-three.vercel.app/document-summary', {
       method: 'POST',
@@ -149,7 +149,7 @@ export async function documentAISummary(content:string) {
       }).catch((err) => {
         reject(err);
       });
-  })
+  });
 }
 
 export async function audioAISummary(formData: FormData) {
@@ -163,7 +163,39 @@ export async function audioAISummary(formData: FormData) {
       }).catch((err) => {
         reject(err);
       });
-  })
+  });
+}
+
+export const translateTextByTencentApi = (data:Object):Promise<Array<string>> => {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/tencent-translate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export function audioToText(formData: FormData):Promise<{ text:string }> {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/audio-to-text', {
+      method: 'POST',
+      body: formData,
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      }).catch((err) => {
+        reject(err);
+      });
+  });
 }
 
 export async function mentionReply(content: string) {
