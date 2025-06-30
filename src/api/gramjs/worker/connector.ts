@@ -33,6 +33,9 @@ import { messageEmbeddingStore } from '../../../components/chatAssistant/vector-
 import eventEmitter, {
   Actions,
 } from '../../../components/chatAssistant/lib/EventEmitter';
+import { selectCurrentChat, selectTabState } from "../../../global/selectors"
+import RoomAIMessageListener from "../../../components/chatAssistant/room-ai/room-ai-message-listener"
+import { selectSharedSettings } from "../../../global/selectors/sharedState"
 
 type RequestState = {
   messageId: string;
@@ -339,6 +342,18 @@ function sendToAIAgent(data: ApiUpdate) {
   }
 }
 
+function sendToCurrentChatAI(data: ApiUpdate) {
+  if (data['@type'] === 'newMessage') {
+    const global = getGlobal()
+    const currentChat = selectCurrentChat(global);
+    const { realTimeAssistant } = selectSharedSettings(global);
+    const isChatAIShown = selectTabState(global, getCurrentTabId()).isChatAIShown
+    if (realTimeAssistant && currentChat?.id === data.message?.chatId && isChatAIShown) {
+      RoomAIMessageListener.messageListener(data.message as ApiMessage)
+    }
+  }
+}
+
 function subscribeToWorker(onUpdate: OnApiUpdate) {
   worker?.addEventListener('message', ({ data }: WorkerMessageEvent) => {
     data?.payloads.forEach((payload) => {
@@ -350,6 +365,7 @@ function subscribeToWorker(onUpdate: OnApiUpdate) {
         }
         payload.updates.forEach(sendToAIAgent);
         payload.updates.forEach(onUpdate);
+        payload.updates.forEach(sendToCurrentChatAI)
 
         if (DEBUG) {
           const duration = performance.now() - DEBUG_startAt!;

@@ -33,7 +33,8 @@ import { LoadingIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageReasoning } from './message-reasoning';
 import { PreviewAttachment } from './preview-attachment';
-
+import RoomAIMediaMessage from "./messages/room-ai-media-message";
+import ReplyMentionMessage from "./messages/room-ai-reply-mention-message"
 import ErrorBoundary from './ErrorBoundary';
 
 export enum AIMessageType {
@@ -53,6 +54,8 @@ export enum AIMessageType {
   GlobalIntroduce = 'global-introduce',
   RoomAIDescription = 'room-ai-description',
   AISearchSugesstion = 'ai-search-sugesstion',
+  AIReplyMention = 'room-ai-reply-mention',
+  AIMediaSummary = 'room-ai-media-summary',
   Default = 'default',
 }
 
@@ -166,6 +169,8 @@ const PurePreviewMessage = ({
       {messageType === AIMessageType.GlobalIntroduce && (<GlobalIntroduceMessage />)}
       {messageType === AIMessageType.RoomAIDescription && (<RoomAIDescriptionMessage message={message} />)}
       {messageType === AIMessageType.AISearchSugesstion && (<AISearchSugesstionsMessage />)}
+      {messageType === AIMessageType.AIReplyMention && (<ReplyMentionMessage message={message} />)}
+      {messageType === AIMessageType.AIMediaSummary && (<RoomAIMediaMessage message={message} />)}
       {messageType === AIMessageType.Default && (<DefaultMessage message={message} isLoading={isLoading} />)}
     </AnimatePresence>
   );

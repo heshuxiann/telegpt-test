@@ -96,3 +96,75 @@ export const getHitTools = (text:string):Promise<Array<any>> => {
       });
   });
 };
+
+export async function imageAISummary(imageBase64:string) {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/image-summary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: imageBase64,
+      }),
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}
+
+export async function webPageAISummary(url:string) {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/webpage-summary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url }),
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}
+
+export async function documentAISummary(content:string) {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/document-summary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content }),
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      }).catch((err) => {
+        reject(err);
+      });
+  })
+}
+
+export async function audioAISummary(content:string) {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/audio-summary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content }),
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      }).catch((err) => {
+        reject(err);
+      });
+  })
+}

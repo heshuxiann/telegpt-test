@@ -48,6 +48,9 @@ import ReadTimeMenuItem from './ReadTimeMenuItem';
 
 import './MessageContextMenu.scss';
 
+import SerenaPath from '../../chatAssistant/assets/serena.png';
+import { AIReplyIcon, MeetingIcon, SummarizeIcon } from "../../chatAssistant/utils/icons"
+
 type OwnProps = {
   isReactionPickerOpen?: boolean;
   availableReactions?: ApiAvailableReaction[];
@@ -135,6 +138,7 @@ type OwnProps = {
   onSendPaidReaction?: NoneToVoidFunction;
   onShowPaidReactionModal?: NoneToVoidFunction;
   onReactionPickerOpen?: (position: IAnchorPosition) => void;
+  onSummarize?: NoneToVoidFunction;
   userFullName?: string;
   canGift?: boolean;
 };
@@ -230,6 +234,7 @@ const MessageContextMenu: FC<OwnProps> = ({
   onTranslate,
   onShowOriginal,
   onSelectLanguage,
+  onSummarize,
   userFullName,
   canGift,
 }) => {
@@ -252,6 +257,8 @@ const MessageContextMenu: FC<OwnProps> = ({
   const isStarGiftUnique = message.content.action?.type === 'starGiftUnique';
   const shouldShowGiftButton = isUserId(message.chatId)
     && canGift && (isPremiumGift || isGiftCode || isStarGift || isStarGiftUnique);
+  const canAISummarize = message.content?.photo || message.content?.document || message.content?.webPage || message.content?.voice;
+  const canSerenaAI = canAISummarize || canScheduleMeeting || canSmartReply
 
   const [areItemsHidden, hideItems] = useFlag();
   const [isReady, markIsReady, unmarkIsReady] = useFlag();
@@ -420,12 +427,61 @@ const MessageContextMenu: FC<OwnProps> = ({
         {canReschedule && (
           <MenuItem icon="schedule" onClick={onReschedule}>{lang('MessageScheduleEditTime')}</MenuItem>
         )}
+
+        {canSerenaAI && <MenuItem
+          customIcon={(
+            <img
+              src={SerenaPath}
+              className="w-[20px] h-[20px] mr-[1.25rem] ml-[0.5rem]"
+              alt=""
+            />
+            )}
+          submenu={
+            <>
+              {canScheduleMeeting && (
+                <MenuItem
+                  customIcon={(
+                    <div className="mr-[1.25rem]">
+                      <MeetingIcon/>
+                    </div>
+                  )}
+                  onClick={onScheduleMeet}
+                >
+                  {lang('Schedule Meeting')}
+                </MenuItem>
+              )}
+              {canAISummarize && <MenuItem
+                customIcon={(
+                  <div className="mr-[1.25rem]">
+                    <SummarizeIcon/>
+                  </div>
+                )}
+                onClick={onSummarize}
+              >
+                {lang('Summarize')}
+              </MenuItem>}
+              {canSmartReply && <MenuItem
+                customIcon={(
+                  <div className="mr-[1.25rem]">
+                    <AIReplyIcon/>
+                  </div>
+                )}
+                onClick={onSmartReply}
+              >
+                {lang('AI Reply')}
+              </MenuItem>}
+            </>
+          }
+        >
+          {lang('SerenaAI')}
+        </MenuItem>}
+
         {canReply && (
           <MenuItem icon="reply" onClick={onReply}>
             {lang(canQuote ? 'lng_context_quote_and_reply' : 'Reply')}
           </MenuItem>
         )}
-        {canSmartReply && (
+        {/* {canSmartReply && (
           <MenuItem
             customIcon={(
               <img
@@ -438,8 +494,8 @@ const MessageContextMenu: FC<OwnProps> = ({
           >
             {lang('Smart Reply')}
           </MenuItem>
-        )}
-        {canScheduleMeeting && (
+        )} */}
+        {/* {canScheduleMeeting && (
           <MenuItem
             customIcon={(
               <img
@@ -452,7 +508,7 @@ const MessageContextMenu: FC<OwnProps> = ({
           >
             {lang('Schedule a Meeting')}
           </MenuItem>
-        )}
+        )} */}
         {!noReplies && Boolean(repliesThreadInfo?.messagesCount) && (
           <MenuItem icon="replies" onClick={onOpenThread}>
             {lang('Conversation.ContextViewReplies', repliesThreadInfo!.messagesCount, 'i')}
