@@ -171,7 +171,7 @@ export function audioAISummary(content:string) {
 
 export const translateTextByTencentApi = (data:Object):Promise<Array<string>> => {
   return new Promise((resolve, reject) => {
-    fetch('http://localhost:3000/tencent-translate', {
+    fetch('https://telegpt-three.vercel.app/tencent-translate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
