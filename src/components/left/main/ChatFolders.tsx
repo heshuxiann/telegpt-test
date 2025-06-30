@@ -13,7 +13,7 @@ import type { MenuItemContextAction } from '../../ui/ListItem';
 import type { TabWithProperties } from '../../ui/TabList';
 import { SettingsScreens } from '../../../types';
 
-import { AI_FOLDER_ID, ALL_FOLDER_ID, PRESET_FOLDER_ID, UNREAD_FOLDER_ID } from '../../../config';
+import { AI_FOLDER_ID, AI_FOLDER_TITLE, ALL_FOLDER_ID, PRESET_FOLDER_ID, PRESET_FOLDER_TITLE, UNREAD_FOLDER_ID, UNREAD_FOLDER_TITLE } from '../../../config';
 import { selectCanShareFolder, selectIsCurrentUserFrozen, selectTabState } from '../../../global/selectors';
 import { selectCurrentLimit } from '../../../global/selectors/limits';
 import { IS_TOUCH_ENV } from '../../../util/browser/windowEnvironment';
@@ -152,7 +152,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   const presetChatsFolder: ApiChatFolder = useMemo(() => {
     return {
       id: PRESET_FOLDER_ID,
-      title: { text: 'Preset'},
+      title: { text: PRESET_FOLDER_TITLE },
       includedChatIds: MEMO_EMPTY_ARRAY,
       excludedChatIds: MEMO_EMPTY_ARRAY,
     } satisfies ApiChatFolder;
@@ -161,7 +161,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   const unreadChatsFolder: ApiChatFolder = useMemo(() => {
     return {
       id: UNREAD_FOLDER_ID,
-      title: { text: 'Unread'},
+      title: { text: UNREAD_FOLDER_TITLE },
       includedChatIds: MEMO_EMPTY_ARRAY,
       excludedChatIds: MEMO_EMPTY_ARRAY,
     } satisfies ApiChatFolder;
@@ -170,26 +170,33 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   const AIChatsFolder: ApiChatFolder = useMemo(() => {
     return {
       id: AI_FOLDER_ID,
-      title: { text: 'AI'},
+      title: { text: AI_FOLDER_TITLE },
       includedChatIds: MEMO_EMPTY_ARRAY,
       excludedChatIds: MEMO_EMPTY_ARRAY,
     } satisfies ApiChatFolder;
   }, [orderedFolderIds]);
 
   const displayedFolders = useMemo(() => {
+    const chatFolders = Object.values(chatFoldersById)
     return orderedFolderIds
       ? orderedFolderIds?.map((id) => {
         if (id === ALL_FOLDER_ID) {
           return allChatsFolder;
         }
-        if (id === PRESET_FOLDER_ID) {
+        if (id === PRESET_FOLDER_ID &&
+          !chatFolders.find(o => o?.title?.text === PRESET_FOLDER_TITLE)
+        ) {
           return presetChatsFolder;
         }
-        if (id === UNREAD_FOLDER_ID) {
+        if (id === UNREAD_FOLDER_ID &&
+          !chatFolders.find(o => o?.title?.text === UNREAD_FOLDER_TITLE)
+        ) {
           return unreadChatsFolder;
         }
-        if (id === AI_FOLDER_ID) {
-          return AIChatsFolder
+        if (id === AI_FOLDER_ID &&
+          !chatFolders.find(o => o?.title?.text === AI_FOLDER_TITLE)
+        ) {
+          return AIChatsFolder;
         }
         return chatFoldersById?.[id] || {};
       }).filter(Boolean)

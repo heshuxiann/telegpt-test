@@ -10,9 +10,12 @@ import { validateAndFixJsonStructure } from "../utils/util";
 import { isSystemBot } from "../../../global/helpers";
 import {
   AI_FOLDER_ID,
+  AI_FOLDER_TITLE,
   PRESET_FOLDER_ID,
+  PRESET_FOLDER_TITLE,
   SERVICE_NOTIFICATIONS_USER_ID,
   UNREAD_FOLDER_ID,
+  UNREAD_FOLDER_TITLE,
 } from "../../../config";
 import { getAITags } from "./tag-filter";
 import { intersection } from "lodash";
@@ -156,14 +159,21 @@ export async function deleteAiChatFolders() {
   const res = await ChataiStores.folder?.getAllFolders();
   for (let i = 0; i < (res || [])?.length; i++) {
     const folderInfoDb = res?.[i];
-    if (folderInfoDb && folderInfoDb?.from === "AI") {
-      // 删除AI分类
-      console.log(
-        AI_CHATFOLDERS_LOG_PRE + "delete: " + folderInfoDb?.id,
-        new Date()
-      );
-      await deleteChatFolder?.({ id: Number(folderInfoDb?.id) });
-      await sleep(3000);
+    if (folderInfoDb) {
+      if (
+        folderInfoDb?.from === "AI" ||
+        folderInfoDb.title === UNREAD_FOLDER_TITLE ||
+        folderInfoDb?.title === PRESET_FOLDER_TITLE ||
+        folderInfoDb?.title === AI_FOLDER_TITLE
+      ) {
+        // 删除AI分类, Unread分类, Preset分类, AI分类
+        console.log(
+          AI_CHATFOLDERS_LOG_PRE + "delete: " + folderInfoDb?.id,
+          new Date()
+        );
+        await deleteChatFolder?.({ id: Number(folderInfoDb?.id) });
+        await sleep(3000);
+      }
     }
   }
   ChataiStores.general?.delete(GLOBAL_AICHATFOLDERS_LAST_TIME);
