@@ -165,3 +165,24 @@ export async function audioAISummary(formData: FormData) {
       });
   })
 }
+
+export async function mentionReply(content: string) {
+  return new Promise((resolve, reject) => {
+    fetch("https://telegpt-three.vercel.app/mention-reply", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messages: content,
+      }),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}

@@ -17,11 +17,17 @@ const ReplyMentionMessage = (props: IProps) => {
   let messageId: number = 0;
   let disabled = false;
   let status: MessageStatus = "loading";
+  let replys: any[] = [];
   try {
     content = JSON.parse(message.content);
     messageId = content?.messageId;
     disabled = content?.disabled;
     status = content?.status;
+    try {
+      replys = JSON.parse(content?.replys?.replace(/'/g, '"')?.replace(/,\s+/g, ','));
+    } catch (error) {
+      console.log("aiChatFoldersTask----replys", error);
+    }
   } catch (error) {}
 
   function onReplyClick(text: string) {
@@ -80,7 +86,7 @@ const ReplyMentionMessage = (props: IProps) => {
         <>
           <div>Here are a few reply suggestions for you 👇</div>
           <div className="flex flex-col gap-[6px] mt-2">
-            {content?.replys?.map((reply: any, index: number) => {
+            {replys?.map((reply: any, index: number) => {
               return (
                 <div
                   className={buildClassName(
@@ -90,7 +96,7 @@ const ReplyMentionMessage = (props: IProps) => {
                       : "cursor-pointer hover:opacity-80"
                   )}
                   key={index}
-                  onClick={() => onReplyClick(reply?.reply)}
+                  onClick={() => onReplyClick(reply)}
                 >
                   "{reply}"
                 </div>

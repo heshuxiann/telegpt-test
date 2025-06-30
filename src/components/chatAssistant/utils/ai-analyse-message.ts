@@ -8,6 +8,7 @@ import {
   chatAIGenerate,
   documentAISummary,
   imageAISummary,
+  mentionReply,
   webPageAISummary,
 } from "./chat-api";
 import { replaceToJSON, sleep } from "../ai-chatfolders/util";
@@ -26,7 +27,7 @@ export async function replyToMention(
   message: ApiMessage,
   isAuto: boolean = false
 ) {
-  if (!message.isMentioned) return;
+  if (!message.isMentioned || !message.content?.text?.text) return;
 
   let newMessage: StoreMessage = {
     chatId: message.chatId,
@@ -44,40 +45,35 @@ export async function replyToMention(
   };
   await sendMessageToAIRoom(newMessage);
 
-  chatAIGenerate({
-    data: {
-      messages: [
-        {
-          role: "system",
-          content:
-            "你是一个多语种智能助手。接收用户消息后，自动识别其使用的语言，并用相同的语言进行自然、得体的回复。你应该理解消息的语境，确保回复简洁、友好且符合语言习惯。",
-          id: "1",
-        },
-        {
-          role: "user",
-          content: `请回复下面的消息: ${message.content.text?.text}, 并给出3个回复，以JSON数据进行返回`,
-          id: "2",
-        },
-      ],
-    },
-    onResponse: (response) => {
+  mentionReply(message.content.text?.text)
+    .then((response: any) => {
+      if (response.text) {
+        newMessage = {
+          ...newMessage,
+          content: JSON.stringify({
+            messageId: message.id,
+            content: message.content.text?.text,
+            replys: response.text,
+            isAuto,
+            status: "success",
+          }),
+        };
+        sendMessageToAIRoom(newMessage);
+      }
+    })
+    .catch((err) => {
+      console.log("error", err);
       newMessage = {
         ...newMessage,
         content: JSON.stringify({
-          messageId: message.id,
-          content: message.content.text?.text,
-          replys: replaceToJSON(response)?.responses,
+          message,
+          errorMsg: "Summary error",
           isAuto,
-          status: "success",
+          status: "error",
         }),
       };
       sendMessageToAIRoom(newMessage);
-    },
-    onFinish: () => {
-      // eslint-disable-next-line no-console
-      console.log("Finish");
-    },
-  });
+    });
 }
 
 export async function photoSummary(
