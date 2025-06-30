@@ -94,11 +94,7 @@ export async function photoSummary(
     createdAt: new Date(),
     role: "assistant",
     annotations: [{ type: "room-ai-media-summary" }],
-    content: JSON.stringify({
-      message,
-      isAuto,
-      status: "loading",
-    }),
+    content: JSON.stringify({ message, isAuto, status: "loading" }),
   };
   await sendMessageToAIRoom(newMessage);
 
@@ -109,9 +105,7 @@ export async function photoSummary(
           ...newMessage,
           content: JSON.stringify({
             message,
-            summaryInfo: JSON.stringify({
-              text: response?.text,
-            }),
+            summaryInfo: JSON.stringify({ text: response?.text }),
             isAuto,
             status: "success",
           }),
@@ -121,6 +115,16 @@ export async function photoSummary(
     })
     .catch((err) => {
       console.log("error", err);
+      newMessage = {
+        ...newMessage,
+        content: JSON.stringify({
+          message,
+          errorMsg: "Summary error",
+          isAuto,
+          status: "error",
+        }),
+      };
+      sendMessageToAIRoom(newMessage);
     });
 }
 
@@ -138,11 +142,7 @@ export async function webPageSummary(
     createdAt: new Date(),
     role: "assistant",
     annotations: [{ type: "room-ai-media-summary" }],
-    content: JSON.stringify({
-      message,
-      isAuto,
-      status: "loading",
-    }),
+    content: JSON.stringify({ message, isAuto, status: "loading" }),
   };
   await sendMessageToAIRoom(newMessage);
 
@@ -163,6 +163,16 @@ export async function webPageSummary(
     })
     .catch((err) => {
       console.log("error", err);
+      newMessage = {
+        ...newMessage,
+        content: JSON.stringify({
+          message,
+          errorMsg: "Summary error",
+          isAuto,
+          status: "error",
+        }),
+      };
+      sendMessageToAIRoom(newMessage);
     });
 }
 
@@ -183,11 +193,7 @@ export async function documentSummary(
     createdAt: new Date(),
     role: "assistant",
     annotations: [{ type: "room-ai-media-summary" }],
-    content: JSON.stringify({
-      message,
-      isAuto,
-      status: "loading",
-    }),
+    content: JSON.stringify({ message, isAuto, status: "loading" }),
   };
   await sendMessageToAIRoom(newMessage);
 
@@ -266,6 +272,16 @@ export async function documentSummary(
     })
     .catch((err) => {
       console.log("error", err);
+      newMessage = {
+        ...newMessage,
+        content: JSON.stringify({
+          message,
+          errorMsg: "Summary error",
+          isAuto,
+          status: "error",
+        }),
+      };
+      sendMessageToAIRoom(newMessage);
     });
 }
 
@@ -283,11 +299,7 @@ export async function voiceSummary(
     createdAt: new Date(),
     role: "assistant",
     annotations: [{ type: "room-ai-media-summary" }],
-    content: JSON.stringify({
-      message,
-      isAuto,
-      status: "loading",
-    }),
+    content: JSON.stringify({ message, isAuto, status: "loading" }),
   };
   await sendMessageToAIRoom(newMessage);
 
@@ -374,7 +386,56 @@ export async function voiceSummary(
     })
     .catch((err) => {
       console.log("error", err);
+      newMessage = {
+        ...newMessage,
+        content: JSON.stringify({
+          message,
+          errorMsg: "Summary error",
+          isAuto,
+          status: "error",
+        }),
+      };
+      sendMessageToAIRoom(newMessage);
     });
+}
+
+export async function voiceToAudioSummary(
+  message: ApiMessage,
+  isAuto: boolean = false
+) {
+  const voice = message.content?.voice;
+  if (!voice) return;
+  const mediaHash = getMediaHash(voice, "download");
+  if (!mediaHash) return;
+  const maxBase64Length = Math.floor(4 * 1024 * 1024);
+  if (
+    message.content.audio?.size &&
+    message.content.audio?.size * (4 / 3) > maxBase64Length
+  ) {
+    showMessage.info("File size exceeds limit (4 MB)");
+    return;
+  }
+  //
+  let newMessage: StoreMessage = {
+    chatId: message.chatId,
+    timestamp: new Date().getTime(),
+    id: uuidv4(),
+    createdAt: new Date(),
+    role: "assistant",
+    annotations: [{ type: "room-ai-media-summary" }],
+    content: JSON.stringify({ message, isAuto, status: "loading" }),
+  };
+  await sendMessageToAIRoom(newMessage);
+
+  await handleAudioToSummaryText({
+    mediaHash,
+    mimeType: "audio/ogg",
+    filename: voice?.id + ".ogg",
+    size: voice?.size,
+    newMessage,
+    message,
+    isAuto,
+  });
 }
 
 export async function audioSummary(
@@ -383,7 +444,9 @@ export async function audioSummary(
 ) {
   const audio = message.content?.audio;
   if (!audio) return;
-
+  const mediaHash = getMediaHash(audio, "download");
+  if (!mediaHash) return;
+  //
   let newMessage: StoreMessage = {
     chatId: message.chatId,
     timestamp: new Date().getTime(),
@@ -391,49 +454,115 @@ export async function audioSummary(
     createdAt: new Date(),
     role: "assistant",
     annotations: [{ type: "room-ai-media-summary" }],
-    content: JSON.stringify({
-      message,
-      isAuto,
-      status: "loading",
-    }),
+    content: JSON.stringify({ message, isAuto, status: "loading" }),
   };
   await sendMessageToAIRoom(newMessage);
 
-  const mediaHash = getMediaHash(audio, "download");
-  if (!mediaHash) return;
-
-  await mediaLoader.fetch(mediaHash, 0);
-  const blobUrl = mediaLoader.getFromMemory(mediaHash);
-  if (!blobUrl) return;
-
-  const response = await fetch(blobUrl);
-  const blob = await response.blob();
-
-  const arrayBuffer = await blob.arrayBuffer();
-  const arrayBase64 = '';//arrayBufferToBase64(arrayBuffer);
-
-  audioAISummary(arrayBase64)
-    .then((response: any) => {
-      if (response?.text) {
-        newMessage = {
-          ...newMessage,
-          content: JSON.stringify({
-            message,
-            summaryInfo: response?.text,
-            isAuto,
-            status: "success",
-          }),
-        };
-        sendMessageToAIRoom(newMessage);
-      }
-    })
-    .catch((err) => {
-      console.log("error", err);
-    });
-
+  await handleAudioToSummaryText({
+    mediaHash,
+    mimeType: audio?.mimeType,
+    filename: audio?.fileName,
+    size: audio?.size,
+    newMessage,
+    message,
+    isAuto,
+  });
 }
 
 async function sendMessageToAIRoom(newMessage: StoreMessage) {
   await ChataiStores.message?.storeMessage(newMessage);
   await eventEmitter.emit(Actions.AddRoomAIMessage, newMessage);
+}
+
+async function handleAudioToSummaryText({
+  mediaHash,
+  mimeType,
+  filename,
+  size,
+  newMessage,
+  message,
+  isAuto,
+}: {
+  mediaHash: string;
+  mimeType?: string;
+  filename?: string;
+  size?: number;
+  newMessage: StoreMessage;
+  message: ApiMessage;
+  isAuto: boolean;
+}) {
+  if (size && size * (4 / 3) > 4 * 1024 * 1024) {
+    showMessage.info("File size exceeds limit (4 MB)");
+    newMessage = {
+      ...newMessage,
+      content: JSON.stringify({
+        message,
+        errorMsg: "File size exceeds limit (4 MB)",
+        isAuto,
+        status: "error",
+      }),
+    };
+    await sendMessageToAIRoom(newMessage);
+    return;
+  }
+  // download
+  await mediaLoader.fetch(mediaHash, 0);
+  const blobUrl = mediaLoader.getFromMemory(mediaHash);
+  if (!blobUrl) {
+    showMessage.info("Can't download the file");
+    newMessage = {
+      ...newMessage,
+      content: JSON.stringify({
+        message,
+        errorMsg: "Can't download the file",
+        isAuto,
+        status: "error",
+      }),
+    };
+    await sendMessageToAIRoom(newMessage);
+    return;
+  }
+
+  const response = await fetch(blobUrl);
+  const blob = await response.blob();
+
+  const reader = new FileReader();
+  reader.onloadend = function () {
+    const base64Data = reader.result?.toString().split(",")[1] || "";
+    audioAISummary(
+      JSON.stringify({
+        audioData: base64Data,
+        mimeType: mimeType,
+        filename: filename,
+      })
+    )
+      .then((response: any) => {
+        if (response?.text) {
+          newMessage = {
+            ...newMessage,
+            content: JSON.stringify({
+              message,
+              summaryInfo: response?.text,
+              isAuto,
+              status: "success",
+            }),
+          };
+          sendMessageToAIRoom(newMessage);
+        }
+      })
+      .catch((err) => {
+        console.log("error", err);
+        newMessage = {
+          ...newMessage,
+          content: JSON.stringify({
+            message,
+            errorMsg: "Summary error",
+            isAuto,
+            status: "error",
+          }),
+        };
+        sendMessageToAIRoom(newMessage);
+      });
+  };
+  reader.readAsDataURL(blob);
 }

@@ -152,14 +152,14 @@ export async function documentAISummary(content:string) {
   })
 }
 
-export async function audioAISummary(content:string) {
+export async function audioAISummary(body:string) {
   return new Promise((resolve, reject) => {
     fetch('https://telegpt-three.vercel.app/audio-summary', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ content }),
+      body,
     }).then((res) => res.json())
       .then((res) => {
         resolve(res);
