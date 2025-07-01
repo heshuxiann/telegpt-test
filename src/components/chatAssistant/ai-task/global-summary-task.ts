@@ -14,7 +14,7 @@ import {
   selectBot, selectChat, selectChatLastMessageId, selectFirstUnreadId, selectUser,
 } from '../../../global/selectors';
 import { getOrderedIds } from '../../../util/folderManager';
-import GlobalSummaryBadge from '../globalSummary/global-summary-badge';
+import RoomStorage from '../room-storage';
 import {
   ChataiStores,
   GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME,
@@ -216,7 +216,7 @@ class GlobalSummaryTask {
         ChataiStores.summary?.storeMessage(newMessage);
         ChataiStores.general?.set(GLOBAL_SUMMARY_LAST_TIME, summaryTime);
         eventEmitter.emit(Actions.AddSummaryMessage, newMessage);
-        GlobalSummaryBadge.increaseUnreadCount();
+        RoomStorage.increaseUnreadCount(GLOBAL_SUMMARY_CHATID);
         window.Notification.requestPermission().then((permission) => {
           if (permission === 'granted') {
             const notification = new Notification('Chat Summary', {

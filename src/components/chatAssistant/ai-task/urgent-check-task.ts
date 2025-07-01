@@ -7,10 +7,11 @@ import type { SummaryStoreMessage } from '../store/summary-store';
 import type { UrgentTopic } from '../store/urgent-topic-store';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
-import GlobalSummaryBadge from '../globalSummary/global-summary-badge';
+import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
 import { URGENT_CHATS } from '../store/general-store';
 import { sendGAEvent } from '../utils/analytics';
+import { GLOBAL_SUMMARY_CHATID } from '../variables';
 
 function getStrongAlertPhoneNumber(
   data: Array<{
@@ -111,7 +112,7 @@ class UrgentCheckTask {
           };
           ChataiStores.summary?.storeMessage(newMessage);
           eventEmitter.emit(Actions.AddUrgentMessage, newMessage);
-          GlobalSummaryBadge.increaseUnreadCount();
+          RoomStorage.increaseUnreadCount(GLOBAL_SUMMARY_CHATID);
           // check strong alert
           try {
             const strongAlertPhoneNumber = getStrongAlertPhoneNumber(matchs, topics);
