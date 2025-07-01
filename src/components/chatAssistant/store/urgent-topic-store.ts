@@ -7,8 +7,8 @@ export interface UrgentTopic {
   id: string;
   topicName: string;
   topicDescription: string;
-  strongAlert?: boolean;
-  phoneNumber?: string;
+  strongAlert: boolean;
+  phoneNumber: string;
 }
 
 class UrgentTopicStore {

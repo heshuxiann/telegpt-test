@@ -15,9 +15,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import buildClassName from '../../../util/buildClassName';
+import { globalSummaryTask } from '../ai-task/global-summary-task';
 import { Messages } from '../messages';
 import { MultiInput } from '../multi-input';
 import { RightPanel } from '../rightPanel/right-panel';
+import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
 import { parseMessage2SummaryStoreMessage, parseSummaryStoreMessage2Message, type SummaryStoreMessage } from '../store/summary-store';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
@@ -65,6 +67,7 @@ const GlobalSummary = forwardRef(() => {
   const handleAddSummaryMessage = useCallback((message: SummaryStoreMessage) => {
     setMessages((prev) => [...prev, message]);
   }, [setMessages]);
+
   const handleAddUrgentMessage = useCallback((message: SummaryStoreMessage) => {
     setMessages((prev) => [...prev, message]);
     setNotificationMessage(message);
@@ -103,6 +106,14 @@ const GlobalSummary = forwardRef(() => {
       getSummaryHistory();
     }
   }, [getSummaryHistory]);
+
+  useEffect(() => {
+    const lastFocusTime = RoomStorage.getRoomLastFocusTime(GLOBAL_SUMMARY_CHATID);
+    if (lastFocusTime && lastFocusTime < Date.now() - 1000 * 60 * 5) {
+      globalSummaryTask.initSummaryChats();
+    }
+    RoomStorage.updateRoomAIData(GLOBAL_SUMMARY_CHATID, 'lastFocusTime', new Date().getTime());
+  }, []);
 
   const deleteMessage = useCallback((messageId: string) => {
     ChataiStores.summary?.delMessage(messageId).then(() => {

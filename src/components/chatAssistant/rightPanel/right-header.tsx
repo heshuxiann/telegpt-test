@@ -31,12 +31,16 @@ const HeaderButton = ({ icon, className, onClick }:{ icon:React.ReactNode;classN
 const RightHeader = (props: Props) => {
   const { drawerKey, onClose } = props;
   const [title, setTitle] = useState('');
-  const { openDrawer } = useDrawerStore();
+  const { openDrawer, drawerParams } = useDrawerStore();
   const handleBack = useCallback(() => {
-    openDrawer(DrawerKey.PersonalizeSettings, {
-      activeKey: drawerKey === DrawerKey.CustomizationPrompt ? '1' : '2',
-    });
-  }, [drawerKey, openDrawer]);
+    if (drawerParams?.onBack) {
+      drawerParams.onBack();
+    } else {
+      openDrawer(DrawerKey.PersonalizeSettings, {
+        activeKey: drawerKey === DrawerKey.CustomizationPrompt ? 0 : 1,
+      });
+    }
+  }, [drawerKey, drawerParams, openDrawer]);
   useEffect(() => {
     switch (drawerKey) {
       case DrawerKey.PersonalizeSettings:
