@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { getActions, getGlobal } from "../../../global";
 import { Message } from "ai";
 import { selectCurrentChat } from "../../../global/selectors";
@@ -15,13 +15,11 @@ const ReplyMentionMessage = (props: IProps) => {
   const { message } = props;
   let content: any = {};
   let messageId: number = 0;
-  let disabled = false;
   let status: MessageStatus = "loading";
   let replys: any[] = [];
   try {
     content = JSON.parse(message.content);
     messageId = content?.messageId;
-    disabled = content?.disabled;
     status = content?.status;
     try {
       replys = JSON.parse(content?.replys?.replace(/'/g, '"')?.replace(/,\s+/g, ','));
@@ -29,6 +27,8 @@ const ReplyMentionMessage = (props: IProps) => {
       console.log("aiChatFoldersTask----replys", error);
     }
   } catch (error) {}
+
+  const [disabled, setDisabled] = useState<boolean>(false)
 
   function onReplyClick(text: string) {
     if (disabled) return;
@@ -60,6 +60,7 @@ const ReplyMentionMessage = (props: IProps) => {
       });
       clearDraft({ chatId, isLocalOnly: true });
       // disable the reply button
+      setDisabled(true)
       ChataiStores.message?.storeMessage({
         ...message,
         chatId,
@@ -71,6 +72,12 @@ const ReplyMentionMessage = (props: IProps) => {
       });
     }
   }
+
+  useEffect(()=>{
+    setDisabled(content?.disabled)
+  }, [message])
+
+  //  console.log("aiChatFoldersTask----message", content);
 
   return (
     <div className="rounded-[16px] bg-[var(--color-background)] text-[var(--color-text)] mx-2 p-3 w-full text-[14px]">

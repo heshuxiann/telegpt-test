@@ -79,8 +79,11 @@ export async function photoSummary(
   message: ApiMessage,
   isAuto: boolean = false
 ) {
-  const image = message.content?.photo?.thumbnail?.dataUri;
-  if (!image) return;
+  const photo = message.content?.photo;
+  if (!photo) return;
+  const mediaHash = getMediaHash(photo, "download");
+  if (!mediaHash) return;
+  const mimeType = "image/jpeg";
 
   let newMessage: StoreMessage = {
     chatId: message.chatId,
@@ -93,34 +96,60 @@ export async function photoSummary(
   };
   await sendMessageToAIRoom(newMessage);
 
-  imageAISummary(image)
-    .then((response: any) => {
-      if (response?.text) {
+  // download
+  await mediaLoader.fetch(mediaHash, 0);
+  const blobUrl = mediaLoader.getFromMemory(mediaHash);
+  if (!blobUrl) {
+    showMessage.info("Can't download the file");
+    newMessage = {
+      ...newMessage,
+      content: JSON.stringify({
+        message,
+        errorMsg: "Can't download the file",
+        isAuto,
+        status: "error",
+      }),
+    };
+    await sendMessageToAIRoom(newMessage);
+    return;
+  }
+
+  const response = await fetch(blobUrl);
+  const blob = await response.blob();
+
+  const reader = new FileReader();
+  reader.onloadend = function () {
+    const base64Data = reader.result?.toString().split(",")[1] || "";
+    imageAISummary(`data:${mimeType};base64,` + base64Data)
+      .then((response: any) => {
+        if (response?.text) {
+          newMessage = {
+            ...newMessage,
+            content: JSON.stringify({
+              message,
+              summaryInfo: JSON.stringify({ text: response?.text }),
+              isAuto,
+              status: "success",
+            }),
+          };
+          sendMessageToAIRoom(newMessage);
+        }
+      })
+      .catch((err) => {
+        console.log("error", err);
         newMessage = {
           ...newMessage,
           content: JSON.stringify({
             message,
-            summaryInfo: JSON.stringify({ text: response?.text }),
+            errorMsg: "Summary error",
             isAuto,
-            status: "success",
+            status: "error",
           }),
         };
         sendMessageToAIRoom(newMessage);
-      }
-    })
-    .catch((err) => {
-      console.log("error", err);
-      newMessage = {
-        ...newMessage,
-        content: JSON.stringify({
-          message,
-          errorMsg: "Summary error",
-          isAuto,
-          status: "error",
-        }),
-      };
-      sendMessageToAIRoom(newMessage);
-    });
+      });
+  };
+  reader.readAsDataURL(blob);
 }
 
 export async function webPageSummary(
@@ -192,6 +221,18 @@ export async function documentSummary(
     content: JSON.stringify({ message, isAuto, status: "loading" }),
   };
   await sendMessageToAIRoom(newMessage);
+
+  // image
+  if (checkIsImage(document.mimeType)) {
+    handleImageToSummaryText({
+      mimeType: document.mimeType,
+      mediaHash,
+      message,
+      newMessage,
+      isAuto,
+    });
+    return;
+  }
 
   await mediaLoader.fetch(mediaHash, 0);
   const blobUrl = mediaLoader.getFromMemory(mediaHash);
@@ -555,6 +596,75 @@ async function handleAudioToSummaryText({
   }
 }
 
+async function handleImageToSummaryText({
+  mimeType,
+  mediaHash,
+  message,
+  newMessage,
+  isAuto,
+}: {
+  mimeType: string;
+  mediaHash: string;
+  message: ApiMessage;
+  newMessage: StoreMessage;
+  isAuto: boolean;
+}) {
+  // download
+  await mediaLoader.fetch(mediaHash, 0);
+  const blobUrl = mediaLoader.getFromMemory(mediaHash);
+  if (!blobUrl) {
+    showMessage.info("Can't download the file");
+    newMessage = {
+      ...newMessage,
+      content: JSON.stringify({
+        message,
+        errorMsg: "Can't download the file",
+        isAuto,
+        status: "error",
+      }),
+    };
+    await sendMessageToAIRoom(newMessage);
+    return;
+  }
+
+  const response = await fetch(blobUrl);
+  const blob = await response.blob();
+
+  const reader = new FileReader();
+  reader.onloadend = function () {
+    const base64Data = reader.result?.toString().split(",")[1] || "";
+    imageAISummary(`data:${mimeType};base64,` + base64Data)
+      .then((response: any) => {
+        if (response?.text) {
+          newMessage = {
+            ...newMessage,
+            content: JSON.stringify({
+              message,
+              summaryInfo: JSON.stringify({ text: response?.text }),
+              isAuto,
+              status: "success",
+            }),
+          };
+          sendMessageToAIRoom(newMessage);
+        }
+      })
+      .catch((err) => {
+        console.log("error", err);
+        newMessage = {
+          ...newMessage,
+          content: JSON.stringify({
+            message,
+            errorMsg: "Summary error",
+            isAuto,
+            status: "error",
+          }),
+        };
+        sendMessageToAIRoom(newMessage);
+      });
+  };
+  reader.readAsDataURL(blob);
+}
+
 export function canSummarize(message: ApiMessage) {
   const { photo, document, webPage, voice, audio, text } = message?.content;
   const isUrl = checkIsUrl(text?.text);
@@ -567,4 +677,8 @@ export function checkIsUrl(text?: string) {
     typeof text === "string" &&
     /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w\-./?%&=]*)?$/i.test(text)
   );
+}
+
+export function checkIsImage(mimeType: string) {
+  return mimeType.startsWith("image/");
 }

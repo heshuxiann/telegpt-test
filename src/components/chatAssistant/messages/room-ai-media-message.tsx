@@ -11,7 +11,7 @@ import { useWaveformCanvas } from "../../common/Audio";
 import useMedia from "../hook/useMedia";
 import { MediaViewerOrigin } from "../../../types";
 import SerenaPath from "../../chatAssistant/assets/serena.png";
-import { checkIsUrl } from "../utils/ai-analyse-message";
+import { checkIsImage, checkIsUrl } from "../utils/ai-analyse-message";
 
 type IProps = {
   message: Message;
@@ -163,8 +163,9 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
   function renderSummary() {
     if (!message) return "";
 
-    const { webPage, photo } = message?.content;
+    const { webPage, photo, document } = message?.content;
     const isUrl = checkIsUrl(message?.content?.text?.text);
+    const isImage = document ? checkIsImage(document?.mimeType) : false
     if (webPage || isUrl) {
       return summaryInfo?.title ? (
         <div className="rounded-[16px] bg-[var(--color-background)] p-3 text-[var(--color-text)]">
@@ -196,7 +197,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
       ) : (
         <NoSummaryContent content="website page" />
       );
-    } else if (photo) {
+    } else if (photo || isImage) {
       return (
         <div className="rounded-[16px] bg-[var(--color-background)] text-[var(--color-text)] p-3 text-[14px]">
           {isAuto ? (
@@ -236,8 +237,6 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
       );
     }
   }
-
-  console.log("aiChatFoldersTask----message", content);
 
   return (
     <div className="flex flex-col gap-2 px-3 text-[14px]">
