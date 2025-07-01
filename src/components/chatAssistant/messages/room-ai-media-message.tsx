@@ -238,8 +238,6 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
     }
   }
 
-  console.log("aiChatFoldersTask----message", content);
-
   return (
     <div className="flex flex-col gap-2 px-3 text-[14px]">
       {!isAuto && (
