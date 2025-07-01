@@ -50,6 +50,7 @@ import './MessageContextMenu.scss';
 
 import SerenaPath from '../../chatAssistant/assets/serena.png';
 import { AIReplyIcon, MeetingIcon, SummarizeIcon } from "../../chatAssistant/utils/icons"
+import { canSummarize } from "../../chatAssistant/utils/ai-analyse-message"
 
 type OwnProps = {
   isReactionPickerOpen?: boolean;
@@ -257,7 +258,7 @@ const MessageContextMenu: FC<OwnProps> = ({
   const isStarGiftUnique = message.content.action?.type === 'starGiftUnique';
   const shouldShowGiftButton = isUserId(message.chatId)
     && canGift && (isPremiumGift || isGiftCode || isStarGift || isStarGiftUnique);
-  const canAISummarize = message.content?.photo || message.content?.document || message.content?.webPage || message.content?.voice;
+  const canAISummarize = canSummarize(message);
   const canSerenaAI = canAISummarize || canScheduleMeeting || canSmartReply
 
   const [areItemsHidden, hideItems] = useFlag();
