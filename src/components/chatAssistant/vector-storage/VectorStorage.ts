@@ -31,8 +31,11 @@ export class VectorStorage<T> {
 
   private readonly dbName: string;
 
+  private readonly dbVersion: number;
+
   constructor(options: IVSOptions = {}) {
     this.dbName = options.dbName ?? constants.DEFAULT_DB_NAME;
+    this.dbVersion = options.dbVersion ?? constants.DEFAULT_DB_VERSION;
     this.maxSizeInMB = options.maxSizeInMB ?? constants.DEFAULT_MAX_SIZE_IN_MB;
     this.debounceTime = options.debounceTime ?? constants.DEFAULT_DEBOUNCE_TIME;
     this.openaiModel = options.openaiModel ?? constants.DEFAULT_OPENAI_MODEL;
@@ -142,8 +145,12 @@ export class VectorStorage<T> {
   }
 
   private async initDB(): Promise<IDBPDatabase<any>> {
-    return openDB<any>(this.dbName, undefined, {
+    return openDB<any>(this.dbName, this.dbVersion, {
       upgrade(db) {
+        // clear old store
+        for (const storeName of db.objectStoreNames) {
+          db.deleteObjectStore(storeName);
+        }
         const documentStore = db.createObjectStore('documents', {
           autoIncrement: true,
           keyPath: 'id',
