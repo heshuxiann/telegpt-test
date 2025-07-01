@@ -5,8 +5,8 @@ import { getActions, withGlobal } from '../../../global';
 import { selectCurrentChat } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import { useGlobalSummaryBadge } from '../hook/useGlobalSummaryBadge';
+import RoomStorage from '../room-storage';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
-import GlobalSummaryBadge from './global-summary-badge';
 
 import ListItem from '../../ui/ListItem';
 import ShowTransition from '../../ui/ShowTransition';
@@ -37,7 +37,7 @@ const ChatSerena = (props: OwnProps & StateProps) => {
   const unreadCount = useGlobalSummaryBadge();
   const handleClick = () => {
     openChat({ id: GLOBAL_SUMMARY_CHATID });
-    GlobalSummaryBadge.updateRoomData('unreadCount', 0);
+    RoomStorage.updateRoomAIData(GLOBAL_SUMMARY_CHATID, 'unreadCount', 0);
   };
   return (
     <ListItem

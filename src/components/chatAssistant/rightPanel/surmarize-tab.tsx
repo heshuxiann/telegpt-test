@@ -83,13 +83,18 @@ const SummarizeTab = () => {
       onSave: (chats:string[]) => {
         ChataiStores.general?.set(SUMMARY_CHATS, chats);
         openDrawer(DrawerKey.PersonalizeSettings, {
-          activeKey: '1',
+          activeKey: 0,
         });
         globalSummaryTask.updateSummaryChats(chats);
       },
       onCancel: () => {
         openDrawer(DrawerKey.PersonalizeSettings, {
-          activeKey: '1',
+          activeKey: 0,
+        });
+      },
+      onBack: () => {
+        openDrawer(DrawerKey.PersonalizeSettings, {
+          activeKey: 0,
         });
       },
     });
@@ -111,7 +116,7 @@ const SummarizeTab = () => {
               <div
                 key={item.title}
                 onClick={() => handleTemplateSelect(item)}
-                className={cx('w-fit px-[20px] leading-[40px] border-[1px] border-[#B297FF] rounded-[20px] text-[15px] cursor-pointer text-[var(--color-text)]', {
+                className={cx('w-fit flex-grow-0 px-[20px] h-[42px] leading-[40px] border-[1px] border-[#B297FF] rounded-[20px] text-[15px] cursor-pointer text-[var(--color-text)]', {
                   'bg-[#B297FF] text-white': currentTemplate?.id === item.id,
                 })}
               >
@@ -154,7 +159,7 @@ const SummarizeTab = () => {
         />
       </div>
       {actionsVisable ? (
-        <div className="flex flex-row justify-center gap-[14px] py-[24px] w-full z-10 bg-white absolute bottom-0 left-0">
+        <div className="flex flex-row justify-center gap-[14px] py-[24px] px-[18px] w-full z-10  absolute bottom-0 left-0">
           <button
             className="w-[158px] h-[40px] border-[1px] border-[#8C42F0] rounded-[20px]"
             onClick={handleCancel}

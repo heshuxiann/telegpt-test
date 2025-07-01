@@ -23,8 +23,8 @@ import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
 import { sanitizeUIMessages } from '../../lib/utils';
+import { AITextarea } from './component/AITextarea';
 import { Button } from './component/button';
-import { Textarea } from './component/textarea';
 import { StopIcon } from './icons';
 
 function PureMultimodalInput({
@@ -105,7 +105,7 @@ function PureMultimodalInput({
 
   return (
     <div className="relative w-full flex flex-col gap-4">
-      <Textarea
+      <AITextarea
         ref={textareaRef}
         placeholder="Send a message..."
         value={inputValue}
