@@ -10,7 +10,7 @@ import { getActions, getGlobal } from "../../../global";
 import { selectChat, selectChatLastMessageId } from "../../../global/selectors";
 import { getOrderedIds } from "../../../util/folderManager";
 import { fetchChatMessageByCount } from "../utils/fetch-messages";
-import { ChataiStores, GLOBAL_AICHATFOLDERS_LAST_TIME } from "../store";
+import { ChataiStores, GLOBAL_AICHATFOLDERS_LAST_TIME, GLOBAL_AICHATFOLDERS_TIP_SHOW } from "../store";
 import {
   batchAiChatFolders,
   AI_CHATFOLDERS_LIST,
@@ -24,6 +24,7 @@ import {
 } from "../ai-chatfolders/util";
 import { flatMap, uniq } from "lodash";
 import { selectSharedSettings } from "../../../global/selectors/sharedState";
+import eventEmitter, { Actions } from "../lib/EventEmitter"
 
 const AI_CHATFOLDERS_INTERVAL_TIME = 1000 * 60 * 60 * 24 * 7;
 const AI_CHATFOLDERS_BATCH_SIZE = 20;
@@ -65,7 +66,10 @@ class AIChatFoldersTask {
 
   async updateChatFolder(content: { [key: string]: number[] }) {
     const sortedKeys = Object.keys(content);
-    if (!sortedKeys.length) return;
+    if (!sortedKeys.length) {
+      eventEmitter.emit(Actions.UpdateAIChatFoldsLoading, false);
+      return;
+    }
 
     const { addChatFolder, editChatFolder } = getActions();
     console.log(
@@ -125,7 +129,9 @@ class AIChatFoldersTask {
       GLOBAL_AICHATFOLDERS_LAST_TIME,
       new Date().getTime()
     );
+    ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_TIP_SHOW, false);
     console.log(AI_CHATFOLDERS_LOG_PRE + "end", new Date());
+    eventEmitter.emit(Actions.UpdateAIChatFoldsLoading, false);
   }
 
   async sortChatFolder() {
@@ -156,10 +162,13 @@ class AIChatFoldersTask {
   }
 
   async classifyChatMessageByCount() {
+    eventEmitter.emit(Actions.UpdateAIChatFoldsLoading, true);
+
     const global = getGlobal();
     const { aiChatFolders } = selectSharedSettings(global);
     if (aiChatFolders !== true) {
       console.log(AI_CHATFOLDERS_LOG_PRE + "enable=false, pass", global);
+      eventEmitter.emit(Actions.UpdateAIChatFoldsLoading, false);
       return;
     }
     const lastTime = await ChataiStores.general?.get(
@@ -170,6 +179,7 @@ class AIChatFoldersTask {
       new Date().getTime() - lastTime < AI_CHATFOLDERS_INTERVAL_TIME
     ) {
       console.log(AI_CHATFOLDERS_LOG_PRE + "pass", lastTime, global);
+      eventEmitter.emit(Actions.UpdateAIChatFoldsLoading, false);
       return;
     }
     console.log(

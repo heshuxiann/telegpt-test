@@ -45,6 +45,7 @@ import AIChatFoldersTip from "../../chatAssistant/ai-chatfolders/ai-chatfolders-
 import ActiveTag from "../../chatAssistant/ai-chatfolders/active-tag"
 import { selectSharedSettings } from "../../../global/selectors/sharedState"
 import { filterAIFolder } from "../../chatAssistant/ai-chatfolders/util"
+import eventEmitter, { Actions } from "../../chatAssistant/lib/EventEmitter"
 
 type OwnProps = {
   onSettingsScreenSelect: (screen: SettingsScreens) => void;
@@ -114,6 +115,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   const [activePresetTag, setActivePresetTag] = useState<string[]>([])
   const [activeAITag, setActiveAITag] = useState<string[]>([])
   const [shouldRenderAiChatFoldersTip, openRenderAiChatFoldersTip, closeRenderAiChatFoldersTip] = useFlag();
+  const [aiChatFoldersloading, setAiChatFoldersLoading] = useState<boolean>(false);
 
   const lang = useLang();
 
@@ -429,10 +431,24 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     ChataiStores.general?.get(GLOBAL_AI_TAG)?.then((res)=>{
       setActiveAITag(res ?? [])
     })
+  }, [])
+
+  useEffect(()=>{
     ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW)?.then((res)=>{
       res === false ? closeRenderAiChatFoldersTip() : openRenderAiChatFoldersTip()
     })
-  }, [])
+  }, [aiChatFoldersloading])
+
+  const updateAIChatFoldsLoading = (value: boolean) => {
+    setAiChatFoldersLoading(value)
+  }
+
+  useEffect(() => {
+    eventEmitter.on(Actions.UpdateAIChatFoldsLoading, updateAIChatFoldsLoading);
+    return () => {
+      eventEmitter.off(Actions.UpdateAIChatFoldsLoading, updateAIChatFoldsLoading);
+    };
+  }, [updateAIChatFoldsLoading]);
 
   const {
     ref: placeholderRef,
@@ -482,6 +498,8 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
 
   const shouldRenderFolders = folderTabs && folderTabs.length > 1;
 
+  // console.log('aiChatFoldersTask----', aiChatFoldersloading)
+
   return (
     <div
       ref={ref}
@@ -502,7 +520,11 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
       ) : shouldRenderPlaceholder ? (
         <div ref={placeholderRef} className="tabs-placeholder" />
       ) : undefined}
-      {shouldRenderAiChatFoldersTip && <AIChatFoldersTip onClose={closeRenderAiChatFoldersTip} />}
+      {(shouldRenderAiChatFoldersTip || aiChatFoldersloading) && <AIChatFoldersTip
+        loading={aiChatFoldersloading}
+        setLoading={setAiChatFoldersLoading}
+        onClose={closeRenderAiChatFoldersTip}
+      />}
       {shouldRenderFolders && shouldRenderPresetTagModal && <PresetTagModal
         activeTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? activePresetTag : activeAITag}
         setActiveTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? setActivePresetTag : setActiveAITag}

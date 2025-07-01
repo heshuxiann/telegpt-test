@@ -1,4 +1,4 @@
-import React, { FC, memo, useState } from "../../../lib/teact/teact";
+import React, { FC, memo } from "../../../lib/teact/teact";
 import AiChatFoldersBg from "../../../assets/chat_ai_folder.png";
 import AiChatFoldersDarkBg from "../../../assets/chat_ai_folder_dark.png";
 import AiChatFoldersBtnBg from "../../../assets/chat_ai_folder_border.png";
@@ -15,12 +15,17 @@ import "./ai-chatfolders-tip.scss";
 import Button from "../../ui/Button";
 
 type OwnProps = {
+  loading?: boolean;
+  setLoading?: (loading: boolean) => void;
   theme?: ThemeKey;
   onClose?: () => void;
 };
-const AIChatFoldersTip: FC<OwnProps> = ({ theme, onClose }: OwnProps) => {
-  const [loading, setLoading] = useState<boolean>(false);
-
+const AIChatFoldersTip: FC<OwnProps> = ({
+  loading,
+  setLoading,
+  theme,
+  onClose,
+}: OwnProps) => {
   function onCloseClick() {
     message.open({
       content:
@@ -37,9 +42,9 @@ const AIChatFoldersTip: FC<OwnProps> = ({ theme, onClose }: OwnProps) => {
     const { setSharedSettingOption } = getActions();
 
     setSharedSettingOption({ aiChatFolders: true });
-    setLoading(true);
+    setLoading?.(true);
     await aiChatFoldersTask.classifyChatMessageByCount();
-    setLoading(false);
+    setLoading?.(false);
 
     onCloseClick();
   }
@@ -55,7 +60,9 @@ const AIChatFoldersTip: FC<OwnProps> = ({ theme, onClose }: OwnProps) => {
         <AIChatFolderIcon />
       </div>
       <div className="leading-[16px] text-[13px] text-[var(--color-aichatfolders-tag-text)]">
-        Your chat has been intelligently tagged in folders by Serena AI
+        {loading
+          ? "Serena AI is working hard to organize your chat list and categorize the labels..."
+          : "Your chat has been intelligently tagged in folders by Serena AI"}
       </div>
       <Button
         color="translucent"
