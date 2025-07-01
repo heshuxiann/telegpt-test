@@ -81,5 +81,6 @@
   "--color-aichatfolders-tag-close-color": ["#00000029", "#FFFFFF33"],
   "--color-menu-submenu-bg": ["#f2f9ef", "#312f3b"],
   "--color-ai-room-bubble-bg": ["#E5D9FF", "#8774E1"],
-  "--color-ai-room-mention-reply-bg": ["#F4F4F4", "#383838"]
+  "--color-ai-room-mention-reply-bg": ["#F4F4F4", "#383838"],
+  "--color-ai-room-media-bg": ["#FFFFFF", "#383838"]
 }
