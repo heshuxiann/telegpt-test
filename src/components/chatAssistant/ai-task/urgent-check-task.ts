@@ -8,7 +8,6 @@ import type { UrgentTopic } from '../store/urgent-topic-store';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import GlobalSummaryBadge from '../globalSummary/global-summary-badge';
-import { DefaultUrgentTopic } from '../prompt';
 import { ChataiStores } from '../store';
 import { URGENT_CHATS } from '../store/general-store';
 import { sendGAEvent } from '../utils/analytics';
@@ -69,9 +68,12 @@ class UrgentCheckTask {
     return text;
   }
 
-  checkUrgentMessage() {
+  async checkUrgentMessage() {
     if (!this.pendingMessages.length) return;
-    console.log('checkUrgentMessage', this.pendingMessages);
+
+    const urgentTopics = await ChataiStores.urgentTopic?.getAllUrgentTopic();
+    if (!urgentTopics?.length) return;
+
     const messages = this.pendingMessages.map((item) => {
       return {
         chatId: item.chatId,
@@ -80,53 +82,50 @@ class UrgentCheckTask {
         content: item.content.text?.text,
       };
     });
-    ChataiStores.urgentTopic?.getAllUrgentTopic().then((topics) => {
-      topics.unshift(DefaultUrgentTopic);
-      fetch('https://telegpt-three.vercel.app/urgent-message-check', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages,
-          urgentTopics: topics,
-        }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log('urgent check response', data);
-          const matchs = data?.data || [];
-          if (matchs.length > 0) {
-            const newMessage: SummaryStoreMessage = {
-              timestamp: new Date().getTime(),
-              content: JSON.stringify(matchs),
-              id: uuidv4(),
-              createdAt: new Date(),
-              role: 'assistant',
-              annotations: [
-                {
-                  type: 'urgent-message-check',
-                },
-              ],
-            };
-            ChataiStores.summary?.storeMessage(newMessage);
-            eventEmitter.emit(Actions.AddUrgentMessage, newMessage);
-            GlobalSummaryBadge.increaseUnreadCount();
-            // check strong alert
-            try {
-              const strongAlertPhoneNumber = getStrongAlertPhoneNumber(matchs, topics);
-              if (strongAlertPhoneNumber) {
-                fetch(`https://telegpt-three.vercel.app/voice-call?phoneNumber=${strongAlertPhoneNumber}`, {
-                  method: 'GET',
-                });
-                sendGAEvent('call_reminder');
-              }
-            } catch (e) {
-              console.log('error', e);
+    fetch('https://telegpt-three.vercel.app/urgent-message-check', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages,
+        urgentTopics,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('urgent check response', data);
+        const matchs = data?.data || [];
+        if (matchs.length > 0) {
+          const newMessage: SummaryStoreMessage = {
+            timestamp: new Date().getTime(),
+            content: JSON.stringify(matchs),
+            id: uuidv4(),
+            createdAt: new Date(),
+            role: 'assistant',
+            annotations: [
+              {
+                type: 'urgent-message-check',
+              },
+            ],
+          };
+          ChataiStores.summary?.storeMessage(newMessage);
+          eventEmitter.emit(Actions.AddUrgentMessage, newMessage);
+          GlobalSummaryBadge.increaseUnreadCount();
+          // check strong alert
+          try {
+            const strongAlertPhoneNumber = getStrongAlertPhoneNumber(matchs, topics);
+            if (strongAlertPhoneNumber) {
+              fetch(`https://telegpt-three.vercel.app/voice-call?phoneNumber=${strongAlertPhoneNumber}`, {
+                method: 'GET',
+              });
+              sendGAEvent('call_reminder');
             }
+          } catch (e) {
+            console.log('error', e);
           }
-        });
-    });
+        }
+      });
     this.clearPendingMessages();
   }
 

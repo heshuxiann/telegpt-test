@@ -24,7 +24,6 @@ export const initChatAI = () => {
   // init urgent alert task
   urgentCheckTask.initTask();
   // check tools embedding
-  // const scheduleMeetEmbedding = await ;
   toolsEmbeddingStore.getText(TOOLS_SCHEDULE_MEETING_ID).then((res:any) => {
     if (!res) {
       toolsEmbeddingStore.addText('约会，安排会议，创建会议，schedule meeting', TOOLS_SCHEDULE_MEETING_ID, {});
