@@ -79,13 +79,18 @@ const UrgentAlertTab = () => {
       onSave: (chats: string[]) => {
         ChataiStores.general?.set(URGENT_CHATS, chats);
         openDrawer(DrawerKey.PersonalizeSettings, {
-          activeKey: '2',
+          activeKey: 1,
         });
         urgentCheckTask.updateUrgentChats(chats);
       },
       onCancel: () => {
         openDrawer(DrawerKey.PersonalizeSettings, {
-          activeKey: '2',
+          activeKey: 1,
+        });
+      },
+      onBack: () => {
+        openDrawer(DrawerKey.PersonalizeSettings, {
+          activeKey: 1,
         });
       },
     });
