@@ -39,9 +39,9 @@ import Transition from '../../ui/Transition';
 import ChatList from './ChatList';
 import PresetTagModal from '../../chatAssistant/ai-chatfolders/preset-modal'
 import useFlag from "../../../hooks/useFlag"
-import { ChataiStores, GLOBAL_AI_TAG, GLOBAL_AICHATFOLDERS_TIP_SHOW, GLOBAL_PRESET_TAG } from "../../chatAssistant/store"
+import { ChataiStores, GLOBAL_AI_TAG, GLOBAL_AICHATFOLDERS_STEP, GLOBAL_AICHATFOLDERS_TIP_SHOW, GLOBAL_PRESET_TAG } from "../../chatAssistant/store"
 import { filterAITag, filterPresetTag } from "../../chatAssistant/ai-chatfolders/tag-filter"
-import AIChatFoldersTip from "../../chatAssistant/ai-chatfolders/ai-chatfolders-tip"
+import AIChatFoldersTip, { AIChatFolderStep } from "../../chatAssistant/ai-chatfolders/ai-chatfolders-tip"
 import ActiveTag from "../../chatAssistant/ai-chatfolders/active-tag"
 import { selectSharedSettings } from "../../../global/selectors/sharedState"
 import { filterAIFolder } from "../../chatAssistant/ai-chatfolders/util"
@@ -115,6 +115,9 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   const [activePresetTag, setActivePresetTag] = useState<string[]>([])
   const [activeAITag, setActiveAITag] = useState<string[]>([])
   const [shouldRenderAiChatFoldersTip, openRenderAiChatFoldersTip, closeRenderAiChatFoldersTip] = useFlag();
+
+  const [isFirstAiChatFolders, setIsFirstAiChatFolders] = useState<boolean>(false);
+  const [aiChatFoldersStep, setAiChatFoldersStep] = useState<AIChatFolderStep>(AIChatFolderStep.classify);
   const [aiChatFoldersloading, setAiChatFoldersLoading] = useState<boolean>(false);
 
   const lang = useLang();
@@ -435,12 +438,18 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
 
   useEffect(()=>{
     ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW)?.then((res)=>{
+      setIsFirstAiChatFolders(res === undefined ? true: false)
       res === false ? closeRenderAiChatFoldersTip() : openRenderAiChatFoldersTip()
+    })
+    ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_STEP)?.then((res)=>{
+      if (res) {
+        setAiChatFoldersStep(res)
+      }
     })
   }, [aiChatFoldersloading])
 
-  const updateAIChatFoldsLoading = (value: boolean) => {
-    setAiChatFoldersLoading(value)
+  const updateAIChatFoldsLoading = (loading: boolean) => {
+    setAiChatFoldersLoading(loading)
   }
 
   useEffect(() => {
@@ -498,7 +507,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
 
   const shouldRenderFolders = folderTabs && folderTabs.length > 1;
 
-  // console.log('aiChatFoldersTask----', aiChatFoldersloading)
+  // console.log('aiChatFoldersTask----step', aiChatFoldersloading, aiChatFoldersStep, isFirstAiChatFolders, shouldRenderAiChatFoldersTip)
 
   return (
     <div
@@ -521,8 +530,9 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
         <div ref={placeholderRef} className="tabs-placeholder" />
       ) : undefined}
       {(shouldRenderAiChatFoldersTip || aiChatFoldersloading) && <AIChatFoldersTip
+        isFristShow={isFirstAiChatFolders}
+        step={aiChatFoldersStep}
         loading={aiChatFoldersloading}
-        setLoading={setAiChatFoldersLoading}
         onClose={closeRenderAiChatFoldersTip}
       />}
       {shouldRenderFolders && shouldRenderPresetTagModal && <PresetTagModal

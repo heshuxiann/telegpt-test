@@ -14,37 +14,48 @@ import Spinner from "../../ui/Spinner";
 import "./ai-chatfolders-tip.scss";
 import Button from "../../ui/Button";
 
+export enum AIChatFolderStep {
+  classify = "classify",
+  apply = "apply",
+}
+
 type OwnProps = {
+  isFristShow?: boolean;
+  step: AIChatFolderStep;
   loading?: boolean;
-  setLoading?: (loading: boolean) => void;
   theme?: ThemeKey;
   onClose?: () => void;
 };
 const AIChatFoldersTip: FC<OwnProps> = ({
+  isFristShow,
+  step,
   loading,
-  setLoading,
   theme,
   onClose,
 }: OwnProps) => {
   function onCloseClick() {
-    message.open({
-      content:
-        "You can enable this feature later in the settings page if needed.",
-      icon: null,
-      className: "aichatfolders-tip-message",
-    });
+    if (isFristShow) {
+      message.open({
+        content:
+          "You can enable this feature later in the settings page if needed.",
+        icon: null,
+        className: "aichatfolders-tip-message",
+      });
+    }
     ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_TIP_SHOW, false);
     onClose?.();
   }
 
   async function onApply() {
     if (loading) return;
-    const { setSharedSettingOption } = getActions();
-
-    setSharedSettingOption({ aiChatFolders: true });
-    setLoading?.(true);
-    await aiChatFoldersTask.classifyChatMessageByCount();
-    setLoading?.(false);
+    if (isFristShow) {
+      const { setSharedSettingOption } = getActions();
+      setSharedSettingOption({ aiChatFolders: true });
+    }
+    if (isFristShow) {
+      await aiChatFoldersTask.classifyChatMessageByCount();
+    }
+    await aiChatFoldersTask.applyChatFolder();
 
     onCloseClick();
   }
@@ -60,37 +71,41 @@ const AIChatFoldersTip: FC<OwnProps> = ({
         <AIChatFolderIcon />
       </div>
       <div className="leading-[16px] text-[13px] text-[var(--color-aichatfolders-tag-text)]">
-        {loading
+        {!isFristShow && step === AIChatFolderStep.classify
           ? "Serena AI is working hard to organize your chat list and categorize the labels..."
           : "Your chat has been intelligently tagged in folders by Serena AI"}
       </div>
-      <Button
-        color="translucent"
-        className="w-[46px] h-[24px] mr-3 rounded-[28px] cursor-pointer hover:opacity-80"
-        style={`background-image: url(${AiChatFoldersBtnBg}); background-size: 100% 100%; text-transform: none; color: #000;`}
-        onClick={onApply}
-      >
-        {loading ? (
-          <Spinner
-            className="w-[12px] h-[12px]"
-            color={theme === "dark" ? "white" : "black"}
-          />
-        ) : (
-          <div className="text-[var(--color-aichatfolders-tag-text)] text-[12px]">
-            Apply
+      {(isFristShow || step === AIChatFolderStep.apply) && (
+        <>
+          <Button
+            color="translucent"
+            className="w-[46px] h-[24px] mr-3 rounded-[28px] cursor-pointer hover:opacity-80"
+            style={`background-image: url(${AiChatFoldersBtnBg}); background-size: 100% 100%; text-transform: none; color: #000;`}
+            onClick={onApply}
+          >
+            {loading ? (
+              <Spinner
+                className="w-[12px] h-[12px]"
+                color={theme === "dark" ? "white" : "black"}
+              />
+            ) : (
+              <div className="text-[var(--color-aichatfolders-tag-text)] text-[12px]">
+                Apply
+              </div>
+            )}
+          </Button>
+          <div className="absolute right-2 top-1">
+            {!loading && (
+              <Icon
+                name="close"
+                className="text-[var(--color-aichatfolders-tag-close-color)] cursor-pointer hover:opacity-50"
+                style="width:6px;height:6px"
+                onClick={onCloseClick}
+              />
+            )}
           </div>
-        )}
-      </Button>
-      <div className="absolute right-2 top-1">
-        {!loading && (
-          <Icon
-            name="close"
-            className="text-[var(--color-aichatfolders-tag-close-color)] cursor-pointer hover:opacity-50"
-            style="width:6px;height:6px"
-            onClick={onCloseClick}
-          />
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 };

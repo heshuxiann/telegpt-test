@@ -28,7 +28,7 @@ export interface AIChatFolder {
   presetTag: string[];
   AITag: string;
 }
-export const AI_CHATFOLDERS_LOG_PRE = "aiChatFoldersTask----";
+export const AICHATFOLDERS_LOG = "aiChatFoldersTask----";
 export const AI_CHATFOLDERS_LIST = [
   "Friend",
   "Community",
@@ -79,8 +79,6 @@ async function chatAIChatFolders(body: string) {
 export async function saveAiChatFolders(list: AIChatFolder[]) {
   let global = getGlobal();
 
-  let activeAITag: string[] =
-    global?.chatFolders?.aiChatFolders?.activeAITag ?? [];
   let allAiChatFolders: AIChatFolder[] = [];
   list.forEach(async (item) => {
     const chat = selectChat(global, item.chatId + "");
@@ -90,20 +88,12 @@ export async function saveAiChatFolders(list: AIChatFolder[]) {
       ...item,
     };
     allAiChatFolders.push(classifyItem);
-    ChataiStores.aIChatFolders?.addAIChatFolder(classifyItem);
   });
-  const aiAllTags = getAITags();
-  activeAITag = intersection(aiAllTags, activeAITag);
-  ChataiStores.general?.set(GLOBAL_AI_TAG, activeAITag);
   global = {
     ...global,
     chatFolders: {
       ...global.chatFolders,
-      aiChatFolders: {
-        ...global.chatFolders?.aiChatFolders,
-        list: allAiChatFolders,
-        activeAITag,
-      },
+      nextAiChatFolders: allAiChatFolders,
     },
   };
   setGlobal(global);
@@ -168,7 +158,7 @@ export async function deleteAiChatFolders() {
       ) {
         // 删除AI分类, Unread分类, Preset分类, AI分类
         console.log(
-          AI_CHATFOLDERS_LOG_PRE + "delete: " + folderInfoDb?.id,
+          AICHATFOLDERS_LOG + "delete: " + folderInfoDb?.id,
           new Date()
         );
         await deleteChatFolder?.({ id: Number(folderInfoDb?.id) });
@@ -195,7 +185,7 @@ export async function sortChatFolder() {
   if (ids?.length) {
     ids = [0, ...ids];
   }
-  console.log(AI_CHATFOLDERS_LOG_PRE + "sort: ", ids);
+  console.log(AICHATFOLDERS_LOG + "sort: ", ids);
   await getActions().sortChatFolders({ folderIds: ids });
 }
 
@@ -217,4 +207,31 @@ export function replaceToJSON(text: string) {
   } catch (error) {
     return undefined;
   }
+}
+
+export function updateAiChatFoldersTOGlobal() {
+  let global = getGlobal();
+  const aiAllTags = getAITags();
+  const activeAITag = intersection(
+    aiAllTags,
+    global?.chatFolders?.aiChatFolders?.activeAITag ?? []
+  );
+  ChataiStores.general?.set(GLOBAL_AI_TAG, activeAITag);
+
+  const nextAiChatFolders = global?.chatFolders?.nextAiChatFolders || [];
+  nextAiChatFolders.forEach((classifyItem) => {
+    ChataiStores.aIChatFolders?.addAIChatFolder(classifyItem);
+  });
+  global = {
+    ...global,
+    chatFolders: {
+      ...global.chatFolders,
+      aiChatFolders: {
+        ...global.chatFolders?.aiChatFolders,
+        list: nextAiChatFolders,
+        activeAITag,
+      },
+    },
+  };
+  setGlobal(global);
 }

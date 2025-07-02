@@ -1062,9 +1062,13 @@ addActionHandler('loadChatFolders', async (global): Promise<void> => {
     if (allAiChatFolders && allAiChatFolders?.length > 0) {
       global = getGlobal();
       let orderedIds = (chatFolders?.orderedIds ?? []);
-      orderedIds.splice(3, 0, UNREAD_FOLDER_ID)
-      orderedIds.push(PRESET_FOLDER_ID)
-      orderedIds.push(AI_FOLDER_ID)
+      if (global.chatFolders.aiChatFolders?.list &&
+        global.chatFolders.aiChatFolders?.list?.length > 0
+      ) {
+        orderedIds.splice(3, 0, UNREAD_FOLDER_ID)
+        orderedIds.push(PRESET_FOLDER_ID)
+        orderedIds.push(AI_FOLDER_ID)
+      }
       global = {
         ...global,
         chatFolders: {

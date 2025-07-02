@@ -277,7 +277,8 @@ export type GlobalState = {
       activePresetTag?: string[];
       activeAITag?: string[];
       list?: AIChatFolder[]
-    }
+    },
+    nextAiChatFolders: AIChatFolder[]
   };
 
   phoneCall?: ApiPhoneCall;

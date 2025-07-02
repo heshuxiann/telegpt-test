@@ -21,6 +21,7 @@ export const GLOBAL_AICHATFOLDERS_LAST_TIME = 'globalAiChatFoldersLastTime';
 export const GLOBAL_AICHATFOLDERS_TIP_SHOW = 'globalAiChatFoldersTipShow';
 export const GLOBAL_PRESET_TAG = 'globalPresetTag';
 export const GLOBAL_AI_TAG = 'globalAITag';
+export const GLOBAL_AICHATFOLDERS_STEP = 'globalAiChatFoldersStep'
 
 let currentUserId!: string;
 
