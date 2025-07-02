@@ -56,21 +56,22 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
   const forcedWidth = message?.content?.photo?.thumbnail?.width;
   const withBlurredBackground = Boolean(forcedWidth);
 
-  function getTitle() {
+  function getType() {
     if (!message) return "";
 
     const { webPage, photo, document, audio, voice } = message?.content;
     const isUrl = checkIsUrl(message?.content?.text?.text);
+    const isImage = document ? checkIsImage(document?.mimeType) : false;
     if (webPage || isUrl) {
-      return "Summarize this webpage";
-    } else if (photo) {
-      return "Summarize this image";
+      return "website page";
+    } else if (photo || isImage) {
+      return "image";
     } else if (document) {
-      return "Summarize this document";
+      return "file";
     } else if (audio) {
-      return "Summarize this audio";
+      return "audio";
     } else if (voice) {
-      return "Summarize this voice";
+      return "voice";
     }
   }
 
@@ -165,7 +166,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
 
     const { webPage, photo, document } = message?.content;
     const isUrl = checkIsUrl(message?.content?.text?.text);
-    const isImage = document ? checkIsImage(document?.mimeType) : false
+    const isImage = document ? checkIsImage(document?.mimeType) : false;
     if (webPage || isUrl) {
       return summaryInfo?.title ? (
         <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)]">
@@ -177,16 +178,22 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
             <div className="flex flex-col">
               {summaryInfo?.highlights?.map((item: any, index: number) => {
                 return (
-                  <div className="flex flex-col">
+                  <div className="flex flex-col" key={index}>
                     <div className="flex flex-row items-center flex-wrap">
                       <span className="mr-[24px]">
                         {index + 1}. {item?.title}
                       </span>
                     </div>
                     <ul className="list-disc list-inside ml-3 mb-1">
-                      {item?.content?.map((contentItem: any) => {
-                        return <li className="break-word">{contentItem}</li>;
-                      })}
+                      {item?.content?.map(
+                        (contentItem: any, contentIndex: number) => {
+                          return (
+                            <li className="break-word" key={contentIndex}>
+                              {contentItem}
+                            </li>
+                          );
+                        }
+                      )}
                     </ul>
                   </div>
                 );
@@ -218,16 +225,22 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
         <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)]">
           <div className="font-[600] text-[16px]">Key Highlights:</div>
           <div className="flex flex-col mt-2">
-            {summaryInfo?.map((item: any) => {
+            {summaryInfo?.map((item: any, index: number) => {
               return (
-                <div className="flex flex-col">
+                <div className="flex flex-col" key={index}>
                   <div className="flex flex-row items-center flex-wrap">
                     <span className="mr-[24px] font-[600]">{item?.title}</span>
                   </div>
                   <ul className="list-disc list-inside ml-3 mb-1">
-                    {item?.content?.map((contentItem: any) => {
-                      return <li className="break-word">{contentItem}</li>;
-                    })}
+                    {item?.content?.map(
+                      (contentItem: any, contentIndex: number) => {
+                        return (
+                          <li className="break-word" key={contentIndex}>
+                            {contentItem}
+                          </li>
+                        );
+                      }
+                    )}
                   </ul>
                 </div>
               );
@@ -242,16 +255,14 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
     <div className="flex flex-col gap-2 px-3 text-[14px]">
       {!isAuto && (
         <div className="text-right">
-          <AIRoomBubble>{getTitle()}</AIRoomBubble>
+          <AIRoomBubble>Summarize this {getType()}</AIRoomBubble>
         </div>
       )}
       {renderMessageContent()}
       {status === "loading" ? (
         <ThinkingMessage />
       ) : status === "error" ? (
-        <div className="rounded-[16px] bg-[#FFF9F9] text-[#000] p-3 text-[14px] border-[1px] border-[#FFC7C7]">
-          {content?.errorMsg}
-        </div>
+        <NoSummaryContent content={getType() || ""} />
       ) : (
         renderSummary()
       )}

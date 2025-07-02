@@ -24,6 +24,8 @@ import IntroduceSummaryMessage from './messages/introduce-summary-message';
 import IntroduceTranslationMessage from './messages/introduce-translation-message';
 import RoomActionMessage from './messages/room-actions-message';
 import RoomAIDescriptionMessage from './messages/room-ai-des-message';
+import RoomAIMediaMessage from './messages/room-ai-media-message';
+import ReplyMentionMessage from './messages/room-ai-reply-mention-message';
 import RoomSummaryMessage from './messages/room-summary-message';
 // import SummaryMessage from './summary-message';
 import UrgentCheckMessage from './messages/urgent-check-message';
@@ -33,8 +35,7 @@ import { LoadingIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageReasoning } from './message-reasoning';
 import { PreviewAttachment } from './preview-attachment';
-import RoomAIMediaMessage from "./messages/room-ai-media-message";
-import ReplyMentionMessage from "./messages/room-ai-reply-mention-message"
+
 import ErrorBoundary from './ErrorBoundary';
 
 export enum AIMessageType {
@@ -145,7 +146,12 @@ const PurePreviewMessage = ({
       )}
       {messageType === AIMessageType.GroupSearch && (<GroupSearchMessage message={message} />)}
       {messageType === AIMessageType.UserSearch && (<UserSearchMessage message={message} />)}
-      {messageType === AIMessageType.GoogleAuth && (<GoogleLoginAuthMessage message={message} />)}
+      {messageType === AIMessageType.GoogleAuth && (
+        <GoogleLoginAuthMessage
+          // eslint-disable-next-line react/jsx-no-bind
+          deleteMessage={() => deleteMessage?.(message.id)}
+        />
+      )}
       {messageType === AIMessageType.GoogleEventInsert && (<GoogleEventCreateMessage message={message} />)}
       {messageType === AIMessageType.GoogleEventDetail && (<GoogleEventDetailMessage message={message} />)}
       {messageType === AIMessageType.RoomSummary && (

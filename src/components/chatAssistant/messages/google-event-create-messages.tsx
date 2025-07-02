@@ -3,7 +3,6 @@
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
 import React, { useCallback, useEffect, useState } from 'react';
-import type { ITimezone } from 'react-timezone-select';
 import type { Message } from 'ai';
 import {
   Button, ConfigProvider, DatePicker, Input,
@@ -18,8 +17,9 @@ import { getGlobal } from '../../../global';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { selectTheme } from '../../../global/selectors';
-import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import { CloseIcon } from '../icons';
+import { createGoogleMeet } from '../utils/google-api';
+import { getAuthState } from '../utils/google-auth';
 import { useTimezoneSelect } from '../utils/time-zones';
 
 import CalendarIcon from '../assets/calendar.png';
@@ -95,7 +95,7 @@ const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
   const [emailError, setEmailError] = useState('');
   const [dateError, setDateError] = useState('');
   const [titleError, setTitleError] = useState('');
-  const [selectedTimezone, setSelectedTimezone] = useState<ITimezone>(
+  const [selectedTimezone, setSelectedTimezone] = useState<string>(
     Intl.DateTimeFormat().resolvedOptions().timeZone,
   );
   const global = getGlobal();
@@ -159,7 +159,7 @@ const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
   const handleDeleteEmail = useCallback((email: string) => {
     setEmails((prev) => prev.filter((item) => item !== email));
   }, []);
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     if (!title) {
       setTitleError('Please enter the title');
       return;
@@ -167,7 +167,7 @@ const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
     if (!startDate || !endDate) {
       setDateError('Please select the date');
     }
-    const googleToken = await CHATAI_IDB_STORE.get('google-token');
+    const auth = getAuthState();
     const attendees: { email: string }[] = [];
     if (emails.length) {
       emails.forEach((email) => {
@@ -176,32 +176,14 @@ const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
         });
       });
     }
-    const event = {
-      summary: title,
-      start: { dateTime: new Date(startDate), timeZone: selectedTimezone },
-      end: { dateTime: new Date(endDate), timeZone: selectedTimezone },
-      attendees,
-      reminders: {
-        useDefault: false,
-        overrides: [
-          { method: 'email', minutes: 30 },
-          { method: 'popup', minutes: 10 },
-        ],
-      },
-      conferenceData: {
-        createRequest: {
-          requestId: `test-${Date.now()}`,
-          conferenceSolutionKey: { type: 'hangoutsMeet' },
-        },
-      },
-    };
-    fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&alt=json&key=AIzaSyAtEl_iCCVN7Gv-xs1kfpcGCfD9IYO-UhU', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${googleToken}`,
-      },
-      body: JSON.stringify(event),
-    }).then((response) => response.json()).then((res) => {
+    createGoogleMeet({
+      title,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      selectedTimezone,
+      emails,
+      googleToken: auth?.accessToken!,
+    }).then((res) => {
       eventEmitter.emit(Actions.CreateCalendarSuccess, {
         message,
         response: res,
