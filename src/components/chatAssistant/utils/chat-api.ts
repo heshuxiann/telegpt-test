@@ -107,16 +107,14 @@ export const getHitTools = (text: string): Promise<Array<any>> => {
   });
 };
 
-export function imageAISummary(imageBase64: string) {
+export function imageAISummary(data: Object) {
   return new Promise((resolve, reject) => {
     fetch("https://telegpt-three.vercel.app/image-summary", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        image: imageBase64,
-      }),
+      body: JSON.stringify(data),
     })
       .then((res) => res.json())
       .then((res) => {
@@ -128,14 +126,14 @@ export function imageAISummary(imageBase64: string) {
   });
 }
 
-export function webPageAISummary(url: string) {
+export function webPageAISummary(data: Object) {
   return new Promise((resolve, reject) => {
     fetch("https://telegpt-three.vercel.app/webpage-summary", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ url }),
+      body: JSON.stringify(data),
     })
       .then((res) => res.json())
       .then((res) => {
@@ -147,14 +145,14 @@ export function webPageAISummary(url: string) {
   });
 }
 
-export function documentAISummary(content: string) {
+export function documentAISummary(data: Object) {
   return new Promise((resolve, reject) => {
     fetch("https://telegpt-three.vercel.app/document-summary", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify(data),
     })
       .then((res) => res.json())
       .then((res) => {
@@ -219,16 +217,14 @@ export function audioToText(formData: FormData): Promise<{ text: string }> {
   });
 }
 
-export async function mentionReply(content: string) {
+export async function mentionReply(data: Object) {
   return new Promise((resolve, reject) => {
     fetch("https://telegpt-three.vercel.app/mention-reply", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        message: content,
-      }),
+      body: JSON.stringify(data),
     })
       .then((res) => res.json())
       .then((res) => {

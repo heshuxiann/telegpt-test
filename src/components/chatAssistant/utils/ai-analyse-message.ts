@@ -44,7 +44,10 @@ export async function replyToMention(
   };
   await sendMessageToAIRoom(newMessage);
 
-  mentionReply(message.content.text?.text)
+  mentionReply({
+    message: message.content.text?.text,
+    language: getAutoTransLang(),
+  })
     .then((response: any) => {
       if (response.text) {
         newMessage = {
@@ -117,7 +120,10 @@ export async function webPageSummary(
   };
   await sendMessageToAIRoom(newMessage);
 
-  webPageAISummary(url)
+  webPageAISummary({
+    url,
+    language: getAutoTransLang(),
+  })
     .then((response: any) => {
       if (response?.text) {
         newMessage = {
@@ -211,7 +217,10 @@ export async function documentSummary(
     return;
   }
 
-  documentAISummary(text)
+  documentAISummary({
+    content: text,
+    language: getAutoTransLang(),
+  })
     .then((response: any) => {
       if (response?.text) {
         newMessage = {
@@ -288,7 +297,10 @@ export async function voiceSummary(
     await sendErrorMessage(newMessage, message, isAuto);
     return;
   }
-  documentAISummary(text)
+  documentAISummary({
+    content: text,
+    language: getAutoTransLang(),
+  })
     .then((response: any) => {
       if (response?.text) {
         newMessage = {
@@ -403,36 +415,38 @@ async function handleAudioToSummaryText({
   message: ApiMessage;
   isAuto: boolean;
 }) {
-  // check size
-  if (size && size > 4.5 * 1024 * 1024) {
-    showMessage.info("File size exceeds limit (4.5 MB)");
-    newMessage = {
-      ...newMessage,
-      content: JSON.stringify({
-        message,
-        errorMsg: "File size exceeds limit (4.5 MB)",
-        isAuto,
-        status: "error",
-      }),
-    };
-    await sendMessageToAIRoom(newMessage);
-    return;
-  }
-  // download
-  await mediaLoader.fetch(mediaHash, 0);
-  const blobUrl = mediaLoader.getFromMemory(mediaHash);
-  if (!blobUrl) {
-    sendErrorMessage(newMessage, message, isAuto);
-    return;
-  }
-
-  const response = await fetch(blobUrl);
-  const blob = await response.blob();
-  //
-  const formData = new FormData();
-  formData.append("file", blob, filename || "audio.ogg");
-  if (mimeType) formData.append("mimeType", mimeType);
   try {
+    // check size
+    if (size && size > 4.5 * 1024 * 1024) {
+      showMessage.info("File size exceeds limit (4.5 MB)");
+      newMessage = {
+        ...newMessage,
+        content: JSON.stringify({
+          message,
+          errorMsg: "File size exceeds limit (4.5 MB)",
+          isAuto,
+          status: "error",
+        }),
+      };
+      await sendMessageToAIRoom(newMessage);
+      return;
+    }
+    // download
+    await mediaLoader.fetch(mediaHash, 0);
+    const blobUrl = mediaLoader.getFromMemory(mediaHash);
+    if (!blobUrl) {
+      sendErrorMessage(newMessage, message, isAuto);
+      return;
+    }
+
+    const response = await fetch(blobUrl);
+    const blob = await response.blob();
+    //
+    const formData = new FormData();
+    formData.append("file", blob, filename || "audio.ogg");
+    formData.append("language", getAutoTransLang());
+    if (mimeType) formData.append("mimeType", mimeType);
+
     const summaryResponse: any = await audioAISummary(formData);
     if (summaryResponse?.text) {
       newMessage = {
@@ -481,7 +495,10 @@ async function handleImageToSummaryText({
   const reader = new FileReader();
   reader.onloadend = function () {
     const base64Data = reader.result?.toString().split(",")[1] || "";
-    imageAISummary(`data:${mimeType};base64,` + base64Data)
+    imageAISummary({
+      image: `data:${mimeType};base64,` + base64Data,
+      language: getAutoTransLang(),
+    })
       .then((response: any) => {
         if (response?.text) {
           newMessage = {
@@ -541,4 +558,15 @@ async function sendErrorMessage(
     }),
   };
   await sendMessageToAIRoom(newMessage);
+}
+
+export function getAutoTransLang() {
+  const global = getGlobal();
+  const { autoTranslateLanguage = "en" } = global.settings.byKey;
+
+  return (
+    new Intl.DisplayNames([autoTranslateLanguage], { type: "language" }).of(
+      autoTranslateLanguage
+    ) || "en"
+  );
 }
