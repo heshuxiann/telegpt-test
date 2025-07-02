@@ -4,39 +4,54 @@ import React, { useState } from 'react';
 import type { TabsProps } from 'antd';
 import { Tabs } from 'antd';
 
+import type { TabWithProperties } from '../component/TabList';
+
 import SummarizeTab from './surmarize-tab';
 import UrgentAlertTab from './urgent-alert-tab';
 
+import TabList from '../component/TabList';
 import { useDrawerStore } from '../globalSummary/DrawerContext';
 
 import './personalized-settings.scss';
 
 const PersonalizeSettings = () => {
   const { drawerParams } = useDrawerStore();
-  const [activeKey, setActiveKey] = useState(drawerParams?.activeKey || '1');
-  const items: TabsProps['items'] = [
+  const [selectedTabIndex, setSelectedTabIndex] = useState(drawerParams?.activeKey || 0);
+  const transactionTabs: TabWithProperties[] = [
     {
-      key: '1',
-      label: 'Summarize',
-      children: <SummarizeTab />,
+      title: 'Summarize',
     },
     {
-      key: '2',
-      label: 'Urgent Alert',
-      children: <UrgentAlertTab />,
+      title: 'Urgent Alert',
     },
   ];
-  const onChange = (key: string) => {
-    console.log(key);
-    setActiveKey(key);
+  const renderContent = () => {
+    switch (selectedTabIndex) {
+      case 0:
+        return <SummarizeTab />;
+      case 1:
+        return <UrgentAlertTab />;
+      default:
+        return undefined;
+    }
   };
   return (
-    <Tabs
-      className="personalized-settings-tab h-full"
-      defaultActiveKey={activeKey}
-      items={items}
-      onChange={onChange}
-    />
+    // <Tabs
+    //   className="personalized-settings-tab h-full"
+    //   defaultActiveKey={activeKey}
+    //   items={items}
+    //   onChange={onChange}
+    // />
+    <div className="flex flex-col h-full">
+      <TabList
+        activeTab={selectedTabIndex}
+        tabs={transactionTabs}
+        onSwitchTab={setSelectedTabIndex}
+      />
+      <div className="pt-[20px] flex-1">
+        {renderContent()}
+      </div>
+    </div>
   );
 };
 

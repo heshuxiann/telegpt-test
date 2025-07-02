@@ -4,10 +4,10 @@
 /* eslint-disable no-null/no-null */
 import React, { useCallback, useEffect, useState } from 'react';
 import type { ITimezone } from 'react-timezone-select';
-import TimezoneSelect from 'react-timezone-select';
 import type { Message } from 'ai';
 import {
   Button, ConfigProvider, DatePicker, Input,
+  Select,
   theme,
 } from 'antd';
 import type { RangePickerProps } from 'antd/es/date-picker';
@@ -20,6 +20,7 @@ import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { selectTheme } from '../../../global/selectors';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import { CloseIcon } from '../icons';
+import { useTimezoneSelect } from '../utils/time-zones';
 
 import CalendarIcon from '../assets/calendar.png';
 import DefaultAvatar from '../assets/default-avatar.png';
@@ -84,6 +85,7 @@ const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
     // Can not select days before today and today
     return current && current < dayjs().startOf('day');
   }, []);
+  const { options: timeZoneOptions, parseTimezone } = useTimezoneSelect();
   const { RangePicker } = DatePicker;
   const [title, setTitle] = useState('');
   const [email, setEmail] = useState('');
@@ -233,10 +235,12 @@ const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
                 format="YYYY/MM/DD HH:mm"
                 onChange={handleTimeChange}
               />
-              <TimezoneSelect
-                className="bg-white dark:bg-[#141414]"
-                value={selectedTimezone}
+              <Select
+                className="w-full"
+                placeholder="Please select"
                 onChange={handleTimeZoomChange}
+                options={timeZoneOptions}
+                value={parseTimezone(selectedTimezone)}
               />
             </div>
             {dateError && <ErrorTip message={dateError} />}

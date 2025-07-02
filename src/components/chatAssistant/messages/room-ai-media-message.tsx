@@ -94,7 +94,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
     if (webPage || isUrl) {
       return (
         <div className={buildClassName("flex", !isAuto ? "justify-end" : "")}>
-          <div className="rounded-[16px] bg-[var(--color-background)] p-3 text-[var(--color-text)] break-all">
+          <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)] break-all">
             {webPage
               ? message?.content?.webPage?.url
               : message?.content?.text?.text}
@@ -121,7 +121,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
     } else if (document) {
       return (
         <div className={buildClassName("flex", !isAuto ? "justify-end" : "")}>
-          <div className="rounded-[16px] bg-[var(--color-background)] p-3 text-[var(--color-text)] break-all">
+          <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)] break-all">
             {message?.content.document?.fileName}
           </div>
         </div>
@@ -129,7 +129,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
     } else if (audio) {
       return (
         <div className={buildClassName("flex", !isAuto ? "justify-end" : "")}>
-          <div className="rounded-[16px] bg-[var(--color-background)] p-3 text-[var(--color-text)] break-all">
+          <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)] break-all">
             {message?.content.audio?.fileName}
           </div>
         </div>
@@ -137,7 +137,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
     } else if (voice) {
       return (
         <div className={buildClassName("flex", !isAuto ? "justify-end" : "")}>
-          <div className="rounded-[16px] bg-[var(--color-background)] p-3 text-[var(--color-text)] break-all">
+          <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)] break-all">
             {message?.content?.voice && (
               <div className="waveform-wrapper">
                 <div className="waveform" draggable={false}>
@@ -168,7 +168,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
     const isImage = document ? checkIsImage(document?.mimeType) : false
     if (webPage || isUrl) {
       return summaryInfo?.title ? (
-        <div className="rounded-[16px] bg-[var(--color-background)] p-3 text-[var(--color-text)]">
+        <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)]">
           <div className="font-[600] text-[16px]">
             Summary of the Article: "{summaryInfo?.title}"
           </div>
@@ -199,7 +199,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
       );
     } else if (photo || isImage) {
       return (
-        <div className="rounded-[16px] bg-[var(--color-background)] text-[var(--color-text)] p-3 text-[14px]">
+        <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] text-[var(--color-text)] p-3 text-[14px]">
           {isAuto ? (
             <div className="font-[600]">Image summarize</div>
           ) : (
@@ -215,7 +215,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
       );
     } else {
       return (
-        <div className="rounded-[16px] bg-[var(--color-background)] p-3 text-[var(--color-text)]">
+        <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)]">
           <div className="font-[600] text-[16px]">Key Highlights:</div>
           <div className="flex flex-col mt-2">
             {summaryInfo?.map((item: any) => {
@@ -311,7 +311,7 @@ export const AppendixIcon = (props: SVGProps<SVGSVGElement>) => (
 
 const NoSummaryContent = ({ content }: { content: string }) => {
   return (
-    <div className="rounded-[16px] bg-[var(--color-background)] p-3 text-[var(--color-text)]">
+    <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)]">
       I couldn’t find any accessible content from the {content} you provided. It
       appears the search query didn’t return any results. Could you please paste
       the text you want summarized? That way, I can give you a clear and

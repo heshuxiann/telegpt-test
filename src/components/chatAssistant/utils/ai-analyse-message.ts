@@ -57,8 +57,18 @@ export async function replyToMention(
             status: "success",
           }),
         };
-        sendMessageToAIRoom(newMessage);
+      } else {
+        newMessage = {
+          ...newMessage,
+          content: JSON.stringify({
+            message,
+            errorMsg: "Reply error",
+            isAuto,
+            status: "error",
+          }),
+        };
       }
+      sendMessageToAIRoom(newMessage);
     })
     .catch((err) => {
       console.log("error", err);
@@ -66,7 +76,7 @@ export async function replyToMention(
         ...newMessage,
         content: JSON.stringify({
           message,
-          errorMsg: "Summary error",
+          errorMsg: "Reply error",
           isAuto,
           status: "error",
         }),
@@ -132,8 +142,18 @@ export async function photoSummary(
               status: "success",
             }),
           };
-          sendMessageToAIRoom(newMessage);
+        } else {
+          newMessage = {
+            ...newMessage,
+            content: JSON.stringify({
+              message,
+              errorMsg: "Summary error",
+              isAuto,
+              status: "error",
+            }),
+          };
         }
+        sendMessageToAIRoom(newMessage);
       })
       .catch((err) => {
         console.log("error", err);
@@ -183,8 +203,18 @@ export async function webPageSummary(
             status: "success",
           }),
         };
-        sendMessageToAIRoom(newMessage);
+      } else {
+        newMessage = {
+          ...newMessage,
+          content: JSON.stringify({
+            message,
+            errorMsg: "Summary error",
+            isAuto,
+            status: "error",
+          }),
+        };
       }
+      sendMessageToAIRoom(newMessage);
     })
     .catch((err) => {
       console.log("error", err);
@@ -304,8 +334,18 @@ export async function documentSummary(
             status: "success",
           }),
         };
-        sendMessageToAIRoom(newMessage);
+      } else {
+        newMessage = {
+          ...newMessage,
+          content: JSON.stringify({
+            message,
+            errorMsg: "Summary error",
+            isAuto,
+            status: "error",
+          }),
+        };
       }
+      sendMessageToAIRoom(newMessage);
     })
     .catch((err) => {
       console.log("error", err);
@@ -418,8 +458,18 @@ export async function voiceSummary(
             status: "success",
           }),
         };
-        sendMessageToAIRoom(newMessage);
+      } else {
+        newMessage = {
+          ...newMessage,
+          content: JSON.stringify({
+            message,
+            errorMsg: "Summary error",
+            isAuto,
+            status: "error",
+          }),
+        };
       }
+      sendMessageToAIRoom(newMessage);
     })
     .catch((err) => {
       console.log("error", err);
@@ -645,8 +695,18 @@ async function handleImageToSummaryText({
               status: "success",
             }),
           };
-          sendMessageToAIRoom(newMessage);
+        } else {
+          newMessage = {
+            ...newMessage,
+            content: JSON.stringify({
+              message,
+              errorMsg: "Summary error",
+              isAuto,
+              status: "error",
+            }),
+          };
         }
+        sendMessageToAIRoom(newMessage);
       })
       .catch((err) => {
         console.log("error", err);
@@ -666,10 +726,13 @@ async function handleImageToSummaryText({
 }
 
 export function canSummarize(message: ApiMessage) {
-  const { photo, document, webPage, voice, audio, text } = message?.content;
+  const { photo, document, webPage, voice, audio, text, video } =
+    message?.content;
   const isUrl = checkIsUrl(text?.text);
 
-  return photo || document || webPage || voice || audio || text || isUrl;
+  return (
+    photo || document || webPage || voice || audio || text || isUrl || video
+  );
 }
 
 export function checkIsUrl(text?: string) {

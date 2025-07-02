@@ -2,10 +2,8 @@
 import React, { useEffect, useState } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
 
-import type { ThreadId } from '../../../types';
-
 import eventEmitter, { Actions } from '../lib/EventEmitter';
-import RoomAIAssistant from './room-ai-assistant';
+import RoomStorage from '../room-storage';
 
 import useLastCallback from '../../../hooks/useLastCallback';
 
@@ -25,7 +23,7 @@ const RoomAIActionButton = (props: OwnProps) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const onClick = useLastCallback(() => {
     openChatAIWithInfo({ chatId });
-    RoomAIAssistant.updateRoomAIData(chatId, 'unreadCount', 0);
+    RoomStorage.updateRoomAIData(chatId, 'unreadCount', 0);
     setUnreadCount(0);
   });
   const updateUnreadCount = useLastCallback((param:{ chatId:string; count:number }) => {
@@ -34,9 +32,9 @@ const RoomAIActionButton = (props: OwnProps) => {
     }
   });
   useEffect(() => {
-    const count = RoomAIAssistant.getRoomAIUnreadCount(chatId);
+    const count = RoomStorage.getRoomAIUnreadCount(chatId);
     setUnreadCount(count);
-    RoomAIAssistant.summary(chatId);
+    RoomStorage.summary(chatId);
     eventEmitter.on(Actions.UpdateRoomAIUnreadCount, updateUnreadCount);
     return () => {
       eventEmitter.off(Actions.UpdateRoomAIUnreadCount, updateUnreadCount);
