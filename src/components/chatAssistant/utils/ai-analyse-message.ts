@@ -17,8 +17,6 @@ import { message as showMessage } from "antd";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import { getActions, getGlobal } from "../../../global";
 import { selectChatMessage } from "../../../global/selectors";
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile } from '@ffmpeg/util';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js";
 
@@ -59,8 +57,18 @@ export async function replyToMention(
             status: "success",
           }),
         };
-        sendMessageToAIRoom(newMessage);
+      } else {
+        newMessage = {
+          ...newMessage,
+          content: JSON.stringify({
+            message,
+            errorMsg: "Reply error",
+            isAuto,
+            status: "error",
+          }),
+        };
       }
+      sendMessageToAIRoom(newMessage);
     })
     .catch((err) => {
       console.log("error", err);
@@ -68,7 +76,7 @@ export async function replyToMention(
         ...newMessage,
         content: JSON.stringify({
           message,
-          errorMsg: "Summary error",
+          errorMsg: "Reply error",
           isAuto,
           status: "error",
         }),
@@ -134,8 +142,18 @@ export async function photoSummary(
               status: "success",
             }),
           };
-          sendMessageToAIRoom(newMessage);
+        } else {
+          newMessage = {
+            ...newMessage,
+            content: JSON.stringify({
+              message,
+              errorMsg: "Summary error",
+              isAuto,
+              status: "error",
+            }),
+          };
         }
+        sendMessageToAIRoom(newMessage);
       })
       .catch((err) => {
         console.log("error", err);
@@ -185,8 +203,18 @@ export async function webPageSummary(
             status: "success",
           }),
         };
-        sendMessageToAIRoom(newMessage);
+      } else {
+        newMessage = {
+          ...newMessage,
+          content: JSON.stringify({
+            message,
+            errorMsg: "Summary error",
+            isAuto,
+            status: "error",
+          }),
+        };
       }
+      sendMessageToAIRoom(newMessage);
     })
     .catch((err) => {
       console.log("error", err);
@@ -306,8 +334,18 @@ export async function documentSummary(
             status: "success",
           }),
         };
-        sendMessageToAIRoom(newMessage);
+      } else {
+        newMessage = {
+          ...newMessage,
+          content: JSON.stringify({
+            message,
+            errorMsg: "Summary error",
+            isAuto,
+            status: "error",
+          }),
+        };
       }
+      sendMessageToAIRoom(newMessage);
     })
     .catch((err) => {
       console.log("error", err);
@@ -420,8 +458,18 @@ export async function voiceSummary(
             status: "success",
           }),
         };
-        sendMessageToAIRoom(newMessage);
+      } else {
+        newMessage = {
+          ...newMessage,
+          content: JSON.stringify({
+            message,
+            errorMsg: "Summary error",
+            isAuto,
+            status: "error",
+          }),
+        };
       }
+      sendMessageToAIRoom(newMessage);
     })
     .catch((err) => {
       console.log("error", err);
@@ -647,8 +695,18 @@ async function handleImageToSummaryText({
               status: "success",
             }),
           };
-          sendMessageToAIRoom(newMessage);
+        } else {
+          newMessage = {
+            ...newMessage,
+            content: JSON.stringify({
+              message,
+              errorMsg: "Summary error",
+              isAuto,
+              status: "error",
+            }),
+          };
         }
+        sendMessageToAIRoom(newMessage);
       })
       .catch((err) => {
         console.log("error", err);
@@ -667,55 +725,14 @@ async function handleImageToSummaryText({
   reader.readAsDataURL(blob);
 }
 
-export async function videoSummary(
-  message: ApiMessage,
-  isAuto: boolean = false
-) {
-  const video = message.content?.video;
-  if (!video) return;
-  const mediaHash = getMediaHash(video, "download");
-  if (!mediaHash) return;
-  //
-  let newMessage: StoreMessage = {
-    chatId: message.chatId,
-    timestamp: new Date().getTime(),
-    id: uuidv4(),
-    createdAt: new Date(),
-    role: "assistant",
-    annotations: [{ type: "room-ai-media-summary" }],
-    content: JSON.stringify({ message, isAuto, status: "loading" }),
-  }
-  await sendMessageToAIRoom(newMessage);
-  // download
-  await mediaLoader.fetch(mediaHash, 0);
-  const blobUrl = mediaLoader.getFromMemory(mediaHash);
-  if (!blobUrl) {
-    showMessage.info("Can't download the file");
-    newMessage = {
-      ...newMessage,
-      content: JSON.stringify({
-        message,
-        errorMsg: "Can't download the file",
-        isAuto,
-        status: "error",
-      }),
-    };
-    await sendMessageToAIRoom(newMessage);
-    return;
-  }
-  // const response = await fetch(blobUrl);
-  // const blob = await response.blob();
-
-  // const audioBlob = await processVideo(blob);
-  await extractAudio(blobUrl)
-
-}
-
 export function canSummarize(message: ApiMessage) {
-  const { photo, document, webPage, voice, audio, text } = message?.content;
+  const { photo, document, webPage, voice, audio, text, video } =
+    message?.content;
   const isUrl = checkIsUrl(text?.text);
 
-  return photo || document || webPage || voice || audio || text || isUrl;
+  return (
+    photo || document || webPage || voice || audio || text || isUrl || video
+  );
 }
 
 export function checkIsUrl(text?: string) {
@@ -728,68 +745,3 @@ export function checkIsUrl(text?: string) {
 export function checkIsImage(mimeType: string) {
   return mimeType.startsWith("image/");
 }
-
-const processVideo = async (blob: Blob) => {
-  // 1. 加载FFmpeg核心
-  const ffmpeg = new FFmpeg();
-  await ffmpeg.load({
-    coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js',
-  });
-  // 2. 将二进制数据转换为Uint8Array
-  const arrayBuffer = await blob.arrayBuffer();
-  const videoData = new Uint8Array(arrayBuffer);
-
-  // 3. 写入虚拟文件系统
-  await ffmpeg.writeFile('input.mp4', videoData);
-
-  // 4. 执行FFmpeg命令 - 提取音频
-  await ffmpeg.exec([
-    '-i', 'input.mp4',   // 输入文件
-    '-vn',               // 禁用视频流
-    '-acodec', 'libmp3lame', // 使用MP3编码器
-    '-q:a', '2',         // 音频质量 (0-9, 0最好)
-    'output.mp3'         // 输出文件
-  ]);
-
-  // 5. 读取生成的音频
-  const audioData = await ffmpeg.readFile('output.mp3');
-  // 6. 清理文件
-  await ffmpeg.deleteFile('input.mp4');
-  await ffmpeg.deleteFile('output.mp3');
-
-  return new Blob([audioData], { type: 'audio/mpeg' });
-};
-
-const extractAudio = async (videoFile: string) => {
-  const ffmpeg = new FFmpeg();
-  await ffmpeg.load({
-    coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js',
-  });
-  // 1. 写入视频文件到虚拟文件系统
-  await ffmpeg.writeFile('input.mp4', await fetchFile(videoFile));
-
-  // 2. 执行FFmpeg命令：提取音频并转码为MP3
-  await ffmpeg.exec([
-    '-i', 'input.mp4',   // 输入文件
-    '-vn',               // 禁用视频流
-    '-acodec', 'libmp3lame', // 使用MP3编码器
-    '-q:a', '2',         // 音频质量 (0-9, 0最好)
-    'output.mp3'         // 输出文件
-  ]);
-
-  // 3. 读取生成的音频文件
-  const audioData = await ffmpeg.readFile('output.mp3');
-  await ffmpeg.deleteFile('input.mp4');
-  await ffmpeg.deleteFile('output.mp3');
-  const blob = new Blob([audioData], { type: 'audio/mpeg' });
-
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'output.mp3';  // 设置下载文件的名字
-  a.click();
-
-  // 释放创建的URL
-  URL.revokeObjectURL(url);
-
-};
