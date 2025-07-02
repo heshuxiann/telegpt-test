@@ -9,7 +9,8 @@ import type { ApiMessage } from '../../../api/types';
 import type { ICreateMeetResponse } from './google-api';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
-import { checkGoogleAuthStatus, createGoogleMeet, loginWithGoogle } from './google-api';
+import { createGoogleMeet, loginWithGoogle } from './google-api';
+import { getAuthState, isTokenValid } from './google-auth';
 
 function formatTimeRange(startISO:string, endISO:string) {
   const startDate = new Date(startISO);
@@ -136,26 +137,27 @@ class ScheduleMeeting {
     });
   }
 
-  private async handleGoogleAuthCheck({ date, email }:{ date:string;email:string[] }) {
-    const accessToken = await checkGoogleAuthStatus();
-    if (accessToken) {
-      this.handleCreateGoogleMeet({ date, email, accessToken });
-    } else {
+  private handleGoogleAuthCheck({ date, email }:{ date:string;email:string[] }) {
+    const auth = getAuthState();
+    if (!auth || !isTokenValid(auth)) {
       Modal.confirm({
         title: 'Google authorization',
         content: 'This service requires access to your Google Calendar.',
         okText: 'Confirm',
         cancelText: 'Cancel',
         onOk: () => {
-          // eslint-disable-next-line @typescript-eslint/no-shadow
-          loginWithGoogle().then(({ accessToken }) => {
-            this.handleCreateGoogleMeet({ date, email, accessToken });
+          loginWithGoogle().then((authState) => {
+            this.handleCreateGoogleMeet({ date, email, accessToken: authState.accessToken! });
+          }).catch((error) => {
+            console.error('Google login failed:', error);
           });
         },
         onCancel() {
           console.log('用户点击了取消');
         },
       });
+    } else {
+      this.handleCreateGoogleMeet({ date, email, accessToken: auth.accessToken! });
     }
   }
 
@@ -170,7 +172,7 @@ class ScheduleMeeting {
     }).then((createMeetResponse:ICreateMeetResponse) => {
       console.log('createMeetResponse', createMeetResponse);
       if (createMeetResponse) {
-        const eventMessage = `Event details \n📝 Title\n${createMeetResponse.summary}\n👥 Guests\n${createMeetResponse.attendees.map((attendee) => attendee.email).join('\\n')}\n📅 Time\n${formatTimeRange(createMeetResponse.start.dateTime,createMeetResponse.end.dateTime)}\n${createMeetResponse.start.timeZone}\n🔗 Meeting link\n${createMeetResponse.hangoutLink}
+        const eventMessage = `Event details \n📝 Title\n${createMeetResponse.summary}\n👥 Guests\n${createMeetResponse.attendees.map((attendee) => attendee.email).join('\\n')}\n📅 Time\n${formatTimeRange(createMeetResponse.start.dateTime, createMeetResponse.end.dateTime)}\n${createMeetResponse.start.timeZone}\n🔗 Meeting link\n${createMeetResponse.hangoutLink}
             `;
         this.sendMessage(eventMessage);
       }

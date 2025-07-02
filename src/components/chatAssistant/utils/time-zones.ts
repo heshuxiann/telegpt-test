@@ -134,7 +134,7 @@ export function useTimezoneSelect() {
       } catch (e) {
         return null;
       }
-    }).filter(Boolean).sort((a, b) => a.offset - b.offset);
+    }).filter(Boolean).sort((a, b) => a.offset - b.offset) as ITimezoneOption[];
   }, [timezones]);
   const findFuzzyTz = (zone:any) => {
     let _a;

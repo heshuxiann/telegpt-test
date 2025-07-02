@@ -9,7 +9,7 @@ import { MAIN_THREAD_ID } from '../../../api/types';
 import { selectChat, selectChatLastMessageId, selectUser } from '../../../global/selectors';
 import { getActionItems, summaryMessage } from '../utils/chat-api';
 import { fetchChatMessageByOffsetId, formateMessage2Summary } from '../utils/fetch-messages';
-import { checkGoogleAuthStatus } from '../utils/google-api';
+import { getAuthState, isTokenValid } from '../utils/google-auth';
 
 export const createRoomDescriptionMessage = (chatId:string):Message => {
   return {
@@ -46,12 +46,12 @@ export const createGoogleMeetingMessage = ():Message => {
   };
 };
 
-export const scheduleGoogleMeeting = async (insertMessage:(message:Message)=>void, callback?:()=>void) => {
-  const loginStatus = await checkGoogleAuthStatus();
-  if (loginStatus) {
-    insertMessage(createGoogleMeetingMessage());
-  } else {
+export const scheduleGoogleMeeting = (insertMessage:(message:Message)=>void, callback?:()=>void) => {
+  const auth = getAuthState();
+  if (!auth || !isTokenValid(auth)) {
     insertMessage(createGoogleLoginMessage());
+  } else {
+    insertMessage(createGoogleMeetingMessage());
   }
   callback?.();
 };
