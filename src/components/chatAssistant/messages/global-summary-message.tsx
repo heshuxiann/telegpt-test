@@ -211,7 +211,13 @@ const ActionsItems = ({
   const handleCopy = () => {
     const { summaryStartTime, summaryEndTime } = summaryInfo || {};
     const timeRange = formatTimestampRange(summaryStartTime, summaryEndTime);
-    const copyText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.chatRoomName}: ${item.summary}`).join('\n')}\n`;
+    let copyText = `Chat Summary\nTime Range: ${timeRange}`;
+    if (mainTopic.length > 0) {
+      copyText += `\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}`;
+    }
+    if (pendingMatters.length > 0) {
+      copyText += `\nActions Items:\n${pendingMatters.map((item) => `${item.chatRoomName}: ${item.summary}`).join('\n')}`;
+    }
     copy(copyText);
     showNotification({
       message: lang('TextCopied'),
@@ -220,8 +226,13 @@ const ActionsItems = ({
   const handleVoicePlay = () => {
     const { summaryStartTime, summaryEndTime } = summaryInfo || {};
     const timeRange = formatTimestampRange(summaryStartTime, summaryEndTime);
-    const voiceText = `Chat Summary\nTime Range: ${timeRange}\n\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}\n\nActions Items:\n${pendingMatters.map((item) => `${item.chatRoomName}: ${item.summary}`).join('\n')}`;
-
+    let voiceText = `Chat Summary\nTime Range: ${timeRange}`;
+    if (mainTopic.length > 0) {
+      voiceText += `\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}`;
+    }
+    if (pendingMatters.length > 0) {
+      voiceText += `\nActions Items:\n${pendingMatters.map((item) => `${item.chatRoomName}: ${item.summary}`).join('\n')}`;
+    }
     if (isSpeaking) {
       stop();
     } else {
