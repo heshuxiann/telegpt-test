@@ -97,7 +97,7 @@ const ReplyMentionMessage = (props: IProps) => {
               return (
                 <div
                   className={buildClassName(
-                    "bg-[#F4F4F4] rounded-[6px] p-[6px] ",
+                    "bg-[var(--color-ai-room-mention-reply-bg)] rounded-[6px] p-[6px] ",
                     disabled
                       ? "cursor-not-allowed opacity-50"
                       : "cursor-pointer hover:opacity-80"
