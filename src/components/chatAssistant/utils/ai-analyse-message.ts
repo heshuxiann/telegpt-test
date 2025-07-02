@@ -57,31 +57,14 @@ export async function replyToMention(
             status: "success",
           }),
         };
+        sendMessageToAIRoom(newMessage);
       } else {
-        newMessage = {
-          ...newMessage,
-          content: JSON.stringify({
-            message,
-            errorMsg: "Reply error",
-            isAuto,
-            status: "error",
-          }),
-        };
+        sendErrorMessage(newMessage, message, isAuto);
       }
-      sendMessageToAIRoom(newMessage);
     })
     .catch((err) => {
       console.log("error", err);
-      newMessage = {
-        ...newMessage,
-        content: JSON.stringify({
-          message,
-          errorMsg: "Reply error",
-          isAuto,
-          status: "error",
-        }),
-      };
-      sendMessageToAIRoom(newMessage);
+      sendErrorMessage(newMessage, message, isAuto);
     });
 }
 
@@ -106,70 +89,13 @@ export async function photoSummary(
   };
   await sendMessageToAIRoom(newMessage);
 
-  // download
-  await mediaLoader.fetch(mediaHash, 0);
-  const blobUrl = mediaLoader.getFromMemory(mediaHash);
-  if (!blobUrl) {
-    showMessage.info("Can't download the file");
-    newMessage = {
-      ...newMessage,
-      content: JSON.stringify({
-        message,
-        errorMsg: "Can't download the file",
-        isAuto,
-        status: "error",
-      }),
-    };
-    await sendMessageToAIRoom(newMessage);
-    return;
-  }
-
-  const response = await fetch(blobUrl);
-  const blob = await response.blob();
-
-  const reader = new FileReader();
-  reader.onloadend = function () {
-    const base64Data = reader.result?.toString().split(",")[1] || "";
-    imageAISummary(`data:${mimeType};base64,` + base64Data)
-      .then((response: any) => {
-        if (response?.text) {
-          newMessage = {
-            ...newMessage,
-            content: JSON.stringify({
-              message,
-              summaryInfo: JSON.stringify({ text: response?.text }),
-              isAuto,
-              status: "success",
-            }),
-          };
-        } else {
-          newMessage = {
-            ...newMessage,
-            content: JSON.stringify({
-              message,
-              errorMsg: "Summary error",
-              isAuto,
-              status: "error",
-            }),
-          };
-        }
-        sendMessageToAIRoom(newMessage);
-      })
-      .catch((err) => {
-        console.log("error", err);
-        newMessage = {
-          ...newMessage,
-          content: JSON.stringify({
-            message,
-            errorMsg: "Summary error",
-            isAuto,
-            status: "error",
-          }),
-        };
-        sendMessageToAIRoom(newMessage);
-      });
-  };
-  reader.readAsDataURL(blob);
+  await handleImageToSummaryText({
+    mimeType,
+    mediaHash,
+    message,
+    newMessage,
+    isAuto,
+  });
 }
 
 export async function webPageSummary(
@@ -203,31 +129,14 @@ export async function webPageSummary(
             status: "success",
           }),
         };
+        sendMessageToAIRoom(newMessage);
       } else {
-        newMessage = {
-          ...newMessage,
-          content: JSON.stringify({
-            message,
-            errorMsg: "Summary error",
-            isAuto,
-            status: "error",
-          }),
-        };
+        sendErrorMessage(newMessage, message, isAuto);
       }
-      sendMessageToAIRoom(newMessage);
     })
     .catch((err) => {
       console.log("error", err);
-      newMessage = {
-        ...newMessage,
-        content: JSON.stringify({
-          message,
-          errorMsg: "Summary error",
-          isAuto,
-          status: "error",
-        }),
-      };
-      sendMessageToAIRoom(newMessage);
+      sendErrorMessage(newMessage, message, isAuto);
     });
 }
 
@@ -294,31 +203,11 @@ export async function documentSummary(
       text = pdfText;
       break;
     default:
-      showMessage.info("The file can't be summarized right now, comming soon.");
-      newMessage = {
-        ...newMessage,
-        content: JSON.stringify({
-          message,
-          errorMsg: "The file can't be summarized right now, comming soon.",
-          isAuto,
-          status: "error",
-        }),
-      };
-      await sendMessageToAIRoom(newMessage);
+      await sendErrorMessage(newMessage, message, isAuto);
       return;
   }
   if (text === "") {
-    showMessage.info("The file is empty, no summary required.");
-    newMessage = {
-      ...newMessage,
-      content: JSON.stringify({
-        message,
-        errorMsg: "The file is empty, no summary required.",
-        isAuto,
-        status: "error",
-      }),
-    };
-    await sendMessageToAIRoom(newMessage);
+    await sendErrorMessage(newMessage, message, isAuto);
     return;
   }
 
@@ -334,31 +223,14 @@ export async function documentSummary(
             status: "success",
           }),
         };
+        sendMessageToAIRoom(newMessage);
       } else {
-        newMessage = {
-          ...newMessage,
-          content: JSON.stringify({
-            message,
-            errorMsg: "Summary error",
-            isAuto,
-            status: "error",
-          }),
-        };
+        sendErrorMessage(newMessage, message, isAuto);
       }
-      sendMessageToAIRoom(newMessage);
     })
     .catch((err) => {
       console.log("error", err);
-      newMessage = {
-        ...newMessage,
-        content: JSON.stringify({
-          message,
-          errorMsg: "Summary error",
-          isAuto,
-          status: "error",
-        }),
-      };
-      sendMessageToAIRoom(newMessage);
+      sendErrorMessage(newMessage, message, isAuto);
     });
 }
 
@@ -384,17 +256,7 @@ export async function voiceSummary(
   const global = getGlobal();
   const { isTranscriptionError, transcriptionId } = message;
   if (isTranscriptionError) {
-    showMessage.info("Transcription error, no summary required.");
-    newMessage = {
-      ...newMessage,
-      content: JSON.stringify({
-        message,
-        errorMsg: "Transcription error, no summary required.",
-        isAuto,
-        status: "error",
-      }),
-    };
-    await sendMessageToAIRoom(newMessage);
+    sendErrorMessage(newMessage, message, isAuto);
     return;
   }
   if (transcriptionId && transcriptionId !== "") {
@@ -412,17 +274,7 @@ export async function voiceSummary(
       message.id
     );
     if (currentMessage?.isTranscriptionError) {
-      showMessage.info("Transcription error, no summary required.");
-      newMessage = {
-        ...newMessage,
-        content: JSON.stringify({
-          message,
-          errorMsg: "Transcription error, no summary required.",
-          isAuto,
-          status: "error",
-        }),
-      };
-      await sendMessageToAIRoom(newMessage);
+      sendErrorMessage(newMessage, message, isAuto);
       return;
     }
     if (
@@ -433,17 +285,7 @@ export async function voiceSummary(
     }
   }
   if (text === "") {
-    showMessage.info("No words detected, no summary required.");
-    newMessage = {
-      ...newMessage,
-      content: JSON.stringify({
-        message,
-        errorMsg: "No words detected, no summary required.",
-        isAuto,
-        status: "error",
-      }),
-    };
-    await sendMessageToAIRoom(newMessage);
+    await sendErrorMessage(newMessage, message, isAuto);
     return;
   }
   documentAISummary(text)
@@ -458,31 +300,14 @@ export async function voiceSummary(
             status: "success",
           }),
         };
+        sendMessageToAIRoom(newMessage);
       } else {
-        newMessage = {
-          ...newMessage,
-          content: JSON.stringify({
-            message,
-            errorMsg: "Summary error",
-            isAuto,
-            status: "error",
-          }),
-        };
+        sendErrorMessage(newMessage, message, isAuto);
       }
-      sendMessageToAIRoom(newMessage);
     })
     .catch((err) => {
       console.log("error", err);
-      newMessage = {
-        ...newMessage,
-        content: JSON.stringify({
-          message,
-          errorMsg: "Summary error",
-          isAuto,
-          status: "error",
-        }),
-      };
-      sendMessageToAIRoom(newMessage);
+      sendErrorMessage(newMessage, message, isAuto);
     });
 }
 
@@ -597,17 +422,7 @@ async function handleAudioToSummaryText({
   await mediaLoader.fetch(mediaHash, 0);
   const blobUrl = mediaLoader.getFromMemory(mediaHash);
   if (!blobUrl) {
-    showMessage.info("Can't download the file");
-    newMessage = {
-      ...newMessage,
-      content: JSON.stringify({
-        message,
-        errorMsg: "Can't download the file",
-        isAuto,
-        status: "error",
-      }),
-    };
-    await sendMessageToAIRoom(newMessage);
+    sendErrorMessage(newMessage, message, isAuto);
     return;
   }
 
@@ -629,20 +444,13 @@ async function handleAudioToSummaryText({
           status: "success",
         }),
       };
-      await sendMessageToAIRoom(newMessage);
+      sendMessageToAIRoom(newMessage);
+    } else {
+      sendErrorMessage(newMessage, message, isAuto);
     }
   } catch (err) {
     console.log("error", err);
-    newMessage = {
-      ...newMessage,
-      content: JSON.stringify({
-        message,
-        errorMsg: "Summary error",
-        isAuto,
-        status: "error",
-      }),
-    };
-    await sendMessageToAIRoom(newMessage);
+    sendErrorMessage(newMessage, message, isAuto);
   }
 }
 
@@ -663,17 +471,7 @@ async function handleImageToSummaryText({
   await mediaLoader.fetch(mediaHash, 0);
   const blobUrl = mediaLoader.getFromMemory(mediaHash);
   if (!blobUrl) {
-    showMessage.info("Can't download the file");
-    newMessage = {
-      ...newMessage,
-      content: JSON.stringify({
-        message,
-        errorMsg: "Can't download the file",
-        isAuto,
-        status: "error",
-      }),
-    };
-    await sendMessageToAIRoom(newMessage);
+    sendErrorMessage(newMessage, message, isAuto);
     return;
   }
 
@@ -695,31 +493,14 @@ async function handleImageToSummaryText({
               status: "success",
             }),
           };
+          sendMessageToAIRoom(newMessage);
         } else {
-          newMessage = {
-            ...newMessage,
-            content: JSON.stringify({
-              message,
-              errorMsg: "Summary error",
-              isAuto,
-              status: "error",
-            }),
-          };
+          sendErrorMessage(newMessage, message, isAuto);
         }
-        sendMessageToAIRoom(newMessage);
       })
       .catch((err) => {
         console.log("error", err);
-        newMessage = {
-          ...newMessage,
-          content: JSON.stringify({
-            message,
-            errorMsg: "Summary error",
-            isAuto,
-            status: "error",
-          }),
-        };
-        sendMessageToAIRoom(newMessage);
+        sendErrorMessage(newMessage, message, isAuto);
       });
   };
   reader.readAsDataURL(blob);
@@ -744,4 +525,20 @@ export function checkIsUrl(text?: string) {
 
 export function checkIsImage(mimeType: string) {
   return mimeType.startsWith("image/");
+}
+
+async function sendErrorMessage(
+  newMessage: StoreMessage,
+  message: ApiMessage,
+  isAuto: boolean
+) {
+  newMessage = {
+    ...newMessage,
+    content: JSON.stringify({
+      message,
+      isAuto,
+      status: "error",
+    }),
+  };
+  await sendMessageToAIRoom(newMessage);
 }
