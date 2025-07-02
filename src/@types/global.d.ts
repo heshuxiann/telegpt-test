@@ -169,3 +169,38 @@ interface FileSystemSyncAccessHandle {
 type FilesystemReadWriteOptions = {
   at: number;
 };
+
+declare global {
+  interface Window {
+    google: typeof google;
+  }
+}
+
+export namespace google {
+  export namespace accounts.oauth2 {
+    export interface TokenResponse {
+      access_token: string;
+      expires_in: number;
+      id_token?: string;
+      token_type: string;
+      scope: string;
+      error?: string;
+    }
+
+    export interface TokenClientConfig {
+      client_id: string;
+      scope: string;
+      prompt?: string;
+      ux_mode?: 'popup' | 'redirect';
+      callback: (response: TokenResponse) => void;
+    }
+
+    export interface TokenClient {
+      requestAccessToken: () => void;
+    }
+
+    export function initTokenClient(
+      config: TokenClientConfig
+    ): TokenClient;
+  }
+}

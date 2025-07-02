@@ -24,7 +24,7 @@ import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { sendGAEvent } from '../utils/analytics';
 import { getHitTools } from '../utils/chat-api';
-import { checkGoogleAuthStatus } from '../utils/google-api';
+import { getAuthState, isTokenValid } from '../utils/google-auth';
 import { toolsEmbeddingStore } from '../vector-store';
 import RoomActions from './room-actions';
 // import RoomAIDescription from './room-ai-des';
@@ -65,14 +65,14 @@ const RoomAIInner = (props: StateProps) => {
 
   const handleAddSummaryMessage = useCallback((message:Message) => {
     setMessages((prev) => {
-    const index = prev.findIndex((item) => item.id === message.id);
-    if (index !== -1) {
-      const newMessages = [...prev];
-      newMessages[index] = message;
-      return newMessages;
-    }
-    return [...prev, message];
-  });
+      const index = prev.findIndex((item) => item.id === message.id);
+      if (index !== -1) {
+        const newMessages = [...prev];
+        newMessages[index] = message;
+        return newMessages;
+      }
+      return [...prev, message];
+    });
   }, [setMessages]);
 
   useEffect(() => {
@@ -217,14 +217,14 @@ const RoomAIInner = (props: StateProps) => {
     getHitTools(formMessage.content).then((toolResults) => {
       setIsLoading(false);
       if (toolResults && toolResults.length > 0) {
-        toolResults.forEach(async (toolCall: any) => {
+        toolResults.forEach((toolCall: any) => {
           if (toolCall.toolName === 'checkIsCreateMeet') {
             // TODO createMeet
-            const loginStatus = await checkGoogleAuthStatus();
-            if (loginStatus) {
-              insertMessage(createGoogleMeetingMessage());
-            } else {
+            const auth = getAuthState();
+            if (!auth || !isTokenValid(auth)) {
               insertMessage(createGoogleLoginMessage());
+            } else {
+              insertMessage(createGoogleMeetingMessage());
             }
             sendGAEvent('google_meet');
           } else if (toolCall.toolName === 'nullTool') {

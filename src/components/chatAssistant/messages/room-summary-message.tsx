@@ -49,11 +49,6 @@ interface ISummaryPendingItem {
   summary: string;
   relevantMessageIds: number[];
 }
-interface ISummaryGarbageItem {
-  summary: string;
-  level: 'high' | 'low';
-  relevantMessageIds: number[];
-}
 
 const ChatAvatar = ({
   chatId, classNames, size, style,
@@ -113,24 +108,6 @@ const SummaryPenddingItem = ({ pendingItem }: { pendingItem: ISummaryPendingItem
       <div className="flex gap-[8px] my-[4px] cursor-pointer">
         <img className="w-[18px] h-[18px] mt-[2px]" src={CheckIcon} alt="" />
         <span className="text-[15px]">{pendingItem.summary}</span>
-      </div>
-    </ErrorBoundary>
-  );
-};
-
-const SummaryGarbageItem = ({ garBageItem }: { garBageItem: ISummaryGarbageItem }) => {
-  const { level, summary } = garBageItem;
-  return (
-    <ErrorBoundary>
-      <div className="flex justify-start gap-[8px] my-[16px]">
-        <div className="flex justify-start gap-[4px]">
-          {level === 'high' ? (
-            <span className="text-[#FF543D] text-[14px] whitespace-nowrap">🔴 High-Risk</span>
-          ) : (
-            <span className="text-[#FF9B05] text-[14px] whitespace-nowrap">🟡 Low-Risk</span>
-          )}
-          <span className="text-[14px] text-[var(--color-text-secondary)]">{summary}</span>
-        </div>
       </div>
     </ErrorBoundary>
   );
