@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import { Modal } from 'antd';
-import React, { memo, useMemo } from '../../../lib/teact/teact';
+import React, { memo, useMemo, useState } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type { ApiUser } from '../../../api/types';
@@ -31,7 +31,7 @@ import { IS_ELECTRON } from '../../../util/browser/windowEnvironment';
 import buildStyle from '../../../util/buildStyle';
 import { getPromptInstall } from '../../../util/installPrompt';
 import { switchPermanentWebVersion } from '../../../util/permanentWebVersion';
-import { deleteAiChatFolders, sortChatFolder } from '../../chatAssistant/ai-chatfolders/util';
+import { AIChatFolder, deleteAiChatFolders, hideTip } from '../../chatAssistant/ai-chatfolders/util';
 import { aiChatFoldersTask } from '../../chatAssistant/ai-task/ai-chatfolders-task';
 import AIChatFolderIcon from '../../chatAssistant/assets/ai-chat-folder.png';
 import AIKnowledgeIcon from '../../chatAssistant/assets/ai-knowledge.png';
@@ -48,6 +48,8 @@ import MenuSeparator from '../../ui/MenuSeparator';
 import Switcher from '../../ui/Switcher';
 import Toggle from '../../ui/Toggle';
 import AccountMenuItems from './AccountMenuItems';
+import Spinner from "../../ui/Spinner"
+import { AIChatFolderStep } from "../../chatAssistant/ai-chatfolders/ai-chatfolders-tip"
 
 type OwnProps = {
   onSelectAIKnowledge: NoneToVoidFunction;
@@ -67,6 +69,7 @@ type StateProps = {
   currentUser?: ApiUser;
   accountsTotalLimit: number;
   aiChatFolders?: boolean;
+  nextAiChatFolders?: AIChatFolder[]
 } & Pick<GlobalState, 'currentUserId' | 'archiveSettings'>;
 
 const LeftSideMenuItems = ({
@@ -79,6 +82,7 @@ const LeftSideMenuItems = ({
   currentUser,
   accountsTotalLimit,
   aiChatFolders,
+  nextAiChatFolders,
   onSelectArchived,
   onSelectContacts,
   onSelectSettings,
@@ -154,7 +158,9 @@ const LeftSideMenuItems = ({
     openChatWithInfo({ id: currentUserId, shouldReplaceHistory: true, profileTab: 'stories' });
   });
 
-  const handleSwitchAIChatFolders = useLastCallback((e: React.SyntheticEvent<HTMLElement>) => {
+  const [aiChatFoldersLoading, setAiChatFoldersLoading] = useState<boolean>(false)
+  const handleSwitchAIChatFolders = useLastCallback(async (e: React.SyntheticEvent<HTMLElement>) => {
+    if (aiChatFoldersLoading) return;
     e.stopPropagation();
     const isOpen = !aiChatFolders;
     if (!isOpen) {
@@ -162,16 +168,24 @@ const LeftSideMenuItems = ({
         title: 'Are you sure?',
         content: 'This will hide all AI chat folders, but you can enable this feature again.',
         onOk: async () => {
+          setAiChatFoldersLoading(true)
+          setSharedSettingOption({ aiChatFolders: isOpen });
           // delete ai chat folders
           await deleteAiChatFolders();
+          hideTip(AIChatFolderStep.classify)
           // await sortChatFolder();
-          setSharedSettingOption({ aiChatFolders: isOpen });
+          setAiChatFoldersLoading(false)
         },
         onCancel: () => {},
       });
     } else {
+      setAiChatFoldersLoading(true)
       setSharedSettingOption({ aiChatFolders: isOpen });
-      aiChatFoldersTask.classifyChatMessageByCount();
+      if (nextAiChatFolders && nextAiChatFolders?.length <= 0 ) {
+        await aiChatFoldersTask.classifyChatMessageByCount();
+      }
+      await aiChatFoldersTask.applyChatFolder();
+      setAiChatFoldersLoading(false)
     }
   });
 
@@ -204,7 +218,10 @@ const LeftSideMenuItems = ({
         onClick={handleSwitchAIChatFolders}
       >
         <span className="menu-item-name capitalize">{oldLang('AI Chat Folders')}</span>
-        <label className="Switcher no-animation" title="">
+        {aiChatFoldersLoading ? <Spinner
+          className="w-[18px] h-[18px] ml-2"
+          color={theme === "dark" ? "white" : "black"}
+        /> : <label className="Switcher no-animation" title="">
           <input
             type="checkbox"
             id="aiChatFolders"
@@ -212,7 +229,7 @@ const LeftSideMenuItems = ({
             disabled
           />
           <span className="widget" />
-        </label>
+        </label>}
       </MenuItem>
       <MenuItem
         icon="saved-messages"
@@ -328,6 +345,7 @@ export default memo(withGlobal<OwnProps>(
     } = global;
     const { animationLevel, aiChatFolders } = selectSharedSettings(global);
     const attachBots = global.attachMenu.bots;
+    const nextAiChatFolders = global.chatFolders.nextAiChatFolders
 
     return {
       currentUserId,
@@ -339,6 +357,7 @@ export default memo(withGlobal<OwnProps>(
       attachBots,
       accountsTotalLimit: selectPremiumLimit(global, 'moreAccounts'),
       aiChatFolders,
+      nextAiChatFolders
     };
   },
 )(LeftSideMenuItems));

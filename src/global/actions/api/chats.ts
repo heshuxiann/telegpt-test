@@ -136,6 +136,7 @@ import { selectCurrentLimit } from '../../selectors/limits';
 import { GLOBAL_SUMMARY_CHATID } from '../../../components/chatAssistant/variables';
 import { ChataiStores, GLOBAL_AI_TAG, GLOBAL_PRESET_TAG } from "../../../components/chatAssistant/store"
 import { selectSharedSettings } from "../../selectors/sharedState"
+import { filterAIFolder } from "../../../components/chatAssistant/ai-chatfolders/util"
 
 const TOP_CHAT_MESSAGES_PRELOAD_INTERVAL = 100;
 const INFINITE_LOOP_MARKER = 100;
@@ -1062,9 +1063,13 @@ addActionHandler('loadChatFolders', async (global): Promise<void> => {
     if (allAiChatFolders && allAiChatFolders?.length > 0) {
       global = getGlobal();
       let orderedIds = (chatFolders?.orderedIds ?? []);
-      orderedIds.splice(3, 0, UNREAD_FOLDER_ID)
-      orderedIds.push(PRESET_FOLDER_ID)
-      orderedIds.push(AI_FOLDER_ID)
+      if (global.chatFolders.aiChatFolders?.list &&
+        global.chatFolders.aiChatFolders?.list?.length > 0
+      ) {
+        orderedIds.splice(3, 0, UNREAD_FOLDER_ID)
+        orderedIds.push(PRESET_FOLDER_ID)
+        orderedIds.push(AI_FOLDER_ID)
+      }
       global = {
         ...global,
         chatFolders: {
@@ -1085,7 +1090,7 @@ addActionHandler('loadChatFolders', async (global): Promise<void> => {
       ...global,
       chatFolders: {
         ...global.chatFolders,
-        orderedIds: (chatFolders?.orderedIds ?? []).filter((id) => id !== PRESET_FOLDER_ID && id !== AI_FOLDER_ID),
+        orderedIds: filterAIFolder(chatFolders?.orderedIds ?? []),
         aiChatFolders: {
           activePresetTag: [],
           activeAITag: [],
