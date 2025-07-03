@@ -1,4 +1,4 @@
-import React, { FC, memo } from "../../../lib/teact/teact";
+import React, { FC, memo, useState, useEffect } from "../../../lib/teact/teact";
 import AiChatFoldersBg from "../../../assets/chat_ai_folder.png";
 import AiChatFoldersDarkBg from "../../../assets/chat_ai_folder_dark.png";
 import AiChatFoldersBtnBg from "../../../assets/chat_ai_folder_border.png";
@@ -7,12 +7,12 @@ import { ChataiStores, GLOBAL_AICHATFOLDERS_TIP_SHOW } from "../store";
 import { getActions, withGlobal } from "../../../global";
 import { aiChatFoldersTask } from "../ai-task/ai-chatfolders-task";
 import { message } from "antd";
-import { SVGProps } from "react";
 import { selectTheme } from "../../../global/selectors";
 import { ThemeKey } from "../../../types";
 import Spinner from "../../ui/Spinner";
 import "./ai-chatfolders-tip.scss";
 import Button from "../../ui/Button";
+import { AIChatFolder, hideTip } from "./util";
 
 export enum AIChatFolderStep {
   classify = "classify",
@@ -20,19 +20,24 @@ export enum AIChatFolderStep {
 }
 
 type OwnProps = {
-  isFristShow?: boolean;
   step: AIChatFolderStep;
   loading?: boolean;
-  theme?: ThemeKey;
   onClose?: () => void;
 };
-const AIChatFoldersTip: FC<OwnProps> = ({
-  isFristShow,
+type StateProps = {
+  theme: ThemeKey;
+  nextAiChatFolders: AIChatFolder[];
+};
+
+const AIChatFoldersTip: FC<OwnProps & StateProps> = ({
   step,
   loading,
   theme,
+  nextAiChatFolders,
   onClose,
-}: OwnProps) => {
+}: OwnProps & StateProps) => {
+  const [isFristShow, setIsFristShow] = useState<boolean>(true);
+
   function onCloseClick() {
     if (isFristShow) {
       message.open({
@@ -42,6 +47,7 @@ const AIChatFoldersTip: FC<OwnProps> = ({
         className: "aichatfolders-tip-message",
       });
     }
+    hideTip(AIChatFolderStep.classify)
     ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_TIP_SHOW, false);
     onClose?.();
   }
@@ -52,13 +58,19 @@ const AIChatFoldersTip: FC<OwnProps> = ({
       const { setSharedSettingOption } = getActions();
       setSharedSettingOption({ aiChatFolders: true });
     }
-    if (isFristShow) {
+    if (nextAiChatFolders && nextAiChatFolders.length <= 0) {
       await aiChatFoldersTask.classifyChatMessageByCount();
     }
     await aiChatFoldersTask.applyChatFolder();
 
     onCloseClick();
   }
+
+  useEffect(() => {
+    ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW)?.then((res) => {
+      setIsFristShow(res === undefined ? true : false);
+    });
+  }, [loading]);
 
   return (
     <div
@@ -112,20 +124,16 @@ const AIChatFoldersTip: FC<OwnProps> = ({
 
 export default memo(
   withGlobal<OwnProps>((global) => {
+    const nextAiChatFolders = global.chatFolders.nextAiChatFolders;
     return {
       theme: selectTheme(global),
+      nextAiChatFolders,
     };
   })(AIChatFoldersTip)
 );
 
-const AIChatFolderIcon = (props: SVGProps<SVGSVGElement>) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={21}
-    height={21}
-    fill="none"
-    {...props}
-  >
+const AIChatFolderIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={21} height={21} fill="none">
     <path
       fill="currentColor"
       d="M13.375 7.625 9.54 6.187l3.834-1.439L14.812.917l1.44 3.831 3.831 1.44-3.832 1.437-1.439 3.833-1.437-3.833ZM5.708 15.29.917 13.375l4.791-1.917 1.917-4.792 1.916 4.792 4.792 1.917-4.792 1.916-1.916 4.792-1.917-4.791Z"

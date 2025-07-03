@@ -24,7 +24,7 @@ const ReplyMentionMessage = (props: IProps) => {
     try {
       replys = JSON.parse(content?.replys?.replace(/'/g, '"')?.replace(/,\s+/g, ','));
     } catch (error) {
-      console.log("aiChatFoldersTask----replys", error);
+      // console.log("aiChatFoldersTask----replys", error);
     }
   } catch (error) {}
 
