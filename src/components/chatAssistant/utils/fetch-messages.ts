@@ -209,7 +209,12 @@ export const fetchChatMessageByCount = async (props:{
     if (!result || !result.messages?.length) {
       break;
     }
-    messages = messages.concat(result.messages);
+    if (messages.length + result.messages.length >= maxCount) {
+      messages = messages.concat(result.messages.slice(0, maxCount - messages.length));
+      break;
+    } else {
+      messages = messages.concat(result.messages);
+    }
 
     offsetId = result.messages[result.messages.length - 1].id;
 
