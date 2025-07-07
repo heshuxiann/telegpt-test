@@ -412,6 +412,10 @@ export async function videoSummary(
     content: JSON.stringify({ message, isAuto, status: "loading" }),
   };
   await sendMessageToAIRoom(newMessage);
+  if (video?.mimeType !== "video/mp4") {
+    await sendErrorMessage(newMessage, message, isAuto);
+    return;
+  }
 
   await handleAudioToSummaryText({
     mediaHash,
