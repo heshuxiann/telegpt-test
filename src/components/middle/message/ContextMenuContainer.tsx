@@ -75,7 +75,7 @@ import {
 import buildClassName from '../../../util/buildClassName';
 import { copyTextToClipboard } from '../../../util/clipboard';
 import {
-  audioSummary, checkIsUrl, documentSummary, photoSummary, voiceToAudioSummary, webPageSummary,
+  audioSummary, checkIsUrl, documentSummary, photoSummary, videoSummary, voiceToAudioSummary, webPageSummary,
 } from '../../chatAssistant/utils/ai-analyse-message';
 import { chatAIGenerate } from '../../chatAssistant/utils/chat-api';
 import { createAuthConfirmModal } from '../../chatAssistant/utils/google-api';
@@ -699,7 +699,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
 
   const handleSummarize = useLastCallback(async () => {
     const {
-      photo, document, webPage, voice, audio, text,
+      photo, document, webPage, voice, audio, text, video
     } = message.content;
     const isUrl = checkIsUrl(text?.text);
     await openChatAIWithInfo({ chatId: message.chatId });
@@ -713,6 +713,8 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
       voiceToAudioSummary(message);
     } else if (audio) {
       audioSummary(message);
+    } else if (video) {
+      videoSummary(message);
     }
     closeMenu();
   });

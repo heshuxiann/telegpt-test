@@ -59,7 +59,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
   function getType() {
     if (!message) return "";
 
-    const { webPage, photo, document, audio, voice } = message?.content;
+    const { webPage, photo, document, audio, voice, video } = message?.content;
     const isUrl = checkIsUrl(message?.content?.text?.text);
     const isImage = document ? checkIsImage(document?.mimeType) : false;
     if (webPage || isUrl) {
@@ -72,6 +72,8 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
       return "audio";
     } else if (voice) {
       return "voice";
+    } else if (video) {
+      return "video";
     }
   }
 
@@ -90,7 +92,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
   function renderMessageContent() {
     if (!message) return "";
 
-    const { webPage, photo, document, audio, voice } = message?.content;
+    const { webPage, photo, document, audio, voice, video } = message?.content;
     const isUrl = checkIsUrl(message?.content?.text?.text);
     if (webPage || isUrl) {
       return (
@@ -155,6 +157,14 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
                 {message?.content?.audio?.title}
               </p>
             )}
+          </div>
+        </div>
+      );
+    } else if (video) {
+      return (
+        <div className={buildClassName("flex", !isAuto ? "justify-end" : "")}>
+          <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)] break-all">
+            {message?.content.video?.fileName}
           </div>
         </div>
       );
