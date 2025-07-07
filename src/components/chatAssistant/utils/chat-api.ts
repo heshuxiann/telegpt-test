@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from 'uuid';
 
 interface ChatProps {
   data: any;
@@ -7,10 +7,10 @@ interface ChatProps {
 }
 export const chatAIGenerate = (props: ChatProps) => {
   // `https://telegpt-three.vercel.app/generate?options=${JSON.stringify({ temperature: 0.1 })}`
-  fetch("https://telegpt-three.vercel.app/generate", {
-    method: "POST",
+  fetch('https://telegpt-three.vercel.app/generate', {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(props.data),
   })
@@ -25,10 +25,10 @@ export const chatAITranslate = (data: {
   text: string;
 }): Promise<{ text: string }> => {
   return new Promise((resolve, reject) => {
-    fetch("https://telegpt-three.vercel.app/translate", {
-      method: "POST",
+    fetch('https://telegpt-three.vercel.app/translate', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
     })
@@ -44,10 +44,10 @@ export const chatAITranslate = (data: {
 
 export const summaryMessage = (data: Object) => {
   return new Promise((resolve, reject) => {
-    fetch("https://telegpt-three.vercel.app/summary", {
-      method: "POST",
+    fetch('https://telegpt-three.vercel.app/summary', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
     })
@@ -63,10 +63,10 @@ export const summaryMessage = (data: Object) => {
 
 export const getActionItems = (data: Object) => {
   return new Promise((resolve, reject) => {
-    fetch("https://telegpt-three.vercel.app/action-items", {
-      method: "POST",
+    fetch('https://telegpt-three.vercel.app/action-items', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
     })
@@ -82,17 +82,17 @@ export const getActionItems = (data: Object) => {
 
 export const getHitTools = (text: string): Promise<Array<any>> => {
   return new Promise((resolve, reject) => {
-    fetch("https://telegpt-three.vercel.app/tool-check", {
-      method: "POST",
+    fetch('https://telegpt-three.vercel.app/tool-check', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         messages: [
           {
             id: uuidv4(),
             content: text,
-            role: "user",
+            role: 'user',
           },
         ],
       }),
@@ -109,10 +109,10 @@ export const getHitTools = (text: string): Promise<Array<any>> => {
 
 export function imageAISummary(data: Object) {
   return new Promise((resolve, reject) => {
-    fetch("https://telegpt-three.vercel.app/image-summary", {
-      method: "POST",
+    fetch('https://telegpt-three.vercel.app/image-summary', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
     })
@@ -128,10 +128,10 @@ export function imageAISummary(data: Object) {
 
 export function webPageAISummary(data: Object) {
   return new Promise((resolve, reject) => {
-    fetch("https://telegpt-three.vercel.app/webpage-summary", {
-      method: "POST",
+    fetch('https://telegpt-three.vercel.app/webpage-summary', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
     })
@@ -147,10 +147,10 @@ export function webPageAISummary(data: Object) {
 
 export function documentAISummary(data: Object) {
   return new Promise((resolve, reject) => {
-    fetch("https://telegpt-three.vercel.app/document-summary", {
-      method: "POST",
+    fetch('https://telegpt-three.vercel.app/document-summary', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
     })
@@ -164,10 +164,10 @@ export function documentAISummary(data: Object) {
   });
 }
 
-export async function audioAISummary(formData: FormData) {
+export function audioAISummary(formData: FormData) {
   return new Promise((resolve, reject) => {
-    fetch("https://telegpt-three.vercel.app/audio-summary", {
-      method: "POST",
+    fetch('https://telegpt-three.vercel.app/audio-summary', {
+      method: 'POST',
       body: formData,
     })
       .then((res) => res.json())
@@ -181,13 +181,13 @@ export async function audioAISummary(formData: FormData) {
 }
 
 export const translateTextByTencentApi = (
-  data: Object
+  data: Object,
 ): Promise<Array<string>> => {
   return new Promise((resolve, reject) => {
-    fetch("https://telegpt-three.vercel.app/tencent-translate", {
-      method: "POST",
+    fetch('https://telegpt-three.vercel.app/tencent-translate', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
     })
@@ -203,8 +203,8 @@ export const translateTextByTencentApi = (
 
 export function audioToText(formData: FormData): Promise<{ text: string }> {
   return new Promise((resolve, reject) => {
-    fetch("https://telegpt-three.vercel.app/audio-to-text", {
-      method: "POST",
+    fetch('https://telegpt-three.vercel.app/audio-to-text', {
+      method: 'POST',
       body: formData,
     })
       .then((res) => res.json())
@@ -217,18 +217,51 @@ export function audioToText(formData: FormData): Promise<{ text: string }> {
   });
 }
 
-export async function mentionReply(data: Object) {
+export function mentionReply(data: Object) {
   return new Promise((resolve, reject) => {
-    fetch("https://telegpt-three.vercel.app/mention-reply", {
-      method: "POST",
+    fetch('https://telegpt-three.vercel.app/mention-reply', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
     })
       .then((res) => res.json())
       .then((res) => {
         resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}
+
+export function calendlyRanges(data: { calendlyUrl:string }): Promise<{ start:string; end:string }[]> {
+  return new Promise((resolve, reject) => {
+    fetch('https://telegpt-three.vercel.app/calendly-ranges', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        const times:{ start:string;end:string }[] = [];
+        if (res.data.days) {
+          res.data.days.forEach((day:any) => {
+            day.spots.forEach((spot:{ start_time:string }) => {
+              const start = new Date(spot.start_time);
+              const end = new Date(start.getTime() + 30 * 60 * 1000);
+
+              times.push({
+                start: start.toISOString(),
+                end: end.toISOString(),
+              });
+            });
+          });
+        }
+        resolve(times);
       })
       .catch((err) => {
         reject(err);

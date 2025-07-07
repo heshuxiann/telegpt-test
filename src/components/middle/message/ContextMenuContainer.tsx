@@ -74,7 +74,12 @@ import {
 } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import { copyTextToClipboard } from '../../../util/clipboard';
+import {
+  audioSummary, checkIsUrl, documentSummary, photoSummary, voiceToAudioSummary, webPageSummary,
+} from '../../chatAssistant/utils/ai-analyse-message';
 import { chatAIGenerate } from '../../chatAssistant/utils/chat-api';
+import { createAuthConfirmModal } from '../../chatAssistant/utils/google-api';
+import { getAuthState, isTokenValid } from '../../chatAssistant/utils/google-auth';
 import ScheduleMeeting from '../../chatAssistant/utils/schedule-meeting';
 import { knowledgeEmbeddingStore } from '../../chatAssistant/vector-store';
 import { getSelectionAsFormattedText } from './helpers/getSelectionAsFormattedText';
@@ -90,7 +95,6 @@ import eventEmitter from '../../chatAssistant/lib/EventEmitter';
 import PinMessageModal from '../../common/PinMessageModal.async';
 import ConfirmDialog from '../../ui/ConfirmDialog';
 import MessageContextMenu from './MessageContextMenu';
-import { audioSummary, checkIsUrl, documentSummary, photoSummary, voiceToAudioSummary, webPageSummary } from "../../chatAssistant/utils/ai-analyse-message"
 
 export type OwnProps = {
   isOpen: boolean;
@@ -271,7 +275,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
     addLocalPaidReaction,
     openPaidReactionModal,
     reportMessages,
-    openChatAIWithInfo
+    openChatAIWithInfo,
   } = getActions();
 
   const lang = useOldLang();
@@ -476,8 +480,17 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
 
   const handleScheduleMeeting = useLastCallback(() => {
     const chatId = message.chatId;
-    const scheduleMeeting = new ScheduleMeeting(chatId);
-    scheduleMeeting.start(message);
+    const scheduleMeeting = new ScheduleMeeting({ chatId });
+    const auth = getAuthState();
+    if (!auth || !isTokenValid(auth)) {
+      createAuthConfirmModal({
+        onOk: () => {
+          scheduleMeeting.start(message);
+        },
+      });
+    } else {
+      scheduleMeeting.start(message);
+    }
     closeMenu();
   });
 
@@ -685,22 +698,24 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
   });
 
   const handleSummarize = useLastCallback(async () => {
-    const { photo, document, webPage, voice, audio, text } = message.content
-    const isUrl = checkIsUrl(text?.text)
+    const {
+      photo, document, webPage, voice, audio, text,
+    } = message.content;
+    const isUrl = checkIsUrl(text?.text);
     await openChatAIWithInfo({ chatId: message.chatId });
     if (photo) {
-      photoSummary(message)
+      photoSummary(message);
     } else if (webPage || isUrl) {
-      webPageSummary(message)
+      webPageSummary(message);
     } else if (document) {
-      documentSummary(message)
+      documentSummary(message);
     } else if (voice) {
-      voiceToAudioSummary(message)
+      voiceToAudioSummary(message);
     } else if (audio) {
-      audioSummary(message)
+      audioSummary(message);
     }
     closeMenu();
-  })
+  });
 
   if (noOptions) {
     closeMenu();

@@ -224,3 +224,8 @@ export function sanitizeUIMessages(messages: Array<Message>): Array<Message> {
       || (message.toolInvocations && message.toolInvocations.length > 0),
   );
 }
+
+export function extractCalendlyLinks(text: string): string[] {
+  const regex = /https:\/\/calendly\.com\/[^\s?]+\/[^\s?]+(?:\?[^\s]*)?/g;
+  return text.match(regex) || [];
+}

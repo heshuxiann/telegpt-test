@@ -171,3 +171,35 @@ export const generateRoomActionItems = async (
     });
   }
 };
+
+export const createMeetingTimeConfirmMessage = ({
+  chatId,
+  date,
+  email,
+}:{
+  chatId:string;
+  date:{ start:string;end:string }[];
+  email:string[] | null;
+}):Message => {
+  return {
+    role: 'assistant',
+    id: uuidv4(),
+    createdAt: new Date(),
+    content: JSON.stringify({ chatId, date, email }),
+    annotations: [{
+      type: 'google-meet-time-confirm',
+    }],
+  };
+};
+
+export const createMeetingMentionMessage = (chatId:string):Message => {
+  return {
+    role: 'assistant',
+    id: uuidv4(),
+    createdAt: new Date(),
+    content: chatId,
+    annotations: [{
+      type: 'google-meet-mention',
+    }],
+  };
+};

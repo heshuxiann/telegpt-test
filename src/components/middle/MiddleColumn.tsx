@@ -5,7 +5,7 @@ import React, {
 import { getActions, withGlobal } from '../../global';
 
 import type {
-  ApiChat, ApiChatBannedRights, ApiInputMessageReplyInfo, ApiTopic,
+  ApiChat, ApiChatBannedRights, ApiInputMessageReplyInfo, ApiMessage, ApiTopic,
 } from '../../api/types';
 import type {
   ActiveEmojiInteraction,
@@ -68,6 +68,9 @@ import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 import RoomAIActionButton from '../chatAssistant/room-ai/room-ai-action-button';
+import { createMeetingMentionMessage } from '../chatAssistant/room-ai/room-ai-utils';
+import { ChataiStores } from '../chatAssistant/store';
+import { parseMessage2StoreMessage } from '../chatAssistant/store/messages-store';
 import { GLOBAL_SUMMARY_CHATID } from '../chatAssistant/variables';
 import calculateMiddleFooterTransforms from './helpers/calculateMiddleFooterTransforms';
 
@@ -86,6 +89,7 @@ import usePinnedMessage from './hooks/usePinnedMessage';
 import useFluidBackgroundFilter from './message/hooks/useFluidBackgroundFilter';
 
 import GlobalSummaryWrapper from '../chatAssistant/globalSummary/GlobalSummaryWrapper';
+import eventEmitter, { Actions } from '../chatAssistant/lib/EventEmitter';
 import Composer from '../common/Composer';
 import Icon from '../common/icons/Icon';
 import PrivacySettingsNoticeModal from '../common/PrivacySettingsNoticeModal.async';
@@ -364,6 +368,23 @@ function MiddleColumn({
       loadFullChat({ chatId });
     }
   }, [shouldLoadFullChat, chatId, isReady, loadFullChat]);
+
+  const handleAnalyticsMessage = useLastCallback(({ message }:{ message: ApiMessage }) => {
+    const id = message.chatId;
+    const meetingMentionMessage = createMeetingMentionMessage(id);
+    ChataiStores?.message?.storeMessage(parseMessage2StoreMessage(id, [meetingMentionMessage])[0]);
+    // TODO: add meeting time confirm message and open ai room
+    if (chatId === id) {
+      eventEmitter.emit(Actions.AddRoomAIMessage, meetingMentionMessage);
+      getActions().openChatAIWithInfo({ chatId: id });
+    }
+  });
+  useEffect(() => {
+    if (!chatId || !isReady) return undefined;
+    // const listener = (msg:any) => handleAnalyticsMessage(msg.message, chatId);
+    eventEmitter.on(Actions.IntentionToScheduleMeeting, handleAnalyticsMessage);
+    return () => eventEmitter.off(Actions.IntentionToScheduleMeeting, handleAnalyticsMessage);
+  }, [chatId, isReady]);
 
   const {
     initResize, resetResize, handleMouseUp,

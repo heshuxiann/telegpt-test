@@ -20,6 +20,7 @@ import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import buildClassName from '../../../util/buildClassName';
 import { Messages } from '../messages';
+import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { sendGAEvent } from '../utils/analytics';
@@ -103,6 +104,7 @@ const RoomAIInner = (props: StateProps) => {
           hasMore: res.hasMore,
         });
       });
+      RoomStorage.updateRoomAIData(chatId, 'unreadCount', 0);
     }
   }, [chatId, initDate, setMessages]);
 

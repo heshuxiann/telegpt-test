@@ -1,8 +1,10 @@
 /* eslint-disable no-console */
 /* eslint-disable max-len */
+import { message as showMessage, Modal } from 'antd';
+
 import type { AuthState } from './google-auth';
 
-import { setAuthState } from './google-auth';
+import { getAuthState, setAuthState } from './google-auth';
 
 // export const GOOGLE_APP_CLIENT_ID = '847573679345-qq64ofbqhv7gg61e04dbrk8b92djf1fb.apps.googleusercontent.com';
 // export const GOOGLE_APP_CLIENT_ID_PRO = '166854276552-euk0006iphou9bvqplmgmpc0vde8v1in.apps.googleusercontent.com';
@@ -14,6 +16,9 @@ export const GOOGLE_SCOPES = [
   'email',
   'https://www.googleapis.com/auth/calendar',
   'https://www.googleapis.com/auth/calendar.events',
+  'https://www.googleapis.com/auth/calendar.readonly',
+  'https://www.googleapis.com/auth/calendar.events.freebusy',
+  'https://www.googleapis.com/auth/calendar.freebusy',
 ];
 
 export function loadGoogleSdk(): Promise<void> {
@@ -62,6 +67,24 @@ export async function loginWithGoogle():Promise<AuthState> {
     client.requestAccessToken();
   });
 }
+
+export const createAuthConfirmModal = (props:{ onOk?:(accessToken:string)=>void;onCancel?:()=>void }) => {
+  Modal.confirm({
+    title: 'Google authorization',
+    content: 'This service requires access to your Google Calendar.',
+    okText: 'Confirm',
+    cancelText: 'Cancel',
+    onOk: () => {
+      loginWithGoogle().then((authState) => {
+        props.onOk?.(authState.accessToken!);
+      }).catch((error) => {
+        console.error('Google login failed:', error);
+        showMessage.info('Google login failed');
+      });
+    },
+    onCancel: props?.onCancel,
+  });
+};
 
 export interface ICreateMeetResponse {
   summary: string;
@@ -133,6 +156,30 @@ export const createGoogleMeet = ({
       .then((response) => response.json())
       .then((res) => {
         resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const getGoogleCalendarFreeBusy = ():Promise<{ start:string; end:string }[]> => {
+  const auth = getAuthState();
+  return new Promise((resolve, reject) => {
+    const params = {
+      timeMin: new Date().toISOString(), // 过去24小时
+      timeMax: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 未来3天
+      items: [{ id: 'primary' }], // 查询主日历
+    };
+    fetch(`https://www.googleapis.com/calendar/v3/freeBusy?key=${GOOGLE_API_KEY_DEV}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${auth?.accessToken}`,
+      },
+      body: JSON.stringify(params),
+    }).then((res) => res.json())
+      .then((res) => {
+        resolve(res?.calendars.primary.busy || []);
       })
       .catch((err) => {
         reject(err);

@@ -120,7 +120,10 @@ export class VectorStorage<T> {
     const {
       query, k = 4, filterOptions, includeValues,
     } = params;
-    const queryEmbedding = await this.embedText(query);
+    let { queryEmbedding } = params;
+    if (!queryEmbedding || queryEmbedding.length === 0) {
+      queryEmbedding = await this.embedText(query);
+    }
     const queryMagnitude = await this.calculateMagnitude(queryEmbedding);
     const allDocuments = await this.loadFromIndexDbStorage();
     const filteredDocuments = filterDocuments(allDocuments, filterOptions);

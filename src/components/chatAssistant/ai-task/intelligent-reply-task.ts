@@ -20,7 +20,7 @@ class IntelligentReplyTask {
     }
     this.timmer = setInterval(() => {
       this.intelligentResponse();
-    }, 1000 * 10);
+    }, 1000 * 30);
   }
 
   static getTextWithoutEntities(text: string, entities: any[]): string {
@@ -45,7 +45,7 @@ class IntelligentReplyTask {
         entities: item.content.text?.entities,
       };
     });
-    messages.map(async (item) => {
+    messages.forEach(async (item) => {
       const {
         chatId, messageId, entities,
       } = item;
@@ -53,6 +53,9 @@ class IntelligentReplyTask {
       if (content) {
         if (entities && entities?.length > 0) {
           content = IntelligentReplyTask.getTextWithoutEntities(content, entities);
+        }
+        if (!content.trim()) {
+          return;
         }
         const vectorSearchResults = await knowledgeEmbeddingStore.similaritySearch({
           query: content,

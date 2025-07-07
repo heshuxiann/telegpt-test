@@ -18,6 +18,7 @@ export enum Actions {
   // room ai
   AddRoomAIMessage = 'AddRoomAIMessage',
   UpdateRoomAIUnreadCount = 'UpdateRoomAIUnreadCount',
+  IntentionToScheduleMeeting = 'IntentionToScheduleMeeting',
 }
 class EventEmitter {
   private static instance: EventEmitter;

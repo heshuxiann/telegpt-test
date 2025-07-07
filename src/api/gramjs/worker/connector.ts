@@ -1,5 +1,6 @@
-import { getActions, getGlobal } from '../../../global';
+import { getGlobal } from '../../../global';
 
+import type { IVSDocument } from '../../../components/chatAssistant/vector-storage/types/IVSDocument';
 import type { Api } from '../../../lib/gramjs';
 import type { TypedBroadcastChannel } from '../../../util/browser/multitab';
 import type {
@@ -15,6 +16,8 @@ import type { OriginPayload, ThenArg, WorkerMessageEvent } from './types';
 
 import { DEBUG, IGNORE_UNHANDLED_ERRORS } from '../../../config';
 import { hasMessageText, isUserId } from '../../../global/helpers';
+import { selectCurrentChat, selectTabState } from '../../../global/selectors';
+import { selectSharedSettings } from '../../../global/selectors/sharedState';
 import { logDebugMessage } from '../../../util/debugConsole';
 import Deferred from '../../../util/Deferred';
 import {
@@ -28,14 +31,12 @@ import {
 } from '../../../util/multiaccount';
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
 import ChatAIMessageQuene from '../../../components/chatAssistant/ai-task/chatai-task';
-import { messageEmbeddingStore } from '../../../components/chatAssistant/vector-store';
+import RoomAIMessageListener from '../../../components/chatAssistant/room-ai/room-ai-message-listener';
+import { messageEmbeddingStore, toolsEmbeddingStore } from '../../../components/chatAssistant/vector-store';
 
 import eventEmitter, {
   Actions,
 } from '../../../components/chatAssistant/lib/EventEmitter';
-import { selectCurrentChat, selectTabState } from "../../../global/selectors"
-import RoomAIMessageListener from "../../../components/chatAssistant/room-ai/room-ai-message-listener"
-import { selectSharedSettings } from "../../../global/selectors/sharedState"
 
 type RequestState = {
   messageId: string;
@@ -322,34 +323,42 @@ function sendToAIAgent(data: ApiUpdate) {
       const messageContent = data.message?.content?.text?.text;
       if (chatId && messageContent) {
         const chatType = isUserId(chatId) ? 'private' : 'group';
-        messageEmbeddingStore.addText(messageContent, String(id), {
+        messageEmbeddingStore.addText(messageContent, `${chatId}-${id}`, {
           chatId,
           senderId,
           messageId: id,
           timestamp: date,
           chatType,
           date: date ? new Date(date * 1000).toISOString().split('T')[0] : '0',
+        }).then((res:IVSDocument<any>) => {
+          if (chatType === 'private') {
+            isIntentionToScheduleMeeting(res.vector, data.message as ApiMessage);
+          }
         });
       }
-      // const { autoTranslate } = getGlobal().settings.byKey;
-      // if (chatId && id && autoTranslate) {
-      //   getActions().requestMessageTranslation({
-      //     chatId,
-      //     id,
-      //   });
-      // }
     }
+  }
+}
+
+async function isIntentionToScheduleMeeting(embedding:number[] | undefined, message: ApiMessage) {
+  const vectorSearchResults = await toolsEmbeddingStore.similaritySearch({
+    queryEmbedding: embedding,
+    k: 10,
+  });
+  const matchs = vectorSearchResults.similarItems.filter((item:any) => item.score > 0.66);
+  if (matchs.length > 0 && matchs.find((item:any) => item.id === 'schedule-meeting')) {
+    eventEmitter.emit(Actions.IntentionToScheduleMeeting, { message });
   }
 }
 
 function sendToCurrentChatAI(data: ApiUpdate) {
   if (data['@type'] === 'newMessage') {
-    const global = getGlobal()
+    const global = getGlobal();
     const currentChat = selectCurrentChat(global);
     const { realTimeAssistant } = selectSharedSettings(global);
-    const isChatAIShown = selectTabState(global, getCurrentTabId()).isChatAIShown
+    const isChatAIShown = selectTabState(global, getCurrentTabId()).isChatAIShown;
     if (realTimeAssistant && currentChat?.id === data.message?.chatId && isChatAIShown) {
-      RoomAIMessageListener.messageListener(data.message as ApiMessage)
+      RoomAIMessageListener.messageListener(data.message as ApiMessage);
     }
   }
 }
@@ -365,7 +374,7 @@ function subscribeToWorker(onUpdate: OnApiUpdate) {
         }
         payload.updates.forEach(sendToAIAgent);
         payload.updates.forEach(onUpdate);
-        payload.updates.forEach(sendToCurrentChatAI)
+        payload.updates.forEach(sendToCurrentChatAI);
 
         if (DEBUG) {
           const duration = performance.now() - DEBUG_startAt!;

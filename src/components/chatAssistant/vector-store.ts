@@ -2,6 +2,10 @@
 import { VectorStorage } from './vector-storage/VectorStorage';
 
 async function embedTextsFn(texts: string[]): Promise<number[][]> {
+  texts = texts.filter((text) => text.trim() !== ''); // Filter out empty strings
+  if (texts.length === 0) {
+    return [];
+  }
   const response = await fetch('https://telegpt-three.vercel.app/embeddings', {
     body: JSON.stringify({
       values: texts,

@@ -1,7 +1,7 @@
 import { getActions } from '../../../global';
 
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
-import { aiChatFoldersTask } from "../ai-task/ai-chatfolders-task"
+import { aiChatFoldersTask } from '../ai-task/ai-chatfolders-task';
 import { globalSummaryTask } from '../ai-task/global-summary-task';
 import { intelligentReplyTask } from '../ai-task/intelligent-reply-task';
 import { urgentCheckTask } from '../ai-task/urgent-check-task';
@@ -26,7 +26,31 @@ export const initChatAI = () => {
   // check tools embedding
   toolsEmbeddingStore.getText(TOOLS_SCHEDULE_MEETING_ID).then((res:any) => {
     if (!res) {
-      toolsEmbeddingStore.addText('约会，安排会议，创建会议，schedule meeting', TOOLS_SCHEDULE_MEETING_ID, {});
+      const meetingSentences = [
+        '安排会议',
+        '预定时间',
+        '找时间开会',
+        '创建会议链接',
+        '什么时候方便开会',
+        '约个会议时间',
+        '预约视频会议',
+        '定个会议时间',
+        '开 Zoom 会',
+        '安排 Google Meet',
+        '和客户约时间沟通',
+        '我想和你约个会议讨论一下',
+        '我们找时间安排个会议',
+        '是否可以和你约时间开会',
+        '咱们什么时候方便开会',
+        '想聊聊项目细节',
+        'I’d like to schedule a meeting with you to discuss this',
+        'Can we arrange a meeting?',
+        '约个会',
+        '开个会',
+        '找时间聊',
+        '咱们聊聊',
+      ];
+      toolsEmbeddingStore.addText(meetingSentences.join(', '), TOOLS_SCHEDULE_MEETING_ID, {});
     }
   });
   toolsEmbeddingStore.getText(TOOLS_SEARCH_GROUP_ID).then((res:any) => {

@@ -5,4 +5,5 @@ export interface IVSSimilaritySearchParams {
   k?: number;
   filterOptions?: IVSFilterOptions;
   includeValues?: boolean;
+  queryEmbedding?: number[];
 }
