@@ -39,12 +39,13 @@ import Transition from '../../ui/Transition';
 import ChatList from './ChatList';
 import PresetTagModal from '../../chatAssistant/ai-chatfolders/preset-modal'
 import useFlag from "../../../hooks/useFlag"
-import { ChataiStores, GLOBAL_AI_TAG, GLOBAL_AICHATFOLDERS_TIP_SHOW, GLOBAL_PRESET_TAG } from "../../chatAssistant/store"
+import { ChataiStores, GLOBAL_AI_TAG, GLOBAL_AICHATFOLDERS_STEP, GLOBAL_AICHATFOLDERS_TIP_SHOW, GLOBAL_PRESET_TAG } from "../../chatAssistant/store"
 import { filterAITag, filterPresetTag } from "../../chatAssistant/ai-chatfolders/tag-filter"
-import AIChatFoldersTip from "../../chatAssistant/ai-chatfolders/ai-chatfolders-tip"
+import AIChatFoldersTip, { AIChatFolderStep } from "../../chatAssistant/ai-chatfolders/ai-chatfolders-tip"
 import ActiveTag from "../../chatAssistant/ai-chatfolders/active-tag"
 import { selectSharedSettings } from "../../../global/selectors/sharedState"
 import { filterAIFolder } from "../../chatAssistant/ai-chatfolders/util"
+import eventEmitter, { Actions } from "../../chatAssistant/lib/EventEmitter"
 
 type OwnProps = {
   onSettingsScreenSelect: (screen: SettingsScreens) => void;
@@ -115,6 +116,9 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   const [activeAITag, setActiveAITag] = useState<string[]>([])
   const [shouldRenderAiChatFoldersTip, openRenderAiChatFoldersTip, closeRenderAiChatFoldersTip] = useFlag();
 
+  const [aiChatFoldersStep, setAiChatFoldersStep] = useState<AIChatFolderStep>(AIChatFolderStep.classify);
+  const [aiChatFoldersloading, setAiChatFoldersLoading] = useState<boolean>(false);
+
   const lang = useLang();
 
   useEffect(() => {
@@ -149,32 +153,26 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     } satisfies ApiChatFolder;
   }, [orderedFolderIds, lang]);
 
-  const presetChatsFolder: ApiChatFolder = useMemo(() => {
-    return {
-      id: PRESET_FOLDER_ID,
-      title: { text: PRESET_FOLDER_TITLE },
-      includedChatIds: MEMO_EMPTY_ARRAY,
-      excludedChatIds: MEMO_EMPTY_ARRAY,
-    } satisfies ApiChatFolder;
-  }, [orderedFolderIds]);
+  const presetChatsFolder: ApiChatFolder = {
+    id: PRESET_FOLDER_ID,
+    title: { text: PRESET_FOLDER_TITLE },
+    includedChatIds: MEMO_EMPTY_ARRAY,
+    excludedChatIds: MEMO_EMPTY_ARRAY
+  };
 
-  const unreadChatsFolder: ApiChatFolder = useMemo(() => {
-    return {
-      id: UNREAD_FOLDER_ID,
-      title: { text: UNREAD_FOLDER_TITLE },
-      includedChatIds: MEMO_EMPTY_ARRAY,
-      excludedChatIds: MEMO_EMPTY_ARRAY,
-    } satisfies ApiChatFolder;
-  }, [orderedFolderIds]);
+  const unreadChatsFolder: ApiChatFolder = {
+    id: UNREAD_FOLDER_ID,
+    title: { text: UNREAD_FOLDER_TITLE },
+    includedChatIds: MEMO_EMPTY_ARRAY,
+    excludedChatIds: MEMO_EMPTY_ARRAY,
+  };
 
-  const AIChatsFolder: ApiChatFolder = useMemo(() => {
-    return {
-      id: AI_FOLDER_ID,
-      title: { text: AI_FOLDER_TITLE },
-      includedChatIds: MEMO_EMPTY_ARRAY,
-      excludedChatIds: MEMO_EMPTY_ARRAY,
-    } satisfies ApiChatFolder;
-  }, [orderedFolderIds]);
+  const AIChatsFolder: ApiChatFolder = {
+    id: AI_FOLDER_ID,
+    title: { text: AI_FOLDER_TITLE },
+    includedChatIds: MEMO_EMPTY_ARRAY,
+    excludedChatIds: MEMO_EMPTY_ARRAY,
+  };
 
   const displayedFolders = useMemo(() => {
     const chatFolders = Object.values(chatFoldersById)
@@ -429,10 +427,29 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     ChataiStores.general?.get(GLOBAL_AI_TAG)?.then((res)=>{
       setActiveAITag(res ?? [])
     })
+  }, [])
+
+  useEffect(()=>{
     ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW)?.then((res)=>{
       res === false ? closeRenderAiChatFoldersTip() : openRenderAiChatFoldersTip()
     })
-  }, [])
+    ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_STEP)?.then((res)=>{
+      if (res) {
+        setAiChatFoldersStep(res)
+      }
+    })
+  }, [aiChatFoldersloading])
+
+  const updateAIChatFoldsLoading = (loading: boolean) => {
+    setAiChatFoldersLoading(loading)
+  }
+
+  useEffect(() => {
+    eventEmitter.on(Actions.UpdateAIChatFoldsLoading, updateAIChatFoldsLoading);
+    return () => {
+      eventEmitter.off(Actions.UpdateAIChatFoldsLoading, updateAIChatFoldsLoading);
+    };
+  }, [updateAIChatFoldsLoading]);
 
   const {
     ref: placeholderRef,
@@ -502,7 +519,11 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
       ) : shouldRenderPlaceholder ? (
         <div ref={placeholderRef} className="tabs-placeholder" />
       ) : undefined}
-      {shouldRenderAiChatFoldersTip && <AIChatFoldersTip onClose={closeRenderAiChatFoldersTip} />}
+      {(shouldRenderAiChatFoldersTip || aiChatFoldersloading) && <AIChatFoldersTip
+        step={aiChatFoldersStep}
+        loading={aiChatFoldersloading}
+        onClose={closeRenderAiChatFoldersTip}
+      />}
       {shouldRenderFolders && shouldRenderPresetTagModal && <PresetTagModal
         activeTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? activePresetTag : activeAITag}
         setActiveTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? setActivePresetTag : setActiveAITag}
