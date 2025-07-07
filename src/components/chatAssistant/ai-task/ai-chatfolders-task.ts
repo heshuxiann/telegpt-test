@@ -66,20 +66,25 @@ class AIChatFoldersTask {
         chatMessages,
         AI_CHATFOLDERS_BATCH_SIZE
       );
-      console.log(AICHATFOLDERS_LOG + "aiClassify: ", res, new Date());
+      console.log(AICHATFOLDERS_LOG + "aiClassify: ", res);
       // 2. save classify result
       saveAiChatFolders(res);
-      await ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_LAST_TIME, new Date().getTime());
+      await ChataiStores.general?.set(
+        GLOBAL_AICHATFOLDERS_LAST_TIME,
+        new Date().getTime()
+      );
 
-      const showTipFlag = await ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW);
+      const showTipFlag = await ChataiStores.general?.get(
+        GLOBAL_AICHATFOLDERS_TIP_SHOW
+      );
       if (showTipFlag === undefined) {
         // first time-->auto apply
-        console.log(AICHATFOLDERS_LOG + "auto-apply", new Date());
+        console.log(AICHATFOLDERS_LOG + "auto-apply");
         await this.applyChatFolder();
         ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_TIP_SHOW, false);
       } else {
         showTip(AIChatFolderStep.apply);
-        console.log(AICHATFOLDERS_LOG + "classify-end", new Date());
+        console.log(AICHATFOLDERS_LOG + "classify-end");
       }
     } catch (error) {
       hideTip(AIChatFolderStep.classify);
@@ -89,7 +94,7 @@ class AIChatFoldersTask {
 
   async applyChatFolder() {
     try {
-      console.log(AICHATFOLDERS_LOG + "apply-start", new Date());
+      console.log(AICHATFOLDERS_LOG + "apply-start");
       ChataiStores.general?.set(
         GLOBAL_AICHATFOLDERS_STEP,
         AIChatFolderStep.apply
@@ -142,18 +147,10 @@ class AIChatFoldersTask {
               folderUpdate: folder,
               from: "AI",
             });
-            console.log(
-              AICHATFOLDERS_LOG + "update: " + folderTitle,
-              folder,
-              new Date()
-            );
+            console.log(AICHATFOLDERS_LOG + "update: " + folderTitle, folder);
           } else {
             await addChatFolder?.({ folder, from: "AI" });
-            console.log(
-              AICHATFOLDERS_LOG + "add: " + folderTitle,
-              folder,
-              new Date()
-            );
+            console.log(AICHATFOLDERS_LOG + "add: " + folderTitle, folder);
           }
           await sleep(3000);
         }
@@ -168,7 +165,7 @@ class AIChatFoldersTask {
         new Date().getTime()
       );
       hideTip(AIChatFolderStep.classify);
-      console.log(AICHATFOLDERS_LOG + "apply-end", new Date());
+      console.log(AICHATFOLDERS_LOG + "apply-end");
     } catch (error) {
       hideTip(AIChatFolderStep.classify);
       return;
@@ -204,17 +201,12 @@ class AIChatFoldersTask {
       ids.splice(3, 0, UNREAD_FOLDER_ID);
     }
     await getActions().sortChatFolders({ folderIds: ids });
-    console.log(
-      AICHATFOLDERS_LOG + "sort: ",
-      ids,
-      new Date(),
-      global.chatFolders
-    );
+    console.log(AICHATFOLDERS_LOG + "sort: ", ids, global.chatFolders);
   }
 
   async classifyChatMessageByCount() {
     try {
-      console.log(AICHATFOLDERS_LOG + "classify-start", new Date());
+      console.log(AICHATFOLDERS_LOG + "classify-start");
       ChataiStores.general?.set(
         GLOBAL_AICHATFOLDERS_STEP,
         AIChatFolderStep.classify
