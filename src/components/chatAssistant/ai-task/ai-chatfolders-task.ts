@@ -14,6 +14,7 @@ import {
   ChataiStores,
   GLOBAL_AICHATFOLDERS_LAST_TIME,
   GLOBAL_AICHATFOLDERS_STEP,
+  GLOBAL_AICHATFOLDERS_TIP_SHOW,
 } from "../store";
 import {
   batchAiChatFolders,
@@ -68,12 +69,18 @@ class AIChatFoldersTask {
       console.log(AICHATFOLDERS_LOG + "aiClassify: ", res, new Date());
       // 2. save classify result
       saveAiChatFolders(res);
-      ChataiStores.general?.set(
-        GLOBAL_AICHATFOLDERS_LAST_TIME,
-        new Date().getTime()
-      );
-      showTip(AIChatFolderStep.apply);
-      console.log(AICHATFOLDERS_LOG + "classify-end", new Date());
+      await ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_LAST_TIME, new Date().getTime());
+
+      const showTipFlag = await ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW);
+      if (showTipFlag === undefined) {
+        // first time-->auto apply
+        console.log(AICHATFOLDERS_LOG + "auto-apply", new Date());
+        await this.applyChatFolder();
+        ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_TIP_SHOW, false);
+      } else {
+        showTip(AIChatFolderStep.apply);
+        console.log(AICHATFOLDERS_LOG + "classify-end", new Date());
+      }
     } catch (error) {
       hideTip(AIChatFolderStep.classify);
       return;
@@ -87,7 +94,9 @@ class AIChatFoldersTask {
         GLOBAL_AICHATFOLDERS_STEP,
         AIChatFolderStep.apply
       );
-      eventEmitter.emit(Actions.UpdateAIChatFoldsLoading, true);
+      eventEmitter.emit(Actions.UpdateAIChatFoldsLoading, {
+        loading: true,
+      });
       const global = getGlobal();
       const nextAiChatFolders = global?.chatFolders?.nextAiChatFolders;
       if (!nextAiChatFolders || nextAiChatFolders?.length === 0) {
@@ -150,7 +159,7 @@ class AIChatFoldersTask {
         }
       }
       // update global
-      updateAiChatFoldersToGlobal();
+      updateAiChatFoldersToGlobal(nextAiChatFolders);
       // sort folders
       await this.sortChatFolder();
       // update last classify time
@@ -182,12 +191,19 @@ class AIChatFoldersTask {
           ) ?? 0)
       )
       ?.map((item) => Number(item));
-    const folderIds = [0, ...ids, PRESET_FOLDER_ID, AI_FOLDER_ID];
-    folderIds.splice(3, 0, UNREAD_FOLDER_ID);
-    await getActions().sortChatFolders({ folderIds });
+    if (ids.indexOf(PRESET_FOLDER_ID) === -1) {
+      ids.push(PRESET_FOLDER_ID);
+    }
+    if (ids.indexOf(AI_FOLDER_ID) === -1) {
+      ids.push(AI_FOLDER_ID);
+    }
+    if (ids.indexOf(UNREAD_FOLDER_ID) === -1) {
+      ids.splice(3, 0, UNREAD_FOLDER_ID);
+    }
+    await getActions().sortChatFolders({ folderIds: ids });
     console.log(
       AICHATFOLDERS_LOG + "sort: ",
-      folderIds,
+      ids,
       new Date(),
       global.chatFolders
     );
@@ -200,7 +216,9 @@ class AIChatFoldersTask {
         GLOBAL_AICHATFOLDERS_STEP,
         AIChatFolderStep.classify
       );
-      eventEmitter.emit(Actions.UpdateAIChatFoldsLoading, true);
+      eventEmitter.emit(Actions.UpdateAIChatFoldsLoading, {
+        loading: true,
+      });
 
       const global = getGlobal();
       const { aiChatFolders } = selectSharedSettings(global);
