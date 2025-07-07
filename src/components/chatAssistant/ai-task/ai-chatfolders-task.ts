@@ -191,13 +191,16 @@ class AIChatFoldersTask {
           ) ?? 0)
       )
       ?.map((item) => Number(item));
-    if (ids.indexOf(PRESET_FOLDER_ID) === -1) {
+    if (ids.indexOf(ALL_FOLDER_ID) < 0) {
+      ids.unshift(ALL_FOLDER_ID);
+    }
+    if (ids.indexOf(PRESET_FOLDER_ID) < 0) {
       ids.push(PRESET_FOLDER_ID);
     }
-    if (ids.indexOf(AI_FOLDER_ID) === -1) {
+    if (ids.indexOf(AI_FOLDER_ID) < 0) {
       ids.push(AI_FOLDER_ID);
     }
-    if (ids.indexOf(UNREAD_FOLDER_ID) === -1) {
+    if (ids.indexOf(UNREAD_FOLDER_ID) < 0) {
       ids.splice(3, 0, UNREAD_FOLDER_ID);
     }
     await getActions().sortChatFolders({ folderIds: ids });
