@@ -16,11 +16,17 @@ import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage } from '../store/messages-store';
 import { calendlyRanges } from './chat-api';
 import {
-  createAuthConfirmModal, createGoogleMeet, getGoogleCalendarFreeBusy,
+  createAuthConfirmModal,
+  createGoogleMeet,
+  getGoogleCalendarFreeBusy,
 } from './google-api';
 import { getAuthState, isTokenValid } from './google-auth';
 
-export function formatMeetingTimeRange(startISO: string, endISO: string, timeZoneVisable?:boolean) {
+export function formatMeetingTimeRange(
+  startISO: string,
+  endISO: string,
+  timeZoneVisable?: boolean,
+) {
   const startDate = new Date(startISO);
   const endDate = new Date(endISO);
 
@@ -37,10 +43,7 @@ export function formatMeetingTimeRange(startISO: string, endISO: string, timeZon
   });
 
   const formatTime = (date: Date) => {
-    return timeFormatter
-      .format(date)
-      .toLowerCase()
-      .replace(' ', '');
+    return timeFormatter.format(date).toLowerCase().replace(' ', '');
   };
 
   const dateStr = dayFormatter.format(startDate);
@@ -68,14 +71,17 @@ export function formatMeetingTimeRange(startISO: string, endISO: string, timeZon
   }
 }
 
-async function getSuitableTime(calendlyUrl:string) {
+async function getSuitableTime(calendlyUrl: string) {
   const timeRanges = await calendlyRanges({ calendlyUrl });
   const myBusyTimes = await getGoogleCalendarFreeBusy();
   const availableSolts = getAvailableSlots(timeRanges, myBusyTimes);
   return availableSolts;
 }
 
-function getAvailableSlots(aFreeSlots:{ start:string;end:string }[], bBusySlots:{ start:string;end:string }[]) {
+function getAvailableSlots(
+  aFreeSlots: { start: string; end: string }[],
+  bBusySlots: { start: string; end: string }[],
+) {
   const result = [];
 
   for (const aSlot of aFreeSlots) {
@@ -115,7 +121,10 @@ function suggestFreeTimes(
   const endRange = now.plus({ days: 3 });
 
   // 转成 Interval[]
-  const busyIntervals = busySlots.map((slot) => Interval.fromDateTimes(DateTime.fromISO(slot.start), DateTime.fromISO(slot.end)));
+  const busyIntervals = busySlots.map((slot) => Interval.fromDateTimes(
+    DateTime.fromISO(slot.start),
+    DateTime.fromISO(slot.end),
+  ));
 
   const freeSlots: { start: string; end: string }[] = [];
 
@@ -162,7 +171,10 @@ function suggestFreeTimes(
   return freeSlots;
 }
 
-async function isTimeSlotAvailable(proposedSlot:{ start:string; end:string }) {
+async function isTimeSlotAvailable(proposedSlot: {
+  start: string;
+  end: string;
+}) {
   const myBusyTimes = await getGoogleCalendarFreeBusy();
   const proposedStart = new Date(proposedSlot.start).getTime();
   const proposedEnd = new Date(proposedSlot.end).getTime();
@@ -184,7 +196,7 @@ async function isTimeSlotAvailable(proposedSlot:{ start:string; end:string }) {
   return { isAvailable: true };
 }
 
-function getMeetParamsByAITools(message:string): Promise<any> {
+function getMeetParamsByAITools(message: string): Promise<any> {
   return new Promise((resolve, reject) => {
     fetch('https://telegpt-three.vercel.app/tool-check', {
       method: 'POST',
@@ -192,73 +204,95 @@ function getMeetParamsByAITools(message:string): Promise<any> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        messages: [{
-          id: uuidv4(),
-          content: message,
-          role: 'user',
-        }],
+        messages: [
+          {
+            id: uuidv4(),
+            content: message,
+            role: 'user',
+          },
+        ],
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       }),
-    }).then((res) => res.json()).then((toolResults) => {
-      let email: string[] = [];
-      let date: string | null = null;
-      if (toolResults && toolResults.length > 0) {
-        toolResults.forEach((toolCall: any) => {
-          if (toolCall.toolName === 'parseTime') {
-            date = toolCall.result;
-          } else if (toolCall.toolName === 'extractEmail') {
-            email = toolCall.result || [];
-          }
-        });
-        resolve({
-          date,
-          email,
-        });
-      } else {
-        resolve({});
-      }
-    }).catch((err) => {
-      reject(err);
-    });
+    })
+      .then((res) => res.json())
+      .then((toolResults) => {
+        let email: string[] = [];
+        let date: string | null = null;
+        if (toolResults && toolResults.length > 0) {
+          toolResults.forEach((toolCall: any) => {
+            if (toolCall.toolName === 'parseTime') {
+              date = toolCall.result;
+            } else if (toolCall.toolName === 'extractEmail') {
+              email = toolCall.result || [];
+            }
+          });
+          resolve({
+            date,
+            email,
+          });
+        } else {
+          resolve({});
+        }
+      })
+      .catch((err) => {
+        reject(err);
+      });
   });
+}
+
+interface ScheduleMeetingParams {
+  chatId: string;
+  email?: string[];
+  date?: { start: string; end: string }[];
+  hasConfirmed?: boolean;
 }
 class ScheduleMeeting {
   private static instances: Map<string, ScheduleMeeting> = new Map();
 
-  private chatId:string;
+  private chatId: string;
 
-  private hasConfirmed:boolean;
+  private hasConfirmed: boolean;
 
   private email: string[];
 
-  private date: { start:string;end:string }[];
+  private date: { start: string; end: string }[];
 
-  private timeout: NodeJS.Timeout | undefined = undefined;
+  public timeout: NodeJS.Timeout | undefined = undefined;
 
-  private handlerRef: ({ message }:{ message: ApiMessage }) => void;
+  private handlerRef: ({ message }: { message: ApiMessage }) => void;
 
   constructor({
     chatId,
     email = [],
     date = [],
     hasConfirmed = false,
-  }:{
-    chatId:string;
-    email?: string[] ;
-    date?: { start:string;end:string }[];
-    hasConfirmed?:boolean;
-  }) {
-    // 检查是否已存在实例
-    const existing = ScheduleMeeting.instances.get(chatId);
-    if (existing) {
-      existing.cleanup(); // 如果存在旧的任务，先清理掉
-    }
-    ScheduleMeeting.instances.set(chatId, this);
+  }: ScheduleMeetingParams) {
     this.chatId = chatId;
     this.email = email;
     this.date = date;
     this.hasConfirmed = hasConfirmed;
     this.handlerRef = ({ message }) => this.handler({ message });
+  }
+
+  /**
+   * 创建或获取 ScheduleMeeting 实例
+   */
+  public static create(params: ScheduleMeetingParams): ScheduleMeeting {
+    const existing = ScheduleMeeting.instances.get(params.chatId);
+    if (existing) {
+      return existing;
+    } else {
+      const instance = new ScheduleMeeting(params);
+      ScheduleMeeting.instances.set(params.chatId, instance);
+      return instance;
+    }
+  }
+
+  /**
+   * 根据 chatId 获取 ScheduleMeeting 实例
+   */
+  public static get(chatId: string): ScheduleMeeting | undefined {
+    return ScheduleMeeting.instances.get(chatId);
   }
 
   public start(originalMessage?: ApiMessage) {
@@ -278,9 +312,10 @@ class ScheduleMeeting {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     eventEmitter.off(Actions.NewTextMessage, this.handlerRef);
     clearTimeout(this.timeout);
+    ScheduleMeeting.instances.delete(this.chatId);
   }
 
-  private async handler({ message }:{ message?: ApiMessage }) {
+  private async handler({ message }: { message?: ApiMessage }) {
     if (message && (message.isOutgoing || message.chatId !== this.chatId)) {
       return;
     }
@@ -296,7 +331,9 @@ class ScheduleMeeting {
           if (calendlyUrl) {
             const suitableDates = await getSuitableTime(calendlyUrl);
             if (suitableDates.length === 0) {
-              console.log('No available time slots found for the provided Calendly link.');
+              console.log(
+                'No available time slots found for the provided Calendly link.',
+              );
             }
             this.date = suitableDates.slice(0, 3);
           }
@@ -306,45 +343,74 @@ class ScheduleMeeting {
         if (!this.date.length && toolCheckRes.date) {
           const dateRange = {
             start: toolCheckRes.date,
-            end: new Date(new Date(toolCheckRes.date).getTime() + 30 * 60 * 1000).toISOString(),
+            end: new Date(
+              new Date(toolCheckRes.date).getTime() + 30 * 60 * 1000,
+            ).toISOString(),
           };
-          const { isAvailable, suggestions } = await isTimeSlotAvailable(dateRange);
+          const { isAvailable, suggestions } = await isTimeSlotAvailable(
+            dateRange,
+          );
           if (isAvailable) {
             this.date = [dateRange];
             this.hasConfirmed = true; // 如果有时间回执，设置为已确认
           } else {
-            this.sendMessage('The time you provided is not available. Could you please suggest another time?');
+            this.sendMessage(
+              'The time you provided is not available. Could you please suggest another time?',
+            );
             // 根据自己日历的时间，给出时间建议
             await new Promise<void>((res) => {
               void setTimeout(res, 1000);
             });
-            this.sendMessage(`Here are some available time slots you can choose from: \n ${suggestions!.map((slot, index) => `${index + 1}.${formatMeetingTimeRange(slot.start, slot.end, true)}`).join('\n')}`);
+            this.sendMessage(
+              `Here are some available time slots you can choose from: \n ${suggestions!
+                .map(
+                  (slot, index) => `${index + 1}.${formatMeetingTimeRange(
+                    slot.start,
+                    slot.end,
+                    true,
+                  )}`,
+                )
+                .join('\n')}`,
+            );
             return;
           }
         }
       }
       // 打开小助手，用户时间回执
       if (this.date.length > 0 && !this.hasConfirmed) {
-        const meetingTimeConfirmMessage = createMeetingTimeConfirmMessage({ chatId: this.chatId, date: this.date, email: this.email });
-        ChataiStores?.message?.storeMessage(parseMessage2StoreMessage(this.chatId, [meetingTimeConfirmMessage])[0]);
+        const meetingTimeConfirmMessage = createMeetingTimeConfirmMessage({
+          chatId: this.chatId,
+          date: this.date,
+          email: this.email,
+        });
+        ChataiStores?.message?.storeMessage(
+          parseMessage2StoreMessage(this.chatId, [meetingTimeConfirmMessage])[0],
+        );
         this.cleanup();
         // TODO: add meeting time confirm message and open ai room
         const global = getGlobal();
         const currentChat = selectCurrentChat(global);
         if (currentChat && currentChat.id === this.chatId) {
-          eventEmitter.emit(Actions.AddRoomAIMessage, meetingTimeConfirmMessage);
+          eventEmitter.emit(
+            Actions.AddRoomAIMessage,
+            meetingTimeConfirmMessage,
+          );
           getActions().openChatAIWithInfo({ chatId: this.chatId });
         }
         return;
       }
       if (!this.email.length && !this.date.length) {
-        this.sendMessage('I\'d like to schedule a meeting with you. Could you tell me what time would be good for you to have the meeting? Also, could I get your email address?');
+        this.sendMessage(
+          "I'd like to schedule a meeting with you. Could you tell me what time would be good for you to have the meeting? Also, could I get your email address?",
+        );
         return;
       } else if (!this.email.length) {
         this.sendMessage('Could you please share your email address?');
         return;
       } else if (!this.date.length) {
-        this.sendMessage('Could you tell me what time would be good for you to have the meeting?');
+        this.sendMessage(
+          'Could you tell me what time would be good for you to have the meeting?',
+        );
         return;
       }
       if (this.email.length && this.date.length) {
@@ -361,7 +427,7 @@ class ScheduleMeeting {
     const auth = getAuthState();
     if (!auth || !isTokenValid(auth)) {
       createAuthConfirmModal({
-        onOk: (accessToken:string) => {
+        onOk: (accessToken: string) => {
           this.handleCreateGoogleMeet(accessToken!);
         },
       });
@@ -370,8 +436,8 @@ class ScheduleMeeting {
     }
   }
 
-  public handleCreateGoogleMeet(accessToken:string) {
-    this.sendMessage('I\'ll send you the meeting invitation later.');
+  public handleCreateGoogleMeet(accessToken: string) {
+    this.sendMessage("I'll send you the meeting invitation later.");
     const date = this.date[0];
     createGoogleMeet({
       startDate: new Date(date.start),
@@ -379,17 +445,26 @@ class ScheduleMeeting {
       selectedTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // Add timezone
       emails: this.email!,
       googleToken: accessToken as string,
-    }).then((createMeetResponse:ICreateMeetResponse) => {
+    }).then((createMeetResponse: ICreateMeetResponse) => {
       console.log('createMeetResponse', createMeetResponse);
       if (createMeetResponse) {
-        const eventMessage = `Event details \n📝 Title\n${createMeetResponse.summary}\n👥 Guests\n${createMeetResponse.attendees.map((attendee) => attendee.email).join('\\n')}\n📅 Time\n${formatMeetingTimeRange(createMeetResponse.start.dateTime, createMeetResponse.end.dateTime)}\n${createMeetResponse.start.timeZone}\n🔗 Meeting link\n${createMeetResponse.hangoutLink}
+        const eventMessage = `Event details \n📝 Title\n${
+          createMeetResponse.summary
+        }\n👥 Guests\n${createMeetResponse.attendees
+          .map((attendee) => attendee.email)
+          .join('\\n')}\n📅 Time\n${formatMeetingTimeRange(
+          createMeetResponse.start.dateTime,
+          createMeetResponse.end.dateTime,
+        )}\n${createMeetResponse.start.timeZone}\n🔗 Meeting link\n${
+          createMeetResponse.hangoutLink
+        }
             `;
         this.sendMessage(eventMessage);
       }
     });
   }
 
-  private sendMessage(message:string) {
+  private sendMessage(message: string) {
     getActions().sendMessage({
       messageList: {
         chatId: this.chatId,

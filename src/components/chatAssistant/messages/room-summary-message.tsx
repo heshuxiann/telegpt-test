@@ -90,7 +90,7 @@ const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; 
             return (
               <li
                 role="button"
-                className="cursor-pointer text-[15px]"
+                className="cursor-pointer text-[15px] break-words"
               >
                 {content}
               </li>

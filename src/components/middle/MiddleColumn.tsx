@@ -71,6 +71,7 @@ import RoomAIActionButton from '../chatAssistant/room-ai/room-ai-action-button';
 import { createMeetingMentionMessage } from '../chatAssistant/room-ai/room-ai-utils';
 import { ChataiStores } from '../chatAssistant/store';
 import { parseMessage2StoreMessage } from '../chatAssistant/store/messages-store';
+import ScheduleMeeting from '../chatAssistant/utils/schedule-meeting';
 import { GLOBAL_SUMMARY_CHATID } from '../chatAssistant/variables';
 import calculateMiddleFooterTransforms from './helpers/calculateMiddleFooterTransforms';
 
@@ -371,6 +372,10 @@ function MiddleColumn({
 
   const handleAnalyticsMessage = useLastCallback(({ message }:{ message: ApiMessage }) => {
     const id = message.chatId;
+    const scheduleMeeting = ScheduleMeeting.create({ chatId: id });
+    if (scheduleMeeting.timeout) {
+      return;
+    }
     const meetingMentionMessage = createMeetingMentionMessage(id);
     ChataiStores?.message?.storeMessage(parseMessage2StoreMessage(id, [meetingMentionMessage])[0]);
     // TODO: add meeting time confirm message and open ai room
@@ -380,11 +385,9 @@ function MiddleColumn({
     }
   });
   useEffect(() => {
-    if (!chatId || !isReady) return undefined;
-    // const listener = (msg:any) => handleAnalyticsMessage(msg.message, chatId);
     eventEmitter.on(Actions.IntentionToScheduleMeeting, handleAnalyticsMessage);
     return () => eventEmitter.off(Actions.IntentionToScheduleMeeting, handleAnalyticsMessage);
-  }, [chatId, isReady]);
+  }, []);
 
   const {
     initResize, resetResize, handleMouseUp,

@@ -1,3 +1,4 @@
+import { message } from 'antd';
 import { getGlobal } from '../../../global';
 
 import type { IVSDocument } from '../../../components/chatAssistant/vector-storage/types/IVSDocument';
@@ -318,7 +319,7 @@ function sendToAIAgent(data: ApiUpdate) {
       });
       ChatAIMessageQuene.add(data.message as ApiMessage);
       const {
-        date, id, senderId, chatId,
+        date, id, senderId, chatId, isOutgoing,
       } = data.message;
       const messageContent = data.message?.content?.text?.text;
       if (chatId && messageContent) {
@@ -331,7 +332,7 @@ function sendToAIAgent(data: ApiUpdate) {
           chatType,
           date: date ? new Date(date * 1000).toISOString().split('T')[0] : '0',
         }).then((res:IVSDocument<any>) => {
-          if (chatType === 'private') {
+          if (chatType === 'private' && !isOutgoing) {
             isIntentionToScheduleMeeting(res.vector, data.message as ApiMessage);
           }
         });
