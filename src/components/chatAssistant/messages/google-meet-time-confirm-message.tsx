@@ -70,7 +70,7 @@ const GoogleMeetTimeConfirmMessage = ({ message }: { message: Message }) => {
         });
       }
     } else {
-      const scheduleMeeting = new ScheduleMeeting({ chatId, date: [time], hasConfirmed: true });
+      const scheduleMeeting = ScheduleMeeting.create({ chatId, date: [time], hasConfirmed: true });
       const auth = getAuthState();
       if (!auth || !isTokenValid(auth)) {
         createAuthConfirmModal({

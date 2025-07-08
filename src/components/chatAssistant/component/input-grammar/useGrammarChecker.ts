@@ -2,11 +2,14 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable new-cap */
 import {
-  useCallback, useEffect, useRef, useState,
+  useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
 import { diff_match_patch } from 'diff-match-patch';
 import debounce from 'lodash.debounce';
 
+import type { Signal } from '../../../../util/signals';
+
+import parseHtmlAsFormattedText from '../../../../util/parseHtmlAsFormattedText';
 import { sapling } from '../../utils/grammar';
 
 export interface CorrectionItem {
@@ -74,18 +77,18 @@ function pruneInvalidRanges(text: string, corrections: CorrectionItem[]) {
   });
 }
 
-function updateErrorOffsetsWithInvalidate(
-  oldText: string,
-  newText: string,
-  errors: CorrectionItem[],
-): CorrectionItem[] {
+function updateErrorOffsetsWithInvalidateInner(
+  oldText:string,
+  newText:string,
+  corrections:CorrectionItem[],
+):CorrectionItem[] {
   const diffs = dmp.diff_main(oldText, newText);
   dmp.diff_cleanupSemantic(diffs);
 
   const newErrors: CorrectionItem[] = [];
   let oldCursor = 0;
 
-  for (const err of errors) {
+  for (const err of corrections) {
     const start = err.start;
     const end = err.end;
     let valid = true;
@@ -125,13 +128,12 @@ function updateErrorOffsetsWithInvalidate(
       });
     }
   }
-
   return newErrors;
 }
 
 export function useGrammarChecker(
   inputRef: React.RefObject<HTMLElement | null>,
-  setErrorMarkers: (m: ErrorMarker[]) => void,
+  getHtml: Signal<string>,
   {
     delay = 1000,
   }: {
@@ -140,10 +142,11 @@ export function useGrammarChecker(
 ) {
   const [errorRanges, setErrorRanges] = useState<CorrectionItem[]>([]);
   const [spalingLoading, setSpalingLoading] = useState(false);
+  const [errorMarkers, setErrorMarkers] = useState<ErrorMarker[]>([]);
   const lastTextRef = useRef('');
   const lastCheckTimeRef = useRef(Date.now());
 
-  const highLightErrors = useCallback((corrections: CorrectionItem[]) => {
+  const highLightErrors = useCallback(() => {
     const textarea = inputRef.current;
     if (!textarea) return;
 
@@ -152,7 +155,7 @@ export function useGrammarChecker(
     if (!textNodes) return;
 
     setErrorMarkers([]);
-    const validRanges = pruneInvalidRanges(textContent, corrections);
+    const validRanges = pruneInvalidRanges(textContent, errorRanges);
     const markers: ErrorMarker[] = [];
 
     for (const item of validRanges) {
@@ -181,7 +184,7 @@ export function useGrammarChecker(
     }
 
     setErrorMarkers(markers);
-  }, [inputRef, setErrorMarkers]);
+  }, [errorRanges, inputRef]);
 
   const checkTextInput = async () => {
     const text = inputRef.current?.innerText || '';
@@ -190,10 +193,14 @@ export function useGrammarChecker(
     lastTextRef.current = text;
     lastCheckTimeRef.current = Date.now();
 
-    setErrorRanges(corrections);
-    if (corrections.length > 0) {
-      highLightErrors(corrections);
-    } else {
+    const updatedErrors = updateErrorOffsetsWithInvalidateInner(
+      lastTextRef.current,
+      text,
+      corrections,
+    );
+
+    setErrorRanges(updatedErrors);
+    if (updatedErrors.length === 0) {
       setErrorMarkers([]);
     }
     setSpalingLoading(false);
@@ -201,29 +208,40 @@ export function useGrammarChecker(
 
   const inputNlpRuleCheck = useRef(debounce(checkTextInput, delay, { leading: false, trailing: true })).current;
 
-  const handleInputChange = useCallback(() => {
-    const newText = inputRef.current?.innerText || '';
-    lastTextRef.current = newText;
-    if (errorRanges.length > 0) {
-      const updatedErrors = updateErrorOffsetsWithInvalidate(lastTextRef.current, newText, errorRanges);
-      setErrorRanges(updatedErrors);
-      highLightErrors(updatedErrors);
-    }
-    if (newText.trim().length === 0) {
-      setErrorRanges([]);
-      setErrorMarkers([]);
-      return;
-    }
-    inputNlpRuleCheck();
-  }, [errorRanges, highLightErrors, inputNlpRuleCheck, inputRef, setErrorMarkers]);
+  const hightLightDebounceFunc = useMemo(
+    () => debounce(highLightErrors, delay, { leading: false, trailing: true }),
+    [highLightErrors, delay],
+  );
+
+  const inputHtml = getHtml();
 
   useEffect(() => {
-    const editor = inputRef.current;
-    editor?.addEventListener('input', handleInputChange);
-    return () => {
-      editor?.removeEventListener('input', handleInputChange);
+    if (inputRef.current) {
+      const { text } = parseHtmlAsFormattedText(inputHtml);
+      if (text.trim().length === 0) {
+        setErrorRanges([]);
+        setErrorMarkers([]);
+        return;
+      }
+      inputNlpRuleCheck();
+    }
+  }, [inputHtml, inputNlpRuleCheck, inputRef]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      hightLightDebounceFunc();
     };
-  }, [handleInputChange, inputRef]);
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [hightLightDebounceFunc]);
+
+  useEffect(() => {
+    highLightErrors();
+  }, [errorRanges, highLightErrors]);
 
   const fixError = (index: number) => {
     const correction = errorRanges[index];
@@ -257,7 +275,6 @@ export function useGrammarChecker(
 
     setErrorRanges(newErrors);
     lastTextRef.current = newText;
-    highLightErrors(newErrors);
   };
   // ✅ 替换所有错误
   const fixAllErrors = () => {
@@ -287,6 +304,7 @@ export function useGrammarChecker(
   return {
     corrections: errorRanges,
     spalingLoading,
+    errorMarkers,
     fixError,
     fixAllErrors,
   };

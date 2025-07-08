@@ -5,12 +5,14 @@
   border: 3px solid #8c42f0;
   border-radius: 16px;
   position: absolute;
-  background-color: #fff;
+  background-color: var(--color-background);
   opacity: 0;
   transform: translateY(1.5rem);
   transform-origin: bottom;
   transition: opacity var(--layer-transition), transform var(--layer-transition);
   scrollbar-gutter: stable;
+  color: var(--color-text);
+  overflow: hidden;
   &.open {
     opacity: 1;
     transform: translateY(0);

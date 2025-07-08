@@ -4,7 +4,9 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-null/no-null */
 import React, {
-  useEffect, useRef,
+  memo,
+  useEffect, useLayoutEffect,
+  useRef,
 } from '../../../../lib/teact/teact';
 
 import type { InputGrammerProps } from './InputGrammar';
@@ -14,17 +16,14 @@ import { injectComponent } from '../../../../lib/injectComponent';
 import InputGrammar from './InputGrammar';
 
 const injectMessageAI = injectComponent(InputGrammar);
-const InputGrammarWrapper = (props:InputGrammerProps) => {
+const InputGrammarWrapper = (props: InputGrammerProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const { inputRef, getHtml } = props;
   useEffect(() => {
-    let injected: { unmount: () => void } | undefined;
     if (containerRef.current) {
-      injected = injectMessageAI(containerRef.current, { ...props });
+      injectMessageAI(containerRef.current, { inputRef, getHtml });
     }
-    return () => {
-      injected?.unmount();
-    };
-  }, [props]);
+  }, [getHtml, inputRef]);
   return (
     <div className="absolute left-0 top-0 w-full h-full pointer-events-none" ref={containerRef} />
   );

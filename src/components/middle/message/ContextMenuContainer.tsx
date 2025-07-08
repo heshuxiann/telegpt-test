@@ -480,7 +480,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
 
   const handleScheduleMeeting = useLastCallback(() => {
     const chatId = message.chatId;
-    const scheduleMeeting = new ScheduleMeeting({ chatId });
+    const scheduleMeeting = ScheduleMeeting.create({ chatId });
     const auth = getAuthState();
     if (!auth || !isTokenValid(auth)) {
       createAuthConfirmModal({

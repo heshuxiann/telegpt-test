@@ -295,34 +295,31 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
         {currentContent === GlobalSearchContent.AI && !hasMenu ? (
           <div className="text-[16px] font-semibold flex flex-row justify-center items-center flex-1">AI Search</div>
         ) : (
-          <>
-            <SearchInput
-              inputId="telegram-search-input"
-              resultsItemSelector=".LeftSearch .ListItem-button"
-              className={buildClassName(
-                (globalSearchChatId || searchDate) ? 'with-picker-item' : undefined,
-                shouldHideSearch && 'SearchInput--hidden',
-              )}
-              withAIIcon
-              value={isClosingSearch ? undefined : (contactsFilter || searchQuery)}
-              focused={isSearchFocused}
-              isLoading={isLoading || connectionStatusPosition === 'minimized'}
-              spinnerColor={connectionStatusPosition === 'minimized' ? 'yellow' : undefined}
-              spinnerBackgroundColor={connectionStatusPosition === 'minimized' && theme === 'light' ? 'light' : undefined}
-              placeholder={searchInputPlaceholder}
-              autoComplete="off"
-              canClose={Boolean(globalSearchChatId || searchDate)}
-              onChange={onSearchQuery}
-              onReset={onReset}
-              onFocus={handleSearchFocus}
-              onSpinnerClick={connectionStatusPosition === 'minimized' ? toggleConnectionStatus : undefined}
-            >
-              {searchContent}
-              <StoryToggler
-                canShow={withStoryToggler}
-              />
-            </SearchInput>
-          </>
+          <SearchInput
+            inputId="telegram-search-input"
+            resultsItemSelector=".LeftSearch .ListItem-button"
+            className={buildClassName(
+              (globalSearchChatId || searchDate) ? 'with-picker-item' : undefined,
+              shouldHideSearch && 'SearchInput--hidden',
+            )}
+            value={isClosingSearch ? undefined : (contactsFilter || searchQuery)}
+            focused={isSearchFocused}
+            isLoading={isLoading || connectionStatusPosition === 'minimized'}
+            spinnerColor={connectionStatusPosition === 'minimized' ? 'yellow' : undefined}
+            spinnerBackgroundColor={connectionStatusPosition === 'minimized' && theme === 'light' ? 'light' : undefined}
+            placeholder={searchInputPlaceholder}
+            autoComplete="off"
+            canClose={Boolean(globalSearchChatId || searchDate)}
+            onChange={onSearchQuery}
+            onReset={onReset}
+            onFocus={handleSearchFocus}
+            onSpinnerClick={connectionStatusPosition === 'minimized' ? toggleConnectionStatus : undefined}
+          >
+            {searchContent}
+            <StoryToggler
+              canShow={withStoryToggler}
+            />
+          </SearchInput>
         )}
         {isCurrentUserPremium && <StatusButton />}
         {hasPasscode && (

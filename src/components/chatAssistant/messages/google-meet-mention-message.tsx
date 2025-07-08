@@ -10,7 +10,7 @@ import ScheduleMeeting from '../utils/schedule-meeting';
 const GoogleMeetMentionMessage = ({ message }:{ message:Message }) => {
   const chatId = message.content;
   const handleConfirm = () => {
-    const scheduleMeeting = new ScheduleMeeting({ chatId });
+    const scheduleMeeting = ScheduleMeeting.create({ chatId });
     const auth = getAuthState();
     if (!auth || !isTokenValid(auth)) {
       createAuthConfirmModal({

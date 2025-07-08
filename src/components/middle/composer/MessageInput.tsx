@@ -275,7 +275,7 @@ const MessageInput: FC<OwnProps & StateProps> = ({
 
     if (html !== inputRef.current!.innerHTML) {
       inputRef.current!.innerHTML = html;
-      inputRef.current!.dispatchEvent(new Event('input', { bubbles: true }));
+      // inputRef.current!.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
     if (html !== cloneRef.current!.innerHTML) {
@@ -448,7 +448,6 @@ const MessageInput: FC<OwnProps & StateProps> = ({
     const { innerHTML, textContent } = e.currentTarget;
 
     onUpdate(innerHTML === SAFARI_BR ? '' : innerHTML);
-
     // Reset focus on the input to remove any active styling when input is cleared
     if (
       !IS_TOUCH_ENV
@@ -600,7 +599,7 @@ const MessageInput: FC<OwnProps & StateProps> = ({
         onClick={!isAttachmentModalInput && !canSendPlainText ? handleClick : undefined}
       >
         <div className={inputScrollerContentClass}>
-          <InputGrammarWrapper inputRef={inputRef} />
+          <InputGrammarWrapper inputRef={inputRef} getHtml={getHtml} />
           <div
             ref={inputRef}
             id={editableInputId || EDITABLE_INPUT_ID}

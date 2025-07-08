@@ -25,6 +25,7 @@ type OwnProps = {
   activeTab: number;
   className?: string;
   tabClassName?: string;
+  inversion?: boolean;
   onSwitchTab: (index: number) => void;
 };
 
@@ -33,7 +34,7 @@ const TAB_SCROLL_THRESHOLD_PX = 16;
 const SCROLL_DURATION = IS_IOS ? 450 : IS_ANDROID ? 400 : 300;
 
 const TabList: FC<OwnProps> = ({
-  tabs, activeTab, onSwitchTab, className, tabClassName,
+  tabs, activeTab, onSwitchTab, className, tabClassName, inversion,
 }) => {
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
@@ -69,7 +70,7 @@ const TabList: FC<OwnProps> = ({
 
   return (
     <div
-      className={buildClassName('TabList', 'no-scrollbar', className)}
+      className={buildClassName('TabList', 'no-scrollbar', inversion && 'inversion', className)}
       ref={containerRef}
       dir={lang.isRtl ? 'rtl' : undefined}
     >

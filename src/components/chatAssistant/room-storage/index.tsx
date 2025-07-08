@@ -84,7 +84,7 @@ class RoomStorage {
           chat,
           offsetId: lastMessageId,
           addOffset: -1,
-          sliceSize: 20,
+          sliceSize: 50,
           threadId: MAIN_THREAD_ID,
           maxCount: summaryCount,
         });
