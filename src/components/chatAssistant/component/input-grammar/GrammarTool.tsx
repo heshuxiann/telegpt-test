@@ -1,12 +1,13 @@
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable max-len */
-import React from 'react';
-import { Tabs, type TabsProps } from 'antd';
+import React, { useState } from 'react';
 
 import type { Signal } from '../../../../util/signals';
+import type { TabWithProperties } from '../TabList';
 
 import parseHtmlAsFormattedText from '../../../../util/parseHtmlAsFormattedText';
 
+import TabList from '../TabList';
 import FormalTab from './tabs/FormalTab';
 import FriendlyTab from './tabs/FriendlyTab';
 import ImproveTab from './tabs/ImproveTab';
@@ -23,38 +24,55 @@ export interface GrammarToolProps {
   setHtml: (newValue: string) => void;
   onClose: () => void;
 }
-const GrammarTool = (props:GrammarToolProps) => {
+const GrammarTool = (props: GrammarToolProps) => {
   const { getHtml, setHtml, onClose } = props;
   const { text } = parseHtmlAsFormattedText(getHtml());
-  const items: TabsProps['items'] = [
+  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+  const tabs: TabWithProperties[] = [
     {
-      key: '1',
-      label: 'Improve',
-      children: <ImproveTab text={text} setHtml={setHtml} onClose={onClose} />,
+      title: 'Improve',
     },
     {
-      key: '2',
-      label: 'Rephrase',
-      children: <RephraseTab text={text} setHtml={setHtml} onClose={onClose} />,
+      title: 'Rephrase',
     },
     {
-      key: '3',
-      label: 'Shorten',
-      children: <ShortenTab text={text} setHtml={setHtml} onClose={onClose} />,
+      title: 'Shorten',
     },
     {
-      key: '4',
-      label: 'Friendly',
-      children: <FriendlyTab text={text} setHtml={setHtml} onClose={onClose} />,
+      title: 'Friendly',
     },
     {
-      key: '5',
-      label: 'Formal',
-      children: <FormalTab text={text} setHtml={setHtml} onClose={onClose} />,
+      title: 'Formal',
     },
   ];
+  const renderContent = () => {
+    switch (selectedTabIndex) {
+      case 0:
+        return <ImproveTab text={text} setHtml={setHtml} onClose={onClose} />;
+      case 1:
+        return <RephraseTab text={text} setHtml={setHtml} onClose={onClose} />;
+      case 2:
+        return <ShortenTab text={text} setHtml={setHtml} onClose={onClose} />;
+      case 3:
+        return <FriendlyTab text={text} setHtml={setHtml} onClose={onClose} />;
+      case 4:
+        return <FormalTab text={text} setHtml={setHtml} onClose={onClose} />;
+      default:
+        return undefined;
+    }
+  };
   return (
-    <Tabs className="grammar-tool-tabs" defaultActiveKey="1" items={items} tabPosition="bottom" />
+    <>
+      <div className="px-[20px] py-[13px]">
+        {renderContent()}
+      </div>
+      <TabList
+        activeTab={selectedTabIndex}
+        tabs={tabs}
+        onSwitchTab={setSelectedTabIndex}
+        inversion
+      />
+    </>
   );
 };
 export default GrammarTool;

@@ -20,7 +20,8 @@ export enum Actions {
   UpdateRoomAIUnreadCount = 'UpdateRoomAIUnreadCount',
   IntentionToScheduleMeeting = 'IntentionToScheduleMeeting',
   // ai chat folds
-  UpdateAIChatFoldsLoading = 'UpdateAIChatFoldsLoading',
+  UpdateAIChatFoldersApplying = 'UpdateAIChatFoldersApplying',
+  UpdateAIChatFoldersClassifying = 'UpdateAIChatFoldersClassifying',
 }
 class EventEmitter {
   private static instance: EventEmitter;

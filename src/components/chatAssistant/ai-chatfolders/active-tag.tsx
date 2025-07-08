@@ -1,6 +1,5 @@
 import { getGlobal, setGlobal } from "../../../global";
 import React, { memo } from "../../../lib/teact/teact";
-import Icon from "../../common/icons/Icon";
 import { FolderType } from "../../left/main/ChatList";
 import { ChataiStores, GLOBAL_AI_TAG, GLOBAL_PRESET_TAG } from "../store";
 

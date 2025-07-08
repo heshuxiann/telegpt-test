@@ -18,6 +18,14 @@
   scrollbar-width: none;
   scrollbar-color: rgba(0, 0, 0, 0);
 
+  &.inversion {
+    .platform {
+      bottom: unset;
+      top: -0.625rem;
+      border-radius: 0 0 0.1875rem 0.1875rem;
+    }
+  }
+
   &::-webkit-scrollbar {
     height: 0;
   }

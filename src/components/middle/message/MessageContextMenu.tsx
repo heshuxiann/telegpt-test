@@ -27,7 +27,10 @@ import {
 import buildClassName from '../../../util/buildClassName';
 import { disableScrolling } from '../../../util/scrollLock';
 import ScheduleMeetingIcon from '../../chatAssistant/assets/schedule-meeting.png';
+import SerenaPath from '../../chatAssistant/assets/serena.png';
 import SmartReplyIcon from '../../chatAssistant/assets/smart-reply.png';
+import { canSummarize } from '../../chatAssistant/utils/ai-analyse-message';
+import { AIReplyIcon, MeetingIcon, SummarizeIcon } from '../../chatAssistant/utils/icons';
 import { REM } from '../../common/helpers/mediaDimensions';
 import renderText from '../../common/helpers/renderText';
 import { getMessageCopyOptions } from './helpers/copyOptions';
@@ -47,10 +50,6 @@ import ReactionSelector from './reactions/ReactionSelector';
 import ReadTimeMenuItem from './ReadTimeMenuItem';
 
 import './MessageContextMenu.scss';
-
-import SerenaPath from '../../chatAssistant/assets/serena.png';
-import { AIReplyIcon, MeetingIcon, SummarizeIcon } from "../../chatAssistant/utils/icons"
-import { canSummarize } from "../../chatAssistant/utils/ai-analyse-message"
 
 type OwnProps = {
   isReactionPickerOpen?: boolean;
@@ -259,7 +258,7 @@ const MessageContextMenu: FC<OwnProps> = ({
   const shouldShowGiftButton = isUserId(message.chatId)
     && canGift && (isPremiumGift || isGiftCode || isStarGift || isStarGiftUnique);
   const canAISummarize = canSummarize(message);
-  const canSerenaAI = canAISummarize || canScheduleMeeting || canSmartReply
+  const canSerenaAI = canAISummarize || canScheduleMeeting || canSmartReply;
 
   const [areItemsHidden, hideItems] = useFlag();
   const [isReady, markIsReady, unmarkIsReady] = useFlag();
@@ -429,53 +428,59 @@ const MessageContextMenu: FC<OwnProps> = ({
           <MenuItem icon="schedule" onClick={onReschedule}>{lang('MessageScheduleEditTime')}</MenuItem>
         )}
 
-        {canSerenaAI && <MenuItem
-          customIcon={(
-            <img
-              src={SerenaPath}
-              className="w-[20px] h-[20px] mr-[1.25rem] ml-[0.5rem]"
-              alt=""
-            />
+        {canSerenaAI && (
+          <MenuItem
+            customIcon={(
+              <img
+                src={SerenaPath}
+                className="w-[20px] h-[20px] mr-[1.25rem] ml-[0.5rem]"
+                alt=""
+              />
             )}
-          submenu={
-            <>
-              {canScheduleMeeting && (
-                <MenuItem
-                  customIcon={(
-                    <div className="mr-[1.25rem]">
-                      <MeetingIcon/>
-                    </div>
-                  )}
-                  onClick={onScheduleMeet}
-                >
-                  {lang('Schedule Meeting')}
-                </MenuItem>
-              )}
-              {canAISummarize && <MenuItem
-                customIcon={(
-                  <div className="mr-[1.25rem]">
-                    <SummarizeIcon/>
-                  </div>
+            submenu={(
+              <>
+                {canScheduleMeeting && (
+                  <MenuItem
+                    customIcon={(
+                      <div className="mr-[1.25rem]">
+                        <MeetingIcon />
+                      </div>
+                    )}
+                    onClick={onScheduleMeet}
+                  >
+                    {lang('Schedule Meeting')}
+                  </MenuItem>
                 )}
-                onClick={onSummarize}
-              >
-                {lang('Summarize')}
-              </MenuItem>}
-              {canSmartReply && <MenuItem
-                customIcon={(
-                  <div className="mr-[1.25rem]">
-                    <AIReplyIcon/>
-                  </div>
+                {canAISummarize && (
+                  <MenuItem
+                    customIcon={(
+                      <div className="mr-[1.25rem]">
+                        <SummarizeIcon />
+                      </div>
+                    )}
+                    onClick={onSummarize}
+                  >
+                    {lang('Summarize')}
+                  </MenuItem>
                 )}
-                onClick={onSmartReply}
-              >
-                {lang('AI Reply')}
-              </MenuItem>}
-            </>
-          }
-        >
-          {lang('SerenaAI')}
-        </MenuItem>}
+                {canSmartReply && (
+                  <MenuItem
+                    customIcon={(
+                      <div className="mr-[1.25rem]">
+                        <AIReplyIcon />
+                      </div>
+                    )}
+                    onClick={onSmartReply}
+                  >
+                    {lang('AI Reply')}
+                  </MenuItem>
+                )}
+              </>
+            )}
+          >
+            {lang('SerenaAI')}
+          </MenuItem>
+        )}
 
         {canReply && (
           <MenuItem icon="reply" onClick={onReply}>

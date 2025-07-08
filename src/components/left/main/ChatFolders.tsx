@@ -71,6 +71,7 @@ type StateProps = {
   isStoryRibbonShown?: boolean;
   sessions?: Record<string, ApiSession>;
   isAccountFrozen?: boolean;
+  aiChatFolders?: boolean;
 };
 
 const SAVED_MESSAGES_HOTKEY = '0';
@@ -97,6 +98,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   isStoryRibbonShown,
   sessions,
   isAccountFrozen,
+  aiChatFolders
 }) => {
   const {
     loadChatFolders,
@@ -432,31 +434,28 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   useEffect(()=>{
     const isNext = getGlobal().chatFolders.nextAiChatFolders?.length;
     if (isNext) {
-      openRenderAiChatFoldersTip();
       setAiChatFoldersStep(AIChatFolderStep.apply);
-    } else {
-      ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW)?.then((res)=>{
-        res === false ? closeRenderAiChatFoldersTip() : openRenderAiChatFoldersTip()
-      })
-      ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_STEP)?.then((res)=>{
-        if (res) {
-          setAiChatFoldersStep(res)
+      ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW)?.then((res) => {
+        if (res === undefined || (res === true && aiChatFolders)) {
+          openRenderAiChatFoldersTip();
+        } else {
+          closeRenderAiChatFoldersTip();
         }
-      })
+      });
     }
-  }, [aiChatFoldersloading])
+  }, [aiChatFoldersloading, shouldRenderAiChatFoldersTip, aiChatFolders])
 
   const updateAIChatFoldsLoading = ({ loading, isShowTip }: { loading: boolean; isShowTip?: boolean; }) => {
     setAiChatFoldersLoading(loading)
-    if (isShowTip) {
+    if (aiChatFolders && isShowTip) {
       openRenderAiChatFoldersTip();
     }
   }
 
   useEffect(() => {
-    eventEmitter.on(Actions.UpdateAIChatFoldsLoading, updateAIChatFoldsLoading);
+    eventEmitter.on(Actions.UpdateAIChatFoldersApplying, updateAIChatFoldsLoading);
     return () => {
-      eventEmitter.off(Actions.UpdateAIChatFoldsLoading, updateAIChatFoldsLoading);
+      eventEmitter.off(Actions.UpdateAIChatFoldersApplying, updateAIChatFoldsLoading);
     };
   }, [updateAIChatFoldsLoading]);
 
@@ -508,6 +507,8 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
 
   const shouldRenderFolders = folderTabs && folderTabs.length > 1;
 
+  // console.log('aiChatFoldersTask----ChatFolders render', shouldRenderAiChatFoldersTip, aiChatFoldersStep, aiChatFoldersloading,aiChatFolders )
+
   return (
     <div
       ref={ref}
@@ -528,10 +529,11 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
       ) : shouldRenderPlaceholder ? (
         <div ref={placeholderRef} className="tabs-placeholder" />
       ) : undefined}
-      {(shouldRenderAiChatFoldersTip || aiChatFoldersloading) && <AIChatFoldersTip
-        step={aiChatFoldersStep}
-        loading={aiChatFoldersloading}
-        onClose={closeRenderAiChatFoldersTip}
+      {shouldRenderAiChatFoldersTip && aiChatFoldersStep === AIChatFolderStep.apply &&
+        <AIChatFoldersTip
+          loading={aiChatFoldersloading}
+          step={aiChatFoldersStep}
+          onClose={closeRenderAiChatFoldersTip}
       />}
       {shouldRenderFolders && shouldRenderPresetTagModal && <PresetTagModal
         activeTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? activePresetTag : activeAITag}
@@ -605,6 +607,7 @@ export default memo(withGlobal<OwnProps>(
       isStoryRibbonShown,
       sessions,
       isAccountFrozen,
+      aiChatFolders,
     };
   },
 )(ChatFolders));
