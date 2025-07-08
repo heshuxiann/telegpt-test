@@ -46,6 +46,7 @@ import StoryStatistics from './statistics/StoryStatistics.async';
 import StickerSearch from './StickerSearch.async';
 
 import './RightColumn.scss';
+import PortraitPanel from "./PortraitPanel"
 
 interface OwnProps {
   isMobile?: boolean;
@@ -140,6 +141,7 @@ const RightColumn: FC<OwnProps & StateProps> = ({
   const isAddingChatMembers = contentKey === RightColumnContent.AddingMembers;
   const isCreatingTopic = contentKey === RightColumnContent.CreateTopic;
   const isEditingTopic = contentKey === RightColumnContent.EditTopic;
+  const isPortrait = contentKey === RightColumnContent.Portrait;
   const isOverlaying = windowWidth <= MIN_SCREEN_WIDTH_FOR_STATIC_RIGHT_COLUMN;
 
   const [shouldSkipTransition, setShouldSkipTransition] = useState(!isOpen);
@@ -379,6 +381,8 @@ const RightColumn: FC<OwnProps & StateProps> = ({
         return <EditTopic onClose={close} isActive={isOpen && isActive} />;
       case RightColumnContent.ChatAI:
         return <RoomAIWrapper chatId={chatId} threadId={threadId} onClose={close} />;
+      case RightColumnContent.Portrait:
+        return <PortraitPanel key={`portrait_${chatId!}_${threadId}`} isActive={isOpen && isActive} />;
     }
 
     return undefined; // Unreachable
@@ -415,6 +419,7 @@ const RightColumn: FC<OwnProps & StateProps> = ({
           isCreatingTopic={isCreatingTopic}
           isEditingTopic={isEditingTopic}
           isAddingChatMembers={isAddingChatMembers}
+          isPortrait={isPortrait}
           profileState={profileState}
           managementScreen={managementScreen}
           onClose={close}
