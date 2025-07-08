@@ -21,8 +21,8 @@ import {
 } from "../../../config";
 import { getAITags } from "./tag-filter";
 import { intersection } from "lodash";
-import eventEmitter, { Actions } from "../lib/EventEmitter"
-import { AIChatFolderStep } from "./ai-chatfolders-tip"
+import eventEmitter, { Actions } from "../lib/EventEmitter";
+import { AIChatFolderStep } from "./ai-chatfolders-tip";
 
 export interface AIChatFolder {
   id?: string;
@@ -141,7 +141,7 @@ export async function batchAiChatFolders(
       const aiRes = await chatAIChatFolders(
         JSON.stringify({
           messages: chatMsgs,
-          flag: true,
+          flag: true
         })
       );
       res = res.concat(aiRes);
@@ -182,13 +182,25 @@ export async function deleteAiChatFolders() {
       orderedIds: filterAIFolder(global.chatFolders?.orderedIds ?? []),
       aiChatFolders: {
         ...global.chatFolders?.aiChatFolders,
-        list: []
+        list: [],
       },
-      nextAiChatFolders: []
+      nextAiChatFolders: [],
     },
   };
   setGlobal(global);
   ChataiStores.general?.delete(GLOBAL_AICHATFOLDERS_LAST_TIME);
+}
+
+export function deleteNextAiChatFolders() {
+  let global = getGlobal();
+  global = {
+    ...global,
+    chatFolders: {
+      ...global.chatFolders,
+      nextAiChatFolders: [],
+    },
+  };
+  setGlobal(global);
 }
 
 export function isChatBot(chatId: string) {
@@ -231,7 +243,7 @@ export function replaceToJSON(text: string) {
   }
 }
 
-export function updateAiChatFoldersToGlobal() {
+export function updateAiChatFoldersToGlobal(nextAiChatFolders: AIChatFolder[]) {
   let global = getGlobal();
   const aiAllTags = getAITags();
   const activeAITag = intersection(
@@ -240,7 +252,6 @@ export function updateAiChatFoldersToGlobal() {
   );
   ChataiStores.general?.set(GLOBAL_AI_TAG, activeAITag);
 
-  const nextAiChatFolders = global?.chatFolders?.nextAiChatFolders || [];
   nextAiChatFolders.forEach((classifyItem) => {
     ChataiStores.aIChatFolders?.addAIChatFolder(classifyItem);
   });
@@ -253,24 +264,29 @@ export function updateAiChatFoldersToGlobal() {
         list: nextAiChatFolders,
         activeAITag,
       },
-      nextAiChatFolders: []
+      nextAiChatFolders: [],
     },
   };
   setGlobal(global);
 }
 
 export function hideTip(step: AIChatFolderStep) {
-  ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW)?.then((res)=>{
+  ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW)?.then((res) => {
     if (res !== undefined) {
       ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_TIP_SHOW, false);
     }
-  })
+  });
   ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_STEP, step);
-  eventEmitter.emit(Actions.UpdateAIChatFoldsLoading, false);
+  eventEmitter.emit(Actions.UpdateAIChatFoldsLoading, {
+    loading: false,
+  });
 }
 
 export function showTip(step: AIChatFolderStep) {
   ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_TIP_SHOW, true);
   ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_STEP, step);
-  eventEmitter.emit(Actions.UpdateAIChatFoldsLoading, false);
+  eventEmitter.emit(Actions.UpdateAIChatFoldsLoading, {
+    loading: false,
+    isShowTip: true,
+  });
 }

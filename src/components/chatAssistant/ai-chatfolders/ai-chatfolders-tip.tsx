@@ -12,7 +12,7 @@ import { ThemeKey } from "../../../types";
 import Spinner from "../../ui/Spinner";
 import "./ai-chatfolders-tip.scss";
 import Button from "../../ui/Button";
-import { AIChatFolder, hideTip } from "./util";
+import { AIChatFolder, deleteNextAiChatFolders, hideTip } from "./util";
 
 export enum AIChatFolderStep {
   classify = "classify",
@@ -48,6 +48,7 @@ const AIChatFoldersTip: FC<OwnProps & StateProps> = ({
       });
     }
     hideTip(AIChatFolderStep.classify)
+    deleteNextAiChatFolders()
     ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_TIP_SHOW, false);
     onClose?.();
   }

@@ -430,18 +430,27 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   }, [])
 
   useEffect(()=>{
-    ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW)?.then((res)=>{
-      res === false ? closeRenderAiChatFoldersTip() : openRenderAiChatFoldersTip()
-    })
-    ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_STEP)?.then((res)=>{
-      if (res) {
-        setAiChatFoldersStep(res)
-      }
-    })
+    const isNext = getGlobal().chatFolders.nextAiChatFolders?.length;
+    if (isNext) {
+      openRenderAiChatFoldersTip();
+      setAiChatFoldersStep(AIChatFolderStep.apply);
+    } else {
+      ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW)?.then((res)=>{
+        res === false ? closeRenderAiChatFoldersTip() : openRenderAiChatFoldersTip()
+      })
+      ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_STEP)?.then((res)=>{
+        if (res) {
+          setAiChatFoldersStep(res)
+        }
+      })
+    }
   }, [aiChatFoldersloading])
 
-  const updateAIChatFoldsLoading = (loading: boolean) => {
+  const updateAIChatFoldsLoading = ({ loading, isShowTip }: { loading: boolean; isShowTip?: boolean; }) => {
     setAiChatFoldersLoading(loading)
+    if (isShowTip) {
+      openRenderAiChatFoldersTip();
+    }
   }
 
   useEffect(() => {

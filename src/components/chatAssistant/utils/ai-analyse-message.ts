@@ -393,6 +393,41 @@ export async function audioSummary(
   });
 }
 
+export async function videoSummary(
+  message: ApiMessage,
+  isAuto: boolean = false
+) {
+  const video = message.content?.video;
+  if (!video) return;
+  const mediaHash = getMediaHash(video, "download");
+  if (!mediaHash) return;
+  //
+  let newMessage: StoreMessage = {
+    chatId: message.chatId,
+    timestamp: new Date().getTime(),
+    id: uuidv4(),
+    createdAt: new Date(),
+    role: "assistant",
+    annotations: [{ type: "room-ai-media-summary" }],
+    content: JSON.stringify({ message, isAuto, status: "loading" }),
+  };
+  await sendMessageToAIRoom(newMessage);
+  if (video?.mimeType !== "video/mp4") {
+    await sendErrorMessage(newMessage, message, isAuto);
+    return;
+  }
+
+  await handleAudioToSummaryText({
+    mediaHash,
+    mimeType: video?.mimeType,
+    filename: video?.fileName,
+    size: video?.size,
+    newMessage,
+    message,
+    isAuto,
+  });
+}
+
 async function sendMessageToAIRoom(newMessage: StoreMessage) {
   await ChataiStores.message?.storeMessage(newMessage);
   await eventEmitter.emit(Actions.AddRoomAIMessage, newMessage);
