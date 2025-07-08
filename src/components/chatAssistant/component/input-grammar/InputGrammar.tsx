@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Modal } from 'antd';
 
+import type { Signal } from '../../../../util/signals';
 import type { ErrorMarker } from './useGrammarChecker';
 
 import { LeftOutlined, RightOutlined } from '../../icons';
@@ -30,15 +31,16 @@ type CorrectionItem = {
 };
 export interface InputGrammerProps {
   inputRef: React.RefObject<HTMLDivElement | null>;
+  getHtml: Signal<string>;
 }
 const InputGrammar = (props:InputGrammerProps) => {
-  const { inputRef } = props;
-  const [errorMarkers, setErrorMarkers] = useState<ErrorMarker[]>([]);
+  const { inputRef, getHtml } = props;
+  // const [errorMarkers, setErrorMarkers] = useState<ErrorMarker[]>([]);
   const [errorsModalVisible, setErrorsModalVisible] = useState(false);
   const [errorsModalPosition, setErrorsModalPosition] = useState<{ left: number; top: number }>({ left: 0, top: 0 });
   const {
-    corrections, spalingLoading, fixError, fixAllErrors,
-  } = useGrammarChecker(inputRef, setErrorMarkers, {});
+    corrections, spalingLoading, errorMarkers, fixError, fixAllErrors,
+  } = useGrammarChecker(inputRef, getHtml, {});
   const showErrorModal = () => {
     if (inputRef && inputRef.current) {
       const inputReact = inputRef.current.getBoundingClientRect();

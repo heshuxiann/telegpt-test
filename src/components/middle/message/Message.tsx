@@ -293,6 +293,7 @@ type StateProps = {
   shouldDetectChatLanguage?: boolean;
   requestedTranslationLanguage?: string;
   autoTranslate?: boolean;
+  autoTranslateLanguage?: string;
   requestedChatTranslationLanguage?: string;
   withAnimatedEffects?: boolean;
   webPageStory?: ApiTypeStory;
@@ -418,6 +419,7 @@ const Message: FC<OwnProps & StateProps> = ({
   shouldDetectChatLanguage,
   requestedTranslationLanguage,
   autoTranslate,
+  autoTranslateLanguage,
   requestedChatTranslationLanguage,
   withAnimatedEffects,
   webPageStory,
@@ -758,7 +760,7 @@ const Message: FC<OwnProps & StateProps> = ({
     getIsMessageListReady,
   );
   useDetectChatLanguage(message, detectedLanguage, !shouldDetectChatLanguage, getIsMessageListReady);
-  const shouldTranslate = isMessageTranslatable(message, !requestedChatTranslationLanguage);
+  const shouldTranslate = isMessageTranslatable(message, true);
   const { isPending: isTranslationPending, translatedText } = useMessageTranslation(
     chatTranslations, chatId, shouldTranslate ? messageId : undefined, requestedTranslationLanguage,
   );
@@ -842,6 +844,7 @@ const Message: FC<OwnProps & StateProps> = ({
     requestMessageTranslation({
       chatId,
       id: messageId,
+      toLanguageCode: autoTranslateLanguage,
     });
   }
 
@@ -1759,6 +1762,7 @@ export default memo(withGlobal<OwnProps>(
       focusedMessage, forwardMessages, activeReactions, activeEmojiInteractions,
       loadingThread,
     } = selectTabState(global);
+    const { autoTranslate, autoTranslateLanguage } = global.settings.byKey;
     const {
       message, album, withSenderName, withAvatar, threadId, messageListType, isLastInDocumentGroup, isFirstInGroup,
     } = ownProps;
@@ -1895,8 +1899,6 @@ export default memo(withGlobal<OwnProps>(
       : undefined;
     const isAccountFrozen = selectIsCurrentUserFrozen(global);
 
-    const { autoTranslate } = global.settings.byKey;
-
     return {
       theme: selectTheme(global),
       forceSenderName,
@@ -1962,6 +1964,7 @@ export default memo(withGlobal<OwnProps>(
       shouldDetectChatLanguage: selectShouldDetectChatLanguage(global, chatId),
       requestedTranslationLanguage,
       autoTranslate,
+      autoTranslateLanguage,
       requestedChatTranslationLanguage,
       hasLinkedChat: Boolean(chatFullInfo?.linkedChatId),
       withAnimatedEffects: selectPerformanceSettingsValue(global, 'stickerEffects'),
