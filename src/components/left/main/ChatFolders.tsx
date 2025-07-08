@@ -507,7 +507,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
 
   const shouldRenderFolders = folderTabs && folderTabs.length > 1;
 
-  console.log('aiChatFoldersTask----ChatFolders render', shouldRenderAiChatFoldersTip, aiChatFoldersStep, aiChatFoldersloading,aiChatFolders )
+  // console.log('aiChatFoldersTask----ChatFolders render', shouldRenderAiChatFoldersTip, aiChatFoldersStep, aiChatFoldersloading,aiChatFolders )
 
   return (
     <div
