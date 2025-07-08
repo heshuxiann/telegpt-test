@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 import { Modal } from 'antd';
-import React, { memo, useMemo, useState } from '../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../global';
+import React, { memo, useEffect, useMemo, useState } from '../../../lib/teact/teact';
+import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type { ApiUser } from '../../../api/types';
 import type { GlobalState } from '../../../global/types';
@@ -50,6 +50,8 @@ import Toggle from '../../ui/Toggle';
 import AccountMenuItems from './AccountMenuItems';
 import Spinner from "../../ui/Spinner"
 import { AIChatFolderStep } from "../../chatAssistant/ai-chatfolders/ai-chatfolders-tip"
+import buildClassName from "../../../util/buildClassName"
+import eventEmitter, { Actions } from "../../chatAssistant/lib/EventEmitter"
 
 type OwnProps = {
   onSelectAIKnowledge: NoneToVoidFunction;
@@ -181,13 +183,25 @@ const LeftSideMenuItems = ({
     } else {
       setAiChatFoldersLoading(true)
       setSharedSettingOption({ aiChatFolders: isOpen });
-      if (nextAiChatFolders && nextAiChatFolders?.length <= 0 ) {
-        await aiChatFoldersTask.classifyChatMessageByCount();
-      }
       await aiChatFoldersTask.applyChatFolder();
       setAiChatFoldersLoading(false)
     }
   });
+
+  const updateAIChatFoldersLoading = ({ loading }: { loading: boolean; }) => {
+    const isNext = getGlobal().chatFolders.nextAiChatFolders?.length;
+    if (isNext) {
+      setAiChatFoldersLoading(false)
+    } else {
+      setAiChatFoldersLoading(loading)
+    }
+  }
+  useEffect(() => {
+    eventEmitter.on(Actions.UpdateAIChatFoldersClassifying, updateAIChatFoldersLoading);
+    return () => {
+      eventEmitter.off(Actions.UpdateAIChatFoldersClassifying, updateAIChatFoldersLoading);
+    };
+  }, [updateAIChatFoldersLoading]);
 
   return (
     <>
@@ -218,10 +232,7 @@ const LeftSideMenuItems = ({
         onClick={handleSwitchAIChatFolders}
       >
         <span className="menu-item-name capitalize">{oldLang('AI Chat Folders')}</span>
-        {aiChatFoldersLoading ? <Spinner
-          className="w-[18px] h-[18px] ml-2"
-          color={theme === "dark" ? "white" : "black"}
-        /> : <label className="Switcher no-animation" title="">
+        <label className={buildClassName("Switcher no-animation", aiChatFoldersLoading ? 'disabled': '')} title="">
           <input
             type="checkbox"
             id="aiChatFolders"
@@ -229,7 +240,11 @@ const LeftSideMenuItems = ({
             disabled
           />
           <span className="widget" />
-        </label>}
+        </label>
+        {aiChatFoldersLoading && <Spinner
+          className="w-[18px] h-[18px] ml-2"
+          color={theme === "dark" ? "white" : "black"}
+        />}
       </MenuItem>
       <MenuItem
         icon="saved-messages"
