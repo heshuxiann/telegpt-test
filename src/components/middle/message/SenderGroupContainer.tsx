@@ -27,7 +27,8 @@ import useFlag from '../../../hooks/useFlag';
 import useLastCallback from '../../../hooks/useLastCallback';
 import useShowTransition from '../../../hooks/useShowTransition';
 
-import Avatar from '../../common/Avatar';
+// import Avatar from '../../common/Avatar';
+import SenderGroupAvatar from './SenderGroupAvatar';
 
 import styles from './SenderGroupContainer.module.scss';
 
@@ -98,19 +99,19 @@ const SenderGroupContainer: FC<OwnProps & StateProps> = ({
     withShouldRender: true,
   });
 
-  function renderAvatar() {
-    const hiddenName = (!avatarPeer && forwardInfo) ? forwardInfo.hiddenUserName : undefined;
+  // function renderAvatar() {
+  //   const hiddenName = (!avatarPeer && forwardInfo) ? forwardInfo.hiddenUserName : undefined;
 
-    return (
-      <Avatar
-        size="small"
-        className={styles.senderAvatar}
-        peer={avatarPeer}
-        text={hiddenName}
-        onClick={avatarPeer ? handleAvatarClick : undefined}
-      />
-    );
-  }
+  //   return (
+  //     <Avatar
+  //       size="small"
+  //       className={styles.senderAvatar}
+  //       peer={avatarPeer}
+  //       text={hiddenName}
+  //       onClick={avatarPeer ? handleAvatarClick : undefined}
+  //     />
+  //   );
+  // }
 
   const className = buildClassName(
     'sender-group-container',
@@ -121,7 +122,8 @@ const SenderGroupContainer: FC<OwnProps & StateProps> = ({
     <div id={id} className={className}>
       {shouldRender && (
         <div ref={avatarRef} className={styles.avatarContainer}>
-          {renderAvatar()}
+          {/* {renderAvatar()} */}
+          <SenderGroupAvatar handleAvatarClick={handleAvatarClick} avatarPeer={avatarPeer} forwardInfo={forwardInfo} />
         </div>
       )}
       {children}
