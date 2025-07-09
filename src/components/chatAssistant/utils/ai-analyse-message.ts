@@ -566,7 +566,7 @@ export function canSummarize(message: ApiMessage) {
   const isUrl = checkIsUrl(text?.text);
   const hasText = text?.text && text.text.trim() !== "";
 
-  return photo || document || (webPage && !hasText) || voice || audio || (isUrl && !webPage) || video;
+  return photo || document || (webPage && !hasText) || voice || audio || isUrl || video;
 }
 
 export function isHasUrl(text?: string) {
@@ -579,7 +579,7 @@ export function isHasUrl(text?: string) {
 export function checkIsUrl(text?: string) {
   return (
     typeof text === "string" &&
-    /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w\-./?%&=]*)?$/i.test(text)
+    /^https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+$/i.test(text)
   );
 }
 

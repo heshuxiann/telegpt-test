@@ -26,8 +26,10 @@ import {
   selectTopic,
   selectUser,
 } from '../../global/selectors';
+import { selectSharedSettings } from '../../global/selectors/sharedState';
 import buildClassName from '../../util/buildClassName';
 import SerenaLogoPath from '../chatAssistant/assets/serena.png';
+import { AISettingIcon, RealTimeAIIcon } from '../chatAssistant/utils/icons';
 
 import useAppLayout from '../../hooks/useAppLayout';
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
@@ -48,8 +50,6 @@ import SearchInput from '../ui/SearchInput';
 import Transition from '../ui/Transition';
 
 import './RightHeader.scss';
-import { AISettingIcon, RealTimeAIIcon } from "../chatAssistant/utils/icons"
-import { selectSharedSettings } from "../../global/selectors/sharedState"
 
 type OwnProps = {
   chatId?: string;
@@ -95,7 +95,7 @@ type StateProps = {
   isInsideTopic?: boolean;
   canEditTopic?: boolean;
   isSavedMessages?: boolean;
-  realTimeAssistant?: boolean;
+  realTimeAssistants?: { [key: string]: boolean };
 };
 
 const COLUMN_ANIMATION_DURATION = 450 + ANIMATION_END_DELAY;
@@ -184,7 +184,7 @@ const RightHeader: FC<OwnProps & StateProps> = ({
   giftProfileFilter,
   canUseGiftFilter,
   canUseGiftAdminFilter,
-  realTimeAssistant
+  realTimeAssistants,
 }) => {
   const {
     setStickerSearchQuery,
@@ -196,7 +196,7 @@ const RightHeader: FC<OwnProps & StateProps> = ({
     deleteExportedChatInvite,
     openEditTopicPanel,
     updateGiftProfileFilter,
-    setSharedSettingOption
+    setSharedSettingOption,
   } = getActions();
 
   const [isDeleteDialogOpen, openDeleteDialog, closeDeleteDialog] = useFlag();
@@ -253,10 +253,27 @@ const RightHeader: FC<OwnProps & StateProps> = ({
     onClose(!isSavedMessages);
   });
 
-  const handleSwitchRealTimeAssistant = useLastCallback((e: React.SyntheticEvent<HTMLElement>)=> {
+  const realTimeAssistantById = useMemo(() => {
+    const chatType = chatId && isUserId(chatId) ? 'user' : 'chat';
+    if (chatId && realTimeAssistants?.[chatId] !== undefined) {
+      return realTimeAssistants[chatId];
+    } else if (chatType === 'user') {
+      return true;
+    } else {
+      return false;
+    }
+  }, [chatId, realTimeAssistants]);
+
+  const handleSwitchRealTimeAssistant = useLastCallback((e: React.SyntheticEvent<HTMLElement>) => {
+    if (!chatId) return;
     e.stopPropagation();
-    setSharedSettingOption({ realTimeAssistant: !realTimeAssistant });
-  })
+    setSharedSettingOption({
+      realTimeAssistants: {
+        ...realTimeAssistants,
+        [chatId]: !realTimeAssistantById,
+      },
+    });
+  });
 
   const [shouldSkipTransition, setShouldSkipTransition] = useState(!isColumnOpen);
 
@@ -395,12 +412,12 @@ const RightHeader: FC<OwnProps & StateProps> = ({
         color="translucent"
         className={isOpen ? 'active' : ''}
         onClick={onTrigger}
-        ariaLabel=''
+        ariaLabel=""
       >
-        <AISettingIcon/>
+        <AISettingIcon />
       </Button>
     );
-  }, [isMobile, lang]);
+  }, [isMobile]);
 
   function renderHeaderContent() {
     if (renderingContentKey === -1) {
@@ -631,9 +648,11 @@ const RightHeader: FC<OwnProps & StateProps> = ({
             >
               <div className="p-2">
                 <MenuItem
-                  customIcon={<div className="mr-[10px] mb-[40px]">
-                    <RealTimeAIIcon/>
-                  </div>}
+                  customIcon={(
+                    <div className="mr-[10px] mb-[40px]">
+                      <RealTimeAIIcon />
+                    </div>
+                  )}
                   onClick={handleSwitchRealTimeAssistant}
                 >
                   <div>
@@ -642,15 +661,15 @@ const RightHeader: FC<OwnProps & StateProps> = ({
                       <label className="Switcher no-animation" title="">
                         <input
                           type="checkbox"
-                          id="realTimeAssistant"
-                          checked={realTimeAssistant === true}
+                          id="realTimeAssistantById"
+                          checked={realTimeAssistantById === true}
                           disabled
                         />
                         <span className="widget" />
                       </label>
                     </div>
                     <div className="mt-2 text-[12px] text-[#666666] leading-[15px] ml-[-35px]">
-                      When enabled, the assistant will monitor <br/> chats in real time to assist you.
+                      When enabled, the assistant will monitor <br /> chats in real time to assist you.
                     </div>
                   </div>
                 </MenuItem>
@@ -802,7 +821,7 @@ export default withGlobal<OwnProps>(
     const canUseGiftFilter = chatId ? selectCanUseGiftProfileFilter(global, chatId) : false;
     const canUseGiftAdminFilter = chatId ? selectCanUseGiftProfileAdminFilter(global, chatId) : false;
 
-    const { realTimeAssistant } = selectSharedSettings(global);
+    const { realTimeAssistants } = selectSharedSettings(global);
 
     return {
       canManage,
@@ -824,7 +843,7 @@ export default withGlobal<OwnProps>(
       giftProfileFilter,
       canUseGiftFilter,
       canUseGiftAdminFilter,
-      realTimeAssistant
+      realTimeAssistants,
     };
   },
 )(RightHeader);

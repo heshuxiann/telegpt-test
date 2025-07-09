@@ -11,9 +11,10 @@ class RoomAIMessageListener {
       webPage, photo, video, audio, voice, document, text,
     } = message.content;
     const isUrl = checkIsUrl(text?.text);
+
     if (message.isMentioned) {
       replyToMention(message, true);
-    } else if ((webPage && !text?.text) || (isUrl && !webPage)) {
+    } else if ((webPage && !text?.text) || isUrl) {
       webPageSummary(message, true);
     } else if (photo) {
       // photoSummary(message, true);
