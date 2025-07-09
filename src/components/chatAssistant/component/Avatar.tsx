@@ -68,6 +68,7 @@ type OwnProps = {
   // loopIndefinitely?: boolean;
   noPersonalPhoto?: boolean;
   clickOpenRoom?: boolean;
+  clickOpenAIAssiatant?: boolean;
   onClick?: (e: ReactMouseEvent<HTMLDivElement, MouseEvent>, hasMedia: boolean) => void;
 };
 
@@ -88,10 +89,11 @@ const Avatar: FC<OwnProps> = ({
   // withVideo,
   // loopIndefinitely,
   noPersonalPhoto,
+  clickOpenAIAssiatant = true,
   clickOpenRoom = true,
   onClick,
 }) => {
-  const { openChat } = getActions();
+  const { openChat, openChatAIWithInfo } = getActions();
 
   // eslint-disable-next-line no-null/no-null
   const ref = useRef<HTMLDivElement>(null);
@@ -255,6 +257,9 @@ const Avatar: FC<OwnProps> = ({
   const { handleClick, handleMouseDown } = useFastClick((e: ReactMouseEvent<HTMLDivElement, MouseEvent>) => {
     if (clickOpenRoom && realPeer?.id) {
       openChat({ id: realPeer.id });
+    }
+    if (clickOpenAIAssiatant && realPeer?.id) {
+      openChatAIWithInfo({ chatId: realPeer.id });
     }
     if (onClick) {
       onClick(e, hasMedia);

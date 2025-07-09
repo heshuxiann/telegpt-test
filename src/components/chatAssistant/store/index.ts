@@ -16,7 +16,6 @@ import UsersStore from './user-store';
 const dbVersion = 18;
 
 export const GLOBAL_SUMMARY_LAST_TIME = 'globalSummaryLastTime';
-export const GLOBAL_SUMMARY_READ_TIME = 'globalSummaryReadTime';
 export const GLOBAL_AICHATFOLDERS_LAST_TIME = 'globalAiChatFoldersLastTime';
 export const GLOBAL_AICHATFOLDERS_TIP_SHOW = 'globalAiChatFoldersTipShow';
 export const GLOBAL_PRESET_TAG = 'globalPresetTag';
