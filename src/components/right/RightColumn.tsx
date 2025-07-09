@@ -44,9 +44,9 @@ import MonetizationStatistics from './statistics/MonetizationStatistics';
 import Statistics from './statistics/Statistics.async';
 import StoryStatistics from './statistics/StoryStatistics.async';
 import StickerSearch from './StickerSearch.async';
+import UserPortrait from './UserPortrait';
 
 import './RightColumn.scss';
-import PortraitPanel from "./PortraitPanel"
 
 interface OwnProps {
   isMobile?: boolean;
@@ -112,6 +112,7 @@ const RightColumn: FC<OwnProps & StateProps> = ({
     setShouldCloseRightColumn,
     closeMonetizationStatistics,
     openChatAIWithInfo,
+    toggleUserPortrait,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -141,7 +142,7 @@ const RightColumn: FC<OwnProps & StateProps> = ({
   const isAddingChatMembers = contentKey === RightColumnContent.AddingMembers;
   const isCreatingTopic = contentKey === RightColumnContent.CreateTopic;
   const isEditingTopic = contentKey === RightColumnContent.EditTopic;
-  const isPortrait = contentKey === RightColumnContent.Portrait;
+  const isUserPortrait = contentKey === RightColumnContent.UserPortrait;
   const isOverlaying = windowWidth <= MIN_SCREEN_WIDTH_FOR_STATIC_RIGHT_COLUMN;
 
   const [shouldSkipTransition, setShouldSkipTransition] = useState(!isOpen);
@@ -167,6 +168,9 @@ const RightColumn: FC<OwnProps & StateProps> = ({
         break;
       case RightColumnContent.ChatAI:
         toggleChatAIInfo({ force: false }, { forceSyncOnIOs: true });
+        break;
+      case RightColumnContent.UserPortrait:
+        toggleUserPortrait({ force: false }, { forceSyncOnIOs: true });
         break;
       case RightColumnContent.Management: {
         switch (managementScreen) {
@@ -381,8 +385,8 @@ const RightColumn: FC<OwnProps & StateProps> = ({
         return <EditTopic onClose={close} isActive={isOpen && isActive} />;
       case RightColumnContent.ChatAI:
         return <RoomAIWrapper chatId={chatId} threadId={threadId} onClose={close} />;
-      case RightColumnContent.Portrait:
-        return <PortraitPanel key={`portrait_${chatId!}_${threadId}`} isActive={isOpen && isActive} />;
+      case RightColumnContent.UserPortrait:
+        return <UserPortrait />;
     }
 
     return undefined; // Unreachable
@@ -419,7 +423,7 @@ const RightColumn: FC<OwnProps & StateProps> = ({
           isCreatingTopic={isCreatingTopic}
           isEditingTopic={isEditingTopic}
           isAddingChatMembers={isAddingChatMembers}
-          isPortrait={isPortrait}
+          isUserPortrait={isUserPortrait}
           profileState={profileState}
           managementScreen={managementScreen}
           onClose={close}

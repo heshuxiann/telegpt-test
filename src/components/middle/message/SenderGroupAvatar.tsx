@@ -2,12 +2,15 @@ import type { FC } from '../../../lib/teact/teact';
 import React, {
   useState,
 } from '../../../lib/teact/teact';
+import { getActions } from '../../../global';
 
 import type {
   ApiPeer,
 } from '../../../api/types';
 
 import { PortraitIcon } from '../../chatAssistant/utils/icons';
+
+import useLastCallback from '../../../hooks/useLastCallback';
 
 import Avatar from '../../common/Avatar';
 
@@ -26,12 +29,13 @@ const SenderGroupAvatar: FC<OwnProps> = ({
   forwardInfo,
   handleAvatarClick,
 }) => {
+  const { openUserPortrait } = getActions();
   const [menuVisible, setMenuVisible] = useState(false);
   const hiddenName = (!avatarPeer && forwardInfo) ? forwardInfo.hiddenUserName : undefined;
 
-  function handlePortraitClick() {
-    alert('User Portrait Clicked');
-  }
+  const handlePortraitClick = useLastCallback(() => {
+    openUserPortrait({ userId: avatarPeer?.id! });
+  });
 
   return (
     <div
@@ -50,7 +54,7 @@ const SenderGroupAvatar: FC<OwnProps> = ({
         <div
           className="absolute top-[-20px] left-[80%] bg-[var(--color-background-compact-menu)]
             text-[var(--color-text)] shadow-lg shadow-black/40 z-10 py-[6px] px-2 rounded-[8px] w-[135px]
-            hover:bg-[var(--color-background-compact-menu-hover)]"
+            hover:opacity-80"
         >
           <div
             className="flex items-center gap-2 text-[14px] font-[500] cursor-pointer"

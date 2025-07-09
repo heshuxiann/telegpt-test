@@ -69,7 +69,7 @@ type OwnProps = {
   isCreatingTopic?: boolean;
   isEditingTopic?: boolean;
   isAddingChatMembers?: boolean;
-  isPortrait?: boolean;
+  isUserPortrait?: boolean;
   profileState?: ProfileState;
   managementScreen?: ManagementScreens;
   onClose: (shouldScrollUp?: boolean) => void;
@@ -142,7 +142,7 @@ enum HeaderContent {
   EditTopic,
   SavedDialogs,
   ChatAI,
-  Portrait
+  UserPortrait,
 }
 
 const RightHeader: FC<OwnProps & StateProps> = ({
@@ -178,7 +178,7 @@ const RightHeader: FC<OwnProps & StateProps> = ({
   shouldSkipHistoryAnimations,
   isBot,
   isInsideTopic,
-  isPortrait,
+  isUserPortrait,
   canEditTopic,
   isSavedMessages,
   onClose,
@@ -366,8 +366,8 @@ const RightHeader: FC<OwnProps & StateProps> = ({
     HeaderContent.EditTopic
   ) : isMonetizationStatistics ? (
     HeaderContent.MonetizationStatistics
-  ) : isPortrait ? (
-    HeaderContent.Portrait
+  ) : isUserPortrait ? (
+    HeaderContent.UserPortrait
   ) : HeaderContent.ChatAI; // When column is closed
 
   const renderingContentKey = useCurrentOrPrev(contentKey, true) ?? -1;
@@ -682,7 +682,7 @@ const RightHeader: FC<OwnProps & StateProps> = ({
             </DropdownMenu>
           </div>
         );
-      case HeaderContent.Portrait:
+      case HeaderContent.UserPortrait:
         return <h3 className="title">{oldLang('Portrait')}</h3>;
       default:
         return (
