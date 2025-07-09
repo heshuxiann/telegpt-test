@@ -706,7 +706,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
     await openChatAIWithInfo({ chatId: message.chatId });
     if (photo) {
       photoSummary(message);
-    } else if (webPage || isUrl) {
+    } else if ((webPage && !text?.text) || isUrl) {
       webPageSummary(message);
     } else if (document) {
       documentSummary(message);

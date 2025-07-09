@@ -1,4 +1,3 @@
-import { message } from 'antd';
 import { getGlobal } from '../../../global';
 
 import type { IVSDocument } from '../../../components/chatAssistant/vector-storage/types/IVSDocument';
@@ -32,7 +31,6 @@ import {
 } from '../../../util/multiaccount';
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
 import ChatAIMessageQuene from '../../../components/chatAssistant/ai-task/chatai-task';
-import RoomAIMessageListener from '../../../components/chatAssistant/room-ai/room-ai-message-listener';
 import { messageEmbeddingStore, toolsEmbeddingStore } from '../../../components/chatAssistant/vector-store';
 
 import eventEmitter, {
@@ -352,14 +350,28 @@ async function isIntentionToScheduleMeeting(embedding:number[] | undefined, mess
   }
 }
 
-function sendToCurrentChatAI(data: ApiUpdate) {
-  if (data['@type'] === 'newMessage') {
+async function sendToCurrentChatAI(data: ApiUpdate) {
+  if (data['@type'] === 'updateMessage') {
     const global = getGlobal();
     const currentChat = selectCurrentChat(global);
-    const { realTimeAssistant } = selectSharedSettings(global);
+    const { realTimeAssistants } = selectSharedSettings(global);
     const isChatAIShown = selectTabState(global, getCurrentTabId()).isChatAIShown;
-    if (realTimeAssistant && currentChat?.id === data.message?.chatId && isChatAIShown) {
-      RoomAIMessageListener.messageListener(data.message as ApiMessage);
+    if (currentChat?.id && currentChat?.id === data.message?.chatId && isChatAIShown) {
+      let realTimeAssistantById = false;
+      const chatType = isUserId(currentChat?.id) ? 'user' : 'chat';
+      if (realTimeAssistants?.[currentChat?.id] !== undefined) {
+        realTimeAssistantById = realTimeAssistants?.[currentChat?.id];
+      } else if (chatType === 'user') {
+        realTimeAssistantById = true;
+      } else {
+        realTimeAssistantById = false;
+      }
+      if (realTimeAssistantById) {
+        const { default: RoomAIMessageListener } = await
+        import('../../../components/chatAssistant/room-ai/room-ai-message-listener');
+
+        RoomAIMessageListener.messageListener(data.message as ApiMessage);
+      }
     }
   }
 }
