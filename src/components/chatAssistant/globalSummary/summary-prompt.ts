@@ -108,7 +108,6 @@ const CustomizationDataTemplate = `
         ]
 `;
 const coinsPrompt = `
-    ## 指令要求
         1. 按总提及量降序排列,仅展示前3种加密货币(不足3个则显示实际数量)
         2. 每种货币需包含：
             - 标准化货币符号（示例：$BTC / $ETH)
@@ -116,24 +115,6 @@ const coinsPrompt = `
             - 关联讨论主题分类
             - 关键消息摘要(含消息ID溯源)
         3. 对提及加密货币的消息内容进行总结,保留核心观点
-    ## 示例输出
-         [
-            {
-                "title": "$BTC",
-                "summaryChatIds": ["房间ID1", "房间ID2", ...],
-                "summaryItems": [
-                    {
-                        "subtitle": "分析师认为2024减半将推动价格突破7万美元",
-                        "relevantMessages": [
-                            {
-                                "chatId": "房间ID",
-                                "messageIds": [消息ID1, 消息ID2, ...]
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
 `;
 const activeUserPrompt = `
     ## 指令要求

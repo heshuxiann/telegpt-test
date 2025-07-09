@@ -102,6 +102,8 @@ type OwnProps = {
 };
 
 type StateProps = {
+  autoTranslate?:boolean;
+  autoTranslateLanguage?:string;
   isChatLoaded?: boolean;
   isChannelChat?: boolean;
   isGroupChat?: boolean;
@@ -157,6 +159,8 @@ const MessageList: FC<OwnProps & StateProps> = ({
   chatId,
   threadId,
   type,
+  autoTranslate,
+  autoTranslateLanguage,
   isChatLoaded,
   isForum,
   isChannelChat,
@@ -205,7 +209,7 @@ const MessageList: FC<OwnProps & StateProps> = ({
 }) => {
   const {
     loadViewportMessages, setScrollOffset, loadSponsoredMessages, loadMessageReactions, copyMessagesByIds,
-    loadMessageViews, loadPeerStoriesByIds, loadFactChecks,
+    loadMessageViews, loadPeerStoriesByIds, loadFactChecks, requestMessageTranslation,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -268,6 +272,19 @@ const MessageList: FC<OwnProps & StateProps> = ({
   useSyncEffect(() => {
     memoFocusingIdRef.current = focusingId;
   }, [focusingId]);
+
+  // Enable auto translation for the chat if it's available
+  // useEffect(() => {
+  //   if (!autoTranslate) return;
+  //   requestChatTranslation({ chatId, toLanguageCode: autoTranslateLanguage });
+  // }, [autoTranslate, autoTranslateLanguage, chatId]);
+
+  useEffect(() => {
+    if (!autoTranslate) return;
+    messageIds?.forEach((messageId) => {
+      requestMessageTranslation({ chatId, id: messageId, toLanguageCode: autoTranslateLanguage });
+    });
+  }, [autoTranslate, autoTranslateLanguage, chatId, messageIds]);
 
   useNativeCopySelectedMessages(copyMessagesByIds);
 
@@ -760,6 +777,7 @@ const MessageList: FC<OwnProps & StateProps> = ({
 
 export default memo(withGlobal<OwnProps>(
   (global, { chatId, threadId, type }): StateProps => {
+    const { autoTranslate, autoTranslateLanguage } = global.settings.byKey;
     const currentUserId = global.currentUserId!;
     const chat = selectChat(global, chatId);
     const userFullInfo = selectUserFullInfo(global, chatId);
@@ -807,6 +825,8 @@ export default memo(withGlobal<OwnProps>(
     const isAppConfigLoaded = global.isAppConfigLoaded;
 
     return {
+      autoTranslate,
+      autoTranslateLanguage,
       areAdsEnabled,
       isChatLoaded: true,
       isRestricted,

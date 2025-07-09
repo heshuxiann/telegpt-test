@@ -292,8 +292,6 @@ type StateProps = {
   areTranslationsEnabled?: boolean;
   shouldDetectChatLanguage?: boolean;
   requestedTranslationLanguage?: string;
-  autoTranslate?: boolean;
-  autoTranslateLanguage?: string;
   requestedChatTranslationLanguage?: string;
   withAnimatedEffects?: boolean;
   webPageStory?: ApiTypeStory;
@@ -418,8 +416,6 @@ const Message: FC<OwnProps & StateProps> = ({
   areTranslationsEnabled,
   shouldDetectChatLanguage,
   requestedTranslationLanguage,
-  autoTranslate,
-  autoTranslateLanguage,
   requestedChatTranslationLanguage,
   withAnimatedEffects,
   webPageStory,
@@ -446,7 +442,6 @@ const Message: FC<OwnProps & StateProps> = ({
     animateUnreadReaction,
     focusLastMessage,
     markMentionsRead,
-    requestMessageTranslation,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -760,13 +755,13 @@ const Message: FC<OwnProps & StateProps> = ({
     getIsMessageListReady,
   );
   useDetectChatLanguage(message, detectedLanguage, !shouldDetectChatLanguage, getIsMessageListReady);
-  const shouldTranslate = isMessageTranslatable(message, true) && autoTranslate;
-  // const { isPending: isTranslationPending, translatedText } = useMessageTranslation(
-  //   chatTranslations, chatId, shouldTranslate ? messageId : undefined, requestedTranslationLanguage,
-  // );
+  const shouldTranslate = isMessageTranslatable(message, true);
   const { isPending: isTranslationPending, translatedText } = useMessageTranslation(
-    chatTranslations, chatId, shouldTranslate ? messageId : undefined, autoTranslateLanguage,
+    chatTranslations, chatId, shouldTranslate ? messageId : undefined, requestedTranslationLanguage,
   );
+  // const { isPending: isTranslationPending, translatedText } = useMessageTranslation(
+  //   chatTranslations, chatId, shouldTranslate ? messageId : undefined, autoTranslateLanguage,
+  // );
   // Used to display previous result while new one is loading
   const previousTranslatedText = usePreviousDeprecated(translatedText, Boolean(shouldTranslate));
 
@@ -843,13 +838,15 @@ const Message: FC<OwnProps & StateProps> = ({
 
   // 自动翻译
   // eslint-disable-next-line max-len
-  if (autoTranslate && shouldTranslate && textMessage && !isTranslationPending && !currentTranslatedText && !webPage && !emojiSize && !isInvertedMedia && !hasTranslation) {
-    requestMessageTranslation({
-      chatId,
-      id: messageId,
-      toLanguageCode: autoTranslateLanguage,
-    });
-  }
+  // if (autoTranslate && shouldTranslate && !isTranslationPending && !hasTranslation && requestedTranslationLanguage) {
+  //   if (!detectedLanguage || detectedLanguage !== autoTranslateLanguage) {
+  //     requestMessageTranslation({
+  //       chatId,
+  //       id: messageId,
+  //       toLanguageCode: autoTranslateLanguage,
+  //     });
+  //   }
+  // }
 
   useEnsureMessage(
     replyToPeerId || chatId,
@@ -1765,7 +1762,6 @@ export default memo(withGlobal<OwnProps>(
       focusedMessage, forwardMessages, activeReactions, activeEmojiInteractions,
       loadingThread,
     } = selectTabState(global);
-    const { autoTranslate, autoTranslateLanguage } = global.settings.byKey;
     const {
       message, album, withSenderName, withAvatar, threadId, messageListType, isLastInDocumentGroup, isFirstInGroup,
     } = ownProps;
@@ -1897,7 +1893,7 @@ export default memo(withGlobal<OwnProps>(
     const maxTimestamp = selectMessageTimestampableDuration(global, message);
 
     const lastPlaybackTimestamp = selectMessageLastPlaybackTimestamp(global, chatId, message.id);
-    const hasTranslation = requestedTranslationLanguage
+    const hasTranslation = requestedTranslationLanguage 
       ? Boolean(selectMessageTranslations(global, message.chatId, requestedTranslationLanguage)[message.id]?.text)
       : undefined;
     const isAccountFrozen = selectIsCurrentUserFrozen(global);
@@ -1966,8 +1962,6 @@ export default memo(withGlobal<OwnProps>(
       areTranslationsEnabled,
       shouldDetectChatLanguage: selectShouldDetectChatLanguage(global, chatId),
       requestedTranslationLanguage,
-      autoTranslate,
-      autoTranslateLanguage,
       requestedChatTranslationLanguage,
       hasLinkedChat: Boolean(chatFullInfo?.linkedChatId),
       withAnimatedEffects: selectPerformanceSettingsValue(global, 'stickerEffects'),

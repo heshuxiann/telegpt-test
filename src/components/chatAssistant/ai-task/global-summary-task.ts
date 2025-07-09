@@ -60,8 +60,6 @@ function getAlignedExecutionTimestamp(): number | null {
 class GlobalSummaryTask {
   private static instance: GlobalSummaryTask | undefined;
 
-  private pendingMessages: ApiMessage[] = [];
-
   private summaryChats: string[] = [];
 
   private customizationTemplate:CustomSummaryTemplate | undefined = undefined;
@@ -230,7 +228,6 @@ class GlobalSummaryTask {
           }
         });
       });
-    this.clearPendingMessages();
   }
 
   summaryAllUnreadMessages = async () => {
@@ -311,23 +308,6 @@ class GlobalSummaryTask {
         });
       }
     });
-  }
-
-  async addNewMessage(message: ApiMessage) {
-    const summaryChats = await this.getSummaryChats() || [];
-    const chatId = message.chatId;
-    if (summaryChats.length === 0 || summaryChats.includes(chatId)) {
-      this.pendingMessages.push(message);
-      console.log('待总结的消息', this.pendingMessages);
-    }
-  }
-
-  clearPendingMessages() {
-    this.pendingMessages = [];
-  }
-
-  getPendingMessages() {
-    return this.pendingMessages;
   }
 
   public static getInstance() {

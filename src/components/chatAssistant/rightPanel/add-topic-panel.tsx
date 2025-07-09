@@ -128,13 +128,19 @@ const AddTopicPanel = () => {
           onChange={handleTopicNameChange}
           error={topicError ? 'Please enter the topic name' : undefined}
         />
-        <TextArea
-          label="Topic Description"
-          value={form.topicDescription}
-          noReplaceNewlines
-          error={descriptionError ? 'Please enter the topic description' : undefined}
-          onChange={handleTopicDescriptionChange}
-        />
+        <div className="mb-[24px]">
+          <TextArea
+            className="!mb-[12px]"
+            label="Topic Description"
+            value={form.topicDescription}
+            noReplaceNewlines
+            error={descriptionError ? 'Please enter the topic description' : undefined}
+            onChange={handleTopicDescriptionChange}
+          />
+          <div className="text-[14px] text-[#767676]">
+            Please describe the specific content or keywords that should trigger an alert. For example, if ‘Vitalik’ + ‘ETH’ + ‘sell’ appear, please notify me.
+          </div>
+        </div>
         <div className="mb-[24px]">
           <div className="flex items-center justify-between px-[14px] py-[10px] bg-[var(--color-chat-hover)] rounded-[6px] mb-[12px]">
             <span className="text-[var(--color-text)]">Enable strong alerts</span>
