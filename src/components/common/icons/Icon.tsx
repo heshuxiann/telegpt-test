@@ -4,6 +4,7 @@ import React from '../../../lib/teact/teact';
 import type { IconName } from '../../../types/icons';
 
 import buildClassName from '../../../util/buildClassName';
+import { PortraitIcon, PortraitLargeIcon } from "../../chatAssistant/utils/icons"
 
 type OwnProps = {
   name: IconName;
@@ -26,6 +27,15 @@ const Icon = ({
   character,
   onClick,
 }: OwnProps) => {
+  if (name === 'portrait-icon') {
+    return <div className={buildClassName(`icon icon-${name}`, className)}>
+      <PortraitIcon/>
+    </div>
+  } else if (name === 'portrait-large-icon') {
+    return <div className={buildClassName(`icon icon-${name}`, className)}>
+      <PortraitLargeIcon/>
+    </div>
+  }
   return (
     <i
       ref={ref}

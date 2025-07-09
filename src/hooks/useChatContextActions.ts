@@ -12,6 +12,7 @@ import {
 import { IS_ELECTRON, IS_OPEN_IN_NEW_TAB_SUPPORTED } from '../util/browser/windowEnvironment';
 import { compact } from '../util/iteratees';
 import useLang from './useLang';
+import { PortraitIcon } from '../components/chatAssistant/utils/icons'
 
 const useChatContextActions = ({
   chat,
@@ -85,6 +86,14 @@ const useChatContextActions = ({
       markChatUnread,
       openChatInNewTab,
     } = getActions();
+
+    const actionUserPortrait = isUserId(chat.id) ? {
+      title: 'User Portrait',
+      icon: 'portrait-icon',
+      handler: () => {
+        alert('User Portrait Action');
+      },
+    } : undefined;
 
     const actionOpenInNewTab = IS_OPEN_IN_NEW_TAB_SUPPORTED && {
       title: IS_ELECTRON ? lang('ChatListOpenInNewWindow') : lang('ChatListOpenInNewTab'),
@@ -174,6 +183,7 @@ const useChatContextActions = ({
     const isInFolder = folderId !== undefined;
 
     return compact([
+      actionUserPortrait,
       actionOpenInNewTab,
       actionAddToFolder,
       actionMaskAsRead,

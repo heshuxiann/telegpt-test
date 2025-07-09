@@ -332,6 +332,26 @@ const ChatExtra: FC<OwnProps & StateProps> = ({
     );
   }
 
+  function renderPortraitEntry() {
+    console.log('activeUsernames', activeUsernames, usernames, user)
+    return (
+      <ListItem
+        icon="portrait-large-icon"
+        multiline
+        narrow
+        ripple
+        // 这里可以添加点击事件处理函数
+        onClick={() => {
+          // TODO: 实现Portrait入口的点击逻辑
+          alert('Portrait entry clicked!');
+        }}
+      >
+        <span className="title">{user?.firstName || '' + user?.lastName || ''}‘s portrait</span>
+        <span className="subtitle">{oldLang('User Portrait')}</span>
+      </ListItem>
+    );
+  }
+
   return (
     <div className="ChatExtra">
       {personalChannel && (
@@ -357,7 +377,10 @@ const ChatExtra: FC<OwnProps & StateProps> = ({
           <span className="subtitle">{oldLang('Phone')}</span>
         </ListItem>
       )}
-      {activeUsernames && renderUsernames(activeUsernames)}
+      {activeUsernames && <>
+        {renderUsernames(activeUsernames)}
+        {renderPortraitEntry()}
+      </>}
       {description && Boolean(description.length) && (
         <ListItem
           icon="info"
