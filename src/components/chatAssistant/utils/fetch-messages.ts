@@ -4,6 +4,7 @@ import { getGlobal } from '../../../global';
 import type { ApiChat, ApiMessage } from '../../../api/types';
 import type { SummaryMessage } from '../type/message';
 
+import { hasMessageText } from '../../../global/helpers';
 import { selectUser } from '../../../global/selectors';
 
 const { callApi } = require('../../../api/gramjs/worker/connector');
@@ -62,14 +63,15 @@ export const fetchChatUnreadMessage = async (
       break; // 没有更多消息，退出循环
     }
     const resultMessage = result.messages.reverse();
-    if (totalCount + resultMessage.length > mergeCount) {
-      messages = messages.concat(resultMessage.slice(0, mergeCount - messages.length));
+    const textMessage = resultMessage.filter((msg:ApiMessage) => hasMessageText(msg));
+    if (totalCount + textMessage.length > mergeCount) {
+      messages = messages.concat(textMessage.slice(0, mergeCount - messages.length));
       break;
     } else {
-      messages = messages.concat(resultMessage);
+      messages = messages.concat(textMessage);
     }
 
-    totalCount += resultMessage.length || 0;
+    totalCount += textMessage.length || 0;
     offsetId = resultMessage[resultMessage.length - 1].id; // 更新 offsetId
 
     if (resultMessage.length < props.sliceSize) {
@@ -107,15 +109,17 @@ export const fetchChatMessageByDeadline = async (
     if (!result || !result.messages?.length) {
       break; // 没有更多消息，退出循环
     }
+    const textMessage = result.messages.filter((msg:ApiMessage) => hasMessageText(msg));
+
     if (result.messages[result.messages.length - 1].date < deadline) {
-      const effectMessage = result.messages.filter((msg:any) => msg.date >= deadline);
+      const effectMessage = textMessage.filter((msg:any) => msg.date >= deadline);
       messages = messages.concat(effectMessage);
       break;
-    } else if (messages.length + result.messages.length > maxCount) {
-      messages = messages.concat(result.messages.slice(0, maxCount - messages.length));
+    } else if (messages.length + textMessage.length > maxCount) {
+      messages = messages.concat(textMessage.slice(0, maxCount - messages.length));
       break;
     } else {
-      messages = messages.concat(result.messages);
+      messages = messages.concat(textMessage);
     }
 
     offsetId = result.messages[result.messages.length - 1].id; // 更新 offsetId
@@ -154,11 +158,12 @@ export const fetchChatMessageByOffsetId = async (
     if (!result || !result.messages?.length) {
       break; // 没有更多消息，退出循环
     }
-    if (messages.length + result.messages.length >= maxCount) {
-      messages = messages.concat(result.messages.slice(0, maxCount - messages.length));
+    const textMessage = result.messages.filter((msg:ApiMessage) => hasMessageText(msg));
+    if (messages.length + textMessage.length >= maxCount) {
+      messages = messages.concat(textMessage.slice(0, maxCount - messages.length));
       break;
     } else {
-      messages = messages.concat(result.messages);
+      messages = messages.concat(textMessage);
     }
 
     offsetId = result.messages[result.messages.length - 1].id; // 更新 offsetId
@@ -223,4 +228,4 @@ export const fetchChatMessageByCount = async (props:{
     }
   }
   return messages.reverse();
-}
+};

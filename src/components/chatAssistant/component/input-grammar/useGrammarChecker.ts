@@ -134,6 +134,7 @@ function updateErrorOffsetsWithInvalidateInner(
 export function useGrammarChecker(
   inputRef: React.RefObject<HTMLElement | null>,
   getHtml: Signal<string>,
+  setHtml: (newValue: string) => void,
   {
     delay = 1000,
   }: {
@@ -275,6 +276,7 @@ export function useGrammarChecker(
 
     setErrorRanges(newErrors);
     lastTextRef.current = newText;
+    setHtml(newText);
   };
   // ✅ 替换所有错误
   const fixAllErrors = () => {

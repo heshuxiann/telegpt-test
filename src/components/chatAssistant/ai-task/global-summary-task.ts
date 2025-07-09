@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
+import { constants } from 'buffer';
 import { v4 as uuidv4 } from 'uuid';
 import { getActions, getGlobal } from '../../../global';
 
@@ -115,13 +116,13 @@ class GlobalSummaryTask {
     });
   }
 
-  async initSummaryChats() {
+  async initSummaryChats(useRangeTime: boolean = true) {
     const globalSummaryLastTime: number | undefined = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME);
     if (!globalSummaryLastTime) {
       // TODO 总结所有的未读消息
       this.summaryAllUnreadMessages();
     } else {
-      this.summaryMessageByDeadline(globalSummaryLastTime);
+      this.summaryMessageByDeadline(globalSummaryLastTime, useRangeTime);
     }
   }
 
@@ -142,11 +143,16 @@ class GlobalSummaryTask {
     this.summaryChats = chats;
   }
 
-  async startSummary(chats: Record<string, ApiMessage[]>, callback?:()=>void) {
+  async startSummary(chats: Record<string, ApiMessage[]>, useRangeTime: boolean = true) {
     const global = getGlobal();
     const { autoTranslateLanguage = 'en' } = global.settings.byKey;
     const globalSummaryLastTime = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
-    const summaryTime = getAlignedExecutionTimestamp();
+    let summaryTime;
+    if (useRangeTime) {
+      summaryTime = getAlignedExecutionTimestamp();
+    } else {
+      summaryTime = Date.now();
+    }
     if (!Object.keys(chats).length) return;
     const summaryChats:any[] = [];
     Object.keys(chats).forEach((chatId) => {
@@ -229,7 +235,6 @@ class GlobalSummaryTask {
             setTimeout(() => notification.close(), 5000);
           }
         });
-        callback?.();
       });
     this.clearPendingMessages();
   }
@@ -264,7 +269,7 @@ class GlobalSummaryTask {
     }
   };
 
-  async summaryMessageByDeadline(deadline: number) {
+  async summaryMessageByDeadline(deadline: number, useRangeTime: boolean = true) {
     const unreadMessages: Record<string, ApiMessage[]> = {};
     const global = getGlobal();
     const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
@@ -288,17 +293,8 @@ class GlobalSummaryTask {
       }
     }
     if (Object.keys(unreadMessages).length) {
-      this.startSummary(unreadMessages);
+      this.startSummary(unreadMessages, useRangeTime);
     }
-  }
-
-  async mergeUnreadSummarys() {
-    const lastReadTime: number | undefined = await ChataiStores.general?.get(GLOBAL_SUMMARY_READ_TIME);
-    if (lastReadTime && this.unreadSummaryCount > 2) {
-      this.summaryMessageByDeadline(lastReadTime);
-    }
-    ChataiStores.general?.set(GLOBAL_SUMMARY_READ_TIME, new Date().getTime());
-    this.unreadSummaryCount = 0;
   }
 
   getSummaryChats():Promise<string[]> {
