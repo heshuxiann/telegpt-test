@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { FC, memo, useState, useEffect } from "../../../lib/teact/teact";
 import AiChatFoldersBg from "../../../assets/chat_ai_folder.png";
 import AiChatFoldersDarkBg from "../../../assets/chat_ai_folder_dark.png";

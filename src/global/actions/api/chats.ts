@@ -49,6 +49,8 @@ import * as langProvider from '../../../util/oldLangProvider';
 import { debounce, pause, throttle } from '../../../util/schedulers';
 import { extractCurrentThemeParams } from '../../../util/themeStyle';
 import { callApi } from '../../../api/gramjs';
+import { filterAIFolder } from '../../../components/chatAssistant/ai-chatfolders/util';
+import { ChataiStores, GLOBAL_AI_TAG, GLOBAL_PRESET_TAG } from '../../../components/chatAssistant/store';
 import {
   getIsSavedDialog,
   isChatArchived,
@@ -133,10 +135,7 @@ import {
 } from '../../selectors';
 import { selectGroupCall } from '../../selectors/calls';
 import { selectCurrentLimit } from '../../selectors/limits';
-import { GLOBAL_SUMMARY_CHATID } from '../../../components/chatAssistant/variables';
-import { ChataiStores, GLOBAL_AI_TAG, GLOBAL_PRESET_TAG } from "../../../components/chatAssistant/store"
-import { selectSharedSettings } from "../../selectors/sharedState"
-import { filterAIFolder } from "../../../components/chatAssistant/ai-chatfolders/util"
+import { selectSharedSettings } from '../../selectors/sharedState';
 
 const TOP_CHAT_MESSAGES_PRELOAD_INTERVAL = 100;
 const INFINITE_LOOP_MARKER = 100;
@@ -1037,38 +1036,38 @@ addActionHandler('loadChatFolders', async (global): Promise<void> => {
   if (chatFolders?.byId && Object.keys(chatFolders?.byId).length > 0) {
     const allFolderDb = await ChataiStores.folder?.getAllFolders();
     allFolderDb?.forEach(async (item) => {
-      if (Object.keys(chatFolders?.byId).indexOf(item?.id + '') < 0) {
+      if (Object.keys(chatFolders?.byId).indexOf(`${item?.id}`) < 0) {
         await ChataiStores.folder?.deleteFolder(item?.title);
       }
-    })
+    });
     Object.keys(chatFolders?.byId)?.forEach(async (folderId) => {
       const folderInfo = chatFolders?.byId[Number(folderId)];
-      const exist = allFolderDb?.findIndex(o=>o?.title === folderInfo.title?.text)
+      const exist = allFolderDb?.findIndex((o) => o?.title === folderInfo.title?.text);
       if (exist && exist < 0) {
         await ChataiStores.folder?.addFolder({
           id: Number(folderId),
           title: folderInfo?.title?.text,
           includedChatIds: folderInfo?.includedChatIds,
           excludedChatIds: folderInfo?.excludedChatIds,
-          from: 'user'
+          from: 'user',
         });
       }
     });
   }
   const { aiChatFolders } = selectSharedSettings(global);
   if (aiChatFolders === true) {
-    const allAiChatFolders = await ChataiStores.aIChatFolders?.getAllAIChatFolders()
-    const activePresetTag = await ChataiStores.general?.get(GLOBAL_PRESET_TAG)
-    const activeAITag = await ChataiStores.general?.get(GLOBAL_AI_TAG)
+    const allAiChatFolders = await ChataiStores.aIChatFolders?.getAllAIChatFolders();
+    const activePresetTag = await ChataiStores.general?.get(GLOBAL_PRESET_TAG);
+    const activeAITag = await ChataiStores.general?.get(GLOBAL_AI_TAG);
     if (allAiChatFolders && allAiChatFolders?.length > 0) {
       global = getGlobal();
-      let orderedIds = (chatFolders?.orderedIds ?? []);
-      if (global.chatFolders.aiChatFolders?.list &&
-        global.chatFolders.aiChatFolders?.list?.length > 0
+      const orderedIds = (chatFolders?.orderedIds ?? []);
+      if (global.chatFolders.aiChatFolders?.list
+        && global.chatFolders.aiChatFolders?.list?.length > 0
       ) {
-        orderedIds.splice(3, 0, UNREAD_FOLDER_ID)
-        orderedIds.push(PRESET_FOLDER_ID)
-        orderedIds.push(AI_FOLDER_ID)
+        orderedIds.splice(3, 0, UNREAD_FOLDER_ID);
+        orderedIds.push(PRESET_FOLDER_ID);
+        orderedIds.push(AI_FOLDER_ID);
       }
       global = {
         ...global,
@@ -1078,7 +1077,7 @@ addActionHandler('loadChatFolders', async (global): Promise<void> => {
           aiChatFolders: {
             activePresetTag,
             activeAITag,
-            list: allAiChatFolders
+            list: allAiChatFolders,
           },
         },
       };
@@ -1094,7 +1093,7 @@ addActionHandler('loadChatFolders', async (global): Promise<void> => {
         aiChatFolders: {
           activePresetTag: [],
           activeAITag: [],
-          list: []
+          list: [],
         },
       },
     };
@@ -1172,7 +1171,7 @@ addActionHandler('editChatFolder', (global, actions, payload): ActionReturnType 
         emoticon: folder.emoticon,
         pinnedChatIds: folder.pinnedChatIds,
         ...folderUpdate,
-      }
+      },
     });
 
     ChataiStores.folder?.addFolder({
@@ -1180,7 +1179,7 @@ addActionHandler('editChatFolder', (global, actions, payload): ActionReturnType 
       title: folderUpdate?.title?.text,
       includedChatIds: folderUpdate?.includedChatIds,
       excludedChatIds: folderUpdate?.excludedChatIds,
-      from
+      from,
     });
   }
 });
@@ -1225,7 +1224,7 @@ addActionHandler('addChatFolder', async (global, actions, payload): Promise<void
     title: folderUpdate?.title?.text,
     includedChatIds: folderUpdate?.includedChatIds,
     excludedChatIds: folderUpdate?.excludedChatIds,
-    from
+    from,
   });
 
   actions.requestNextSettingsScreen({
@@ -1278,7 +1277,7 @@ addActionHandler('deleteChatFolder', async (global, actions, payload): Promise<v
 
   if (folder) {
     await callApi('deleteChatFolder', id);
-    await ChataiStores.folder?.deleteFolder(folder.title.text)
+    await ChataiStores.folder?.deleteFolder(folder.title.text);
   }
 });
 

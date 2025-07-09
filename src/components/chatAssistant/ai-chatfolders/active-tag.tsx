@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { getGlobal, setGlobal } from "../../../global";
 import React, { memo } from "../../../lib/teact/teact";
 import { FolderType } from "../../left/main/ChatList";

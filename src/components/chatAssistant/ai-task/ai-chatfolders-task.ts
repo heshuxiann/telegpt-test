@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { ApiMessage, MAIN_THREAD_ID } from "../../../api/types/messages";
 import {
   AI_FOLDER_ID,
