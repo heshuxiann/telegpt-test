@@ -351,7 +351,7 @@ async function isIntentionToScheduleMeeting(embedding:number[] | undefined, mess
 }
 
 async function sendToCurrentChatAI(data: ApiUpdate) {
-  if (data['@type'] === 'newMessage') {
+  if (data['@type'] === 'updateMessage') {
     const global = getGlobal();
     const currentChat = selectCurrentChat(global);
     const { realTimeAssistants } = selectSharedSettings(global);

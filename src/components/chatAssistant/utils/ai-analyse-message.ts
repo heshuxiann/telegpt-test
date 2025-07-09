@@ -180,6 +180,19 @@ export async function documentSummary(
     });
     return;
   }
+  // video
+  if (checkIsVideo(document.mimeType)) {
+    await handleAudioToSummaryText({
+      mediaHash,
+      mimeType: document?.mimeType,
+      filename: document?.fileName,
+      size: document?.size,
+      newMessage,
+      message,
+      isAuto,
+    });
+    return;
+  }
 
   await mediaLoader.fetch(mediaHash, 0);
   const blobUrl = mediaLoader.getFromMemory(mediaHash);
@@ -619,4 +632,8 @@ export function extractUrls(text?: string): string[] {
 
   const urlRegex = /https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+/gi;
   return text.match(urlRegex) || [];
+}
+
+export function checkIsVideo(mimeType: string) {
+  return ['video/mp4'].indexOf(mimeType) >= 0;
 }
