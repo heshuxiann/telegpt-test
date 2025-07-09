@@ -157,6 +157,7 @@ export async function documentSummary(
 
   const mediaHash = getMediaHash(document, "download");
   if (!mediaHash) return;
+  if (checkIsImage(document.mimeType) && isAuto) return;
 
   let newMessage: StoreMessage = {
     chatId: message.chatId,
@@ -176,6 +177,19 @@ export async function documentSummary(
       mediaHash,
       message,
       newMessage,
+      isAuto,
+    });
+    return;
+  }
+  // video
+  if (checkIsVideo(document.mimeType)) {
+    await handleAudioToSummaryText({
+      mediaHash,
+      mimeType: document?.mimeType,
+      filename: document?.fileName,
+      size: document?.size,
+      newMessage,
+      message,
       isAuto,
     });
     return;
@@ -619,4 +633,8 @@ export function extractUrls(text?: string): string[] {
 
   const urlRegex = /https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+/gi;
   return text.match(urlRegex) || [];
+}
+
+export function checkIsVideo(mimeType: string) {
+  return ['video/mp4'].indexOf(mimeType) >= 0;
 }
