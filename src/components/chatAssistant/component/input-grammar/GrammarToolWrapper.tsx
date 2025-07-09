@@ -41,8 +41,7 @@ const GrammarToolWrapper = (props:GrammarToolWrapperProps) => {
     return () => {
       injected?.unmount();
     };
-  // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
-  }, [isGrammarToolOpen, closeGrammarTool]);
+  }, [isGrammarToolOpen, closeGrammarTool, getHtml, setHtml]);
 
   useEffect(
     () => (isGrammarToolOpen ? captureEscKeyListener(closeGrammarTool) : undefined),

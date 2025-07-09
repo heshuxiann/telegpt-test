@@ -87,6 +87,7 @@ export const INITIAL_SHARED_STATE: SharedState = {
     canDisplayChatInTitle: true,
     shouldAllowHttpTransport: true,
     shouldWarnAboutSvg: true,
+    realTimeAssistants: {},
   },
   isInitial: true,
 };
@@ -193,6 +194,7 @@ export const INITIAL_GLOBAL_STATE: GlobalState = {
   chatFolders: {
     byId: {},
     invites: {},
+    nextAiChatFolders: [],
   },
 
   fileUploads: {

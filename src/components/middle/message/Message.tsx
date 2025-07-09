@@ -760,9 +760,12 @@ const Message: FC<OwnProps & StateProps> = ({
     getIsMessageListReady,
   );
   useDetectChatLanguage(message, detectedLanguage, !shouldDetectChatLanguage, getIsMessageListReady);
-  const shouldTranslate = isMessageTranslatable(message, true);
+  const shouldTranslate = isMessageTranslatable(message, true) && autoTranslate;
+  // const { isPending: isTranslationPending, translatedText } = useMessageTranslation(
+  //   chatTranslations, chatId, shouldTranslate ? messageId : undefined, requestedTranslationLanguage,
+  // );
   const { isPending: isTranslationPending, translatedText } = useMessageTranslation(
-    chatTranslations, chatId, shouldTranslate ? messageId : undefined, requestedTranslationLanguage,
+    chatTranslations, chatId, shouldTranslate ? messageId : undefined, autoTranslateLanguage,
   );
   // Used to display previous result while new one is loading
   const previousTranslatedText = usePreviousDeprecated(translatedText, Boolean(shouldTranslate));

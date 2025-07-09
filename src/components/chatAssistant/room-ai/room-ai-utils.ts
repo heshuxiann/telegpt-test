@@ -75,7 +75,18 @@ export const summaryRoomMessage = async (
       maxCount: 20,
     });
     const formateMessages = formateMessage2Summary(messages);
-    if (!formateMessages.length) return;
+    if (!formateMessages.length) {
+      callback?.();
+      const newMessage = {
+        timestamp: new Date().getTime(),
+        content: 'No significant topics or valid data detected. We will continue monitoring.',
+        id: uuidv4(),
+        createdAt: new Date(),
+        role: 'assistant',
+      };
+      insertMessage(newMessage as Message);
+      return;
+    }
     const summaryInfo = {
       summaryTime: new Date().getTime(),
       messageCount: formateMessages.length,
@@ -104,6 +115,14 @@ export const summaryRoomMessage = async (
     }).catch((err) => {
       console.log(err);
       callback?.();
+      const newMessage = {
+        timestamp: new Date().getTime(),
+        content: 'Summarization failed. Try again later.',
+        id: uuidv4(),
+        createdAt: new Date(),
+        role: 'assistant',
+      };
+      insertMessage(newMessage as Message);
     });
   }
 };

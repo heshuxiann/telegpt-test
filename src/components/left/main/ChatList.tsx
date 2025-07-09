@@ -46,7 +46,7 @@ import EmptyFolder from './EmptyFolder';
 import FrozenAccountNotification from './FrozenAccountNotification';
 import UnconfirmedSession from './UnconfirmedSession';
 
-export type FolderType = 'all' | 'archived' | 'saved' | 'folder' | 'preset' | 'unread' | 'ai'
+export type FolderType = 'all' | 'archived' | 'saved' | 'folder' | 'preset' | 'unread' | 'ai';
 
 type OwnProps = {
   className?: string;
@@ -101,7 +101,9 @@ const ChatList: FC<OwnProps> = ({
   const isUnreadFolder = folderType === 'unread';
   const isAIFolder = folderType === 'ai';
   const resolvedFolderId = (
-    isAllFolder ? ALL_FOLDER_ID : isArchived ? ARCHIVED_FOLDER_ID : isSaved ? SAVED_FOLDER_ID : isPresetFolder ? PRESET_FOLDER_ID : isUnreadFolder ? UNREAD_FOLDER_ID : isAIFolder ? AI_FOLDER_ID : folderId!
+    isAllFolder ? ALL_FOLDER_ID : isArchived ? ARCHIVED_FOLDER_ID : isSaved
+      ? SAVED_FOLDER_ID : isPresetFolder ? PRESET_FOLDER_ID : isUnreadFolder
+        ? UNREAD_FOLDER_ID : isAIFolder ? AI_FOLDER_ID : folderId!
   );
 
   const shouldDisplayArchive = isAllFolder && canDisplayArchive && archiveSettings;

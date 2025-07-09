@@ -17,7 +17,7 @@ import { getOrderedIds } from '../../../util/folderManager';
 import RoomStorage from '../room-storage';
 import {
   ChataiStores,
-  GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME,
+  GLOBAL_SUMMARY_LAST_TIME,
 } from '../store';
 import { SUMMARY_CHATS } from '../store/general-store';
 import { sendGAEvent } from '../utils/analytics';
@@ -80,10 +80,6 @@ class GlobalSummaryTask {
       const currentTime = new Date();
       const hours = currentTime.getHours();
       const minutes = currentTime.getMinutes();
-      // eslint-disable-next-line no-console
-      console.log('计时任务hours', hours);
-      // eslint-disable-next-line no-console
-      console.log('计时任务minutes', minutes);
       // 9:00 - 12:00 每30分钟执行一次
       if (hours >= 9 && hours < 12 && minutes % 30 === 0) {
         this.initSummaryChats();
@@ -100,28 +96,27 @@ class GlobalSummaryTask {
       }
     };
 
-    // 每分钟执行一次来检查时间段
     this.timmer = setInterval(executeTask, 60000);
     eventEmitter.on(Actions.ChatAIStoreReady, async () => {
       await this.updateSummarySettings();
       const globalSummaryLastTime: number | undefined = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME);
       if (!globalSummaryLastTime) {
-      // TODO 总结所有的未读消息
+      // TODO summary all unread message
         this.summaryAllUnreadMessages();
       } else if (Date.now() - globalSummaryLastTime > 1000 * 60 * 60 * 10) {
-      // TODO 获取所有未读消息
+      // TODO summary all unread message by deadline
         this.summaryMessageByDeadline(globalSummaryLastTime);
       }
     });
   }
 
-  async initSummaryChats() {
+  async initSummaryChats(useRangeTime: boolean = true) {
     const globalSummaryLastTime: number | undefined = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME);
     if (!globalSummaryLastTime) {
       // TODO 总结所有的未读消息
       this.summaryAllUnreadMessages();
     } else {
-      this.summaryMessageByDeadline(globalSummaryLastTime);
+      this.summaryMessageByDeadline(globalSummaryLastTime, useRangeTime);
     }
   }
 
@@ -142,11 +137,16 @@ class GlobalSummaryTask {
     this.summaryChats = chats;
   }
 
-  async startSummary(chats: Record<string, ApiMessage[]>, callback?:()=>void) {
+  async startSummary(chats: Record<string, ApiMessage[]>, useRangeTime: boolean = true) {
     const global = getGlobal();
     const { autoTranslateLanguage = 'en' } = global.settings.byKey;
     const globalSummaryLastTime = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
-    const summaryTime = getAlignedExecutionTimestamp();
+    let summaryTime;
+    if (useRangeTime) {
+      summaryTime = getAlignedExecutionTimestamp();
+    } else {
+      summaryTime = Date.now();
+    }
     if (!Object.keys(chats).length) return;
     const summaryChats:any[] = [];
     Object.keys(chats).forEach((chatId) => {
@@ -229,7 +229,6 @@ class GlobalSummaryTask {
             setTimeout(() => notification.close(), 5000);
           }
         });
-        callback?.();
       });
     this.clearPendingMessages();
   }
@@ -240,23 +239,29 @@ class GlobalSummaryTask {
     const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
     const summaryChatIds = this.summaryChats.length ? this.summaryChats : orderedIds;
     for (let i = 0; i < summaryChatIds.length; i++) {
-      const chatId = summaryChatIds[i];
-      const chat = selectChat(global, chatId);
-      const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
-      if (chat && chat.unreadCount && !chatBot) {
-        const firstUnreadId = selectFirstUnreadId(global, chatId, MAIN_THREAD_ID) || chat.lastReadInboxMessageId;
-        const roomUnreadMsgs = await fetchChatUnreadMessage({
-          chat,
-          offsetId: firstUnreadId || 0,
-          addOffset: -30,
-          sliceSize: 30,
-          threadId: MAIN_THREAD_ID,
-          unreadCount: chat.unreadCount,
-          maxCount: 100,
-        });
-        if (roomUnreadMsgs.length > 0) {
-          unreadMessages[chatId] = roomUnreadMsgs;
+      try {
+        const chatId = summaryChatIds[i];
+        const chat = selectChat(global, chatId);
+        const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
+        if (chat && chat.unreadCount && !chatBot) {
+          const firstUnreadId = selectFirstUnreadId(global, chatId, MAIN_THREAD_ID) || chat.lastReadInboxMessageId;
+          const roomUnreadMsgs = await fetchChatUnreadMessage({
+            chat,
+            offsetId: firstUnreadId || 0,
+            addOffset: -30,
+            sliceSize: 30,
+            threadId: MAIN_THREAD_ID,
+            unreadCount: chat.unreadCount,
+            maxCount: 100,
+          });
+          if (roomUnreadMsgs.length > 0) {
+            unreadMessages[chatId] = roomUnreadMsgs;
+          }
+          console.log('unreadMessages---->', unreadMessages);
         }
+      } catch (err) {
+        console.log('Fetch message error---->', err);
+        continue;
       }
     }
     if (Object.keys(unreadMessages).length) {
@@ -264,7 +269,7 @@ class GlobalSummaryTask {
     }
   };
 
-  async summaryMessageByDeadline(deadline: number) {
+  async summaryMessageByDeadline(deadline: number, useRangeTime: boolean = true) {
     const unreadMessages: Record<string, ApiMessage[]> = {};
     const global = getGlobal();
     const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
@@ -288,17 +293,8 @@ class GlobalSummaryTask {
       }
     }
     if (Object.keys(unreadMessages).length) {
-      this.startSummary(unreadMessages);
+      this.startSummary(unreadMessages, useRangeTime);
     }
-  }
-
-  async mergeUnreadSummarys() {
-    const lastReadTime: number | undefined = await ChataiStores.general?.get(GLOBAL_SUMMARY_READ_TIME);
-    if (lastReadTime && this.unreadSummaryCount > 2) {
-      this.summaryMessageByDeadline(lastReadTime);
-    }
-    ChataiStores.general?.set(GLOBAL_SUMMARY_READ_TIME, new Date().getTime());
-    this.unreadSummaryCount = 0;
   }
 
   getSummaryChats():Promise<string[]> {

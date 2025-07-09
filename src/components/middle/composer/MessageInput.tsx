@@ -17,7 +17,7 @@ import type {
 import type { Signal } from '../../../util/signals';
 
 import { EDITABLE_INPUT_ID } from '../../../config';
-import { requestForcedReflow, requestMutation } from '../../../lib/fasterdom/fasterdom';
+import { requestForcedReflow, requestMutation, setHandler } from '../../../lib/fasterdom/fasterdom';
 import { selectCanPlayAnimatedEmojis, selectDraft, selectIsInSelectMode } from '../../../global/selectors';
 import { selectSharedSettings } from '../../../global/selectors/sharedState';
 import {
@@ -599,7 +599,7 @@ const MessageInput: FC<OwnProps & StateProps> = ({
         onClick={!isAttachmentModalInput && !canSendPlainText ? handleClick : undefined}
       >
         <div className={inputScrollerContentClass}>
-          <InputGrammarWrapper inputRef={inputRef} getHtml={getHtml} />
+          <InputGrammarWrapper inputRef={inputRef} getHtml={getHtml} setHtml={onUpdate} />
           <div
             ref={inputRef}
             id={editableInputId || EDITABLE_INPUT_ID}

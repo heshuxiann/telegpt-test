@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { ApiMessage } from "../../../api/types";
 import { getActions, getGlobal, setGlobal } from "../../../global";
 import { selectBot, selectChat } from "../../../global/selectors";
