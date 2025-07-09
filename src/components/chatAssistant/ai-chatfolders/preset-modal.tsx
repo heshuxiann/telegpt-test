@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { PRESET_FOLDER_ID } from "../../../config";
 import { getGlobal, setGlobal } from "../../../global";
 import React, { memo, useMemo } from "../../../lib/teact/teact";

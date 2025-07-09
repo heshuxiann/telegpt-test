@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React from "react";
 import { Message } from "ai";
 import { SVGProps } from "react";

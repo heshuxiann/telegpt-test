@@ -203,6 +203,7 @@ export const fetchChatMessageByCount = async (props:{
   maxCount?:number;
 }): Promise<ApiMessage[]> => {
   let messages: any[] = [];
+  // eslint-disable-next-line prefer-const
   let { offsetId, sliceSize, maxCount = 100 } = props;
   while (!messages.length || messages.length < maxCount) {
     const result = await callApi('fetchMessages', {

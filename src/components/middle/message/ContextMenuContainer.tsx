@@ -699,7 +699,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
 
   const handleSummarize = useLastCallback(async () => {
     const {
-      photo, document, webPage, voice, audio, text, video
+      photo, document, webPage, voice, audio, text, video,
     } = message.content;
     const isUrl = checkIsUrl(text?.text);
     await openChatAIWithInfo({ chatId: message.chatId });

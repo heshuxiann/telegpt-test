@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useEffect, useState } from "react";
 import { getActions, getGlobal } from "../../../global";
 import { Message } from "ai";

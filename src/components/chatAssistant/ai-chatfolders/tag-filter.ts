@@ -1,4 +1,5 @@
-import { intersection, uniq } from "lodash";
+/* eslint-disable */
+import { intersection } from "lodash";
 import { getGlobal } from "../../../global";
 
 export function filterPresetTag(orderedIds?: string[]) {
@@ -38,9 +39,19 @@ export function getAITags() {
   const global = getGlobal();
   const allAiChatFolders = global?.chatFolders?.aiChatFolders?.list;
 
-  return (
-    uniq(
-      allAiChatFolders?.filter((o) => o?.AITag?.length)?.flatMap((o) => o?.AITag)
-    ) ?? []
-  );
+  if (!Array.isArray(allAiChatFolders)) return [];
+
+  const tagCountMap: Record<string, number> = {};
+  allAiChatFolders.forEach((o: any) => {
+    (o?.AITag ?? []).forEach((tag: string) => {
+      tagCountMap[tag] = (tagCountMap[tag] || 0) + 1;
+    });
+  });
+
+  const tags = Object.entries(tagCountMap)
+    .sort((a, b) => b[1] - a[1])
+    .map(([tag]) => tag)
+    .slice(0, 10);
+
+  return tags;
 }

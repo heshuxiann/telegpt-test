@@ -1,7 +1,9 @@
 /* eslint-disable max-len */
 import { Modal } from 'antd';
-import React, { memo, useMemo, useState } from '../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../global';
+import React, {
+  memo, useCallback, useEffect, useMemo, useState,
+} from '../../../lib/teact/teact';
+import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type { ApiUser } from '../../../api/types';
 import type { GlobalState } from '../../../global/types';
@@ -28,10 +30,12 @@ import { selectPremiumLimit } from '../../../global/selectors/limits';
 import { selectSharedSettings } from '../../../global/selectors/sharedState';
 import { IS_MULTIACCOUNT_SUPPORTED } from '../../../util/browser/globalEnvironment';
 import { IS_ELECTRON } from '../../../util/browser/windowEnvironment';
+import buildClassName from '../../../util/buildClassName';
 import buildStyle from '../../../util/buildStyle';
 import { getPromptInstall } from '../../../util/installPrompt';
 import { switchPermanentWebVersion } from '../../../util/permanentWebVersion';
-import { AIChatFolder, deleteAiChatFolders, hideTip } from '../../chatAssistant/ai-chatfolders/util';
+import { AIChatFolderStep } from '../../chatAssistant/ai-chatfolders/ai-chatfolders-tip';
+import { deleteAiChatFolders, hideTip } from '../../chatAssistant/ai-chatfolders/util';
 import { aiChatFoldersTask } from '../../chatAssistant/ai-task/ai-chatfolders-task';
 import AIChatFolderIcon from '../../chatAssistant/assets/ai-chat-folder.png';
 import AIKnowledgeIcon from '../../chatAssistant/assets/ai-knowledge.png';
@@ -42,14 +46,14 @@ import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 import useOldLang from '../../../hooks/useOldLang';
 
+import eventEmitter, { Actions } from '../../chatAssistant/lib/EventEmitter';
 import AttachBotItem from '../../middle/composer/AttachBotItem';
 import MenuItem from '../../ui/MenuItem';
 import MenuSeparator from '../../ui/MenuSeparator';
+import Spinner from '../../ui/Spinner';
 import Switcher from '../../ui/Switcher';
 import Toggle from '../../ui/Toggle';
 import AccountMenuItems from './AccountMenuItems';
-import Spinner from "../../ui/Spinner"
-import { AIChatFolderStep } from "../../chatAssistant/ai-chatfolders/ai-chatfolders-tip"
 
 type OwnProps = {
   onSelectAIKnowledge: NoneToVoidFunction;
@@ -69,7 +73,6 @@ type StateProps = {
   currentUser?: ApiUser;
   accountsTotalLimit: number;
   aiChatFolders?: boolean;
-  nextAiChatFolders?: AIChatFolder[]
 } & Pick<GlobalState, 'currentUserId' | 'archiveSettings'>;
 
 const LeftSideMenuItems = ({
@@ -82,7 +85,6 @@ const LeftSideMenuItems = ({
   currentUser,
   accountsTotalLimit,
   aiChatFolders,
-  nextAiChatFolders,
   onSelectArchived,
   onSelectContacts,
   onSelectSettings,
@@ -158,7 +160,7 @@ const LeftSideMenuItems = ({
     openChatWithInfo({ id: currentUserId, shouldReplaceHistory: true, profileTab: 'stories' });
   });
 
-  const [aiChatFoldersLoading, setAiChatFoldersLoading] = useState<boolean>(false)
+  const [aiChatFoldersLoading, setAiChatFoldersLoading] = useState<boolean>(false);
   const handleSwitchAIChatFolders = useLastCallback(async (e: React.SyntheticEvent<HTMLElement>) => {
     if (aiChatFoldersLoading) return;
     e.stopPropagation();
@@ -168,26 +170,38 @@ const LeftSideMenuItems = ({
         title: 'Are you sure?',
         content: 'This will hide all AI chat folders, but you can enable this feature again.',
         onOk: async () => {
-          setAiChatFoldersLoading(true)
+          setAiChatFoldersLoading(true);
           setSharedSettingOption({ aiChatFolders: isOpen });
           // delete ai chat folders
           await deleteAiChatFolders();
-          hideTip(AIChatFolderStep.classify)
+          hideTip(AIChatFolderStep.classify);
           // await sortChatFolder();
-          setAiChatFoldersLoading(false)
+          setAiChatFoldersLoading(false);
         },
         onCancel: () => {},
       });
     } else {
-      setAiChatFoldersLoading(true)
+      setAiChatFoldersLoading(true);
       setSharedSettingOption({ aiChatFolders: isOpen });
-      if (nextAiChatFolders && nextAiChatFolders?.length <= 0 ) {
-        await aiChatFoldersTask.classifyChatMessageByCount();
-      }
       await aiChatFoldersTask.applyChatFolder();
-      setAiChatFoldersLoading(false)
+      setAiChatFoldersLoading(false);
     }
   });
+
+  const updateAIChatFoldersLoading = useCallback(({ loading }: { loading: boolean }) => {
+    const isNext = getGlobal().chatFolders.nextAiChatFolders?.length;
+    if (isNext) {
+      setAiChatFoldersLoading(false);
+    } else {
+      setAiChatFoldersLoading(loading);
+    }
+  }, []);
+  useEffect(() => {
+    eventEmitter.on(Actions.UpdateAIChatFoldersClassifying, updateAIChatFoldersLoading);
+    return () => {
+      eventEmitter.off(Actions.UpdateAIChatFoldersClassifying, updateAIChatFoldersLoading);
+    };
+  }, [updateAIChatFoldersLoading]);
 
   return (
     <>
@@ -218,10 +232,7 @@ const LeftSideMenuItems = ({
         onClick={handleSwitchAIChatFolders}
       >
         <span className="menu-item-name capitalize">{oldLang('AI Chat Folders')}</span>
-        {aiChatFoldersLoading ? <Spinner
-          className="w-[18px] h-[18px] ml-2"
-          color={theme === "dark" ? "white" : "black"}
-        /> : <label className="Switcher no-animation" title="">
+        <label className={buildClassName('Switcher no-animation', aiChatFoldersLoading ? 'disabled' : '')} title="">
           <input
             type="checkbox"
             id="aiChatFolders"
@@ -229,7 +240,13 @@ const LeftSideMenuItems = ({
             disabled
           />
           <span className="widget" />
-        </label>}
+        </label>
+        {aiChatFoldersLoading && (
+          <Spinner
+            className="w-[18px] h-[18px] ml-2"
+            color={theme === 'dark' ? 'white' : 'black'}
+          />
+        )}
       </MenuItem>
       <MenuItem
         icon="saved-messages"
@@ -345,7 +362,6 @@ export default memo(withGlobal<OwnProps>(
     } = global;
     const { animationLevel, aiChatFolders } = selectSharedSettings(global);
     const attachBots = global.attachMenu.bots;
-    const nextAiChatFolders = global.chatFolders.nextAiChatFolders
 
     return {
       currentUserId,
@@ -357,7 +373,6 @@ export default memo(withGlobal<OwnProps>(
       attachBots,
       accountsTotalLimit: selectPremiumLimit(global, 'moreAccounts'),
       aiChatFolders,
-      nextAiChatFolders
     };
   },
 )(LeftSideMenuItems));

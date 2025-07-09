@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { FC, memo, useState, useEffect } from "../../../lib/teact/teact";
 import AiChatFoldersBg from "../../../assets/chat_ai_folder.png";
 import AiChatFoldersDarkBg from "../../../assets/chat_ai_folder_dark.png";
@@ -12,7 +13,7 @@ import { ThemeKey } from "../../../types";
 import Spinner from "../../ui/Spinner";
 import "./ai-chatfolders-tip.scss";
 import Button from "../../ui/Button";
-import { AIChatFolder, deleteNextAiChatFolders, hideTip } from "./util";
+import { hideTip } from "./util";
 
 export enum AIChatFolderStep {
   classify = "classify",
@@ -26,14 +27,12 @@ type OwnProps = {
 };
 type StateProps = {
   theme: ThemeKey;
-  nextAiChatFolders: AIChatFolder[];
 };
 
 const AIChatFoldersTip: FC<OwnProps & StateProps> = ({
   step,
   loading,
   theme,
-  nextAiChatFolders,
   onClose,
 }: OwnProps & StateProps) => {
   const [isFristShow, setIsFristShow] = useState<boolean>(true);
@@ -47,8 +46,7 @@ const AIChatFoldersTip: FC<OwnProps & StateProps> = ({
         className: "aichatfolders-tip-message",
       });
     }
-    hideTip(AIChatFolderStep.classify)
-    deleteNextAiChatFolders()
+    hideTip(AIChatFolderStep.classify);
     ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_TIP_SHOW, false);
     onClose?.();
   }
@@ -58,9 +56,6 @@ const AIChatFoldersTip: FC<OwnProps & StateProps> = ({
     if (isFristShow) {
       const { setSharedSettingOption } = getActions();
       setSharedSettingOption({ aiChatFolders: true });
-    }
-    if (nextAiChatFolders && nextAiChatFolders.length <= 0) {
-      await aiChatFoldersTask.classifyChatMessageByCount();
     }
     await aiChatFoldersTask.applyChatFolder();
 
@@ -84,9 +79,7 @@ const AIChatFoldersTip: FC<OwnProps & StateProps> = ({
         <AIChatFolderIcon />
       </div>
       <div className="leading-[16px] text-[13px] text-[var(--color-aichatfolders-tag-text)]">
-        {!isFristShow && step === AIChatFolderStep.classify
-          ? "Serena AI is working hard to organize your chat list and categorize the labels..."
-          : "Your chat has been intelligently tagged in folders by Serena AI"}
+        Your chat has been automatically organized in folders by Serena Ai.
       </div>
       {(isFristShow || step === AIChatFolderStep.apply) && (
         <>

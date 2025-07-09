@@ -48,7 +48,7 @@ import type {
   ApiWallpaper,
   ApiWebSession,
 } from '../../api/types';
-import { AIChatFolder } from "../../components/chatAssistant/ai-chatfolders/util"
+import type { AIChatFolder } from '../../components/chatAssistant/ai-chatfolders/util';
 import type {
   AccountSettings,
   BotAppPermissions,
@@ -276,9 +276,9 @@ export type GlobalState = {
     aiChatFolders?: {
       activePresetTag?: string[];
       activeAITag?: string[];
-      list?: AIChatFolder[]
-    },
-    nextAiChatFolders: AIChatFolder[]
+      list?: AIChatFolder[];
+    };
+    nextAiChatFolders: AIChatFolder[];
   };
 
   phoneCall?: ApiPhoneCall;
