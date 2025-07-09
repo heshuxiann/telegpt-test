@@ -157,6 +157,7 @@ export async function documentSummary(
 
   const mediaHash = getMediaHash(document, "download");
   if (!mediaHash) return;
+  if (checkIsImage(document.mimeType) && isAuto) return;
 
   let newMessage: StoreMessage = {
     chatId: message.chatId,
