@@ -123,6 +123,7 @@ export async function webPageSummary(
 
   webPageAISummary({
     url,
+    text: message.content?.text?.text || "",
     language: getAutoTransLang(),
   })
     .then((response: any) => {
@@ -563,10 +564,16 @@ export function canSummarize(message: ApiMessage) {
   const { photo, document, webPage, voice, audio, text, video } =
     message?.content;
   const isUrl = checkIsUrl(text?.text);
+  const hasText = text?.text && text.text.trim() !== "";
 
-  return (
-    photo || document || webPage || voice || audio || text || isUrl || video
-  );
+  return photo || document || (webPage && !hasText) || voice || audio || (isUrl && !webPage) || video;
+}
+
+export function isHasUrl(text?: string) {
+  const urls = extractUrls(text);
+  const hasUrl = urls.length > 0;
+
+  return hasUrl;
 }
 
 export function checkIsUrl(text?: string) {
@@ -605,4 +612,11 @@ export function getAutoTransLang() {
       autoTranslateLanguage
     ) || "en"
   );
+}
+
+export function extractUrls(text?: string): string[] {
+  if (typeof text !== "string") return [];
+
+  const urlRegex = /https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+/gi;
+  return text.match(urlRegex) || [];
 }

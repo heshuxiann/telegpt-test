@@ -26,9 +26,7 @@ import {
 } from '../../../global/helpers';
 import buildClassName from '../../../util/buildClassName';
 import { disableScrolling } from '../../../util/scrollLock';
-import ScheduleMeetingIcon from '../../chatAssistant/assets/schedule-meeting.png';
 import SerenaPath from '../../chatAssistant/assets/serena.png';
-import SmartReplyIcon from '../../chatAssistant/assets/smart-reply.png';
 import { canSummarize } from '../../chatAssistant/utils/ai-analyse-message';
 import { AIReplyIcon, MeetingIcon, SummarizeIcon } from '../../chatAssistant/utils/icons';
 import { REM } from '../../common/helpers/mediaDimensions';
