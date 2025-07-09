@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
-import { constants } from 'buffer';
 import { v4 as uuidv4 } from 'uuid';
 import { getActions, getGlobal } from '../../../global';
 
@@ -18,7 +17,7 @@ import { getOrderedIds } from '../../../util/folderManager';
 import RoomStorage from '../room-storage';
 import {
   ChataiStores,
-  GLOBAL_SUMMARY_LAST_TIME, GLOBAL_SUMMARY_READ_TIME,
+  GLOBAL_SUMMARY_LAST_TIME,
 } from '../store';
 import { SUMMARY_CHATS } from '../store/general-store';
 import { sendGAEvent } from '../utils/analytics';
@@ -81,10 +80,6 @@ class GlobalSummaryTask {
       const currentTime = new Date();
       const hours = currentTime.getHours();
       const minutes = currentTime.getMinutes();
-      // eslint-disable-next-line no-console
-      console.log('计时任务hours', hours);
-      // eslint-disable-next-line no-console
-      console.log('计时任务minutes', minutes);
       // 9:00 - 12:00 每30分钟执行一次
       if (hours >= 9 && hours < 12 && minutes % 30 === 0) {
         this.initSummaryChats();
@@ -101,16 +96,15 @@ class GlobalSummaryTask {
       }
     };
 
-    // 每分钟执行一次来检查时间段
     this.timmer = setInterval(executeTask, 60000);
     eventEmitter.on(Actions.ChatAIStoreReady, async () => {
       await this.updateSummarySettings();
       const globalSummaryLastTime: number | undefined = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME);
       if (!globalSummaryLastTime) {
-      // TODO 总结所有的未读消息
+      // TODO summary all unread message
         this.summaryAllUnreadMessages();
       } else if (Date.now() - globalSummaryLastTime > 1000 * 60 * 60 * 10) {
-      // TODO 获取所有未读消息
+      // TODO summary all unread message by deadline
         this.summaryMessageByDeadline(globalSummaryLastTime);
       }
     });
@@ -245,23 +239,29 @@ class GlobalSummaryTask {
     const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
     const summaryChatIds = this.summaryChats.length ? this.summaryChats : orderedIds;
     for (let i = 0; i < summaryChatIds.length; i++) {
-      const chatId = summaryChatIds[i];
-      const chat = selectChat(global, chatId);
-      const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
-      if (chat && chat.unreadCount && !chatBot) {
-        const firstUnreadId = selectFirstUnreadId(global, chatId, MAIN_THREAD_ID) || chat.lastReadInboxMessageId;
-        const roomUnreadMsgs = await fetchChatUnreadMessage({
-          chat,
-          offsetId: firstUnreadId || 0,
-          addOffset: -30,
-          sliceSize: 30,
-          threadId: MAIN_THREAD_ID,
-          unreadCount: chat.unreadCount,
-          maxCount: 100,
-        });
-        if (roomUnreadMsgs.length > 0) {
-          unreadMessages[chatId] = roomUnreadMsgs;
+      try {
+        const chatId = summaryChatIds[i];
+        const chat = selectChat(global, chatId);
+        const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
+        if (chat && chat.unreadCount && !chatBot) {
+          const firstUnreadId = selectFirstUnreadId(global, chatId, MAIN_THREAD_ID) || chat.lastReadInboxMessageId;
+          const roomUnreadMsgs = await fetchChatUnreadMessage({
+            chat,
+            offsetId: firstUnreadId || 0,
+            addOffset: -30,
+            sliceSize: 30,
+            threadId: MAIN_THREAD_ID,
+            unreadCount: chat.unreadCount,
+            maxCount: 100,
+          });
+          if (roomUnreadMsgs.length > 0) {
+            unreadMessages[chatId] = roomUnreadMsgs;
+          }
+          console.log('unreadMessages---->', unreadMessages);
         }
+      } catch (err) {
+        console.log('Fetch message error---->', err);
+        continue;
       }
     }
     if (Object.keys(unreadMessages).length) {
