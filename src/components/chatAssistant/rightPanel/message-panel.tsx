@@ -9,16 +9,20 @@ import { getActions, getGlobal } from '../../../global';
 
 import { type ApiMessage, MESSAGE_DELETED } from '../../../api/types';
 
+import { getChatTitle, getUserFullName } from '../../../global/helpers';
+import { isApiPeerUser } from '../../../global/helpers/peers';
 import { updateChatMessage } from '../../../global/reducers/messages';
 import { selectChat, selectUser } from '../../../global/selectors';
 import { selectChatMessage } from '../../../global/selectors/messages';
 import { callApi } from '../../../api/gramjs';
+import useOldLang from '../hook/useOldLang';
 import { ArrowRightIcon, SendIcon } from '../icons';
 import { languagePrompt } from '../prompt';
 import { chatAIGenerate } from '../utils/chat-api';
 import { cn, formatTimestamp } from '../utils/util';
 import { knowledgeEmbeddingStore } from '../vector-store';
 
+import Avatar from '../component/Avatar';
 import ChatAvatar from '../component/ChatAvatar';
 import ErrorBoundary from '../ErrorBoundary';
 
@@ -28,6 +32,7 @@ import ChatAILogoPath from '../assets/cgat-ai-logo.png';
 
 const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) => {
   const global = getGlobal();
+  const lang = useOldLang();
   const chat = selectChat(global, chatId);
   const [message, setMessage] = useState<ApiMessage | undefined>(undefined);
   const [showSmartReply, setShowSmartReply] = useState(false);
@@ -177,13 +182,20 @@ const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) =
     const date = formatTimestamp(message.date * 1000);
     const senderId = message.senderId;
     const peer = senderId ? selectUser(global, senderId) : undefined;
-    const name = peer ? (peer?.firstName || '') + (peer?.lastName || '') : '';
+    const isUser = peer && isApiPeerUser(peer);
+    const chat = selectChat(global, chatId);
+    const title = peer && isUser ? getUserFullName(peer) : getChatTitle(lang, chat!);
     return (
       <>
         <div className="flex flex-row items-center mb-[12px]">
-          <ChatAvatar chatId={chatId} size={34} />
+          {isUser ? (
+            <Avatar peer={peer} size={34} />
+          ) : (
+            <ChatAvatar chatId={chatId} size={34} />
+          )}
+
           <span className="text-[16px] font-semibold mr-[8px] ml-[12px] flex-1 whitespace-nowrap overflow-hidden text-ellipsis">
-            {name}
+            {title}
           </span>
           <span className="text-[#979797] text-[13px]">{date}</span>
         </div>

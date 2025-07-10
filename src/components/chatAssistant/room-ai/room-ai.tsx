@@ -12,13 +12,13 @@ import React, {
 import type { Message } from '@ai-sdk/react';
 import { useChat } from '@ai-sdk/react';
 import type { UIMessage } from 'ai';
-import { useSWRConfig } from 'swr';
 import { v4 as uuidv4 } from 'uuid';
 import { getActions } from '../../../global';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import buildClassName from '../../../util/buildClassName';
+import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { Messages } from '../messages';
 import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
@@ -44,17 +44,22 @@ const RoomAIInner = (props: StateProps) => {
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
   const [isLoading, setIsLoading] = useState(false);
   const tokenRef = useRef<string | null>(null);
-  const { mutate } = useSWRConfig();
+  const {
+    scrollToBottom, scrollLocked, isScrollLock,
+  } = useScrollToBottom();
   const {
     messages, setMessages, append, stop, status,
   } = useChat({
     api: 'https://telegpt-three.vercel.app/chat',
     id: chatId,
     sendExtraMessageFields: true,
-    onResponse: () => {
-      mutate('messages:should-scroll', 'auto');
-    },
   });
+
+  useEffect(() => {
+    if (!isScrollLock) {
+      scrollToBottom();
+    }
+  }, [isScrollLock, messages, scrollToBottom]);
 
   useEffect(() => {
     CHATAI_IDB_STORE.get('google-token').then((token) => {
@@ -109,6 +114,7 @@ const RoomAIInner = (props: StateProps) => {
   }, [chatId, initDate, setMessages]);
 
   const handleLoadMore = useCallback(() => {
+    scrollLocked();
     return new Promise<void>((resolve) => {
       if (chatId) {
         ChataiStores.message?.getMessages(chatId, pageInfo?.lastTime, 10)?.then((res) => {
@@ -124,7 +130,7 @@ const RoomAIInner = (props: StateProps) => {
         });
       }
     });
-  }, [chatId, pageInfo?.lastTime, setMessages]);
+  }, [chatId, pageInfo?.lastTime, scrollLocked, setMessages]);
 
   const insertMessage = useCallback((message: Message) => {
     setMessages((prev) => [...prev, message]);
@@ -164,9 +170,8 @@ const RoomAIInner = (props: StateProps) => {
       ];
       const mergeMesssage = [...newMessage, ...appendMessage];
       setMessages(mergeMesssage as UIMessage[]);
-      mutate('messages:should-scroll', 'smooth');
     }
-  }, [insertMessage, messages, mutate, setMessages]);
+  }, [insertMessage, messages, setMessages]);
 
   const updateToken = useCallback((payload:{ message:Message;token:string }) => {
     const { message, token } = payload;
@@ -199,22 +204,6 @@ const RoomAIInner = (props: StateProps) => {
     }
   }, [messages, status, chatId]);
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout | undefined;
-    if (status === 'streaming') {
-      timer = setInterval(() => {
-        mutate('messages:should-scroll', 'smooth');
-      }, 100);
-    } else if (timer !== undefined) {
-      clearInterval(timer);
-    }
-    return () => {
-      if (timer !== undefined) {
-        clearInterval(timer);
-      }
-    };
-  }, [mutate, status]);
-
   const toolsHitCheck = (formMessage: Message) => {
     getHitTools(formMessage.content).then((toolResults) => {
       setIsLoading(false);
@@ -240,7 +229,6 @@ const RoomAIInner = (props: StateProps) => {
               id: uuidv4(),
               createdAt: new Date(),
             });
-            mutate('messages:should-scroll', 'smooth');
           }
         });
       }
@@ -252,6 +240,7 @@ const RoomAIInner = (props: StateProps) => {
   };
 
   const handleInputSubmit = async (value: string) => {
+    scrollToBottom();
     const newMessage:Message = {
       role: 'user',
       content: value,
@@ -275,7 +264,6 @@ const RoomAIInner = (props: StateProps) => {
       setMessages((prev) => prev.slice(0, prev.length - 1));
       ChataiStores.message?.delMessage(newMessage.id);
       append(newMessage);
-      mutate('messages:should-scroll', 'smooth');
     }
   };
   const deleteMessage = useCallback((messageId: string) => {

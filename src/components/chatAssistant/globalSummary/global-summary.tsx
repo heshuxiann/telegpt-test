@@ -10,12 +10,12 @@ import React, {
 } from 'react';
 import { useChat } from '@ai-sdk/react';
 import type { Message } from 'ai';
-import { useSWRConfig } from 'swr';
 import { v4 as uuidv4 } from 'uuid';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import buildClassName from '../../../util/buildClassName';
 import { globalSummaryTask } from '../ai-task/global-summary-task';
+import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { Messages } from '../messages';
 import { MultiInput } from '../multi-input';
 import { RightPanel } from '../rightPanel/right-panel';
@@ -35,20 +35,27 @@ import styles from './global-summary.module.scss';
 import SerenaPath from '../assets/serena.png';
 
 const GlobalSummary = forwardRef(() => {
-  const { mutate } = useSWRConfig();
   const [notificationMessage, setNotificationMessage] = useState<Message | null>(null);
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
+  const {
+    scrollToBottom, scrollLocked, isScrollLock,
+  } = useScrollToBottom();
   const {
     messages, setMessages, append, stop, status,
   } = useChat({
     api: 'https://telegpt-three.vercel.app/chat',
     id: GLOBAL_SUMMARY_CHATID,
     sendExtraMessageFields: true,
-    onFinish: () => {
-      mutate('messages:should-scroll', 'auto');
-    },
   });
+
+  useEffect(() => {
+    if (!isScrollLock) {
+      scrollToBottom();
+    }
+  }, [isScrollLock, messages, scrollToBottom]);
+
   const handleLoadMore = useCallback(() => {
+    scrollLocked();
     return new Promise<void>((resolve) => {
       ChataiStores.summary?.getMessages(pageInfo?.lastTime, 10)?.then((res) => {
         if (res.messages) {
@@ -62,7 +69,7 @@ const GlobalSummary = forwardRef(() => {
         resolve();
       });
     });
-  }, [pageInfo?.lastTime, setMessages]);
+  }, [pageInfo?.lastTime, scrollLocked, setMessages]);
 
   const handleAddSummaryMessage = useCallback((message: SummaryStoreMessage) => {
     setMessages((prev) => [...prev, message]);
@@ -122,14 +129,14 @@ const GlobalSummary = forwardRef(() => {
   }, [setMessages]);
 
   const handleInputSubmit = useCallback((value:string) => {
+    scrollToBottom();
     append({
       role: 'user',
       content: value,
       id: uuidv4(),
       createdAt: new Date(),
     });
-    mutate('messages:should-scroll', 'smooth');
-  }, [append, mutate]);
+  }, [append, scrollToBottom]);
 
   useEffect(() => {
     if (status === 'ready') {
@@ -137,22 +144,6 @@ const GlobalSummary = forwardRef(() => {
       ChataiStores.summary?.storeMessages(msgs);
     }
   }, [messages, status]);
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout | undefined;
-    if (status === 'streaming') {
-      timer = setInterval(() => {
-        mutate('messages:should-scroll', 'smooth');
-      }, 500);
-    } else if (timer !== undefined) {
-      clearInterval(timer);
-    }
-    return () => {
-      if (timer !== undefined) {
-        clearInterval(timer);
-      }
-    };
-  }, [mutate, status]);
 
   return (
     <ErrorBoundary>
