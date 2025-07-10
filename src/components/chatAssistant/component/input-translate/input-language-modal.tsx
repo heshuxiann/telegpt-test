@@ -95,7 +95,7 @@ const InputLanguageModal: FC<OwnProps> = ({
         value={search}
         onChange={handleSearch}
         placeholder={lang('Search')}
-        teactExperimentControlled
+        // teactExperimentControlled
       />
       <div className={buildClassName(styles.languages, 'custom-scroll')}>
         {filteredDisplayedLanguages.map(({ langCode, originalName, translatedName }) => (

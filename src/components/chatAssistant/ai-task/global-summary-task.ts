@@ -232,7 +232,8 @@ class GlobalSummaryTask {
   }
 
   summaryAllUnreadMessages = async () => {
-    const unreadMessages: Record<string, ApiMessage[]> = {};
+    let unreadMessages: Record<string, ApiMessage[]> = {};
+    let totalLength = 0;
     const global = getGlobal();
     const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
     const summaryChatIds = this.summaryChats.length ? this.summaryChats : orderedIds;
@@ -250,24 +251,47 @@ class GlobalSummaryTask {
             sliceSize: 30,
             threadId: MAIN_THREAD_ID,
             unreadCount: chat.unreadCount,
-            maxCount: 100,
+            maxCount: 50,
           });
           if (roomUnreadMsgs.length > 0) {
-            unreadMessages[chatId] = roomUnreadMsgs;
-          }
-          console.log('unreadMessages---->', unreadMessages);
-          // 检查是否已累积到 5 个 chat
-          if (Object.keys(unreadMessages).length === 10) {
-            const summaryInfo = getSummaryInfo({
-              startTime: null,
-              endTime: Date.now(),
-              chats: unreadMessages,
-            });
-            this.startSummary(unreadMessages, summaryInfo);
-            // 清空 unreadMessages
-            Object.keys(unreadMessages).forEach((key) => {
-              delete unreadMessages[key];
-            });
+            let tempMsgs = [];
+
+            for (const msg of roomUnreadMsgs) {
+              const text = msg?.content?.text?.text || '';
+              const msgLength = text.length;
+
+              if (totalLength + msgLength > 40000) {
+                // 先将当前 tempMsgs 存到 unreadMessages
+                if (!unreadMessages[chatId]) {
+                  unreadMessages[chatId] = [];
+                }
+                unreadMessages[chatId].push(...tempMsgs);
+
+                // 执行 summary
+                const summaryInfo = getSummaryInfo({
+                  startTime: null,
+                  endTime: Date.now(),
+                  chats: unreadMessages,
+                });
+                this.startSummary(unreadMessages, summaryInfo);
+
+                // 清空
+                unreadMessages = {};
+                totalLength = 0;
+                tempMsgs = [];
+              }
+
+              tempMsgs.push(msg);
+              totalLength += msgLength;
+            }
+
+            // 当前 chatId 处理完，把 tempMsgs 加到 unreadMessages
+            if (tempMsgs.length > 0) {
+              if (!unreadMessages[chatId]) {
+                unreadMessages[chatId] = [];
+              }
+              unreadMessages[chatId].push(...tempMsgs);
+            }
           }
         }
       } catch (err) {
@@ -275,7 +299,7 @@ class GlobalSummaryTask {
         continue;
       }
     }
-    // 如果最后剩余不足 10 个，仍需执行一次
+    // 如果还有，仍需执行一次
     if (Object.keys(unreadMessages).length > 0) {
       const summaryInfo = getSummaryInfo({
         startTime: null,
@@ -287,7 +311,8 @@ class GlobalSummaryTask {
   };
 
   async summaryMessageByDeadline(deadline: number, useRangeTime: boolean = true) {
-    const unreadMessages: Record<string, ApiMessage[]> = {};
+    let unreadMessages: Record<string, ApiMessage[]> = {};
+    let totalLength = 0;
     const global = getGlobal();
     const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
     const summaryChatIds = this.summaryChats.length ? this.summaryChats : orderedIds;
@@ -313,25 +338,48 @@ class GlobalSummaryTask {
           maxCount: 100,
         });
         if (roomUnreadMsgs.length > 0) {
-          unreadMessages[chatId] = roomUnreadMsgs;
-        }
+          let tempMsgs = [];
 
-        // 检查是否已累积到 5 个 chat
-        if (Object.keys(unreadMessages).length === 10) {
-          const summaryInfo = getSummaryInfo({
-            startTime: deadline,
-            endTime: summaryTime,
-            chats: unreadMessages,
-          });
-          this.startSummary(unreadMessages, summaryInfo);
-          // 清空 unreadMessages
-          Object.keys(unreadMessages).forEach((key) => {
-            delete unreadMessages[key];
-          });
+          for (const msg of roomUnreadMsgs) {
+            const text = msg?.content?.text?.text || '';
+            const msgLength = text.length;
+
+            if (totalLength + msgLength > 40000) {
+              // 先将当前 tempMsgs 存到 unreadMessages
+              if (!unreadMessages[chatId]) {
+                unreadMessages[chatId] = [];
+              }
+              unreadMessages[chatId].push(...tempMsgs);
+
+              // 执行 summary
+              const summaryInfo = getSummaryInfo({
+                startTime: deadline,
+                endTime: summaryTime,
+                chats: unreadMessages,
+              });
+              this.startSummary(unreadMessages, summaryInfo);
+
+              // 清空
+              unreadMessages = {};
+              totalLength = 0;
+              tempMsgs = [];
+            }
+
+            tempMsgs.push(msg);
+            totalLength += msgLength;
+          }
+
+          // 当前 chatId 处理完，把 tempMsgs 加到 unreadMessages
+          if (tempMsgs.length > 0) {
+            if (!unreadMessages[chatId]) {
+              unreadMessages[chatId] = [];
+            }
+            unreadMessages[chatId].push(...tempMsgs);
+          }
         }
       }
     }
-    // 如果最后剩余不足 10 个，仍需执行一次
+    // 如果还有，仍需执行一次
     if (Object.keys(unreadMessages).length > 0) {
       const summaryInfo = getSummaryInfo({
         startTime: deadline,
