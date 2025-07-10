@@ -35,11 +35,12 @@ import buildStyle from '../../../util/buildStyle';
 import { getPromptInstall } from '../../../util/installPrompt';
 import { switchPermanentWebVersion } from '../../../util/permanentWebVersion';
 import { AIChatFolderStep } from '../../chatAssistant/ai-chatfolders/ai-chatfolders-tip';
-import { deleteAiChatFolders, hideTip } from '../../chatAssistant/ai-chatfolders/util';
+import { deleteAiChatFoldersFromUser, hideTip } from '../../chatAssistant/ai-chatfolders/util';
 import { aiChatFoldersTask } from '../../chatAssistant/ai-task/ai-chatfolders-task';
 import AIChatFolderIcon from '../../chatAssistant/assets/ai-chat-folder.png';
 import AIKnowledgeIcon from '../../chatAssistant/assets/ai-knowledge.png';
 import AITranslateIcon from '../../chatAssistant/assets/ai-translate.png';
+import { ChataiStores, GLOBAL_AICHATFOLDERS_TIP_SHOW } from '../../chatAssistant/store';
 
 import { useFolderManagerForUnreadCounters } from '../../../hooks/useFolderManager';
 import useLang from '../../../hooks/useLang';
@@ -173,9 +174,8 @@ const LeftSideMenuItems = ({
           setAiChatFoldersLoading(true);
           setSharedSettingOption({ aiChatFolders: isOpen });
           // delete ai chat folders
-          await deleteAiChatFolders();
+          await deleteAiChatFoldersFromUser();
           hideTip(AIChatFolderStep.classify);
-          // await sortChatFolder();
           setAiChatFoldersLoading(false);
         },
         onCancel: () => {},
@@ -184,6 +184,10 @@ const LeftSideMenuItems = ({
       setAiChatFoldersLoading(true);
       setSharedSettingOption({ aiChatFolders: isOpen });
       await aiChatFoldersTask.applyChatFolder();
+      eventEmitter.emit(Actions.UpdateAIChatFoldersApplying, {
+        loading: false,
+      });
+      ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_TIP_SHOW, false);
       setAiChatFoldersLoading(false);
     }
   });

@@ -1473,11 +1473,12 @@ function сheckMessageSendingDenied(message: ApiMessage, options: IAllowedAttach
 export function selectCanTranslateMessage<T extends GlobalState>(
   global: T, message: ApiMessage, detectedLanguage?: string, ...[tabId = getCurrentTabId()]: TabArgs<T>
 ) {
-  const { canTranslate: isTranslationEnabled, doNotTranslate } = global.settings.byKey;
+  const { canTranslate: isTranslationEnabled, doNotTranslate, autoTranslateLanguage } = global.settings.byKey;
 
-  const canTranslateLanguage = !detectedLanguage || !doNotTranslate.includes(detectedLanguage);
+  // eslint-disable-next-line max-len
+  const canTranslateLanguage = !detectedLanguage || (!doNotTranslate.includes(detectedLanguage) && detectedLanguage !== autoTranslateLanguage);
 
-  const isTranslatable = isMessageTranslatable(message);
+  const isTranslatable = isMessageTranslatable(message, true);
 
   // Separate translations are disabled when chat translation enabled
   const chatRequestedLanguage = selectRequestedChatTranslationLanguage(global, message.chatId, tabId);
