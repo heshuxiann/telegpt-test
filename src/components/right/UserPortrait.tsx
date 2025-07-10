@@ -1,5 +1,5 @@
 import type { FC } from '../../lib/teact/teact';
-import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
+import React, { memo, useEffect } from '../../lib/teact/teact';
 import { withGlobal } from '../../global';
 
 import type { ApiUser } from '../../api/types';
@@ -24,9 +24,6 @@ type StateProps = {
 const UserPortrait: FC<StateProps> = ({
   user,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
-
   function renderBasicInfo() {
     return (
       <div className="rounded-[16px] bg-[#fff] p-2 text-[14px]">
@@ -45,7 +42,7 @@ const UserPortrait: FC<StateProps> = ({
             Crypto Investor / Community KOL
           </div>
           <div>
-            <span className="font-[600]">Language:</span>
+            <span className="font-[600]">Language: </span>
             Chinese (Primary), English (Secondary)
           </div>
         </div>
@@ -107,7 +104,6 @@ const UserPortrait: FC<StateProps> = ({
 
   return (
     <InfiniteScroll
-      ref={containerRef}
       className="Portrait custom-scroll"
       noFastList
     >
