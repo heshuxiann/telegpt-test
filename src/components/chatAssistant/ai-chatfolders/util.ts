@@ -5,8 +5,6 @@ import { selectBot, selectChat } from "../../../global/selectors";
 import {
   ChataiStores,
   GLOBAL_AI_TAG,
-  GLOBAL_AICHATFOLDERS_LAST_TIME,
-  GLOBAL_AICHATFOLDERS_STEP,
   GLOBAL_AICHATFOLDERS_TIP_SHOW,
 } from "../store";
 import { validateAndFixJsonStructure } from "../utils/util";
@@ -176,6 +174,33 @@ export async function deleteAiChatFolders() {
       }
     }
   }
+  console.log(AICHATFOLDERS_LOG + "delete-end", new Date());
+}
+
+export async function deleteAiChatFoldersFromUser() {
+  console.log(AICHATFOLDERS_LOG + "delete-start-user", new Date());
+  const { deleteChatFolder } = getActions();
+
+  const res = await ChataiStores.folder?.getAllFolders();
+  for (let i = 0; i < (res || [])?.length; i++) {
+    const folderInfoDb = res?.[i];
+    if (folderInfoDb) {
+      if (
+        folderInfoDb?.from === "AI" ||
+        folderInfoDb.title === UNREAD_FOLDER_TITLE ||
+        folderInfoDb?.title === PRESET_FOLDER_TITLE ||
+        folderInfoDb?.title === AI_FOLDER_TITLE
+      ) {
+        // 删除AI分类, Unread分类, Preset分类, AI分类
+        console.log(
+          AICHATFOLDERS_LOG + "delete: " + folderInfoDb?.id,
+          new Date()
+        );
+        await deleteChatFolder?.({ id: Number(folderInfoDb?.id) });
+        await sleep(3000);
+      }
+    }
+  }
   let global = getGlobal();
   global = {
     ...global,
@@ -190,8 +215,8 @@ export async function deleteAiChatFolders() {
     },
   };
   setGlobal(global);
-  ChataiStores.general?.delete(GLOBAL_AICHATFOLDERS_LAST_TIME);
-  console.log(AICHATFOLDERS_LOG + "delete-end", new Date());
+  // ChataiStores.general?.delete(GLOBAL_AICHATFOLDERS_LAST_TIME);
+  console.log(AICHATFOLDERS_LOG + "delete-end-user", new Date());
 }
 
 export function isChatBot(chatId: string) {
@@ -262,7 +287,6 @@ export function updateAiChatFoldersToGlobal(nextAiChatFolders: AIChatFolder[]) {
 }
 
 export function hideTip(step: AIChatFolderStep) {
-  ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_STEP, step);
   if (step === AIChatFolderStep.classify) {
     eventEmitter.emit(Actions.UpdateAIChatFoldersClassifying, {
       loading: false,
@@ -274,18 +298,17 @@ export function hideTip(step: AIChatFolderStep) {
   }
 }
 
-export function showTip(step: AIChatFolderStep) {
+export function showTip() {
   ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW)?.then((res) => {
     if (res !== undefined) {
       ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_TIP_SHOW, true);
     }
   });
-  ChataiStores.general?.set(GLOBAL_AICHATFOLDERS_STEP, step);
   eventEmitter.emit(Actions.UpdateAIChatFoldersApplying, {
     loading: false,
     isShowTip: true,
   });
-  eventEmitter.emit(Actions.UpdateAIChatFoldersApplying, {
+  eventEmitter.emit(Actions.UpdateAIChatFoldersClassifying, {
     loading: false,
   });
 }

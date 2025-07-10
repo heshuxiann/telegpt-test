@@ -449,14 +449,16 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     const isNext = getGlobal().chatFolders.nextAiChatFolders?.length;
     if (isNext) {
       setAiChatFoldersStep(AIChatFolderStep.apply);
-      ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW)?.then((res) => {
-        if (res === undefined || (res === true && aiChatFolders)) {
-          openRenderAiChatFoldersTip();
-        } else {
-          closeRenderAiChatFoldersTip();
-        }
-      });
+    } else {
+      setAiChatFoldersStep(AIChatFolderStep.classify);
     }
+    ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW)?.then((res) => {
+      if (res === undefined || (res === true && aiChatFolders)) {
+        openRenderAiChatFoldersTip();
+      } else {
+        closeRenderAiChatFoldersTip();
+      }
+    });
   }, [aiChatFoldersloading, shouldRenderAiChatFoldersTip, aiChatFolders]);
 
   const updateAIChatFoldsLoading = useCallback(({ loading, isShowTip }: { loading: boolean; isShowTip?: boolean }) => {
@@ -521,8 +523,6 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
       />
     );
   }
-
-  // console.log('aiChatFoldersTask----ChatFolders render', shouldRenderAiChatFoldersTip, aiChatFoldersStep, aiChatFoldersloading,aiChatFolders )
 
   return (
     <div

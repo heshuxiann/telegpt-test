@@ -14,7 +14,6 @@ import { fetchChatMessageByCount } from "../utils/fetch-messages";
 import {
   ChataiStores,
   GLOBAL_AICHATFOLDERS_LAST_TIME,
-  GLOBAL_AICHATFOLDERS_STEP,
 } from "../store";
 import {
   batchAiChatFolders,
@@ -72,7 +71,7 @@ class AIChatFoldersTask {
         GLOBAL_AICHATFOLDERS_LAST_TIME,
         new Date().getTime()
       );
-      showTip(AIChatFolderStep.apply);
+      showTip();
       console.log(AICHATFOLDERS_LOG + "classify-end", new Date());
     } catch (error) {
       hideTip(AIChatFolderStep.classify);
@@ -83,17 +82,13 @@ class AIChatFoldersTask {
   async applyChatFolder() {
     try {
       console.log(AICHATFOLDERS_LOG + "apply-start", new Date());
-      ChataiStores.general?.set(
-        GLOBAL_AICHATFOLDERS_STEP,
-        AIChatFolderStep.apply
-      );
       eventEmitter.emit(Actions.UpdateAIChatFoldersApplying, {
         loading: true,
       });
       const global = getGlobal();
       const nextAiChatFolders = global?.chatFolders?.nextAiChatFolders;
       if (!nextAiChatFolders || nextAiChatFolders?.length === 0) {
-        hideTip(AIChatFolderStep.classify);
+        hideTip(AIChatFolderStep.apply);
         return;
       }
       const groupedRes = groupAiChatFoldersRes(nextAiChatFolders);
@@ -152,10 +147,13 @@ class AIChatFoldersTask {
         GLOBAL_AICHATFOLDERS_LAST_TIME,
         new Date().getTime()
       );
-      hideTip(AIChatFolderStep.classify);
+      hideTip(AIChatFolderStep.apply);
+      eventEmitter.emit(Actions.UpdateAIChatFoldersApplying, {
+        loading: false,
+      });
       console.log(AICHATFOLDERS_LOG + "apply-end", new Date());
     } catch (error) {
-      hideTip(AIChatFolderStep.classify);
+      hideTip(AIChatFolderStep.apply);
       return;
     }
   }
@@ -195,10 +193,6 @@ class AIChatFoldersTask {
   async classifyChatMessageByCount() {
     try {
       console.log(AICHATFOLDERS_LOG + "classify-start", new Date());
-      ChataiStores.general?.set(
-        GLOBAL_AICHATFOLDERS_STEP,
-        AIChatFolderStep.classify
-      );
       eventEmitter.emit(Actions.UpdateAIChatFoldersClassifying, {
         loading: true,
       });
