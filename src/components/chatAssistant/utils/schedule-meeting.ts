@@ -14,7 +14,7 @@ import { extractCalendlyLinks } from './util';
 import { createMeetingTimeConfirmMessage } from '../room-ai/room-ai-utils';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage } from '../store/messages-store';
-import { calendlyRanges } from './chat-api';
+import { calendlyRanges, getHitTools } from './chat-api';
 import {
   createAuthConfirmModal,
   createGoogleMeet,
@@ -198,23 +198,7 @@ async function isTimeSlotAvailable(proposedSlot: {
 
 function getMeetParamsByAITools(message: string): Promise<any> {
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/tool-check', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messages: [
-          {
-            id: uuidv4(),
-            content: message,
-            role: 'user',
-          },
-        ],
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      }),
-    })
-      .then((res) => res.json())
+    getHitTools(message, Intl.DateTimeFormat().resolvedOptions().timeZone)
       .then((toolResults) => {
         let email: string[] = [];
         let date: string | null = null;
@@ -339,7 +323,9 @@ class ScheduleMeeting {
           }
         }
         const toolCheckRes = await getMeetParamsByAITools(text);
-        if (toolCheckRes.email) this.email = toolCheckRes.email;
+        if (toolCheckRes.email && toolCheckRes.email.length > 0) {
+          this.email = toolCheckRes.email;
+        }
         if (!this.date.length && toolCheckRes.date) {
           const dateRange = {
             start: toolCheckRes.date,

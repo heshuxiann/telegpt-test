@@ -9,6 +9,7 @@ import { type ApiMessage, MAIN_THREAD_ID } from '../../../api/types/messages';
 
 import { ALL_FOLDER_ID } from '../../../config';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
+import { loadChats } from '../../../global/actions/api/chats';
 import { isSystemBot, isUserId } from '../../../global/helpers';
 import {
   selectBot, selectChat, selectChatLastMessageId, selectFirstUnreadId, selectUser,
@@ -79,6 +80,19 @@ function getSummaryInfo({
   return summaryInfo;
 }
 
+function getAllChatIds():Promise<string[] | undefined> {
+  return new Promise((resolve) => {
+    (async () => {
+      const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
+      if (orderedIds.length === 0) {
+        await loadChats('active', true);
+        await loadChats('archived', true);
+      }
+      resolve(getOrderedIds(ALL_FOLDER_ID));
+    })();
+  });
+}
+
 class GlobalSummaryTask {
   private static instance: GlobalSummaryTask | undefined;
 
@@ -115,16 +129,20 @@ class GlobalSummaryTask {
     };
 
     this.timmer = setInterval(executeTask, 60000);
-    eventEmitter.on(Actions.ChatAIStoreReady, async () => {
-      await this.updateSummarySettings();
-      const globalSummaryLastTime: number | undefined = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME);
-      if (!globalSummaryLastTime) {
-      // TODO summary all unread message
-        this.summaryAllUnreadMessages();
-      } else if (Date.now() - globalSummaryLastTime > 1000 * 60 * 60 * 10) {
-      // TODO summary all unread message by deadline
-        this.summaryMessageByDeadline(globalSummaryLastTime);
-      }
+    eventEmitter.on(Actions.ChatAIStoreReady, () => {
+      console.log('ChatAIStoreReady');
+      this.updateSummarySettings();
+      setTimeout(() => {
+        ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME).then((lastSummaryTime) => {
+          if (!lastSummaryTime) {
+            // TODO summary all unread message
+            this.summaryAllUnreadMessages();
+          } else if (Date.now() - lastSummaryTime > 1000 * 60 * 60 * 10) {
+            // TODO summary all unread message by deadline
+            this.summaryMessageByDeadline(lastSummaryTime);
+          }
+        });
+      }, 5000);
     });
   }
 
@@ -196,7 +214,6 @@ class GlobalSummaryTask {
       language: new Intl.DisplayNames([autoTranslateLanguage], { type: 'language' }).of(autoTranslateLanguage),
       definePrompt: this.customizationTemplate?.prompt || '',
     }).then((res:any) => {
-      console.log('summary response', res);
       const content = {
         ...res.data,
         summaryInfo,
@@ -235,7 +252,8 @@ class GlobalSummaryTask {
     let unreadMessages: Record<string, ApiMessage[]> = {};
     let totalLength = 0;
     const global = getGlobal();
-    const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
+    // const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
+    const orderedIds = await getAllChatIds() || [];
     const summaryChatIds = this.summaryChats.length ? this.summaryChats : orderedIds;
     for (let i = 0; i < summaryChatIds.length; i++) {
       try {
@@ -314,7 +332,8 @@ class GlobalSummaryTask {
     let unreadMessages: Record<string, ApiMessage[]> = {};
     let totalLength = 0;
     const global = getGlobal();
-    const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
+    // const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
+    const orderedIds = await getAllChatIds() || [];
     const summaryChatIds = this.summaryChats.length ? this.summaryChats : orderedIds;
     let summaryTime;
     if (useRangeTime) {
