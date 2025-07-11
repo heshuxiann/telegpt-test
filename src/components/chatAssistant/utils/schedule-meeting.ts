@@ -2,7 +2,6 @@
 /* eslint-disable no-console */
 /* eslint-disable max-len */
 import { DateTime, Interval } from 'luxon';
-import { v4 as uuidv4 } from 'uuid';
 import { getActions, getGlobal } from '../../../global';
 
 import type { ApiMessage } from '../../../api/types';
@@ -39,7 +38,7 @@ export function formatMeetingTimeRange(
   const timeFormatter = new Intl.DateTimeFormat('en-US', {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true,
+    hour12: false,
   });
 
   const formatTime = (date: Date) => {
