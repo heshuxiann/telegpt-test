@@ -11,9 +11,11 @@ import KnowledgeStore from './knowledge-store';
 import MessageStore from './messages-store';
 import SummaryStore from './summary-store';
 import UrgentTopicStore from './urgent-topic-store';
+import UserPortraitMessageStore from './user-portrait-message-store';
+import UserPortraitStore from './user-portrait-store';
 import UsersStore from './user-store';
 
-const dbVersion = 18;
+const dbVersion = 19;
 
 export const GLOBAL_SUMMARY_LAST_TIME = 'globalSummaryLastTime';
 export const GLOBAL_AICHATFOLDERS_LAST_TIME = 'globalAiChatFoldersLastTime';
@@ -34,6 +36,8 @@ export const ChataiStores = {
   urgentTopic: null as UrgentTopicStore | null,
   folder: null as FolderStore | null,
   aIChatFolders: null as AIChatFoldersStore | null,
+  userPortrait: null as UserPortraitStore | null,
+  userPortraitMessage: null as UserPortraitMessageStore | null,
 };
 
 export function setChataiStoreBuilderCurrentUserId(_currentUserId: string) {
@@ -57,6 +61,8 @@ export async function initChataiStores(_currentUserId: string) {
   ChataiStores.urgentTopic = new UrgentTopicStore(chataiStoreManager);
   ChataiStores.folder = new FolderStore(chataiStoreManager);
   ChataiStores.aIChatFolders = new AIChatFoldersStore(chataiStoreManager);
+  ChataiStores.userPortrait = new UserPortraitStore(chataiStoreManager);
+  ChataiStores.userPortraitMessage = new UserPortraitMessageStore(chataiStoreManager);
   eventEmitter.emit(Actions.ChatAIStoreReady);
   (window as any).downloadAllSummarys = () => {
     ChataiStores.message?.getAllMessages().then((res) => {

@@ -840,7 +840,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
 };
 
 export default memo(withGlobal<OwnProps>(
-  (global, { message, messageListType }): StateProps => {
+  (global, { message, messageListType, detectedLanguage }): StateProps => {
     const { threadId } = selectCurrentMessageList(global) || {};
 
     const { defaultTags, topReactions, availableReactions } = global.reactions;

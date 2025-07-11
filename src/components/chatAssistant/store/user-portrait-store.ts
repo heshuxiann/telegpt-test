@@ -2,10 +2,17 @@
 import type { StoreName } from './chatai-store';
 import type ChataiDB from './chatai-store';
 
-interface AIChatFoldersInfo {}
+export interface UserPortraitInfo {
+  id: string;
+  lastMsgId?: number;
+  langs?: string[];
+  tags?: string[];
+  chatCount?: number;
+  chatIds?: string[];
+}
 
-class AIChatFoldersStore {
-  private storeName: StoreName = 'aIChatFolders';
+class UserPortraitStore {
+  private storeName: StoreName = 'userPortrait';
 
   private db: IDBDatabase | null = null;
 
@@ -16,33 +23,12 @@ class AIChatFoldersStore {
     this.chataiStoreManager = dbManager;
   }
 
-  async getAllAIChatFolders(): Promise<any[]> {
+  async getUserPortrait(key: string): Promise<any | undefined> {
     let db: IDBDatabase;
     try {
       db = await this.chataiStoreManager.getDB();
     } catch (error) {
-      console.error('Error getting all aichatfolders:', error);
-      return Promise.reject(error);
-    }
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.storeName, 'readonly');
-      const store = tx.objectStore(this.storeName);
-      const request = store.getAll();
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-      request.onerror = () => {
-        reject(request.error);
-      };
-    })
-  }
-
-  async getAIChatFolder(key: string): Promise<any | undefined> {
-    let db: IDBDatabase;
-    try {
-      db = await this.chataiStoreManager.getDB();
-    } catch (error) {
-      console.error('Error get aichatfolder:', error);
+      console.error('Error get userPortrait:', error);
       return Promise.reject(error);
     }
     return new Promise((resolve, reject) => {
@@ -58,7 +44,7 @@ class AIChatFoldersStore {
     });
   }
 
-  async deleteAIChatFolder(key:string) {
+  async deleteUserPortrait(key:string) {
     let db: IDBDatabase;
     try {
       db = await this.chataiStoreManager.getDB();
@@ -79,18 +65,18 @@ class AIChatFoldersStore {
     });
   }
 
-  async addAIChatFolder(aiChatFolder: AIChatFoldersInfo) {
+  async addUserPortrait(userPortrait: UserPortraitInfo) {
     let db: IDBDatabase;
     try {
       db = await this.chataiStoreManager.getDB();
     } catch (error) {
-      console.error('Error adding aichatfolder:', error);
+      console.error('Error adding userPortrait:', error);
       return Promise.reject(error);
     }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readwrite');
       const store = tx.objectStore(this.storeName);
-      const request = store.put(aiChatFolder);
+      const request = store.put(userPortrait);
       request.onsuccess = () => {
         resolve(request.result);
       };
@@ -101,4 +87,4 @@ class AIChatFoldersStore {
   }
 }
 
-export default AIChatFoldersStore;
+export default UserPortraitStore;

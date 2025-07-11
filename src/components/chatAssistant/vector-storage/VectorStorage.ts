@@ -147,6 +147,14 @@ export class VectorStorage<T> {
     };
   }
 
+  public async documentSearch(params: IVSSimilaritySearchParams): Promise<Array<IVSDocument<T>>> {
+    const { filterOptions } = params;
+    const allDocuments = await this.loadFromIndexDbStorage();
+    const filteredDocuments = filterDocuments(allDocuments, filterOptions);
+
+    return filteredDocuments;
+  }
+
   private async initDB(): Promise<IDBPDatabase<any>> {
     return openDB<any>(this.dbName, this.dbVersion, {
       upgrade(db) {

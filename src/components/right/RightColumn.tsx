@@ -44,7 +44,7 @@ import MonetizationStatistics from './statistics/MonetizationStatistics';
 import Statistics from './statistics/Statistics.async';
 import StoryStatistics from './statistics/StoryStatistics.async';
 import StickerSearch from './StickerSearch.async';
-import UserPortrait from './UserPortrait';
+import UserPortrait from './userPortrait/UserPortrait';
 
 import './RightColumn.scss';
 
@@ -64,6 +64,7 @@ type StateProps = {
   shouldCloseRightColumn?: boolean;
   isSavedMessages?: boolean;
   isSavedDialog?: boolean;
+  userPortraitUserId?: string;
 };
 
 const ANIMATION_DURATION = 450 + ANIMATION_END_DELAY;
@@ -89,6 +90,7 @@ const RightColumn: FC<OwnProps & StateProps> = ({
   shouldCloseRightColumn,
   isSavedMessages,
   isSavedDialog,
+  userPortraitUserId,
 }) => {
   const {
     toggleChatInfo,
@@ -386,7 +388,7 @@ const RightColumn: FC<OwnProps & StateProps> = ({
       case RightColumnContent.ChatAI:
         return <RoomAIWrapper chatId={chatId} threadId={threadId} onClose={close} />;
       case RightColumnContent.UserPortrait:
-        return <UserPortrait />;
+        return userPortraitUserId && <UserPortrait userId={userPortraitUserId} />;
     }
 
     return undefined; // Unreachable
@@ -460,6 +462,8 @@ export default memo(withGlobal<OwnProps>(
     const isSavedMessages = chatId ? selectIsChatWithSelf(global, chatId) : undefined;
     const isSavedDialog = chatId ? getIsSavedDialog(chatId, threadId, global.currentUserId) : undefined;
 
+    const { userPortraitUserId } = selectTabState(global);
+
     return {
       contentKey: selectRightColumnContentKey(global, isMobile),
       chatId,
@@ -471,6 +475,7 @@ export default memo(withGlobal<OwnProps>(
       shouldCloseRightColumn,
       isSavedMessages,
       isSavedDialog,
+      userPortraitUserId,
     };
   },
 )(RightColumn));

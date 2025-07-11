@@ -58,6 +58,7 @@ import Switcher from '../../ui/Switcher';
 import CustomEmoji from '../CustomEmoji';
 import SafeLink from '../SafeLink';
 import BusinessHours from './BusinessHours';
+import PortraitEntry from './PortraitEntry';
 import UserBirthday from './UserBirthday';
 
 import styles from './ChatExtra.module.scss';
@@ -126,7 +127,6 @@ const ChatExtra: FC<OwnProps & StateProps> = ({
     requestMainWebView,
     toggleUserEmojiStatusPermission,
     toggleUserLocationPermission,
-    openUserPortrait,
   } = getActions();
 
   const {
@@ -265,10 +265,6 @@ const ChatExtra: FC<OwnProps & StateProps> = ({
     });
   });
 
-  const handlePortraitClick = useLastCallback(() => {
-    openUserPortrait({ userId: user?.id! });
-  });
-
   const appTermsInfo = lang('ProfileOpenAppAbout', {
     terms: (
       <SafeLink
@@ -337,21 +333,6 @@ const ChatExtra: FC<OwnProps & StateProps> = ({
     );
   }
 
-  function renderPortraitEntry() {
-    return (
-      <ListItem
-        icon="portrait-large-icon"
-        multiline
-        narrow
-        ripple
-        onClick={handlePortraitClick}
-      >
-        <span className="title">{(user?.firstName || '') + (user?.lastName || '')}‘s portrait</span>
-        <span className="subtitle">{oldLang('User Portrait')}</span>
-      </ListItem>
-    );
-  }
-
   return (
     <div className="ChatExtra">
       {personalChannel && (
@@ -380,7 +361,7 @@ const ChatExtra: FC<OwnProps & StateProps> = ({
       {activeUsernames && (
         <>
           {renderUsernames(activeUsernames)}
-          {renderPortraitEntry()}
+          {user && <PortraitEntry user={user} />}
         </>
       )}
       {description && Boolean(description.length) && (
