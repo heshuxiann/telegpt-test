@@ -49,7 +49,7 @@ class AIChatFoldersTask {
 
     setTimeout(() => {
       this.classifyChatMessageByCount();
-    }, 1000);
+    }, 5000);
   }
 
   async runAIChatFolders(chatMessages: { [key: string]: ApiMessage[] }) {
@@ -198,6 +198,13 @@ class AIChatFoldersTask {
       });
 
       const global = getGlobal();
+      const { currentUserId } = global;
+      if (!currentUserId) {
+        console.log(AICHATFOLDERS_LOG + "Not logged, pass");
+        this.inited = false;
+        hideTip(AIChatFolderStep.classify);
+        return;
+      }
       // const { aiChatFolders } = selectSharedSettings(global);
       // if (aiChatFolders !== true) {
       //   console.log(AICHATFOLDERS_LOG + "enable=false, pass", global);
