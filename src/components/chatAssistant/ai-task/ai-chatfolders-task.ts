@@ -85,6 +85,10 @@ class AIChatFoldersTask {
       eventEmitter.emit(Actions.UpdateAIChatFoldersApplying, {
         loading: true,
       });
+      eventEmitter.emit(Actions.UpdateSettingAIChatFoldersLoading, {
+        loading: true,
+        isApply: true
+      });
       const global = getGlobal();
       const nextAiChatFolders = global?.chatFolders?.nextAiChatFolders;
       if (!nextAiChatFolders || nextAiChatFolders?.length === 0) {
@@ -193,8 +197,9 @@ class AIChatFoldersTask {
   async classifyChatMessageByCount() {
     try {
       console.log(AICHATFOLDERS_LOG + "classify-start", new Date());
-      eventEmitter.emit(Actions.UpdateAIChatFoldersClassifying, {
+      eventEmitter.emit(Actions.UpdateSettingAIChatFoldersLoading, {
         loading: true,
+        isApply: false
       });
 
       const global = getGlobal();

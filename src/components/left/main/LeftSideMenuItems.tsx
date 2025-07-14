@@ -192,18 +192,23 @@ const LeftSideMenuItems = ({
     }
   });
 
-  const updateAIChatFoldersLoading = useCallback(({ loading }: { loading: boolean }) => {
-    const isNext = getGlobal().chatFolders.nextAiChatFolders?.length;
-    if (isNext) {
-      setAiChatFoldersLoading(false);
-    } else {
+  const updateAIChatFoldersLoading = useCallback(({ loading, isApply }: { loading: boolean; isApply: boolean }) => {
+    if (isApply) {
       setAiChatFoldersLoading(loading);
+    } else {
+      const isNext = getGlobal().chatFolders.nextAiChatFolders?.length;
+      if (isNext) {
+        setAiChatFoldersLoading(false);
+      } else {
+        setAiChatFoldersLoading(loading);
+      }
     }
   }, []);
+
   useEffect(() => {
-    eventEmitter.on(Actions.UpdateAIChatFoldersClassifying, updateAIChatFoldersLoading);
+    eventEmitter.on(Actions.UpdateSettingAIChatFoldersLoading, updateAIChatFoldersLoading);
     return () => {
-      eventEmitter.off(Actions.UpdateAIChatFoldersClassifying, updateAIChatFoldersLoading);
+      eventEmitter.off(Actions.UpdateSettingAIChatFoldersLoading, updateAIChatFoldersLoading);
     };
   }, [updateAIChatFoldersLoading]);
 

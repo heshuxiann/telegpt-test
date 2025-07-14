@@ -288,8 +288,9 @@ export function updateAiChatFoldersToGlobal(nextAiChatFolders: AIChatFolder[]) {
 
 export function hideTip(step: AIChatFolderStep) {
   if (step === AIChatFolderStep.classify) {
-    eventEmitter.emit(Actions.UpdateAIChatFoldersClassifying, {
+    eventEmitter.emit(Actions.UpdateSettingAIChatFoldersLoading, {
       loading: false,
+      isApply: false
     });
   } else {
     eventEmitter.emit(Actions.UpdateAIChatFoldersApplying, {
@@ -308,7 +309,8 @@ export function showTip() {
     loading: false,
     isShowTip: true,
   });
-  eventEmitter.emit(Actions.UpdateAIChatFoldersClassifying, {
+  eventEmitter.emit(Actions.UpdateSettingAIChatFoldersLoading, {
     loading: false,
+    isApply: false
   });
 }

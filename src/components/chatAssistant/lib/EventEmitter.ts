@@ -21,7 +21,7 @@ export enum Actions {
   IntentionToScheduleMeeting = 'IntentionToScheduleMeeting',
   // ai chat folds
   UpdateAIChatFoldersApplying = 'UpdateAIChatFoldersApplying',
-  UpdateAIChatFoldersClassifying = 'UpdateAIChatFoldersClassifying',
+  UpdateSettingAIChatFoldersLoading = 'UpdateSettingAIChatFoldersLoading',
 }
 class EventEmitter {
   private static instance: EventEmitter;
