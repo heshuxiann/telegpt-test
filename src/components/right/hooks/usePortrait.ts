@@ -197,6 +197,8 @@ export default function usePortrait({ userId }: Props) {
             ChataiStores.userPortraitMessage?.addUserPortraitMessage(obj);
             resultArr.push(obj);
           });
+          // delete old summary message TODO
+
           setPortraitMessage((pre) => [...pre, ...resultArr]);
           setLoading(false);
         },

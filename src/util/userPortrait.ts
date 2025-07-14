@@ -127,3 +127,8 @@ export function deleteStoryFromUserPortraitMessage(data: ApiUpdateDeleteStory) {
   const id = `${data?.peerId}-story-${data?.storyId}`;
   ChataiStores.userPortraitMessage?.deleteUserPortraitMessage(id);
 }
+
+export function searchPortrait(value: string) {
+  const flag = value.indexOf('画像') > -1 || value.indexOf('portrait') > -1;
+  return flag;
+}

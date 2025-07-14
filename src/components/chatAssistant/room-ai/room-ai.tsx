@@ -18,6 +18,7 @@ import { getActions } from '../../../global';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import buildClassName from '../../../util/buildClassName';
+import { searchPortrait } from '../../../util/userPortrait';
 import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { Messages } from '../messages';
 import RoomStorage from '../room-storage';
@@ -30,7 +31,10 @@ import { toolsEmbeddingStore } from '../vector-store';
 import RoomActions from './room-actions';
 // import RoomAIDescription from './room-ai-des';
 import { RoomAIInput } from './room-ai-input';
-import { createGoogleLoginMessage, createGoogleMeetingMessage, createRoomDescriptionMessage } from './room-ai-utils';
+import {
+  createGoogleLoginMessage, createGoogleMeetingMessage,
+  createRoomDescriptionMessage, createUserPortraitMessage,
+} from './room-ai-utils';
 
 import './room-ai.scss';
 import styles from './room-ai.module.scss';
@@ -218,6 +222,9 @@ const RoomAIInner = (props: StateProps) => {
               insertMessage(createGoogleMeetingMessage());
             }
             sendGAEvent('google_meet');
+          } else if (toolCall.toolName === 'checkIsUserPortrait') {
+            const userName = toolCall.result?.keyword;
+            insertMessage(createUserPortraitMessage(userName));
           } else if (toolCall.toolName === 'nullTool') {
             // eslint-disable-next-line no-console
             console.log('没有命中工具');
@@ -257,7 +264,7 @@ const RoomAIInner = (props: StateProps) => {
       k: 10,
     });
     const matchs = vectorSearchResults.similarItems.filter((item:any) => item.score > 0.8);
-    if (matchs.length > 0) {
+    if (matchs.length > 0 || searchPortrait(value)) {
       toolsHitCheck(newMessage);
     } else {
       setIsLoading(false);

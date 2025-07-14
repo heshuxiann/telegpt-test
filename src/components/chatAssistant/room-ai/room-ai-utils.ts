@@ -222,3 +222,25 @@ export const createMeetingMentionMessage = (chatId:string):Message => {
     }],
   };
 };
+
+export const createUserPortraitMessage = (name: string):Message => {
+  const usersById = getGlobal().users.byId;
+  let userId = null;
+  Object.values(usersById).forEach((user) => {
+    if (user.firstName?.toLowerCase() === name?.toLowerCase()
+        || user.lastName?.toLowerCase() === name?.toLowerCase()
+        || (`${user.firstName} ${user.lastName}`)?.toLowerCase() === name?.toLowerCase()
+    ) {
+      userId = user.id;
+    }
+  });
+  return {
+    role: 'assistant',
+    id: uuidv4(),
+    createdAt: new Date(),
+    content: userId ?? '',
+    annotations: [{
+      type: 'user-portrait',
+    }],
+  };
+};

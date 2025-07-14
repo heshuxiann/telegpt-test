@@ -13,6 +13,7 @@ import {
 } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 
+import useOldLang from '../../../hooks/useOldLang';
 import usePortrait from '../hooks/usePortrait';
 
 import Avatar from '../../common/Avatar';
@@ -50,6 +51,7 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
   });
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
+  const lang = useOldLang();
 
   function renderBasicInfo() {
     return (
@@ -75,31 +77,37 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
               <span className="font-[600]">Alias/Nickname: </span>
               {user?.firstName} {user?.lastName}
             </div>
-            <div>
-              <span className="font-[600]">Language: </span>
-              {`${
-                userPortraitInfo?.langs?.[0]
-                  ? `${userPortraitInfo?.langs?.[0]}(Primary)`
-                  : ''
-              } ${
-                userPortraitInfo?.langs?.[1]
-                  ? `, ${userPortraitInfo?.langs?.[1]}(Secondary)`
-                  : ''
-              }`}
-            </div>
-            <div>
-              <span className="font-[600]">Tags: </span>
-            </div>
-            <div className="flex flex-row flex-wrap items-center gap-2">
-              {userPortraitInfo?.tags?.map((tag, index) => (
-                <div
-                  className="flex items-center justify-center px-2 rounded-[4px] h-[28px] text-[12px] font-[500]"
-                  style={`background: ${PortraitTagColors[index]}`}
-                >
-                  {tag}
+            {userPortraitInfo?.langs && (
+              <div>
+                <span className="font-[600]">Language: </span>
+                {`${
+                  userPortraitInfo?.langs?.[0]
+                    ? `${userPortraitInfo?.langs?.[0]}(Primary)`
+                    : ''
+                } ${
+                  userPortraitInfo?.langs?.[1]
+                    ? `, ${userPortraitInfo?.langs?.[1]}(Secondary)`
+                    : ''
+                }`}
+              </div>
+            )}
+            {userPortraitInfo?.tags && (
+              <>
+                <div>
+                  <span className="font-[600]">Tags: </span>
                 </div>
-              ))}
-            </div>
+                <div className="flex flex-row flex-wrap items-center gap-2">
+                  {userPortraitInfo?.tags?.map((tag, index) => (
+                    <div
+                      className="flex items-center justify-center px-2 rounded-[4px] h-[28px] text-[12px] font-[500]"
+                      style={`background: ${PortraitTagColors[index]}`}
+                    >
+                      {tag}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </>
@@ -156,18 +164,23 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
             />
           </div>
         )}
-        <div className="flex flex-col gap-2">
-          {portraitMessage
-            ?.map((item, index) => (
-              <ActivityMessage
-                userId={userId}
-                data={item}
-                isLast={index === portraitMessage.length - 1}
-                key={item?.id}
-              />
-            ))}
-          {/* <div className="font-[600] text-center my-2">More</div> */}
-        </div>
+        {portraitMessage?.length ? (
+          <div className="flex flex-col gap-2">
+            {portraitMessage
+              ?.map((item, index) => (
+                <ActivityMessage
+                  userId={userId}
+                  data={item}
+                  isLast={index === portraitMessage.length - 1}
+                  key={item?.id}
+                />
+              ))}
+          </div>
+        ) : (
+          <div className="empty">
+            {lang('NoMessages')}
+          </div>
+        )}
       </div>
     );
   }
@@ -186,7 +199,7 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
       noFastList
     >
       {renderBasicInfo()}
-      {renderBehaGroup()}
+      {userPortraitInfo ? renderBehaGroup() : undefined}
       {renderActivity()}
     </InfiniteScroll>
   );
