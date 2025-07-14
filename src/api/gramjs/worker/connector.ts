@@ -30,6 +30,7 @@ import {
   DATA_BROADCAST_CHANNEL_NAME,
 } from '../../../util/multiaccount';
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
+import { deleteStoryFromUserPortraitMessage, handleStoryToUserPortraitMessage } from '../../../util/userPortrait';
 import ChatAIMessageQuene from '../../../components/chatAssistant/ai-task/chatai-task';
 import { messageEmbeddingStore, toolsEmbeddingStore } from '../../../components/chatAssistant/vector-store';
 
@@ -336,6 +337,10 @@ function sendToAIAgent(data: ApiUpdate) {
         });
       }
     }
+  } else if (data['@type'] === 'updateStory') {
+    handleStoryToUserPortraitMessage(data);
+  } else if (data['@type'] === 'deleteStory') {
+    deleteStoryFromUserPortraitMessage(data);
   }
 }
 

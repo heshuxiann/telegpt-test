@@ -164,6 +164,7 @@ export const AISearch = () => {
     const similarItems = vectorSearchResults.similarItems;
     let searchResult = null;
     if (similarItems.length > 0) {
+      debugger
       const senderIds = Array.from(new Set(similarItems.map((item) => {
         if (item.score > 0.7) {
           return (item?.metadata as { senderId: string })?.senderId;
@@ -228,7 +229,7 @@ export const AISearch = () => {
               ## 为保证输出内容的完整性,尽量精简总结内容；
               ## 主话题不超过5个,子话题总数不超过15个
           # 消息内容
-          ${JSON.stringify(messageList)}  
+          ${JSON.stringify(messageList)}
         `,
         id: Math.random().toString(),
         annotations: [{

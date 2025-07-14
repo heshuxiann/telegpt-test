@@ -5,7 +5,6 @@ import { withGlobal } from '../../../global';
 
 import type { ApiUser } from '../../../api/types';
 import type { ThemeKey } from '../../../types';
-import type { UserPortraitMessageInfo } from '../../chatAssistant/store/user-portrait-message-store';
 
 import {
   selectTabState,
@@ -159,9 +158,6 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
         )}
         <div className="flex flex-col gap-2">
           {portraitMessage
-            ?.sort(
-              (a: UserPortraitMessageInfo, b: UserPortraitMessageInfo) => b.summaryTime - a.summaryTime,
-            )
             ?.map((item, index) => (
               <ActivityMessage
                 userId={userId}

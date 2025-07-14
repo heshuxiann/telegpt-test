@@ -1,10 +1,12 @@
 /* eslint-disable */
+import { ApiStory, ApiStorySkipped } from "../../../api/types"
 import type { StoreName } from './chatai-store';
 import type ChataiDB from './chatai-store';
 
 export interface UserPortraitMessageInfo {
   id: string;
   senderId: string,
+  isSummary: boolean;
   time: string;
   timeRange: string;
   summaryTime: number;
@@ -18,6 +20,14 @@ export interface UserPortraitMessageInfo {
     }[]
   }[]
 }
+
+export interface UserPortraitMessageStory {
+  id: string;
+  senderId: string;
+  isSummary: boolean;
+  time: string;
+  message: ApiStory | ApiStorySkipped;
+};
 
 class UserPortraitMessageStore {
   private storeName: StoreName = 'userPortraitMessage';
@@ -95,7 +105,7 @@ class UserPortraitMessageStore {
     });
   }
 
-  async addUserPortraitMessage(userPortraitMessage: UserPortraitMessageInfo) {
+  async addUserPortraitMessage(userPortraitMessage: UserPortraitMessageInfo | UserPortraitMessageStory) {
     let db: IDBDatabase;
     try {
       db = await this.chataiStoreManager.getDB();

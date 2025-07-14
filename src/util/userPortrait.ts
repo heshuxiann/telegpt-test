@@ -1,5 +1,9 @@
 import dayjs from 'dayjs';
 
+import type { ApiUpdateDeleteStory, ApiUpdateStory } from '../api/types';
+import type { UserPortraitMessageStory } from '../components/chatAssistant/store/user-portrait-message-store';
+
+import { ChataiStores } from '../components/chatAssistant/store';
 import { messageEmbeddingStore } from '../components/chatAssistant/vector-store';
 
 export type TextMessage = {
@@ -105,4 +109,21 @@ export async function getMessageBySendId(senderId: string) {
   } else {
     return [];
   }
+}
+
+export function handleStoryToUserPortraitMessage(data: ApiUpdateStory) {
+  const { peerId: userId, story } = data;
+  const obj: UserPortraitMessageStory = {
+    id: `${userId}-story-${story?.id}`,
+    senderId: userId,
+    isSummary: false,
+    time: dayjs(story.date * 1000).format('YYYY-MM-DD HH:mm:ss'),
+    message: story,
+  };
+  ChataiStores.userPortraitMessage?.addUserPortraitMessage(obj);
+}
+
+export function deleteStoryFromUserPortraitMessage(data: ApiUpdateDeleteStory) {
+  const id = `${data?.peerId}-story-${data?.storyId}`;
+  ChataiStores.userPortraitMessage?.deleteUserPortraitMessage(id);
 }

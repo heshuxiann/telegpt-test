@@ -139,6 +139,7 @@ addActionHandler('openChatAIWithInfo', (global, actions, payload): ActionReturnT
   global = updateTabState(global, {
     ...selectTabState(global, tabId),
     isChatAIShown: true,
+    isUserPortraitShown: false,
   }, tabId);
   global = { ...global, lastIsChatInfoShown: true };
   setGlobal(global);

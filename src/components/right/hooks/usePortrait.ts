@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { useCallback, useEffect, useState } from '../../../lib/teact/teact';
 
 import type { TextMessage } from '../../../util/userPortrait';
@@ -102,9 +103,16 @@ export default function usePortrait({ userId }: Props) {
       setUserInfo(undefined);
       setNewUserInfo(undefined);
     }
-    const res = await ChataiStores.userPortraitMessage?.searchMessageBySenderId(
+    let res = await ChataiStores.userPortraitMessage?.searchMessageBySenderId(
       senderId,
     );
+    res = res?.map((item:any) => {
+      const sortTime = item?.isSummary === false ? item?.time : `${item?.time} ${item?.timeRange?.split('-')[1]}`;
+      return {
+        ...item,
+        sortTime: dayjs(sortTime).unix(),
+      };
+    })?.sort((a:any, b:any) => b.sortTime - a.sortTime);
     setPortraitMessage(res);
   }, []);
 
@@ -172,6 +180,7 @@ export default function usePortrait({ userId }: Props) {
             const obj = {
               id: `${userId}-(${item?.time})-(${item?.timeRange})`,
               senderId: userId,
+              isSummary: true,
               time: item?.time,
               timeRange: item?.timeRange,
               summaryTime: new Date().getTime(),
