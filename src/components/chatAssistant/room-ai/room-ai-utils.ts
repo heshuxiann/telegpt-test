@@ -211,12 +211,12 @@ export const createMeetingTimeConfirmMessage = ({
   };
 };
 
-export const createMeetingMentionMessage = (chatId:string):Message => {
+export const createMeetingMentionMessage = (data:{ chatId:string;messageId:number }):Message => {
   return {
     role: 'assistant',
     id: uuidv4(),
     createdAt: new Date(),
-    content: chatId,
+    content: JSON.stringify(data),
     annotations: [{
       type: 'google-meet-mention',
     }],

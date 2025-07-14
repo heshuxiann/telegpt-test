@@ -30,6 +30,7 @@ import {
   areReactionsEmpty,
   getCanPostInChat,
   getIsDownloading,
+  getMessageContent,
   getMessageDownloadableMedia,
   getMessageVideo,
   getUserFullName,
@@ -481,16 +482,23 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
 
   const handleScheduleMeeting = useLastCallback(() => {
     const chatId = message.chatId;
+    const text = getMessageContent(message)?.text?.text || '';
     const scheduleMeeting = ScheduleMeeting.create({ chatId });
     const auth = getAuthState();
     if (!auth || !isTokenValid(auth)) {
       createAuthConfirmModal({
         onOk: () => {
-          scheduleMeeting.start(message);
+          scheduleMeeting.start({
+            chatId,
+            text,
+          });
         },
       });
     } else {
-      scheduleMeeting.start(message);
+      scheduleMeeting.start({
+        chatId,
+        text,
+      });
     }
     closeMenu();
   });

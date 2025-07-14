@@ -8,6 +8,7 @@ import type { ApiMessage } from '../../../api/types';
 import type { ICreateMeetResponse } from './google-api';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
+import { getMessageContent, hasMessageText } from '../../../global/helpers';
 import { selectCurrentChat } from '../../../global/selectors';
 import { extractCalendlyLinks } from './util';
 import { createMeetingTimeConfirmMessage } from '../room-ai/room-ai-utils';
@@ -254,7 +255,7 @@ class ScheduleMeeting {
     this.email = email;
     this.date = date;
     this.hasConfirmed = hasConfirmed;
-    this.handlerRef = ({ message }) => this.handler({ message });
+    this.handlerRef = ({ message }) => this.handlerImMessage({ message });
   }
 
   /**
@@ -278,7 +279,7 @@ class ScheduleMeeting {
     return ScheduleMeeting.instances.get(chatId);
   }
 
-  public start(originalMessage?: ApiMessage) {
+  public start(params?: { text: string; chatId: string }) {
     // 注册监听器
     eventEmitter.on(Actions.NewTextMessage, this.handlerRef);
 
@@ -288,7 +289,7 @@ class ScheduleMeeting {
       console.log('已超过五分钟未完成输入，工作流已结束。');
     }, 1000 * 60 * 5);
 
-    this.handler({ message: originalMessage });
+    this.handler(params);
   }
 
   private cleanup() {
@@ -298,8 +299,18 @@ class ScheduleMeeting {
     ScheduleMeeting.instances.delete(this.chatId);
   }
 
-  private async handler({ message }: { message?: ApiMessage }) {
-    if (message && (message.isOutgoing || message.chatId !== this.chatId)) {
+  private handlerImMessage({ message }: { message?: ApiMessage }) {
+    if (message && hasMessageText(message) && !message.isOutgoing) {
+      this.handler({
+        chatId: message.chatId,
+        text: getMessageContent(message).text?.text || '',
+      });
+    }
+  }
+
+  private async handler(params?: { text: string; chatId: string }) {
+    const { text, chatId } = params || {};
+    if (chatId && chatId !== this.chatId) {
       return;
     }
     if (this.email.length && this.date.length && this.hasConfirmed) {
@@ -307,8 +318,7 @@ class ScheduleMeeting {
       return;
     }
     try {
-      if (message && message.content.text) {
-        const { text } = message.content.text;
+      if (text && chatId === this.chatId) {
         if (!this.date.length) {
           const calendlyUrl = extractCalendlyLinks(text)?.[0];
           if (calendlyUrl) {
@@ -386,7 +396,7 @@ class ScheduleMeeting {
       }
       if (!this.email.length && !this.date.length) {
         this.sendMessage(
-          "I'd like to schedule a meeting with you. Could you tell me what time would be good for you to have the meeting? Also, could I get your email address?",
+          'Could you tell me what time would be good for you to have the meeting? Also, could I get your email address?',
         );
         return;
       } else if (!this.email.length) {

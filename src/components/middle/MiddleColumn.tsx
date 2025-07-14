@@ -371,17 +371,19 @@ function MiddleColumn({
   }, [shouldLoadFullChat, chatId, isReady, loadFullChat]);
 
   const handleAnalyticsMessage = useLastCallback(({ message }:{ message: ApiMessage }) => {
-    const id = message.chatId;
-    const scheduleMeeting = ScheduleMeeting.create({ chatId: id });
+    const scheduleMeeting = ScheduleMeeting.create({ chatId: message.chatId });
     if (scheduleMeeting.timeout) {
       return;
     }
-    const meetingMentionMessage = createMeetingMentionMessage(id);
-    ChataiStores?.message?.storeMessage(parseMessage2StoreMessage(id, [meetingMentionMessage])[0]);
+    const meetingMentionMessage = createMeetingMentionMessage({
+      messageId: message.id,
+      chatId: message.chatId,
+    });
+    ChataiStores?.message?.storeMessage(parseMessage2StoreMessage(message.chatId, [meetingMentionMessage])[0]);
     // TODO: add meeting time confirm message and open ai room
-    if (chatId === id) {
+    if (chatId === message.chatId) {
       eventEmitter.emit(Actions.AddRoomAIMessage, meetingMentionMessage);
-      getActions().openChatAIWithInfo({ chatId: id });
+      getActions().openChatAIWithInfo({ chatId: message.chatId });
     }
   });
   useEffect(() => {

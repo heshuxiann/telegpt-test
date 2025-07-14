@@ -461,9 +461,12 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     });
   }, [aiChatFoldersloading, shouldRenderAiChatFoldersTip, aiChatFolders]);
 
-  const updateAIChatFoldsLoading = useCallback(({ loading, isShowTip }: { loading: boolean; isShowTip?: boolean }) => {
+  const updateAIChatFoldsLoading = useCallback(async (
+    { loading, isShowTip } : { loading: boolean; isShowTip?: boolean },
+  ) => {
     setAiChatFoldersLoading(loading);
-    if (aiChatFolders && isShowTip) {
+    const tipShowRes = await ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW);
+    if ((aiChatFolders || tipShowRes === undefined) && isShowTip) {
       openRenderAiChatFoldersTip();
     }
   }, [aiChatFolders]);

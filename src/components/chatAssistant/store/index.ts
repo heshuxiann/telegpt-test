@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-null/no-null */
 import eventEmitter, { Actions } from '../lib/EventEmitter';
+// eslint-disable-next-line import/no-cycle
+import { aiChatFoldersTask } from '../ai-task/ai-chatfolders-task';
 import AIChatFoldersStore from './ai-chatfolders-store';
 import ChataiStoreManager from './chatai-store';
 import SummaryTemplateStore from './chatai-summary-template-store';
@@ -64,6 +66,10 @@ export async function initChataiStores(_currentUserId: string) {
   ChataiStores.userPortrait = new UserPortraitStore(chataiStoreManager);
   ChataiStores.userPortraitMessage = new UserPortraitMessageStore(chataiStoreManager);
   eventEmitter.emit(Actions.ChatAIStoreReady);
+
+  // init ai chat folders task
+  aiChatFoldersTask.initTask();
+
   (window as any).downloadAllSummarys = () => {
     ChataiStores.message?.getAllMessages().then((res) => {
       const content = JSON.stringify(res);

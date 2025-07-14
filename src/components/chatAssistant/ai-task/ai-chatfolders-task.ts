@@ -49,7 +49,7 @@ class AIChatFoldersTask {
 
     setTimeout(() => {
       this.classifyChatMessageByCount();
-    }, 1000);
+    }, 5000);
   }
 
   async runAIChatFolders(chatMessages: { [key: string]: ApiMessage[] }) {
@@ -84,6 +84,10 @@ class AIChatFoldersTask {
       console.log(AICHATFOLDERS_LOG + "apply-start", new Date());
       eventEmitter.emit(Actions.UpdateAIChatFoldersApplying, {
         loading: true,
+      });
+      eventEmitter.emit(Actions.UpdateSettingAIChatFoldersLoading, {
+        loading: true,
+        isApply: true
       });
       const global = getGlobal();
       const nextAiChatFolders = global?.chatFolders?.nextAiChatFolders;
@@ -193,11 +197,19 @@ class AIChatFoldersTask {
   async classifyChatMessageByCount() {
     try {
       console.log(AICHATFOLDERS_LOG + "classify-start", new Date());
-      eventEmitter.emit(Actions.UpdateAIChatFoldersClassifying, {
+      eventEmitter.emit(Actions.UpdateSettingAIChatFoldersLoading, {
         loading: true,
+        isApply: false
       });
 
       const global = getGlobal();
+      const { currentUserId } = global;
+      if (!currentUserId) {
+        console.log(AICHATFOLDERS_LOG + "Not logged, pass");
+        this.inited = false;
+        hideTip(AIChatFolderStep.classify);
+        return;
+      }
       // const { aiChatFolders } = selectSharedSettings(global);
       // if (aiChatFolders !== true) {
       //   console.log(AICHATFOLDERS_LOG + "enable=false, pass", global);
