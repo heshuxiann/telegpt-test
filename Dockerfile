@@ -9,7 +9,7 @@ ENV ALIBABA_CLOUD_ACCESS_KEY_SECRET=ZuxxPNN36VTPviNbe9GUWuBqsrDVzv
 ENV GOOGLE_APP_CLIENT_ID=166854276552-euk0006iphou9bvqplmgmpc0vde8v1in.apps.googleusercontent.com
 
 # 安装 tini 作为 PID 1 管理器 + 基本依赖
-RUN apk add --no-cache tini curl bash
+RUN apk add --no-cache python3 make g++ git bash tini
 
 # 设置环境变量（推荐通过外部传入，而不是写死）
 ENV PORT=3000
