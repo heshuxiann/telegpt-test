@@ -6,6 +6,10 @@ import { twMerge } from 'tailwind-merge';
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+/**
+ * YYYY/MM DD / HH:mm
+ */
 export function formatTimestamp(timestamp: number): string {
   const date = new Date(timestamp);
   const now = new Date();
@@ -33,65 +37,6 @@ export function formatTimestamp(timestamp: number): string {
   }
 }
 
-/**
- * 时间戳专用时间范围格式化工具
- * @param {number} start 开始时间戳（支持毫秒/秒级）
- * @param {number} end 结束时间戳（支持毫秒/秒级）
- * @returns {string} 格式化后的时间范围字符串
- */
-export function formatTimestampRange(start:number | undefined, end:number | undefined) {
-  // 时间戳标准化处理（自动识别秒/毫秒）
-  const normalizeTimestamp = (ts:number) => {
-    if (ts.toString().length <= 10) return ts * 1000; // 秒级转毫秒
-    return ts; // 毫秒级直接使用
-  };
-
-  const startDate = start ? new Date(normalizeTimestamp(start)) : undefined;
-  const endDate = end ? new Date(normalizeTimestamp(end)) : undefined;
-  const now = new Date();
-
-  // 日期比较函数
-  const isSameDay = (d1:Date, d2:Date) => d1.getFullYear() === d2.getFullYear()
-    && d1.getMonth() === d2.getMonth()
-    && d1.getDate() === d2.getDate();
-
-  const isToday = (date:Date) => isSameDay(date, now);
-
-  // 时间格式化组件
-  const formatTime = (date:Date) => {
-    const pad = (n:number) => String(n).padStart(2, '0');
-    return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
-  };
-
-  const formatDate = (date:Date) => {
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
-    ];
-    const month = monthNames[date.getMonth()];
-    const pad = (n:number) => String(n).padStart(2, '0');
-    return `${month} ${pad(date.getDate())} / ${formatTime(date)}`;
-  };
-
-  if (!startDate && !endDate) {
-    return '';
-  }
-  if (!startDate && endDate) {
-    return `${formatDate(endDate)}`;
-  }
-  if (startDate && !endDate) {
-    return `${formatDate(startDate)}`;
-  }
-  if (startDate && endDate) {
-    // 范围判断逻辑
-    if (isToday(startDate) && isToday(startDate)) {
-      return `${formatTime(startDate)} - ${formatTime(endDate)}`;
-    } else {
-      return `${formatDate(startDate)} - ${formatDate(endDate)}`;
-    }
-  }
-  return '';
-}
 export function validateAndFixJsonStructure(jsonString:string) {
   // 计数大括号和方括号的数量
   let braceCount = 0;

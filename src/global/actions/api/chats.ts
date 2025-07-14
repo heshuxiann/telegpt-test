@@ -3057,7 +3057,7 @@ addActionHandler('requestCollectibleInfo', async (global, actions, payload): Pro
   setGlobal(global);
 });
 
-async function loadChats(
+export async function loadChats(
   listType: ChatListType,
   isFullDraftSync?: boolean,
   shouldIgnorePagination?: boolean,

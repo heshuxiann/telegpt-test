@@ -3,6 +3,7 @@
 import React from 'react';
 import type { Message } from 'ai';
 
+import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { generateRoomActionItems, scheduleGoogleMeeting, summaryRoomMessage } from './room-ai-utils';
 
 import './room-ai.scss';
@@ -15,15 +16,18 @@ interface OwnProps {
   setIsLoading: (isLoading: boolean) => void;
 }
 const RoomActions = ({ chatId, insertMessage, setIsLoading }:OwnProps) => {
+  const { scrollToBottom } = useScrollToBottom();
   const handleScheduleMeeting = () => {
     setIsLoading(true);
     scheduleGoogleMeeting(insertMessage, () => setIsLoading(false));
+    scrollToBottom();
   };
 
   const handleSummarize = () => {
     if (chatId) {
       setIsLoading(true);
       summaryRoomMessage(chatId, insertMessage, () => setIsLoading(false));
+      scrollToBottom();
     }
   };
 
@@ -31,6 +35,7 @@ const RoomActions = ({ chatId, insertMessage, setIsLoading }:OwnProps) => {
     if (chatId) {
       setIsLoading(true);
       generateRoomActionItems(chatId, insertMessage, () => setIsLoading(false));
+      scrollToBottom();
     }
   };
 

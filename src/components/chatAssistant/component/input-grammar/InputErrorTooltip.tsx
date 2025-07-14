@@ -34,7 +34,7 @@ const TooltipContent = (
     <div className="InputErrorTooltip__content">
       <div>ReplaceMent</div>
       <div
-        className="px-[12px] py-[10px] rounded-[8px] cursor-pointer hover:bg-[#F4F4F5]"
+        className="max-w-[min(30vw,400px)] px-[12px] py-[10px] rounded-[8px] cursor-pointer hover:bg-[#F4F4F5]"
         onClick={handleClick}
       >
         {replacement}
@@ -50,7 +50,7 @@ const InputErrorTooltip = (props: OwnProps) => {
   const triggerRef = useRef<HTMLDivElement>(null);
   return (
     <div
-      className="absolute"
+      className="absolute pointer-events-none"
       style={{
         left: `${left}px`, top: `${top}px`, width: `${width}px`, height: `${height}px`,
       } as CSSProperties}
@@ -67,7 +67,7 @@ const InputErrorTooltip = (props: OwnProps) => {
       >
         <div
           ref={triggerRef}
-          className={`h-full w-full border-b-[2px] ${generalErrorType.toLocaleLowerCase() === 'typos' ? 'border-red-500/60' : 'border-[#FFD633]'}`}
+          className={`absolute bottom-[-2px] h-[6px] w-full border-b-[2px] pointer-events-auto ${generalErrorType.toLocaleLowerCase() === 'typos' ? 'border-red-500/60' : 'border-[#FFD633]'}`}
         />
       </Popover>
     </div>

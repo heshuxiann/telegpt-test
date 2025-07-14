@@ -99,22 +99,26 @@ export const getActionItems = (data: Object) => {
   });
 };
 
-export const getHitTools = (text: string): Promise<Array<any>> => {
+export const getHitTools = (text: string, timeZone?:string): Promise<Array<any>> => {
+  const params:any = {
+    messages: [
+      {
+        id: uuidv4(),
+        content: text,
+        role: 'user',
+      },
+    ],
+  };
+  if (timeZone) {
+    params.timeZone = timeZone;
+  }
   return new Promise((resolve, reject) => {
     fetch('https://telegpt-three.vercel.app/tool-check', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        messages: [
-          {
-            id: uuidv4(),
-            content: text,
-            role: 'user',
-          },
-        ],
-      }),
+      body: JSON.stringify(params),
     })
       .then((res) => res.json())
       .then((toolResults) => {

@@ -166,6 +166,11 @@ const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
     }
     if (!startDate || !endDate) {
       setDateError('Please select the date');
+      return;
+    }
+    if (!emails.length) {
+      setEmailError('Please enter the email');
+      return;
     }
     const auth = getAuthState();
     const attendees: { email: string }[] = [];

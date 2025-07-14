@@ -11,6 +11,8 @@ import { motion } from 'framer-motion';
 import { useMessages } from './hook/use-messages';
 import { cn } from './utils/util';
 import { PreviewMessage, ThinkingMessage } from './message';
+import RoomStorage from './room-storage';
+import { GLOBAL_SUMMARY_CHATID } from './variables';
 
 import './messages.scss';
 
@@ -39,12 +41,16 @@ function PureMessages({
   const {
     containerRef: messagesContainerRef,
     endRef: messagesEndRef,
+    isAtBottom,
     onViewportEnter,
     onViewportLeave,
   } = useMessages({
     chatId: chatId!,
     status,
   });
+  if (isAtBottom) {
+    RoomStorage.updateRoomAIData(GLOBAL_SUMMARY_CHATID, 'unreadCount', 0);
+  }
   const isAuxiliary = (message: Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'isAuxiliary' in item && item.isAuxiliary === true) ?? false;
   };

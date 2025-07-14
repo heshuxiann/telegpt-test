@@ -1,6 +1,5 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { useSWRConfig } from 'swr';
 import { getGlobal } from '../../../global';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
@@ -9,39 +8,40 @@ import buildClassName from '../../../util/buildClassName';
 import {
   createIntroducePortraitMessage, createIntroduceReplyMessage, createIntroduceSummaryMessage, createIntroduceTranslationMessage,
 } from '../globalSummary/summary-utils';
+import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { ChataiStores } from '../store';
 
 import './global-intoduce-message.scss';
 import styles from './global-intoduce-message.module.scss';
 
 export const GlobalIntroduceMessage = () => {
-  const { mutate } = useSWRConfig();
   const global = getGlobal();
   const { currentUserId } = global;
   const currentUser = currentUserId ? selectUser(global, currentUserId) : undefined;
+  const { scrollToBottom } = useScrollToBottom();
   const sendSmartreplyIntroduceMessage = () => {
     const message = createIntroduceReplyMessage();
     ChataiStores.summary?.storeMessage(message);
     eventEmitter.emit(Actions.AddSummaryMessage, message);
-    mutate('messages:should-scroll', 'smooth');
+    scrollToBottom();
   };
   const sendSmmaryIntroduceMessage = () => {
     const message = createIntroduceSummaryMessage();
     ChataiStores.summary?.storeMessage(message);
     eventEmitter.emit(Actions.AddSummaryMessage, message);
-    mutate('messages:should-scroll', 'smooth');
+    scrollToBottom();
   };
   const sendPortraitIntroduceMessage = () => {
     const message = createIntroducePortraitMessage();
     ChataiStores.summary?.storeMessage(message);
     eventEmitter.emit(Actions.AddSummaryMessage, message);
-    mutate('messages:should-scroll', 'smooth');
+    scrollToBottom();
   };
   const sendTranslationIntroduceMessage = () => {
     const message = createIntroduceTranslationMessage();
     ChataiStores.summary?.storeMessage(message);
     eventEmitter.emit(Actions.AddSummaryMessage, message);
-    mutate('messages:should-scroll', 'smooth');
+    scrollToBottom();
   };
   return (
     <div className="global-summary-introduce">

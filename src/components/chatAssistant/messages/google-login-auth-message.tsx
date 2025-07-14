@@ -4,9 +4,8 @@
 /* eslint-disable max-len */
 import React, {
   useCallback,
-  useState,
 } from 'react';
-import { Button, Spin } from 'antd';
+import { Button } from 'antd';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { loginWithGoogle } from '../utils/google-api';
@@ -19,18 +18,14 @@ interface IProps {
 
 const GoogleLoginAuthMessage = (props:IProps) => {
   const { deleteMessage } = props;
-  const [loaded, setLoaded] = useState(false);
 
   const handleAuth = useCallback(() => {
-    setLoaded(true);
     loginWithGoogle().then((authState) => {
       console.log(authState);
-      setLoaded(false);
       eventEmitter.emit(Actions.GoogleAuthSuccess);
       deleteMessage();
     }).catch((error) => {
       console.error('Google login failed:', error);
-      setLoaded(false);
     });
   }, [deleteMessage]);
 
@@ -44,7 +39,6 @@ const GoogleLoginAuthMessage = (props:IProps) => {
         >
           <img src={GoogleIcon} alt="" className="w-[16px] h-[16px]" />
           <span>Google authorization</span>
-          {loaded && <Spin size="small" />}
         </Button>
       </div>
     </div>

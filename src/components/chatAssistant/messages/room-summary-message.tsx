@@ -192,13 +192,15 @@ const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
     <ErrorBoundary>
       <div>
         <p className="text-[22px] font-bold mb-[16px]">Chat Summary</p>
-        <div className="flex items-center gap-[20px]">
-          <p className="flex items-center gap-[8px]">
+        <div className="flex items-center flex-wrap">
+          <p className="flex items-center gap-[8px] pr-[20px]">
             <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
             <div className="flex items-center gap-[4px]">
               <span className="mr-[4px] font-bold text-[14px]">Time:</span>
               {summaryInfo?.summaryTime ? (
-                <p className="text-[14px] text-[#A8A6AC]">{formatTimestamp(summaryInfo.summaryTime)}</p>
+                <p className="text-[14px] text-[#A8A6AC] whitespace-nowrap">
+                  {formatTimestamp(summaryInfo.summaryTime)}
+                </p>
               ) : null}
             </div>
           </p>

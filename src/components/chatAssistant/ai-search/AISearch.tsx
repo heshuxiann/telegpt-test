@@ -7,13 +7,11 @@ import React, {
 } from 'react';
 import { useChat } from '@ai-sdk/react';
 import type { Message, UIMessage } from 'ai';
-import { useSWRConfig } from 'swr';
 import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
 
-import type { InfiniteScrollRef } from '../component/InfiniteScroll';
-
 import { selectChat, selectUser } from '../../../global/selectors';
+import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { Messages } from '../messages';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
@@ -27,17 +25,22 @@ const GLOBAL_SEARCH_CHATID = '777889';
 export const AISearch = () => {
   const global = getGlobal();
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
-  const { mutate } = useSWRConfig();
+  const {
+    scrollToBottom, scrollLocked, isScrollLock,
+  } = useScrollToBottom();
   const {
     messages, setMessages, append, status, stop,
   } = useChat({
     id: GLOBAL_SEARCH_CHATID,
     api: 'https://telegpt-three.vercel.app/chat',
     sendExtraMessageFields: true,
-    onResponse: () => {
-      mutate('messages:should-scroll', 'auto');
-    },
   });
+
+  useEffect(() => {
+    if (!isScrollLock) {
+      scrollToBottom();
+    }
+  }, [isScrollLock, messages, scrollToBottom]);
 
   useEffect(() => {
     ChataiStores.message?.getMessages(GLOBAL_SEARCH_CHATID, undefined, 20)?.then((res) => {
@@ -74,6 +77,7 @@ export const AISearch = () => {
   }, [status, messages]);
 
   const handleLoadMore = useCallback(() => {
+    scrollLocked();
     return new Promise<void>((resolve) => {
       ChataiStores.message?.getMessages(GLOBAL_SEARCH_CHATID, pageInfo?.lastTime, 20)?.then((res) => {
         if (res.messages) {
@@ -143,8 +147,7 @@ export const AISearch = () => {
       };
       setMessages((prev) => [...prev, message]);
     }
-    mutate('messages:should-scroll', 'auto');
-  }, [mutate, setMessages]);
+  }, [setMessages]);
 
   const searchUser = useCallback(async (query: string) => {
     const vectorSearchResults = await messageEmbeddingStore.similaritySearch({
@@ -193,8 +196,7 @@ export const AISearch = () => {
       };
       setMessages((prev) => [...prev, message]);
     }
-    mutate('messages:should-scroll', 'auto');
-  }, [mutate, setMessages]);
+  }, [setMessages]);
   const searchMessage = useCallback(async (query: string) => {
     const vectorSearchResults = await messageEmbeddingStore.similaritySearch({
       query,
@@ -233,9 +235,9 @@ export const AISearch = () => {
           isAuxiliary: true,
         }],
       });
-      mutate('messages:should-scroll', 'auto');
+      scrollToBottom();
     }
-  }, [append, global, mutate]);
+  }, [append, global, scrollToBottom]);
 
   const toolsHitCheck = useCallback((inputValue: string) => {
     fetch('https://telegpt-three.vercel.app/tool-check', {
@@ -277,10 +279,9 @@ export const AISearch = () => {
         createdAt: new Date(),
       }];
     });
-    mutate('messages:should-scroll', 'auto');
     toolsHitCheck(query);
     sendGAEvent('ai_search');
-  }, [mutate, setMessages, toolsHitCheck]);
+  }, [setMessages, toolsHitCheck]);
 
   return (
     <div className="pb-[28px] flex-1 flex flex-col h-full gap-[8px] overflow-hidden">

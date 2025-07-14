@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import type { Message } from 'ai';
 
+import { formatMeetingTimeRange } from '../utils/schedule-meeting';
 import { FormLabel } from './google-event-create-messages';
 
 const GoogleEventDetailMessage = ({ message }:{ message:Message }) => {
@@ -38,7 +39,9 @@ const GoogleEventDetailMessage = ({ message }:{ message:Message }) => {
         <div>
           <FormLabel lable="time" />
           <div className="flex flex-col">
-            <span className="text-[14px]">{messageContent.start.dateTime} - {messageContent.end.dateTime}</span>
+            <span className="text-[14px]">
+              {formatMeetingTimeRange(messageContent.start.dateTime, messageContent.end.dateTime)}
+            </span>
             <span className="text-[14px] text-[#979797]">{messageContent.start.timeZone}</span>
           </div>
         </div>
