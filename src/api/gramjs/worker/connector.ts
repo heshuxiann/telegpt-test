@@ -16,7 +16,7 @@ import type { OriginPayload, ThenArg, WorkerMessageEvent } from './types';
 
 import { DEBUG, IGNORE_UNHANDLED_ERRORS } from '../../../config';
 import { hasMessageText, isUserId } from '../../../global/helpers';
-import { selectCurrentChat, selectTabState } from '../../../global/selectors';
+import { selectCurrentChat } from '../../../global/selectors';
 import { selectSharedSettings } from '../../../global/selectors/sharedState';
 import { logDebugMessage } from '../../../util/debugConsole';
 import Deferred from '../../../util/Deferred';
@@ -351,28 +351,43 @@ async function isIntentionToScheduleMeeting(embedding:number[] | undefined, mess
 }
 
 async function sendToCurrentChatAI(data: ApiUpdate) {
-  if (data['@type'] === 'updateMessage') {
-    const global = getGlobal();
-    const currentChat = selectCurrentChat(global);
-    const { realTimeAssistants } = selectSharedSettings(global);
-    const isChatAIShown = selectTabState(global, getCurrentTabId()).isChatAIShown;
-    if (currentChat?.id && currentChat?.id === data.message?.chatId && isChatAIShown) {
-      let realTimeAssistantById = false;
-      const chatType = isUserId(currentChat?.id) ? 'user' : 'chat';
-      if (realTimeAssistants?.[currentChat?.id] !== undefined) {
-        realTimeAssistantById = realTimeAssistants?.[currentChat?.id];
-      } else if (chatType === 'user') {
-        realTimeAssistantById = true;
-      } else {
-        realTimeAssistantById = false;
-      }
-      if (realTimeAssistantById) {
-        const { default: RoomAIMessageListener } = await
-        import('../../../components/chatAssistant/room-ai/room-ai-message-listener');
+  const global = getGlobal();
+  const currentChat = selectCurrentChat(global);
+  if (!currentChat) return;
 
-        RoomAIMessageListener.messageListener(data.message as ApiMessage);
-      }
+  const { realTimeAssistants } = selectSharedSettings(global);
+  let realTimeAssistantById = false;
+  const chatType = isUserId(currentChat?.id) ? 'user' : 'chat';
+  if (realTimeAssistants?.[currentChat?.id] !== undefined) {
+    realTimeAssistantById = realTimeAssistants?.[currentChat?.id];
+  } else if (chatType === 'user') {
+    realTimeAssistantById = true;
+  } else {
+    realTimeAssistantById = false;
+  }
+  if (!realTimeAssistantById) return;
+
+  let message;
+  if (data['@type'] === 'newMessage') {
+    message = data.message;
+    if (message?.content?.video || message?.content?.document
+      || message?.content?.voice || message?.content?.audio
+    ) {
+      return;
     }
+  } else if (data['@type'] === 'updateMessage') {
+    message = data.message;
+    if (message?.content?.webPage || message?.content?.text) {
+      return;
+    }
+  }
+  if (!message || !message?.id) return;
+
+  if (currentChat?.id === message?.chatId) {
+    const { default: RoomAIMessageListener } = await
+    import('../../../components/chatAssistant/room-ai/room-ai-message-listener');
+
+    RoomAIMessageListener.messageListener(message as ApiMessage);
   }
 }
 
