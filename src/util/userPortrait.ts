@@ -68,7 +68,7 @@ export function groupMessagesByHalfHour(messages: TextMessage[]) {
 
     const chatGroups = Object.entries(chatGroupMap).map(([chatId, msgs]) => ({
       chatId,
-      messages: msgs.map((mItem) => ({
+      messages: msgs?.slice(0, 100)?.map((mItem) => ({
         content: mItem.content,
         messageId: mItem.messageId,
         timestamp: mItem.timestamp,
