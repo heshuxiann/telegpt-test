@@ -6,11 +6,11 @@
     mix-blend-mode: unset;
   }
 }
-.introducePortrait {
-  background-image: url("../assets/summary-introduce/portrait-item-light.png");
+.introduceActions {
+  background-image: url("../assets/summary-introduce/action-item-light.png");
   background-size: cover;
   :global(html.theme-dark) & {
-    background-image: url("../assets/summary-introduce/portrait-item-dark.png");
+    background-image: url("../assets/summary-introduce/action-item-dark.png");
     mix-blend-mode: unset;
   }
 }

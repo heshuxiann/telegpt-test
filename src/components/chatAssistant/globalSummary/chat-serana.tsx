@@ -17,18 +17,20 @@ interface StateProps {
   isSelected: boolean;
 }
 interface OwnProps {
-  frozenNotificationHeight: number;
-  archiveHeight: number;
-  unconfirmedSessionHeight: number;
+  offsetTop: number;
+  // frozenNotificationHeight: number;
+  // archiveHeight: number;
+  // unconfirmedSessionHeight: number;
 }
 const ChatSerena = (props: OwnProps & StateProps) => {
   const {
     isSelected,
-    frozenNotificationHeight,
-    archiveHeight,
-    unconfirmedSessionHeight,
+    // frozenNotificationHeight,
+    // archiveHeight,
+    // unconfirmedSessionHeight,
+    offsetTop,
   } = props;
-  const offsetTop = frozenNotificationHeight + archiveHeight + unconfirmedSessionHeight;
+  // const offsetTop = frozenNotificationHeight + archiveHeight + unconfirmedSessionHeight;
   const { openChat } = getActions();
   const chatClassName = buildClassName(
     'Chat chat-item-clickable',

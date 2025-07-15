@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import type { SummaryStoreMessage } from '../store/summary-store';
 
-export const createIntroduceReplyMessage = ():SummaryStoreMessage => {
+export const createIntroduceMeetingMessage = ():SummaryStoreMessage => {
   return {
     timestamp: new Date().getTime(),
     content: '',
@@ -10,7 +10,7 @@ export const createIntroduceReplyMessage = ():SummaryStoreMessage => {
     createdAt: new Date(),
     role: 'assistant',
     annotations: [{
-      type: 'global-smartreply-introduce',
+      type: 'global-meeting-introduce',
     }],
   };
 };
@@ -38,7 +38,7 @@ export const createIntroduceTranslationMessage = ():SummaryStoreMessage => {
     }],
   };
 };
-export const createIntroducePortraitMessage = ():SummaryStoreMessage => {
+export const createIntroduceActionsMessage = ():SummaryStoreMessage => {
   return {
     timestamp: new Date().getTime(),
     content: '',
@@ -46,7 +46,7 @@ export const createIntroducePortraitMessage = ():SummaryStoreMessage => {
     createdAt: new Date(),
     role: 'assistant',
     annotations: [{
-      type: 'global-portrait-introduce',
+      type: 'global-actions-introduce',
     }],
   };
 };

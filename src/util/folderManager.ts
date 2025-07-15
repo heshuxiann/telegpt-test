@@ -11,7 +11,7 @@ import type { CallbackManager } from './callbacks';
 import {
   AI_FOLDER_ID,
   ALL_FOLDER_ID, ARCHIVED_FOLDER_ID, DEBUG, PRESET_FOLDER_ID, SAVED_FOLDER_ID, SERVICE_NOTIFICATIONS_USER_ID,
-  UNREAD_FOLDER_ID
+  UNREAD_FOLDER_ID,
 } from '../config';
 import { getIsChatMuted } from '../global/helpers/notifications';
 import {
@@ -175,7 +175,7 @@ export function getAllNotificationsCount() {
 
 export function getOrderKey(chatId: string, isForSaved?: boolean) {
   const summary = prepared.chatSummariesById.get(chatId)!;
-  return isForSaved ? summary.orderInSaved : summary.orderInAll;
+  return isForSaved ? summary?.orderInSaved : summary?.orderInAll;
 }
 
 /* Callback managers */
@@ -563,7 +563,7 @@ function buildChatSummary<T extends GlobalState>(
     !lastMessage || lastMessage.content.action?.type === 'historyClear'
   );
 
-  const orderInAll = Math.max(chat.creationDate || 0, chat.draftDate || 0, lastMessage?.date || 0);
+  const orderInAll = Math.max(chat?.creationDate || 0, chat?.draftDate || 0, lastMessage?.date || 0);
 
   const lastMessageInSaved = selectChatLastMessage(global, chat.id, 'saved');
   const orderInSaved = lastMessageInSaved?.date || 0;

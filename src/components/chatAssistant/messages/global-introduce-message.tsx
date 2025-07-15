@@ -6,7 +6,7 @@ import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { selectUser } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import {
-  createIntroducePortraitMessage, createIntroduceReplyMessage, createIntroduceSummaryMessage, createIntroduceTranslationMessage,
+  createIntroduceActionsMessage, createIntroduceMeetingMessage, createIntroduceSummaryMessage, createIntroduceTranslationMessage,
 } from '../globalSummary/summary-utils';
 import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { ChataiStores } from '../store';
@@ -19,8 +19,8 @@ export const GlobalIntroduceMessage = () => {
   const { currentUserId } = global;
   const currentUser = currentUserId ? selectUser(global, currentUserId) : undefined;
   const { scrollToBottom } = useScrollToBottom();
-  const sendSmartreplyIntroduceMessage = () => {
-    const message = createIntroduceReplyMessage();
+  const sendMeetingIntroduceMessage = () => {
+    const message = createIntroduceMeetingMessage();
     ChataiStores.summary?.storeMessage(message);
     eventEmitter.emit(Actions.AddSummaryMessage, message);
     scrollToBottom();
@@ -31,8 +31,8 @@ export const GlobalIntroduceMessage = () => {
     eventEmitter.emit(Actions.AddSummaryMessage, message);
     scrollToBottom();
   };
-  const sendPortraitIntroduceMessage = () => {
-    const message = createIntroducePortraitMessage();
+  const sendActionsIntroduceMessage = () => {
+    const message = createIntroduceActionsMessage();
     ChataiStores.summary?.storeMessage(message);
     eventEmitter.emit(Actions.AddSummaryMessage, message);
     scrollToBottom();
@@ -55,19 +55,19 @@ export const GlobalIntroduceMessage = () => {
           <div className="text-[18px] font-bold mb-[10px] text-[var(--color-text)]">
             📝 AI Summarize
           </div>
-          <div className="text-[14px] leading-[18px] text-[var(--color-text-secondary)]">
-            Auto-summarizes your messages and to-dos, and reports on demand.
+          <div className="text-[14px] leading-[18px] text-[var(--color-text-secondary)] pr-[120px]">
+            Get instant, clear takeaways during the chat
           </div>
         </div>
         <div
-          className={buildClassName(styles.introducePortrait, 'global-summary-introduce-item')}
-          onClick={sendPortraitIntroduceMessage}
+          className={buildClassName(styles.introduceActions, 'global-summary-introduce-item')}
+          onClick={sendActionsIntroduceMessage}
         >
           <div className="text-[18px] font-bold mb-[10px] text-[var(--color-text)]">
-            📚️ AI Portrait
+            ✅ Action Items
           </div>
-          <div className="text-[14px] leading-[18px] text-[var(--color-text-secondary)]">
-            AI reads your chats to build a smart, personalized profile—instantly.
+          <div className="text-[14px] leading-[18px] text-[var(--color-text-secondary)] pr-[120px]">
+            Automatically capture next steps and assignments.
           </div>
         </div>
         <div
@@ -75,21 +75,21 @@ export const GlobalIntroduceMessage = () => {
           onClick={sendTranslationIntroduceMessage}
         >
           <div className="text-[18px] font-bold mb-[10px] text-[var(--color-text)]">
-            📚️ Translation &Grammar
+            📚️ Translation & Grammar Check
           </div>
-          <div className="text-[14px] leading-[18px] text-[var(--color-text-secondary)]">
-            Real-time Translation &Grammar Check
+          <div className="text-[14px] leading-[18px] text-[var(--color-text-secondary)] pr-[120px]">
+            Communicate effortlessly, in any language.
           </div>
         </div>
         <div
           className={buildClassName(styles.introduceSmartreply, 'global-summary-introduce-item')}
-          onClick={sendSmartreplyIntroduceMessage}
+          onClick={sendMeetingIntroduceMessage}
         >
           <div className="text-[18px] font-bold mb-[10px] text-[var(--color-text)]">
-            🚀 Smart Reply
+            🚀 Meeting Scheduler
           </div>
-          <div className="text-[14px] leading-[18px] text-[var(--color-text-secondary)]">
-            Generate personalized replies using conversation context and knowledge base.
+          <div className="text-[14px] leading-[18px] text-[var(--color-text-secondary)] pr-[120px]">
+            Book and organize meetings with ease.
           </div>
         </div>
       </div>
