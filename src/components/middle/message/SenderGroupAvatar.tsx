@@ -52,9 +52,9 @@ const SenderGroupAvatar: FC<OwnProps> = ({
       />
       {menuVisible && (
         <div
-          className="absolute top-[-20px] left-[80%] bg-[var(--color-background-compact-menu)]
+          className="absolute top-[-20px] left-[80%] bg-[var(--color-avatar-menu-bg)]
             text-[var(--color-text)] shadow-lg shadow-black/40 z-10 py-[6px] px-2 rounded-[8px] w-[135px]
-            hover:opacity-80"
+            hover:opacity-90"
         >
           <div
             className="flex items-center gap-2 text-[14px] font-[500] cursor-pointer"

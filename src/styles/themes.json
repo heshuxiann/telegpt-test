@@ -82,5 +82,6 @@
   "--color-menu-submenu-bg": ["#f2f9ef", "#312f3b"],
   "--color-ai-room-bubble-bg": ["#E5D9FF", "#8774E1"],
   "--color-ai-room-mention-reply-bg": ["#F4F4F4", "#383838"],
-  "--color-ai-room-media-bg": ["#FFFFFF", "#383838"]
+  "--color-ai-room-media-bg": ["#FFFFFF", "#383838"],
+  "--color-avatar-menu-bg": ["#FBFBFB", "#212121DD"]
 }
