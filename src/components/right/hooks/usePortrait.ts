@@ -60,10 +60,10 @@ const SUMMARY_PROMPT = `
           timeRange: '时间范围', // 原样返回
           chatGroups: [{
             chatId: 群聊ID, // 原样返回
-            title: '8-15字核心议题',//
+            title: '8-15字核心议题',
             summaryItems: {       // 至少1条，最多5条
-              content: '严格按"子话题：数据+行为+建议"结构',
-              relevantMessageIds: [消息ID1, 消息ID2, ...]
+              content: 子话题：数据+行为+建议"结构'; 如无总结内容，则直接返回原信息
+              relevantMessageIds: [消息ID1, 消息ID2, ...], // 原样返回
             }[]
           }]
         }
@@ -86,8 +86,10 @@ export default function usePortrait({ userId }: Props) {
 
   const searchUserMessages = useCallback(
     async (senderId: string) => {
+      setLoading(true);
       const res = await getMessageBySendId(senderId);
       setMessages(res?.filter((o: TextMessage) => !checkIsUrl(o?.content)));
+      setLoading(false);
     },
     [setMessages],
   );

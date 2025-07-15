@@ -25,7 +25,7 @@ const SummaryTopicItem = ({
   chatId?: string;
 }) => {
   const { title, summaryItems } = topicItem;
-  if (!summaryItems.length) return undefined;
+  // if (!summaryItems.length) return undefined;
   if (!title || !chatId) return undefined;
 
   const { focusMessage } = getActions();
