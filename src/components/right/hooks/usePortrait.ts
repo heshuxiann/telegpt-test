@@ -11,6 +11,7 @@ import {
 } from '../../../util/userPortrait';
 import { replaceToJSON } from '../../chatAssistant/ai-chatfolders/util';
 import { ChataiStores } from '../../chatAssistant/store';
+import { checkIsUrl } from '../../chatAssistant/utils/ai-analyse-message';
 import { chatAIGenerate } from '../../chatAssistant/utils/chat-api';
 
 type Props = {
@@ -87,7 +88,7 @@ export default function usePortrait({ userId }: Props) {
   const searchUserMessages = useCallback(
     async (senderId: string) => {
       const res = await getMessageBySendId(senderId);
-      setMessages(res);
+      setMessages(res?.filter((o: TextMessage) => !checkIsUrl(o?.content)));
     },
     [setMessages],
   );
