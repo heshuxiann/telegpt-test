@@ -25,6 +25,7 @@ import ActivityMessage from './ActivityMessage';
 import UserPortraitAvatar from './UserPortraitAvatar';
 
 import './UserPortrait.scss';
+import roomAistyles from '../../chatAssistant/room-ai/room-ai.module.scss';
 import styles from '../../common/ProfileInfo.module.scss';
 
 type StateProps = {
@@ -65,7 +66,7 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
           />
           <FullNameTitle peer={user!} canCopyTitle />
         </div>
-        <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-2 text-[14px]">
+        <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[14px]">
           <div className="text-[16px] font-[700] mb-2">Basic Description</div>
           <div className="flex flex-col gap-1">
             {user?.usernames?.[0]?.username && (
@@ -117,7 +118,7 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
 
   function renderBehaGroup() {
     return (
-      <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-2 text-[14px]">
+      <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[14px]">
         <div className="text-[16px] font-[700] mb-2">
           Behavioral Features & Group Participation
         </div>
@@ -155,7 +156,7 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
     return (
       <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] text-[14px]">
         <div className="
-          rounded-t-[16px] text-[16px] font-[700] p-2
+          rounded-t-[16px] text-[16px] font-[700] p-3
           sticky top-[-10px] z-10
           bg-[var(--color-ai-room-media-bg)]
         "
@@ -163,7 +164,7 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
           Activity Stream
         </div>
         {loading && (
-          <div className="flex items-center justify-center p-2">
+          <div className="flex items-center justify-center p-3">
             <Spinner
               className="w-[18px] h-[18px] ml-2"
               color={theme === 'dark' ? 'white' : 'black'}
@@ -205,8 +206,8 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
     <InfiniteScroll
       ref={containerRef}
       className={buildClassName(
+        roomAistyles.rightPanelBg,
         'Portrait custom-scroll',
-        theme === 'dark' ? 'dark' : '',
       )}
       noFastList
     >

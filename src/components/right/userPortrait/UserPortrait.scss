@@ -7,18 +7,7 @@
   overflow-x: hidden;
   overflow-y: scroll;
 
-  padding: 8px;
-  background: linear-gradient(
-      0deg,
-      rgba(220, 254, 255, 0.15),
-      rgba(220, 254, 255, 0.15)
-    ),
-    linear-gradient(0deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8));
-  backdrop-filter: blur(33.5px);
-
-  &.dark {
-    background: #292929;
-  }
+  padding: 12px;
   .empty {
     padding: 2rem 0;
     display: flex;
@@ -26,4 +15,3 @@
     justify-content: center;
   }
 }
-
