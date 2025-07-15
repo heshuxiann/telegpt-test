@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import React, {
   memo, useLayoutEffect, useRef,
 } from '../../lib/teact/teact';
@@ -28,6 +29,7 @@ import Button from '../ui/Button';
 import Loading from '../ui/Loading';
 
 import blankUrl from '../../assets/blank.png';
+import TeleGptLogo from '../../assets/guidance/telegpt-logo.png';
 
 type StateProps =
   Pick<GlobalState, 'connectionState' | 'authState' | 'authQrCode'>
@@ -156,13 +158,21 @@ const AuthCode = ({
   const isAuthReady = authState === 'authorizationStateWaitQrCode';
 
   return (
-    <div id="auth-qr-form" className="custom-scroll">
+    <div id="auth-qr-form" className="custom-scroll py-[6rem]">
       {hasActiveAccount && (
         <Button size="smaller" round color="translucent" className="auth-close" onClick={handleBackNavigation}>
           <Icon name="close" />
         </Button>
       )}
-      <div className="auth-form qr">
+      <div className="flex flex-col items-center max-w-[48rem] mx-auto mb-[3rem]">
+        <img src={TeleGptLogo} alt="" className="w-[104px] h-[100px] mb-[36px]" />
+        <div className="text-[55px] leading-[66px] font-bold mb-[20px]">Telegpt </div>
+        <div className="text-[28px] leading-[27px] font-medium mb-[30px]">Message Smarter with AI. Achieve More.</div>
+        <p className="text-[18px] text-[#666666] text-center">
+          Welcome to the official Telegpt web client. Built for speed, performance, and privacy. Your conversations remain yours — we never read or save any messages. Feel safe using it.
+        </p>
+      </div>
+      <div className="auth-form flex flex-row items-center gap-[2rem] rounded-[1rem] px-[48px] py-[26px] bg-[#FFFBFF66] max-w-[60rem] mx-auto">
         <div className="qr-outer">
           <div
             className={buildClassName('qr-inner', transitionClassNames)}
@@ -184,18 +194,20 @@ const AuthCode = ({
           </div>
           {!isQrMounted && <div className="qr-loading"><Loading /></div>}
         </div>
-        <h1>{lang('LoginQRTitle')}</h1>
-        <ol>
-          <li><span>{lang('LoginQRHelp1')}</span></li>
-          <li><span>{lang('LoginQRHelp2', undefined, { withNodes: true, withMarkdown: true })}</span></li>
-          <li><span>{lang('LoginQRHelp3')}</span></li>
-        </ol>
-        {isAuthReady && (
-          <Button size="smaller" isText onClick={handleReturnToAuthPhoneNumber}>{lang('LoginQRCancel')}</Button>
-        )}
-        {suggestedLanguage && suggestedLanguage !== language && continueText && (
-          <Button size="smaller" isText isLoading={isLoading} onClick={handleLangChange}>{continueText}</Button>
-        )}
+        <div>
+          <h1>{lang('LoginQRTitle')}</h1>
+          <ol>
+            <li><span>{lang('LoginQRHelp1')}</span></li>
+            <li><span>{lang('LoginQRHelp2', undefined, { withNodes: true, withMarkdown: true })}</span></li>
+            <li><span>{lang('LoginQRHelp3')}</span></li>
+          </ol>
+          {isAuthReady && (
+            <Button size="smaller" isText onClick={handleReturnToAuthPhoneNumber}>{lang('LoginQRCancel')}</Button>
+          )}
+          {suggestedLanguage && suggestedLanguage !== language && continueText && (
+            <Button size="smaller" isText isLoading={isLoading} onClick={handleLangChange}>{continueText}</Button>
+          )}
+        </div>
       </div>
     </div>
   );

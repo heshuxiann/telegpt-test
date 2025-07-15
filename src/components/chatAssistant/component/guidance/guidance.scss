@@ -1,0 +1,71 @@
+.guidance-modal {
+  .modal-dialog {
+    max-width: unset;
+    width: unset;
+  }
+  .modal-content {
+    height: fit-content;
+    padding: 0;
+  }
+}
+.guidance-carousel {
+  width: 80vw;
+  max-width: 73rem;
+  aspect-ratio: 1168/542;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.guidance-summary {
+  background-image: url("../../../../assets//guidance/guidance-summary.png");
+}
+.guidance-translation {
+  background-image: url("../../../../assets//guidance/guidance-translation.png");
+}
+.guidance-meeting {
+  background-image: url("../../../../assets//guidance/guidance-meeting.png");
+}
+.guidance-actions {
+  background-image: url("../../../../assets//guidance/guidance-actions.png");
+}
+.guidance-bubble {
+  background-image: url("../../../../assets//guidance/guidance-bubble.png");
+  background-repeat: no-repeat;
+  position: absolute;
+  transform: translate(40%, -100%);
+  right: 0;
+  top: 0;
+  width: 20vw;
+  max-width: 288px;
+  aspect-ratio: 288 / 216;
+  background-size: contain;
+}
+.guidance-carousel-item {
+  width: 80vw;
+  max-width: 73rem;
+  min-width: 50rem;
+  aspect-ratio: 1168/542;
+  border-radius: 16px;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.guidance-carousel-next {
+  width: 120px;
+  height: 54px;
+  text-align: center;
+  line-height: 48px;
+  margin-top: auto;
+  border-radius: 27px;
+  border: 3px solid transparent;
+  font-size: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    linear-gradient(
+      145.18deg,
+      #ffaa32 5.25%,
+      #d632ff 26.51%,
+      #42efff 55.1%,
+      #4621ff 73.57%
+    ) border-box;
+}
