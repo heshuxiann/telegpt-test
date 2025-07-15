@@ -165,13 +165,14 @@ const AuthCode = ({
         </Button>
       )}
       <div className="flex flex-col items-center max-w-[48rem] mx-auto mb-[3rem]">
-        <img src={TeleGptLogo} alt="" className="w-[104px] h-[100px]" />
-        <h1>Telegpt </h1>
-        <p className="text-[18px] text-[#666666]">
+        <img src={TeleGptLogo} alt="" className="w-[104px] h-[100px] mb-[36px]" />
+        <div className="text-[55px] leading-[66px] font-bold mb-[20px]">Telegpt </div>
+        <div className="text-[28px] leading-[27px] font-medium mb-[30px]">Message Smarter with AI. Achieve More.</div>
+        <p className="text-[18px] text-[#666666] text-center">
           Welcome to the official Telegpt web client. Built for speed, performance, and privacy. Your conversations remain yours — we never read or save any messages. Feel safe using it.
         </p>
       </div>
-      <div className="auth-form flex flex-row items-center gap-[2rem] rounded-[1rem] px-[2rem] py-[3rem] bg-[#FFFBFF66] max-w-[60rem] mx-auto">
+      <div className="auth-form flex flex-row items-center gap-[2rem] rounded-[1rem] px-[48px] py-[26px] bg-[#FFFBFF66] max-w-[60rem] mx-auto">
         <div className="qr-outer">
           <div
             className={buildClassName('qr-inner', transitionClassNames)}

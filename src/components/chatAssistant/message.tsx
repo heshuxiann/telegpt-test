@@ -20,8 +20,8 @@ import GoogleLoginAuthMessage from './messages/google-login-auth-message';
 import GoogleMeetMentionMessage from './messages/google-meet-mention-message';
 import GoogleMeetTimeConfirmMessage from './messages/google-meet-time-confirm-message';
 import { GroupSearchMessage } from './messages/group-search-message';
-import IntroducePortraitMessage from './messages/introduce-portrait-message';
-import IntroduceSmartreplyMessage from './messages/introduce-smartreply-message';
+import IntroduceActionsMessage from './messages/introduce-actions-message';
+import IntroduceMeetingMessage from './messages/introduce-meeting-message';
 import IntroduceSummaryMessage from './messages/introduce-summary-message';
 import IntroduceTranslationMessage from './messages/introduce-translation-message';
 import RoomActionMessage from './messages/room-actions-message';
@@ -52,10 +52,10 @@ export enum AIMessageType {
   GoogleMeetMention = 'google-meet-mention',
   RoomSummary = 'room-summary',
   RoomActions = 'room-actions',
-  SmartreplyIntroduce = 'global-smartreply-introduce',
+  MeetingIntroduce = 'global-meeting-introduce',
   SummaryIntroduce = 'global-summary-introduce',
   TranslationIntroduce = 'global-translation-introduce',
-  PortraitIntroduce = 'global-portrait-introduce',
+  ActionsIntroduce = 'global-actions-introduce',
   GlobalIntroduce = 'global-introduce',
   RoomAIDescription = 'room-ai-description',
   AISearchSugesstion = 'ai-search-sugesstion',
@@ -174,10 +174,10 @@ const PurePreviewMessage = ({
           deleteMessage={() => deleteMessage?.(message.id)}
         />
       )}
-      {messageType === AIMessageType.SmartreplyIntroduce && (<IntroduceSmartreplyMessage />)}
+      {messageType === AIMessageType.MeetingIntroduce && (<IntroduceMeetingMessage />)}
       {messageType === AIMessageType.SummaryIntroduce && (<IntroduceSummaryMessage />)}
       {messageType === AIMessageType.TranslationIntroduce && (<IntroduceTranslationMessage />)}
-      {messageType === AIMessageType.PortraitIntroduce && (<IntroducePortraitMessage />)}
+      {messageType === AIMessageType.ActionsIntroduce && (<IntroduceActionsMessage />)}
       {messageType === AIMessageType.GlobalIntroduce && (<GlobalIntroduceMessage />)}
       {messageType === AIMessageType.RoomAIDescription && (<RoomAIDescriptionMessage message={message} />)}
       {messageType === AIMessageType.AISearchSugesstion && (<AISearchSugesstionsMessage />)}
