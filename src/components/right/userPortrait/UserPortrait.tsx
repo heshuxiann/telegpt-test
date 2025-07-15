@@ -152,8 +152,13 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
 
   function renderActivity() {
     return (
-      <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-2 text-[14px]">
-        <div className="text-[16px] font-[700] pb-2 sticky top-[-10px] z-10 bg-[var(--color-ai-room-media-bg)]">
+      <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] text-[14px]">
+        <div className="
+          rounded-t-[16px] text-[16px] font-[700] p-2
+          sticky top-[-10px] z-10
+          bg-[var(--color-ai-room-media-bg)]
+        "
+        >
           Activity Stream
         </div>
         {loading && (
@@ -164,12 +169,12 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
             />
           </div>
         )}
-        {portraitMessage?.length ? (
+        {portraitMessage?.length && user ? (
           <div className="flex flex-col gap-2">
             {portraitMessage
               ?.map((item, index) => (
                 <ActivityMessage
-                  userId={userId}
+                  user={user}
                   data={item}
                   isLast={index === portraitMessage.length - 1}
                   key={item?.id}
@@ -177,9 +182,11 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
               ))}
           </div>
         ) : (
-          <div className="empty">
-            {lang('NoMessages')}
-          </div>
+          !loading && (
+            <div className="empty">
+              {lang('NoMessages')}
+            </div>
+          )
         )}
       </div>
     );

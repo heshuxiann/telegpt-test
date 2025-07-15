@@ -1,23 +1,19 @@
-import dayjs from 'dayjs';
 import React from '../../../lib/teact/teact';
 
+import type { ApiUser } from '../../../api/types';
 import type {
   UserPortraitMessageInfo,
   UserPortraitMessageStory,
 } from '../../chatAssistant/store/user-portrait-message-store';
 
-import buildClassName from '../../../util/buildClassName';
-
-import MediaStory from '../../story/MediaStory';
-import SummaryActivity from './SummaryActivity';
-import UserPortraitAvatar from './UserPortraitAvatar';
+import SummaryActivity, { StoryActivity } from './SummaryActivity';
 
 function ActivityMessage({
-  userId,
+  user,
   data,
   isLast,
 }: {
-  userId: string;
+  user: ApiUser;
   data: UserPortraitMessageInfo | UserPortraitMessageStory;
   isLast: boolean;
 }) {
@@ -26,23 +22,7 @@ function ActivityMessage({
   return isAiSummary ? (
     <SummaryActivity data={data as UserPortraitMessageInfo} isLast={isLast} />
   ) : isStory ? (
-    <div className={
-      buildClassName('flex flex-col pb-3 border-b-[1px]', isLast ? 'border-[transparent]' : 'border-[#EDEDED]')
-    }
-    >
-      <div className="flex items-center justify-between gap-1 mb-2">
-        <UserPortraitAvatar
-          chatId={userId}
-        />
-        <div className="text-[12px] text-[#979797]">
-          {dayjs(data?.time).format('MMM D, HH:mm')}
-        </div>
-      </div>
-      <MediaStory
-        story={(data as UserPortraitMessageStory).message}
-        isArchive={false}
-      />
-    </div>
+    <StoryActivity data={data as UserPortraitMessageStory} isLast={isLast} user={user} />
   ) : (
     undefined
   );
