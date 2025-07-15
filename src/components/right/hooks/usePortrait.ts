@@ -1,4 +1,3 @@
-import dayjs from 'dayjs';
 import { useCallback, useEffect, useState } from '../../../lib/teact/teact';
 
 import type { TextMessage } from '../../../util/userPortrait';
@@ -53,7 +52,7 @@ const SUMMARY_PROMPT = `
            - 涉及数字、价格、网址、时间等要素的内容
            - 用户的观点、经验分享、操作建议、趋势判断等
     - content：请忽略那些单独看不出任何实际含义的短消息（如单句“来了”、“哈”、“好”等），但如多条短句连贯构成了有价值的观点或讨论内容，请一并保留、整合后总结。
-    - content： 如该群聊中没有任何有价值的内容，则不进行总结，不输出该群的信息
+    - content： 如该群聊中没有任何有价值的内容，则直接返回原信息
     - 输出格式及字段说明：
       [
         {
@@ -61,7 +60,7 @@ const SUMMARY_PROMPT = `
           timeRange: '时间范围', // 原样返回
           chatGroups: [{
             chatId: 群聊ID, // 原样返回
-            title: '8-15字核心议题',
+            title: '8-15字核心议题',//
             summaryItems: {       // 至少1条，最多5条
               content: '严格按"子话题：数据+行为+建议"结构',
               relevantMessageIds: [消息ID1, 消息ID2, ...]
@@ -104,16 +103,9 @@ export default function usePortrait({ userId }: Props) {
       setUserInfo(undefined);
       setNewUserInfo(undefined);
     }
-    let res = await ChataiStores.userPortraitMessage?.searchMessageBySenderId(
+    const res = await ChataiStores.userPortraitMessage?.searchMessageBySenderId(
       senderId,
     );
-    res = res?.map((item:any) => {
-      const sortTime = item?.isSummary === false ? item?.time : `${item?.time} ${item?.timeRange?.split('-')[1]}`;
-      return {
-        ...item,
-        sortTime: dayjs(sortTime).unix(),
-      };
-    })?.sort((a:any, b:any) => b.sortTime - a.sortTime);
     setPortraitMessage(res);
   }, []);
 

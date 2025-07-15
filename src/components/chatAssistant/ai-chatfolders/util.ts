@@ -247,15 +247,19 @@ export function filterAIFolder(ids: number[] | undefined) {
 }
 
 export function replaceToJSON(text: string) {
-  const jsonString = text
-    ?.replaceAll("\n", "")
-    ?.replace("```json", "")
-    ?.replace("```", "")
-    ?.trim();
   try {
+    const jsonString = text
+      ?.replaceAll("\n", "")
+      ?.replace("```json", "")
+      ?.replace("```", "")
+      ?.trim();
     return JSON.parse(jsonString);
   } catch (error) {
-    return undefined;
+    try {
+      return formatJSONContent(text);
+    } catch (error) {
+      return undefined;
+    }
   }
 }
 

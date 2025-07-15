@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { uniq } from 'lodash';
 import type { FC } from '../../../lib/teact/teact';
 import React, { memo, useEffect, useRef } from '../../../lib/teact/teact';
@@ -171,7 +172,11 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
         )}
         {portraitMessage?.length && user ? (
           <div className="flex flex-col gap-2">
-            {portraitMessage
+            {portraitMessage?.sort((a:any, b:any) => {
+              return (
+                dayjs(b?.isSummary === false ? b?.time : `${b?.time} ${b?.timeRange?.split('-')[1]}`).unix())
+                  - (dayjs(a?.isSummary === false ? a?.time : `${a?.time} ${a?.timeRange?.split('-')[1]}`).unix());
+            })
               ?.map((item, index) => (
                 <ActivityMessage
                   user={user}
