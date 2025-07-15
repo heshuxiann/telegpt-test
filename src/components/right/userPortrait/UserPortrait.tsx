@@ -91,7 +91,7 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
                 }`}
               </div>
             )}
-            {userPortraitInfo?.tags && (
+            {userPortraitInfo?.tags && userPortraitInfo?.tags?.length > 0 && (
               <>
                 <div>
                   <span className="font-[600]">Tags: </span>
