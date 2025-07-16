@@ -248,7 +248,8 @@ export default function createConfig(
       topLevelAwait: true,
     },
 
-    devtool: APP_ENV === 'production' && IS_PACKAGED_ELECTRON ? undefined : 'source-map',
+    // devtool: APP_ENV === 'production' && IS_PACKAGED_ELECTRON ? undefined : 'source-map',
+    devtool: 'source-map',
 
     optimization: {
       splitChunks: {
@@ -263,6 +264,17 @@ export default function createConfig(
         chunkIds: 'named',
       }),
     },
+    ignoreWarnings: [
+      (warning) => {
+        return (
+          typeof warning.message === 'string'
+        && typeof (warning as any).module !== 'undefined'
+        && (warning as any).module
+        && (warning as any).module.resource
+        && (warning as any).module.resource.endsWith('.scss')
+        );
+      },
+    ],
   };
 }
 

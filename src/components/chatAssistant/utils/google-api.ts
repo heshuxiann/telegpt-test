@@ -4,6 +4,7 @@ import { message as showMessage, Modal } from 'antd';
 
 import type { AuthState } from './google-auth';
 
+import { IS_ELECTRON } from '../../../util/browser/windowEnvironment';
 import { getAuthState, setAuthState } from './google-auth';
 
 // export const GOOGLE_APP_CLIENT_ID = '847573679345-qq64ofbqhv7gg61e04dbrk8b92djf1fb.apps.googleusercontent.com';
@@ -75,12 +76,31 @@ export const createAuthConfirmModal = (props:{ onOk?:(accessToken:string)=>void;
     okText: 'Confirm',
     cancelText: 'Cancel',
     onOk: () => {
-      loginWithGoogle().then((authState) => {
-        props.onOk?.(authState.accessToken!);
-      }).catch((error) => {
-        console.error('Google login failed:', error);
-        showMessage.info('Google login failed');
-      });
+      if (IS_ELECTRON) {
+        console.log('window.electron', window.electron);
+        console.log('googleLogin in preload:', window.electron?.googleLogin);
+        window.electron!.googleLogin().then((res) => {
+          const authState = {
+            isLoggedIn: true,
+            accessToken: res.access_token,
+            idToken: res.id_token,
+            grantedScopes: res.scope,
+            expiresAt: res.expiry_date,
+          };
+          setAuthState(authState);
+          props.onOk?.(res.access_token!);
+        }).catch((error) => {
+          console.error('Google login failed:', error);
+          showMessage.info('Google login failed');
+        });
+      } else {
+        loginWithGoogle().then((authState) => {
+          props.onOk?.(authState.accessToken!);
+        }).catch((error) => {
+          console.error('Google login failed:', error);
+          showMessage.info('Google login failed');
+        });
+      }
     },
     onCancel: props?.onCancel,
   });

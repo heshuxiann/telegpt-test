@@ -158,7 +158,7 @@ const AuthCode = ({
   const isAuthReady = authState === 'authorizationStateWaitQrCode';
 
   return (
-    <div id="auth-qr-form" className="custom-scroll py-[6rem]">
+    <div id="auth-qr-form" className="custom-scroll py-[5vh]">
       {hasActiveAccount && (
         <Button size="smaller" round color="translucent" className="auth-close" onClick={handleBackNavigation}>
           <Icon name="close" />

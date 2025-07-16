@@ -48,5 +48,12 @@ export default {
 
   externals: {
     electron: 'require("electron")',
+    fs: 'require("fs")',
+    path: 'require("path")',
+    util: 'require("util")',
+    http: 'require("http")',
+    https: 'require("https")',
+    url: 'require("url")',
+    crypto: 'require("crypto")',
   },
 };

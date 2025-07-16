@@ -33,6 +33,7 @@ export interface ElectronApi {
   setIsTrayIconEnabled: (value: boolean) => Promise<void>;
   getIsTrayIconEnabled: () => Promise<boolean>;
   restoreLocalStorage: () => Promise<void>;
+  googleLogin: () => Promise<any>;
   on: (eventName: ElectronEvent, callback: any) => VoidFunction;
 }
 

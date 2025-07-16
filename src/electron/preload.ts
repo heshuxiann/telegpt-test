@@ -1,6 +1,7 @@
 import type { IpcRendererEvent } from 'electron';
 import { contextBridge, ipcRenderer } from 'electron';
 
+// import googleOAuth from './electron-google-auth';
 import type { ElectronApi, ElectronEvent, TrafficLightPosition } from '../types/electron';
 import { ElectronAction } from '../types/electron';
 
@@ -17,6 +18,9 @@ const electronApi: ElectronApi = {
   setIsTrayIconEnabled: (value: boolean) => ipcRenderer.invoke(ElectronAction.SET_IS_TRAY_ICON_ENABLED, value),
   getIsTrayIconEnabled: () => ipcRenderer.invoke(ElectronAction.GET_IS_TRAY_ICON_ENABLED),
   restoreLocalStorage: () => ipcRenderer.invoke(ElectronAction.RESTORE_LOCAL_STORAGE),
+  googleLogin: () => {
+    return ipcRenderer.invoke('google-login');
+  },
 
   on: (eventName: ElectronEvent, callback) => {
     const subscription = (event: IpcRendererEvent, ...args: any) => callback(...args);

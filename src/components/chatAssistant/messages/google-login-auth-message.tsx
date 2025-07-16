@@ -8,7 +8,9 @@ import React, {
 import { Button } from 'antd';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
+import { IS_ELECTRON } from '../../../util/browser/windowEnvironment';
 import { loginWithGoogle } from '../utils/google-api';
+import { setAuthState } from '../utils/google-auth';
 
 import GoogleIcon from '../assets/google.png';
 
@@ -20,13 +22,30 @@ const GoogleLoginAuthMessage = (props:IProps) => {
   const { deleteMessage } = props;
 
   const handleAuth = useCallback(() => {
-    loginWithGoogle().then((authState) => {
-      console.log(authState);
-      eventEmitter.emit(Actions.GoogleAuthSuccess);
-      deleteMessage();
-    }).catch((error) => {
-      console.error('Google login failed:', error);
-    });
+    if (IS_ELECTRON) {
+      window.electron!.googleLogin().then((res) => {
+        const authState = {
+          isLoggedIn: true,
+          accessToken: res.access_token,
+          idToken: res.id_token,
+          grantedScopes: res.scope,
+          expiresAt: res.expiry_date,
+        };
+        setAuthState(authState);
+        eventEmitter.emit(Actions.GoogleAuthSuccess);
+        deleteMessage();
+      }).catch((error) => {
+        console.error('Google login failed:', error);
+      });
+    } else {
+      loginWithGoogle().then((authState) => {
+        console.log(authState);
+        eventEmitter.emit(Actions.GoogleAuthSuccess);
+        deleteMessage();
+      }).catch((error) => {
+        console.error('Google login failed:', error);
+      });
+    }
   }, [deleteMessage]);
 
   return (
