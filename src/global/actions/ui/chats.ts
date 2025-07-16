@@ -139,8 +139,25 @@ addActionHandler('openChatAIWithInfo', (global, actions, payload): ActionReturnT
   global = updateTabState(global, {
     ...selectTabState(global, tabId),
     isChatAIShown: true,
+    isUserPortraitShown: false,
   }, tabId);
   global = { ...global, lastIsChatInfoShown: true };
+  setGlobal(global);
+});
+
+addActionHandler('openUserPortrait', (global, actions, payload): ActionReturnType => {
+  const { tabId = getCurrentTabId(), userId, chatId } = payload || {};
+  const { chatId: currentChatId } = selectCurrentMessageList(global, tabId) || {};
+  if (chatId && chatId !== currentChatId) {
+    actions.openChat({ id: chatId, tabId });
+  }
+
+  global = updateTabState(global, {
+    ...selectTabState(global, tabId),
+    isUserPortraitShown: true,
+    userPortraitUserId: userId,
+  }, tabId);
+  global = { ...global };
   setGlobal(global);
 });
 

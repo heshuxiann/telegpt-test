@@ -44,6 +44,7 @@ import MonetizationStatistics from './statistics/MonetizationStatistics';
 import Statistics from './statistics/Statistics.async';
 import StoryStatistics from './statistics/StoryStatistics.async';
 import StickerSearch from './StickerSearch.async';
+import UserPortrait from './userPortrait/UserPortrait';
 
 import './RightColumn.scss';
 
@@ -63,6 +64,7 @@ type StateProps = {
   shouldCloseRightColumn?: boolean;
   isSavedMessages?: boolean;
   isSavedDialog?: boolean;
+  userPortraitUserId?: string;
 };
 
 const ANIMATION_DURATION = 450 + ANIMATION_END_DELAY;
@@ -88,6 +90,7 @@ const RightColumn: FC<OwnProps & StateProps> = ({
   shouldCloseRightColumn,
   isSavedMessages,
   isSavedDialog,
+  userPortraitUserId,
 }) => {
   const {
     toggleChatInfo,
@@ -111,6 +114,7 @@ const RightColumn: FC<OwnProps & StateProps> = ({
     setShouldCloseRightColumn,
     closeMonetizationStatistics,
     openChatAIWithInfo,
+    toggleUserPortrait,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -140,6 +144,7 @@ const RightColumn: FC<OwnProps & StateProps> = ({
   const isAddingChatMembers = contentKey === RightColumnContent.AddingMembers;
   const isCreatingTopic = contentKey === RightColumnContent.CreateTopic;
   const isEditingTopic = contentKey === RightColumnContent.EditTopic;
+  const isUserPortrait = contentKey === RightColumnContent.UserPortrait;
   const isOverlaying = windowWidth <= MIN_SCREEN_WIDTH_FOR_STATIC_RIGHT_COLUMN;
 
   const [shouldSkipTransition, setShouldSkipTransition] = useState(!isOpen);
@@ -165,6 +170,9 @@ const RightColumn: FC<OwnProps & StateProps> = ({
         break;
       case RightColumnContent.ChatAI:
         toggleChatAIInfo({ force: false }, { forceSyncOnIOs: true });
+        break;
+      case RightColumnContent.UserPortrait:
+        toggleUserPortrait({ force: false }, { forceSyncOnIOs: true });
         break;
       case RightColumnContent.Management: {
         switch (managementScreen) {
@@ -379,6 +387,8 @@ const RightColumn: FC<OwnProps & StateProps> = ({
         return <EditTopic onClose={close} isActive={isOpen && isActive} />;
       case RightColumnContent.ChatAI:
         return <RoomAIWrapper chatId={chatId} threadId={threadId} onClose={close} />;
+      case RightColumnContent.UserPortrait:
+        return userPortraitUserId && <UserPortrait userId={userPortraitUserId} />;
     }
 
     return undefined; // Unreachable
@@ -415,6 +425,7 @@ const RightColumn: FC<OwnProps & StateProps> = ({
           isCreatingTopic={isCreatingTopic}
           isEditingTopic={isEditingTopic}
           isAddingChatMembers={isAddingChatMembers}
+          isUserPortrait={isUserPortrait}
           profileState={profileState}
           managementScreen={managementScreen}
           onClose={close}
@@ -451,6 +462,8 @@ export default memo(withGlobal<OwnProps>(
     const isSavedMessages = chatId ? selectIsChatWithSelf(global, chatId) : undefined;
     const isSavedDialog = chatId ? getIsSavedDialog(chatId, threadId, global.currentUserId) : undefined;
 
+    const { userPortraitUserId } = selectTabState(global);
+
     return {
       contentKey: selectRightColumnContentKey(global, isMobile),
       chatId,
@@ -462,6 +475,7 @@ export default memo(withGlobal<OwnProps>(
       shouldCloseRightColumn,
       isSavedMessages,
       isSavedDialog,
+      userPortraitUserId,
     };
   },
 )(RightColumn));

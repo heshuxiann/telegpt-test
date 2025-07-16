@@ -58,6 +58,7 @@ import Switcher from '../../ui/Switcher';
 import CustomEmoji from '../CustomEmoji';
 import SafeLink from '../SafeLink';
 import BusinessHours from './BusinessHours';
+import PortraitEntry from './PortraitEntry';
 import UserBirthday from './UserBirthday';
 
 import styles from './ChatExtra.module.scss';
@@ -357,7 +358,12 @@ const ChatExtra: FC<OwnProps & StateProps> = ({
           <span className="subtitle">{oldLang('Phone')}</span>
         </ListItem>
       )}
-      {activeUsernames && renderUsernames(activeUsernames)}
+      {activeUsernames && (
+        <>
+          {renderUsernames(activeUsernames)}
+          {user && <PortraitEntry user={user} />}
+        </>
+      )}
       {description && Boolean(description.length) && (
         <ListItem
           icon="info"

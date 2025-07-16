@@ -27,6 +27,7 @@ import buildClassName from '../../../util/buildClassName';
 import { getOrderKey, getPinnedChatsCount } from '../../../util/folderManager';
 import { getServerTime } from '../../../util/serverTime';
 import ChatSerena from '../../chatAssistant/globalSummary/chat-serana';
+import { GLOBAL_SUMMARY_CHATID } from '../../chatAssistant/variables';
 
 import usePeerStoriesPolling from '../../../hooks/polling/usePeerStoriesPolling';
 import useTopOverscroll from '../../../hooks/scroll/useTopOverscroll';
@@ -42,6 +43,7 @@ import InfiniteScroll from '../../ui/InfiniteScroll';
 import Loading from '../../ui/Loading';
 import Archive from './Archive';
 import Chat from './Chat';
+// eslint-disable-next-line import/no-cycle
 import EmptyFolder from './EmptyFolder';
 import FrozenAccountNotification from './FrozenAccountNotification';
 import UnconfirmedSession from './UnconfirmedSession';
@@ -115,7 +117,7 @@ const ChatList: FC<OwnProps> = ({
   const chatsHeight = (orderedIds?.length || 0) * CHAT_HEIGHT_PX;
   const archiveHeight = shouldDisplayArchive
     ? archiveSettings?.isMinimized ? ARCHIVE_MINIMIZED_HEIGHT : CHAT_HEIGHT_PX : 0;
-  const serenaHeight = resolvedFolderId === ALL_FOLDER_ID ? CHAT_HEIGHT_PX : 0;
+  // const serenaHeight = resolvedFolderId === ALL_FOLDER_ID ? CHAT_HEIGHT_PX : 0;
   const frozenNotificationHeight = shouldShowFrozenAccountNotification ? 68 : 0;
 
   const { orderDiffById, getAnimationType } = useOrderDiff(orderedIds);
@@ -238,22 +240,32 @@ const ChatList: FC<OwnProps> = ({
 
     return viewportIds!.map((id, i) => {
       const isPinned = viewportOffset + i < pinnedCount;
-      const offsetTop = unconfirmedSessionHeight + archiveHeight + frozenNotificationHeight + serenaHeight
+      const offsetTop = unconfirmedSessionHeight + archiveHeight + frozenNotificationHeight
       + (viewportOffset + i) * CHAT_HEIGHT_PX;
       return (
-        <Chat
-          key={id}
-          teactOrderKey={isPinned ? i : getOrderKey(id, isSaved)}
-          chatId={id}
-          isPinned={isPinned}
-          folderId={folderId}
-          isSavedDialog={isSaved}
-          animationType={getAnimationType(id)}
-          orderDiff={orderDiffById[id]}
-          offsetTop={offsetTop}
-          observeIntersection={observe}
-          onDragEnter={handleDragEnter}
-        />
+        id === GLOBAL_SUMMARY_CHATID ? (
+          <ChatSerena
+            key="serena"
+            // frozenNotificationHeight={frozenNotificationHeight}
+            // archiveHeight={archiveHeight}
+            // unconfirmedSessionHeight={unconfirmedSessionHeight}
+            offsetTop={offsetTop}
+          />
+        ) : (
+          <Chat
+            key={id}
+            teactOrderKey={isPinned ? i : getOrderKey(id, isSaved)}
+            chatId={id}
+            isPinned={isPinned}
+            folderId={folderId}
+            isSavedDialog={isSaved}
+            animationType={getAnimationType(id)}
+            orderDiff={orderDiffById[id]}
+            offsetTop={offsetTop}
+            observeIntersection={observe}
+            onDragEnter={handleDragEnter}
+          />
+        )
       );
     });
   }
@@ -292,14 +304,14 @@ const ChatList: FC<OwnProps> = ({
           onDragEnter={handleArchivedDragEnter}
         />
       )}
-      {resolvedFolderId === ALL_FOLDER_ID && (
+      {/* {resolvedFolderId === ALL_FOLDER_ID && (
         <ChatSerena
           key="serena"
           frozenNotificationHeight={frozenNotificationHeight}
           archiveHeight={archiveHeight}
           unconfirmedSessionHeight={unconfirmedSessionHeight}
         />
-      )}
+      )} */}
 
       {viewportIds?.length ? (
         renderChats()

@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
-export type StoreName = 'message' | 'contact' | 'user' | 'general' | 'knowledge' | 'summaryTemplate' | 'urgentTopic' | 'summary' | 'folder' | 'aIChatFolders';
+export type StoreName = 'message' | 'contact' | 'user' | 'general' | 'knowledge' | 'summaryTemplate' | 'urgentTopic' | 'summary' | 'folder' | 'aIChatFolders' | 'userPortrait' | 'userPortraitMessage';
 
 type IndexConfig = [indexName: string, keyPath: string | string[]];
 
@@ -30,7 +30,9 @@ class ChataiStoreManager {
     summaryTemplate: { keyPath: 'id', autoIncrement: true },
     urgentTopic: { keyPath: 'id', autoIncrement: false },
     folder: { keyPath: 'title', autoIncrement: true },
-    aIChatFolders: { keyPath: 'id', autoIncrement: true }
+    aIChatFolders: { keyPath: 'id', autoIncrement: true },
+    userPortrait: { keyPath: 'id', autoIncrement: true },
+    userPortraitMessage: { keyPath: 'id', indexes: [['senderId', 'senderId']] },
   };
 
   constructor(VERSION: number, DB_NAME: string) {

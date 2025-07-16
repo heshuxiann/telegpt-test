@@ -338,6 +338,7 @@ export enum RightColumnContent {
   EditTopic,
   MonetizationStatistics,
   ChatAI,
+  UserPortrait,
 }
 
 export type MediaViewerMedia = ApiPhoto | ApiVideo | ApiDocument;

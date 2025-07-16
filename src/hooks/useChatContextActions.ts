@@ -84,7 +84,19 @@ const useChatContextActions = ({
       markChatMessagesRead,
       markChatUnread,
       openChatInNewTab,
+      openUserPortrait,
     } = getActions();
+
+    const actionUserPortrait = isUserId(chat.id) ? {
+      title: 'User Portrait',
+      icon: 'portrait-icon',
+      handler: () => {
+        openUserPortrait({
+          chatId: chat.id,
+          userId: chat.id,
+        });
+      },
+    } : undefined;
 
     const actionOpenInNewTab = IS_OPEN_IN_NEW_TAB_SUPPORTED && {
       title: IS_ELECTRON ? lang('ChatListOpenInNewWindow') : lang('ChatListOpenInNewTab'),
@@ -174,6 +186,7 @@ const useChatContextActions = ({
     const isInFolder = folderId !== undefined;
 
     return compact([
+      actionUserPortrait,
       actionOpenInNewTab,
       actionAddToFolder,
       actionMaskAsRead,

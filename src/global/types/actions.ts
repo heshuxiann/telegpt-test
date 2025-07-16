@@ -316,6 +316,12 @@ export interface ActionPayloads {
 
   toggleChatInfo: ({ force?: boolean } & WithTabId) | undefined;
   toggleChatAIInfo: ({ force?: boolean } & WithTabId) | undefined;
+  toggleUserPortrait: ({ force?: boolean } & WithTabId) | undefined;
+  openUserPortrait: {
+    force?: boolean;
+    userId: string;
+    chatId?: string;
+  } & WithTabId | undefined;
   setIsUiReady: {
     uiReadyState: 0 | 1 | 2;
   } & WithTabId;
@@ -381,11 +387,11 @@ export interface ActionPayloads {
   editChatFolder: {
     id: number;
     folderUpdate: Omit<ApiChatFolder, 'id' | 'description' | 'emoticon'>;
-    from?: 'user' | 'AI'
+    from?: 'user' | 'AI';
   };
   addChatFolder: {
     folder: ApiChatFolder;
-    from?: 'user' | 'AI'
+    from?: 'user' | 'AI';
   } & WithTabId;
   deleteChatFolder: {
     id: number;

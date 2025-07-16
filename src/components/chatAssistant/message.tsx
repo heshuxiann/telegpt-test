@@ -26,8 +26,11 @@ import IntroduceSummaryMessage from './messages/introduce-summary-message';
 import IntroduceTranslationMessage from './messages/introduce-translation-message';
 import RoomActionMessage from './messages/room-actions-message';
 import RoomAIDescriptionMessage from './messages/room-ai-des-message';
+// eslint-disable-next-line import/no-cycle
 import RoomAIMediaMessage from './messages/room-ai-media-message';
+// eslint-disable-next-line import/no-cycle
 import ReplyMentionMessage from './messages/room-ai-reply-mention-message';
+import RoomAIUserPortraitMessage from './messages/room-ai-user-portrait';
 import RoomSummaryMessage from './messages/room-summary-message';
 // import SummaryMessage from './summary-message';
 import UrgentCheckMessage from './messages/urgent-check-message';
@@ -61,6 +64,7 @@ export enum AIMessageType {
   AISearchSugesstion = 'ai-search-sugesstion',
   AIReplyMention = 'room-ai-reply-mention',
   AIMediaSummary = 'room-ai-media-summary',
+  UserPortrait = 'user-portrait',
   Default = 'default',
 }
 
@@ -183,6 +187,7 @@ const PurePreviewMessage = ({
       {messageType === AIMessageType.AISearchSugesstion && (<AISearchSugesstionsMessage />)}
       {messageType === AIMessageType.AIReplyMention && (<ReplyMentionMessage message={message} />)}
       {messageType === AIMessageType.AIMediaSummary && (<RoomAIMediaMessage message={message} />)}
+      {messageType === AIMessageType.UserPortrait && (<RoomAIUserPortraitMessage userId={message?.content} />)}
       {messageType === AIMessageType.Default && (<DefaultMessage message={message} isLoading={isLoading} />)}
     </AnimatePresence>
   );

@@ -30,6 +30,7 @@ import {
   DATA_BROADCAST_CHANNEL_NAME,
 } from '../../../util/multiaccount';
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
+import { deleteStoryFromUserPortraitMessage, handleStoryToUserPortraitMessage } from '../../../util/userPortrait';
 import ChatAIMessageQuene from '../../../components/chatAssistant/ai-task/chatai-task';
 import { messageEmbeddingStore, toolsEmbeddingStore } from '../../../components/chatAssistant/vector-store';
 
@@ -336,6 +337,10 @@ function sendToAIAgent(data: ApiUpdate) {
         });
       }
     }
+  } else if (data['@type'] === 'updateStory') {
+    handleStoryToUserPortraitMessage(data);
+  } else if (data['@type'] === 'deleteStory') {
+    deleteStoryFromUserPortraitMessage(data);
   }
 }
 
@@ -370,18 +375,16 @@ async function sendToCurrentChatAI(data: ApiUpdate) {
   let message;
   if (data['@type'] === 'newMessage') {
     message = data.message;
-    if (message?.content?.video || message?.content?.document
-      || message?.content?.voice || message?.content?.audio
+    if ((message?.content?.video && !message?.content?.video?.id)
+      || (message?.content?.document && !message?.content?.document?.id)
+      || (message?.content?.voice && !message?.content?.voice?.id)
+      || (message?.content?.audio && !message?.content?.audio?.id)
     ) {
-      return;
-    }
-  } else if (data['@type'] === 'updateMessage') {
-    message = data.message;
-    if (message?.content?.webPage || message?.content?.text) {
       return;
     }
   }
   if (!message || !message?.id) return;
+  if (global?.currentUserId === message?.senderId) return;
 
   if (currentChat?.id === message?.chatId) {
     const { default: RoomAIMessageListener } = await

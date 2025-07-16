@@ -147,6 +147,14 @@ export class VectorStorage<T> {
     };
   }
 
+  public async documentSearch(params: IVSSimilaritySearchParams): Promise<Array<IVSDocument<T>>> {
+    const { filterOptions } = params;
+    const allDocuments = await this.loadAllFromIndexDbStorage();
+    const filteredDocuments = filterDocuments(allDocuments, filterOptions);
+
+    return filteredDocuments;
+  }
+
   private async initDB(): Promise<IDBPDatabase<any>> {
     return openDB<any>(this.dbName, this.dbVersion, {
       upgrade(db) {
@@ -280,6 +288,24 @@ export class VectorStorage<T> {
     // this.documents = result;
     // this.documents = await this.db.getAll('documents');
     // this.removeDocsLRU();
+  }
+
+  private async loadAllFromIndexDbStorage(): Promise<IVSDocument<T>[]> {
+    if (!this.db) {
+      this.db = await this.initDB();
+    }
+    const tx = this.db.transaction('documents', 'readonly');
+    const store = tx.store;
+    const index = store.index('timestamp');
+
+    const result = [];
+
+    for await (const cursor of index.iterate(null, 'prev')) {
+      result.push(cursor.value);
+    }
+
+    await tx.done;
+    return result;
   }
 
   // private async saveToIndexDbStorage(): Promise<void> {

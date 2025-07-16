@@ -99,6 +99,8 @@ export type TabState = {
   canInstall?: boolean;
   isChatInfoShown: boolean;
   isChatAIShown?:boolean;
+  isUserPortraitShown?: boolean;
+  userPortraitUserId?: string;
   isStatisticsShown?: boolean;
   isLeftColumnShown: boolean;
   newChatMembersProgress?: NewChatMembersProgress;

@@ -65,6 +65,16 @@ addActionHandler('toggleChatAIInfo', (global, actions, payload): ActionReturnTyp
   return global;
 });
 
+addActionHandler('toggleUserPortrait', (global, actions, payload): ActionReturnType => {
+  const { force, tabId = getCurrentTabId() } = payload || {};
+  const isUserPortraitShown = force !== undefined ? force : !selectTabState(global, tabId).isUserPortraitShown;
+
+  global = updateTabState(global, { isUserPortraitShown }, tabId);
+  global = { ...global };
+
+  return global;
+});
+
 addActionHandler('setLeftColumnWidth', (global, actions, payload): ActionReturnType => {
   const { leftColumnWidth } = payload;
 
