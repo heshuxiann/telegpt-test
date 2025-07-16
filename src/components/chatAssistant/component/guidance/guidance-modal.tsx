@@ -9,7 +9,7 @@ import Modal from '../../../ui/Modal';
 import './guidance.scss';
 
 const GuidanceModal = () => {
-  const telegptGuidance = localStorage.getItem('telegpt-guidance') || false;
+  const telegptGuidance = localStorage.getItem('telegpt-guidance') === 'true';
   const [isFirstIn, setIsFirstIn] = useState<Boolean>(!telegptGuidance);
   const handleClose = useLastCallback(() => {
     localStorage.setItem('telegpt-guidance', 'true');

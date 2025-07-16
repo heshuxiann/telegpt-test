@@ -158,13 +158,13 @@ const AuthCode = ({
   const isAuthReady = authState === 'authorizationStateWaitQrCode';
 
   return (
-    <div id="auth-qr-form" className="custom-scroll py-[5vh]">
+    <div id="auth-qr-form" className="custom-scroll pb-[5vh]">
       {hasActiveAccount && (
         <Button size="smaller" round color="translucent" className="auth-close" onClick={handleBackNavigation}>
           <Icon name="close" />
         </Button>
       )}
-      <div className="flex flex-col items-center max-w-[48rem] mx-auto mb-[3rem]">
+      <div className="flex flex-col items-center max-w-[48rem] mx-auto mb-[1.5rem]">
         <img src={TeleGptLogo} alt="" className="w-[104px] h-[100px] mb-[36px]" />
         <div className="text-[55px] leading-[66px] font-bold mb-[20px]">Telegpt </div>
         <div className="text-[28px] leading-[27px] font-medium mb-[30px]">Message Smarter with AI. Achieve More.</div>
