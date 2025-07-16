@@ -5,25 +5,33 @@ import { Carousel } from 'antd';
 import type { CarouselRef } from 'antd/es/carousel';
 import cx from 'classnames';
 
+import { CloseIcon } from '../../icons';
+
 import './guidance.scss';
 
 const CarouselItem = ({ className, children }:{ className:string;children?:React.ReactNode }) => {
   return (
     <div className={cx('guidance-carousel-item', className)}>
-      <div className="w-[44%] pl-[50px] pt-[5%] pb-[12%] h-full flex flex-col">
+      <div className="w-[42%] pl-[50px] pt-[5%] pb-[12%] h-full flex flex-col justify-center">
         {children}
       </div>
     </div>
   );
 };
-const GuidanceCarousel = () => {
+const GuidanceCarousel = ({ handleClose }:{ handleClose:()=>void }) => {
   const carouselRef = useRef<CarouselRef>(null);
   const handleNextClick = (step:number) => {
     carouselRef.current?.goTo(step);
+    if (step === 4) {
+      handleClose();
+    }
   };
   return (
     <div>
       <div className="guidance-bubble" />
+      <div className="absolute top-[10px] right-[10px] cursor-pointer text-[#A89E9E] z-10" onClick={handleClose}>
+        <CloseIcon size={24} />
+      </div>
       <Carousel className="guidance-carousel" ref={carouselRef}>
         <CarouselItem className="guidance-summary">
           <div className="text-[45px] font-bold leading-[44px] mb-[20px]">Chat Summary</div>

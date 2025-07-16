@@ -9,56 +9,62 @@
   }
 }
 .guidance-carousel {
-  width: 80vw;
+  width: 75vw;
   max-width: 73rem;
   aspect-ratio: 1168/542;
   border-radius: 16px;
   overflow: hidden;
+  .slick-dots li::after{
+    background: #2996FF;
+  }
 }
 .guidance-summary {
-  background-image: url("../../../../assets//guidance/guidance-summary.png");
+  background-image: url("../../assets/guidance/guidance-summary.png");
 }
 .guidance-translation {
-  background-image: url("../../../../assets//guidance/guidance-translation.png");
+  background-image: url("../../assets/guidance/guidance-translation.png");
 }
 .guidance-meeting {
-  background-image: url("../../../../assets//guidance/guidance-meeting.png");
+  background-image: url("../../assets/guidance/guidance-meeting.png");
 }
 .guidance-actions {
-  background-image: url("../../../../assets//guidance/guidance-actions.png");
+  background-image: url("../../assets/guidance/guidance-actions.png");
 }
 .guidance-bubble {
-  background-image: url("../../../../assets//guidance/guidance-bubble.png");
+  background-image: url("../../assets/guidance/guidance-bubble.png");
   background-repeat: no-repeat;
   position: absolute;
-  transform: translate(40%, -100%);
-  right: 0;
-  top: 0;
-  width: 20vw;
-  max-width: 288px;
-  aspect-ratio: 288 / 216;
+  transform: translate(-100%,40%);
+  left: 0;
+  bottom: 0;
+  width: min(20vw,20vh);
+  max-width: 209px;
+  aspect-ratio: 209 / 287;
   background-size: contain;
 }
 .guidance-carousel-item {
-  width: 80vw;
+  width: 75vw;
   max-width: 73rem;
   min-width: 50rem;
   aspect-ratio: 1168/542;
   border-radius: 16px;
   background-size: cover;
   background-repeat: no-repeat;
+  position: relative;
 }
 .guidance-carousel-next {
   width: 120px;
   height: 54px;
   text-align: center;
   line-height: 48px;
-  margin-top: auto;
   border-radius: 27px;
   border: 3px solid transparent;
   font-size: 24px;
   font-weight: 600;
   cursor: pointer;
+  position: absolute;
+  left: 50px;
+  bottom: 40px;
   background:
     linear-gradient(#fff, #fff) padding-box,
     linear-gradient(

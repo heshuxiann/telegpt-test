@@ -231,7 +231,7 @@ const LeftMain: FC<OwnProps> = ({
           }
         }}
       </Transition>
-      {shouldRenderUpdateButton && (
+      {/* {shouldRenderUpdateButton && (
         <Button
           fluid
           badge
@@ -240,7 +240,7 @@ const LeftMain: FC<OwnProps> = ({
         >
           {lang('lng_update_telegram')}
         </Button>
-      )}
+      )} */}
       {shouldRenderForumPanel && (
         <ForumPanel
           isOpen={isForumPanelOpen}

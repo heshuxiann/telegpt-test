@@ -217,7 +217,7 @@ const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
         {summaryInfo?.userIds ? (
           <div className="flex items-center gap-[8px] mb-[18px]">
             <img className="w-[16px] h-[16px]" src={UserIcon} alt="" />
-            <span className="font-bold text-[14px]">Groups/friends: </span>
+            <span className="font-bold text-[14px]">Main speakers: </span>
             <div className="flex items-center">
               {summaryInfo.userIds.slice(0, 5).map((id: string, index: number) => {
                 return (

@@ -78,7 +78,7 @@ function PureMessages({
     <div
       ref={messagesContainerRef}
       onScroll={handleScroll}
-      className={cn('flex flex-col min-w-0 gap-[10px] h-full overflow-y-auto relative pt-4 ai-message-container', className)}
+      className={cn('flex flex-col min-w-0 gap-[10px] h-full overflow-y-auto relative pt-4 ai-message-container overflow-x-hidden', className)}
     >
       {messages.map((message, index) => {
         if (!isAuxiliary(message)) {

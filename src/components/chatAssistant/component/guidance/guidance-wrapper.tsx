@@ -12,13 +12,13 @@ import { injectComponent } from '../../../../lib/injectComponent';
 import GuidanceCarousel from './guidance-carousel';
 
 const injectMessageAI = injectComponent(GuidanceCarousel);
-const GuidanceWrapper = () => {
+const GuidanceWrapper = ({ handleClose }:{ handleClose:()=>void }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (containerRef.current) {
-      injectMessageAI(containerRef.current);
+      injectMessageAI(containerRef.current, { handleClose });
     }
-  }, []);
+  }, [handleClose]);
   return (
     <div ref={containerRef} />
   );

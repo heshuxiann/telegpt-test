@@ -21,10 +21,11 @@ const GuidanceModal = () => {
   return (
     <Modal
       isOpen
+      noBackdropClose
       onClose={handleClose}
       className="guidance-modal"
     >
-      <GuidanceWrapper />
+      <GuidanceWrapper handleClose={handleClose} />
     </Modal>
   );
 };
