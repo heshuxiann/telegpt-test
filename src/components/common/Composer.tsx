@@ -123,6 +123,7 @@ import windowSize from '../../util/windowSize';
 import { callApi } from '../../api/gramjs';
 import InputTranslate from '../chatAssistant/component/input-translate/input-translate';
 import RoomStorage from '../chatAssistant/room-storage';
+import { sendGAEvent } from '../chatAssistant/utils/analytics';
 import applyIosAutoCapitalizationFix from '../middle/composer/helpers/applyIosAutoCapitalizationFix';
 import buildAttachment, { prepareAttachmentsToSend } from '../middle/composer/helpers/buildAttachment';
 import { buildCustomEmojiHtml } from '../middle/composer/helpers/customEmoji';
@@ -1234,6 +1235,7 @@ const Composer: FC<OwnProps & StateProps> = ({
         console.log(error);
       }
       setIsInlineAILoading(false);
+      sendGAEvent('input_translate');
     }
     handleSendCore(currentAttachments, isSilent, scheduledAt);
   });

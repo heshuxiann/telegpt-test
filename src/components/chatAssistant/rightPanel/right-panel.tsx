@@ -13,7 +13,7 @@ import MessagePanel from './message-panel';
 import PersonalizeSettings from './personalized-settings';
 import RightHeader from './right-header';
 
-import { DrawerKey, useDrawerStore } from '../globalSummary/DrawerContext';
+import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 import './right-panel.scss';
 

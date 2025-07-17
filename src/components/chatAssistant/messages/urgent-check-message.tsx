@@ -14,7 +14,7 @@ import {
 import { formatTimestamp } from '../utils/util';
 
 import ChatAvatar from '../component/ChatAvatar';
-import { DrawerKey, useDrawerStore } from '../globalSummary/DrawerContext';
+import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 import DangerIcon from '../assets/danger.png';
 import SerenaLogoPath from '../assets/serena.png';

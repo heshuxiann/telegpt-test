@@ -21,7 +21,7 @@ import { cn, formatTimestamp } from '../utils/util';
 
 import Avatar from '../component/Avatar';
 import ErrorBoundary from '../ErrorBoundary';
-import { DrawerKey, useDrawerStore } from '../globalSummary/DrawerContext';
+import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 import ActionsIcon from '../assets/actions.png';
 import CalendarIcon from '../assets/calendar.png';

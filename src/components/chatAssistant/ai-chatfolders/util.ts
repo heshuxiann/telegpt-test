@@ -22,6 +22,7 @@ import { getAITags } from "./tag-filter";
 import { intersection } from "lodash";
 import eventEmitter, { Actions } from "../lib/EventEmitter";
 import { AIChatFolderStep } from "./ai-chatfolders-tip";
+import { chatAIChatFolders } from "../utils/chat-api";
 
 export interface AIChatFolder {
   id?: string;
@@ -62,25 +63,6 @@ export const formatJSONContent = (content: string) => {
 
 export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function chatAIChatFolders(body: string) {
-  try {
-    const res = await fetch(
-      "https://telegpt-three.vercel.app/classify-generate",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body,
-      }
-    );
-    const resJson = await res.json();
-    return replaceToJSON(resJson?.text);
-  } catch (error) {
-    throw error;
-  }
 }
 
 export async function saveAiChatFolders(list: AIChatFolder[]) {
@@ -137,13 +119,12 @@ export async function batchAiChatFolders(
       };
     });
     if (chatMsgs.length) {
-      const aiRes = await chatAIChatFolders(
-        JSON.stringify({
-          messages: chatMsgs,
-          flag: true,
-        })
-      );
-      res = res.concat(aiRes);
+      const aiRes = await chatAIChatFolders({
+        messages: chatMsgs,
+        flag: true,
+      });
+      const aiForders = replaceToJSON(aiRes?.text);
+      res = res.concat(aiForders);
     }
   }
 
@@ -294,7 +275,7 @@ export function hideTip(step: AIChatFolderStep) {
   if (step === AIChatFolderStep.classify) {
     eventEmitter.emit(Actions.UpdateSettingAIChatFoldersLoading, {
       loading: false,
-      isApply: false
+      isApply: false,
     });
   } else {
     eventEmitter.emit(Actions.UpdateAIChatFoldersApplying, {
@@ -315,6 +296,6 @@ export function showTip() {
   });
   eventEmitter.emit(Actions.UpdateSettingAIChatFoldersLoading, {
     loading: false,
-    isApply: false
+    isApply: false,
   });
 }

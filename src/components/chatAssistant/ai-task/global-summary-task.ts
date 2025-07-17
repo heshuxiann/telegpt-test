@@ -6,13 +6,14 @@ import { getActions, getGlobal } from '../../../global';
 import type { CustomSummaryTemplate } from '../store/chatai-summary-template-store';
 import type { SummaryStoreMessage } from '../store/summary-store';
 import { type ApiMessage, MAIN_THREAD_ID } from '../../../api/types/messages';
+import { LoadMoreDirection } from '../../../types';
 
 import { ALL_FOLDER_ID } from '../../../config';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { loadChats } from '../../../global/actions/api/chats';
 import { isSystemBot, isUserId } from '../../../global/helpers';
 import {
-  selectBot, selectChat, selectChatLastMessageId, selectFirstUnreadId, selectUser,
+  selectBot, selectChat, selectChatLastMessageId, selectUser,
 } from '../../../global/selectors';
 import { getOrderedIds } from '../../../util/folderManager';
 import RoomStorage from '../room-storage';
@@ -23,7 +24,7 @@ import {
 import { SUMMARY_CHATS } from '../store/general-store';
 import { sendGAEvent } from '../utils/analytics';
 import { globalSummary } from '../utils/chat-api';
-import { fetchChatMessageByDeadline, fetchChatUnreadMessage } from '../utils/fetch-messages';
+import { fetchChatMessageByDeadline, loadTextMessages } from '../utils/fetch-messages';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
 
 function getAlignedExecutionTimestamp(): number | null {
@@ -135,8 +136,8 @@ class GlobalSummaryTask {
       setTimeout(() => {
         ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME).then((lastSummaryTime) => {
           if (!lastSummaryTime) {
-            // TODO summary all unread message
-            this.summaryAllUnreadMessages();
+            // TODO first in and summry all groups lastest 50 messages
+            this.initFirstSummary();
           } else if (Date.now() - lastSummaryTime > 1000 * 60 * 60 * 10) {
             // TODO summary all unread message by deadline
             this.summaryMessageByDeadline(lastSummaryTime);
@@ -248,7 +249,7 @@ class GlobalSummaryTask {
     });
   }
 
-  summaryAllUnreadMessages = async () => {
+  initFirstSummary = async () => {
     let unreadMessages: Record<string, ApiMessage[]> = {};
     let totalLength = 0;
     const global = getGlobal();
@@ -260,21 +261,20 @@ class GlobalSummaryTask {
         const chatId = summaryChatIds[i];
         const chat = selectChat(global, chatId);
         const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
-        if (chat && chat.unreadCount && !chatBot) {
-          const firstUnreadId = selectFirstUnreadId(global, chatId, MAIN_THREAD_ID) || chat.lastReadInboxMessageId;
-          const roomUnreadMsgs = await fetchChatUnreadMessage({
+        const chatLastMessageId = selectChatLastMessageId(global, chatId) || 0;
+        if (chat && chat.unreadCount && !chatBot && chatLastMessageId) {
+          const messages = await loadTextMessages({
             chat,
-            offsetId: firstUnreadId || 0,
-            addOffset: -30,
-            sliceSize: 30,
+            sliceSize: 50,
             threadId: MAIN_THREAD_ID,
-            unreadCount: chat.unreadCount,
+            offsetId: chatLastMessageId,
+            direction: LoadMoreDirection.Backwards,
             maxCount: 50,
           });
-          if (roomUnreadMsgs.length > 0) {
+          if (messages.length > 0) {
             let tempMsgs = [];
 
-            for (const msg of roomUnreadMsgs) {
+            for (const msg of messages) {
               const text = msg?.content?.text?.text || '';
               const msgLength = text.length;
 

@@ -89,7 +89,7 @@ import useWindowSize from '../../hooks/window/useWindowSize';
 import usePinnedMessage from './hooks/usePinnedMessage';
 import useFluidBackgroundFilter from './message/hooks/useFluidBackgroundFilter';
 
-import GlobalSummaryWrapper from '../chatAssistant/globalSummary/GlobalSummaryWrapper';
+import GlobalSummaryWrapper from '../chatAssistant/global-summary/GlobalSummaryWrapper';
 import eventEmitter, { Actions } from '../chatAssistant/lib/EventEmitter';
 import Composer from '../common/Composer';
 import Icon from '../common/icons/Icon';

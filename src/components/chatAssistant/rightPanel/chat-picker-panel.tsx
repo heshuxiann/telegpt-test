@@ -24,7 +24,7 @@ import sortChatIds from '../../common/helpers/sortChatIds';
 import useOldLang from '../hook/useOldLang';
 
 import Avatar from '../component/Avatar';
-import { useDrawerStore } from '../globalSummary/DrawerContext';
+import { useDrawerStore } from '../global-summary/DrawerContext';
 
 const ChatPickerPanel = () => {
   const global = getGlobal();

@@ -10,7 +10,7 @@ import SummarizeTab from './surmarize-tab';
 import UrgentAlertTab from './urgent-alert-tab';
 
 import TabList from '../component/TabList';
-import { useDrawerStore } from '../globalSummary/DrawerContext';
+import { useDrawerStore } from '../global-summary/DrawerContext';
 
 import './personalized-settings.scss';
 

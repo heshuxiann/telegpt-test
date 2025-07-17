@@ -6,7 +6,7 @@ import TextArea from '../component/textarea';
 import { ChataiStores } from '../store';
 
 import InputText from '../component/InputText';
-import { DrawerKey, useDrawerStore } from '../globalSummary/DrawerContext';
+import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 const CustomizationPromptPanel = () => {
   const { openDrawer } = useDrawerStore();

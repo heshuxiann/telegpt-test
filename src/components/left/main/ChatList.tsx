@@ -26,7 +26,7 @@ import { IS_APP, IS_MAC_OS } from '../../../util/browser/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
 import { getOrderKey, getPinnedChatsCount } from '../../../util/folderManager';
 import { getServerTime } from '../../../util/serverTime';
-import ChatSerena from '../../chatAssistant/globalSummary/chat-serana';
+import ChatSerena from '../../chatAssistant/global-summary/chat-serana';
 import { GLOBAL_SUMMARY_CHATID } from '../../chatAssistant/variables';
 
 import usePeerStoriesPolling from '../../../hooks/polling/usePeerStoriesPolling';

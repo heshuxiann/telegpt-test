@@ -7,7 +7,7 @@ import { selectUser } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import {
   createIntroduceActionsMessage, createIntroduceMeetingMessage, createIntroduceSummaryMessage, createIntroduceTranslationMessage,
-} from '../globalSummary/summary-utils';
+} from '../global-summary/summary-utils';
 import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { ChataiStores } from '../store';
 

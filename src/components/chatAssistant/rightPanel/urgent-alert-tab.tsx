@@ -12,7 +12,7 @@ import { URGENT_CHATS } from '../store/general-store';
 import { SelectedChats } from './selected-chats';
 
 import Icon from '../component/Icon';
-import { DrawerKey, useDrawerStore } from '../globalSummary/DrawerContext';
+import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 import './urgent-alert-tab.scss';
 

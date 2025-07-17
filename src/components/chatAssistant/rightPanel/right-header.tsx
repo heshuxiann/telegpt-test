@@ -5,7 +5,7 @@ import cx from 'classnames';
 
 import { CloseIcon, LeftOutlined } from '../icons';
 
-import { DrawerKey, useDrawerStore } from '../globalSummary/DrawerContext';
+import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 interface Props {
   drawerKey: DrawerKey | undefined;

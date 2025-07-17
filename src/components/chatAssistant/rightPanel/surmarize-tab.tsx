@@ -8,13 +8,13 @@ import cx from 'classnames';
 import type { CustomSummaryTemplate } from '../store/chatai-summary-template-store';
 
 import { globalSummaryTask } from '../ai-task/global-summary-task';
-import { CustomizationTemplates } from '../globalSummary/summary-prompt';
+import { CustomizationTemplates } from '../global-summary/summary-prompt';
 import { CloseIcon } from '../icons';
 import { ChataiStores } from '../store';
 import { SUMMARY_CHATS } from '../store/general-store';
 import { SelectedChats } from './selected-chats';
 
-import { DrawerKey, useDrawerStore } from '../globalSummary/DrawerContext';
+import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 import './surmarize-tab.scss';
 

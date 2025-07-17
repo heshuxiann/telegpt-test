@@ -11,6 +11,7 @@ import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
 import { URGENT_CHATS } from '../store/general-store';
 import { sendGAEvent } from '../utils/analytics';
+import { urgentMessageCheck } from '../utils/chat-api';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
 
 function getStrongAlertPhoneNumber(
@@ -83,50 +84,40 @@ class UrgentCheckTask {
         content: item.content.text?.text,
       };
     });
-    fetch('https://telegpt-three.vercel.app/urgent-message-check', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messages,
-        urgentTopics,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log('urgent check response', data);
-        const matchs = data?.data || [];
-        if (matchs.length > 0) {
-          const newMessage: SummaryStoreMessage = {
-            timestamp: new Date().getTime(),
-            content: JSON.stringify(matchs),
-            id: uuidv4(),
-            createdAt: new Date(),
-            role: 'assistant',
-            annotations: [
-              {
-                type: 'urgent-message-check',
-              },
-            ],
-          };
-          ChataiStores.summary?.storeMessage(newMessage);
-          eventEmitter.emit(Actions.AddUrgentMessage, newMessage);
-          RoomStorage.increaseUnreadCount(GLOBAL_SUMMARY_CHATID);
-          // check strong alert
-          try {
-            const strongAlertPhoneNumber = getStrongAlertPhoneNumber(matchs, topics);
-            if (strongAlertPhoneNumber) {
-              fetch(`https://telegpt-three.vercel.app/voice-call?phoneNumber=${strongAlertPhoneNumber}`, {
-                method: 'GET',
-              });
-              sendGAEvent('call_reminder');
-            }
-          } catch (e) {
-            console.log('error', e);
+    urgentMessageCheck({ messages, urgentTopics }).then((res) => {
+      console.log('urgent check response', res);
+      const matchs = res?.data || [];
+      if (matchs.length > 0) {
+        const newMessage: SummaryStoreMessage = {
+          timestamp: new Date().getTime(),
+          content: JSON.stringify(matchs),
+          id: uuidv4(),
+          createdAt: new Date(),
+          role: 'assistant',
+          annotations: [
+            {
+              type: 'urgent-message-check',
+            },
+          ],
+        };
+        ChataiStores.summary?.storeMessage(newMessage);
+        eventEmitter.emit(Actions.AddUrgentMessage, newMessage);
+        RoomStorage.increaseUnreadCount(GLOBAL_SUMMARY_CHATID);
+        // check strong alert
+        try {
+          const strongAlertPhoneNumber = getStrongAlertPhoneNumber(matchs, urgentTopics);
+          if (strongAlertPhoneNumber) {
+            fetch(`https://telegpt-three.vercel.app/voice-call?phoneNumber=${strongAlertPhoneNumber}`, {
+              method: 'GET',
+            });
+            sendGAEvent('call_reminder');
           }
+        } catch (e) {
+          console.log('error', e);
         }
-      });
+      }
+    });
+
     this.clearPendingMessages();
   }
 

@@ -1,3 +1,8 @@
+import { getGlobal } from '../../../global';
+
+import { getUserFullName } from '../../../global/helpers';
+import { selectUser } from '../../../global/selectors';
+
 export type GrammarlyCheckItem = {
   type?: string;
   description?: string;
@@ -13,7 +18,19 @@ type GrammarlyCheckResponse = {
     errors:GrammarlyCheckItem[];
   };
 };
+
+function getUserInfo() {
+  const global = getGlobal();
+  const { currentUserId } = global;
+  const user = selectUser(global, currentUserId!);
+  const userName = getUserFullName(user);
+  return {
+    userId: currentUserId,
+    userName,
+  };
+}
 export const grammarlyCheck = (text:string):Promise<GrammarlyCheckResponse> => {
+  const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
     fetch('https://telegpt-three.vercel.app/grammarly-check', {
       method: 'POST',
@@ -22,6 +39,8 @@ export const grammarlyCheck = (text:string):Promise<GrammarlyCheckResponse> => {
       },
       body: JSON.stringify({
         text,
+        userId,
+        userName,
       }),
     }).then((response) => response.json())
       .then((data) => resolve(data as GrammarlyCheckResponse))
@@ -31,6 +50,7 @@ export const grammarlyCheck = (text:string):Promise<GrammarlyCheckResponse> => {
   });
 };
 export const grammarlyShorten = (text:string):Promise<GrammarlyCheckResponse> => {
+  const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
     fetch('https://telegpt-three.vercel.app/grammarly-shorten', {
       method: 'POST',
@@ -39,6 +59,8 @@ export const grammarlyShorten = (text:string):Promise<GrammarlyCheckResponse> =>
       },
       body: JSON.stringify({
         text,
+        userId,
+        userName,
       }),
     }).then((response) => response.json())
       .then((data) => resolve(data as GrammarlyCheckResponse))
@@ -48,6 +70,7 @@ export const grammarlyShorten = (text:string):Promise<GrammarlyCheckResponse> =>
   });
 };
 export const grammarlyFormal = (text:string):Promise<GrammarlyCheckResponse> => {
+  const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
     fetch('https://telegpt-three.vercel.app/grammarly-formal', {
       method: 'POST',
@@ -56,6 +79,8 @@ export const grammarlyFormal = (text:string):Promise<GrammarlyCheckResponse> => 
       },
       body: JSON.stringify({
         text,
+        userId,
+        userName,
       }),
     }).then((response) => response.json())
       .then((data) => resolve(data as GrammarlyCheckResponse))
@@ -65,6 +90,7 @@ export const grammarlyFormal = (text:string):Promise<GrammarlyCheckResponse> => 
   });
 };
 export const grammarlyFriendly = (text:string):Promise<GrammarlyCheckResponse> => {
+  const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
     fetch('https://telegpt-three.vercel.app/grammarly-friendly', {
       method: 'POST',
@@ -73,6 +99,8 @@ export const grammarlyFriendly = (text:string):Promise<GrammarlyCheckResponse> =
       },
       body: JSON.stringify({
         text,
+        userId,
+        userName,
       }),
     }).then((response) => response.json())
       .then((data) => resolve(data as GrammarlyCheckResponse))
@@ -82,6 +110,7 @@ export const grammarlyFriendly = (text:string):Promise<GrammarlyCheckResponse> =
   });
 };
 export const grammarlyRephrase = (text:string):Promise<GrammarlyCheckResponse> => {
+  const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
     fetch('https://telegpt-three.vercel.app/grammarly-rephrase', {
       method: 'POST',
@@ -90,6 +119,8 @@ export const grammarlyRephrase = (text:string):Promise<GrammarlyCheckResponse> =
       },
       body: JSON.stringify({
         text,
+        userId,
+        userName,
       }),
     }).then((response) => response.json())
       .then((data) => resolve(data as GrammarlyCheckResponse))
