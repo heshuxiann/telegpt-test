@@ -1,9 +1,9 @@
-productName: Telegram A
+productName: Telegpt
 artifactName: ${productName}-${arch}.${ext}
 appId: org.telegram.TelegramA
 extraMetadata:
   main: ./dist/electron.js
-  productName: Telegram A
+  productName: Telegpt
 files:
   - "dist"
   - "package.json"
@@ -47,7 +47,7 @@ mac:
   notarize:
     teamId: Y54Z4K69Z9
 dmg:
-  title: Telegram A installer
+  title: Telegpt installer
   background: public/background-electron-dmg.tiff
   iconSize: 100
   contents:

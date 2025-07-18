@@ -146,8 +146,15 @@ export function createWindow(url?: string) {
 }
 
 function loadWindowUrl(window: BrowserWindow, url?: string, hash?: string): void {
-  window.loadURL(`file://${__dirname}/index.html${hash}`);
-  window.webContents.openDevTools();
+  // window.loadURL(`http://localhost:1234${hash}`);
+  if (IS_PRODUCTION) {
+    window.loadURL(`${process.env.BASE_URL}`);
+  } else {
+    window.loadURL(`http://localhost:1234${hash}`);
+    window.webContents.openDevTools();
+  }
+  // window.loadURL('https://jsonsucoder.github.io/ai-tg-web');
+  // window.loadURL(`file://${__dirname}/index.html${hash}`);
   // if (url && checkIsWebContentsUrlAllowed(url)) {
   //   window.loadURL(url);
   // } else if (!app.isPackaged) {
