@@ -4,7 +4,7 @@ import { getGlobal } from '../../../global';
 import { getUserFullName } from '../../../global/helpers';
 import { selectUser } from '../../../global/selectors';
 
-function getUserInfo() {
+export const getUserInfo = () => {
   const global = getGlobal();
   const { currentUserId } = global;
   const user = selectUser(global, currentUserId!);
@@ -13,7 +13,7 @@ function getUserInfo() {
     userId: currentUserId,
     userName,
   };
-}
+};
 
 interface ChatProps {
   data: any;
@@ -263,32 +263,6 @@ export function audioAISummary(formData: FormData) {
       });
   });
 }
-
-export const translateTextByTencentApi = (
-  data: Object,
-): Promise<Array<string>> => {
-  const { userId, userName } = getUserInfo();
-  return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/tencent-translate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        userName,
-        ...data,
-      }),
-    })
-      .then((res) => res.json())
-      .then((res) => {
-        resolve(res);
-      })
-      .catch((err) => {
-        reject(err);
-      });
-  });
-};
 
 export function audioToText(formData: FormData): Promise<{ text: string }> {
   return new Promise((resolve, reject) => {
