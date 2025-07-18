@@ -53,11 +53,11 @@ const GoogleLoginAuthMessage = (props:IProps) => {
       <div className="p-[10px] border-solid border-[#D9D9D9] rounded-[16px] w-[316px] bg-white dark:bg-[#292929]">
         <span>This service requires access to your Google Calendar.</span>
         <Button
-          className="w-auto mt-[4px] flex items-center cursor-pointer hover:opacity-80 hover:!bg-[#F3F3F3]  gap-[8px] bg-[#F3F3F3] px-[12px] py-[10px] rounded-[6px] dark:bg-[var(--color-chat-hover)] h-[36px] border-none"
+          className="w-auto mt-[4px] flex items-center cursor-pointer hover:opacity-80 hover:!bg-[#F3F3F3]  gap-[8px] bg-[#F3F3F3] px-[12px] py-[10px] rounded-[6px] dark:!bg-[#383838] h-[36px] border-none"
           onClick={handleAuth}
         >
           <img src={GoogleIcon} alt="" className="w-[16px] h-[16px]" />
-          <span>Google authorization</span>
+          <span className="text-[var(--color-text)]">Google authorization</span>
         </Button>
       </div>
     </div>

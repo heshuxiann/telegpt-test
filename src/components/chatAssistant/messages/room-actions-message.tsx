@@ -162,7 +162,7 @@ const ActionInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
             <img className="w-[16px] h-[16px]" src={UserIcon} alt="" />
             <span className="font-bold text-[14px]">Groups/friends: </span>
             <div className="flex items-center">
-              {summaryInfo.userIds.slice(0, 10).map((id: string, index: number) => {
+              {summaryInfo.userIds.slice(0, 5).map((id: string, index: number) => {
                 return (
                   <ChatAvatar
                     style={{ zIndex: `${String(summaryInfo.userIds.length - index)};` }}

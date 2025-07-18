@@ -135,7 +135,7 @@ export const generateRoomActionItems = async (
   const global = getGlobal();
   const { autoTranslateLanguage } = global.settings.byKey;
   const chat = selectChat(global, chatId);
-  const lastMessageId = selectChatLastMessageId(global, chatId, 'all') || 0;
+  const lastMessageId = selectChatLastMessageId(global, chatId) || 0;
   if (chat) {
     const messages = await fetchChatMessageByOffsetId({
       chat,
