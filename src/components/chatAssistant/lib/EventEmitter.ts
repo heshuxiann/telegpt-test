@@ -22,6 +22,8 @@ export enum Actions {
   // ai chat folds
   UpdateAIChatFoldersApplying = 'UpdateAIChatFoldersApplying',
   UpdateSettingAIChatFoldersLoading = 'UpdateSettingAIChatFoldersLoading',
+  // firebase update
+  UpdateFirebaseConfig = 'UpdateFirebaseConfig',
 }
 class EventEmitter {
   private static instance: EventEmitter;

@@ -47,7 +47,7 @@ mac:
   notarize:
     teamId: Y54Z4K69Z9
 dmg:
-  title: Telegpt installer
+  title: To install Telegpt, drag the icon to your Applications folder
   background: public/background-electron-dmg.tiff
   iconSize: 100
   contents:

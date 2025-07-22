@@ -174,3 +174,28 @@ export function extractCalendlyLinks(text: string): string[] {
   const regex = /https:\/\/calendly\.com\/[^\s?]+\/[^\s?]+(?:\?[^\s]*)?/g;
   return text.match(regex) || [];
 }
+
+// compare version
+export function compareVersion(version1:any, version2:any) {
+  const arr1 = version1.split('.');
+  const arr2 = version2.split('.');
+  const len = Math.max(arr1.length, arr2.length);
+
+  while (arr1.length < len) {
+    arr1.push('0');
+  }
+  while (arr2.length < len) {
+    arr2.push('0');
+  }
+
+  for (let i = 0; i < len; i++) {
+    const num1 = parseInt(arr1[i] || 0, 10);
+    const num2 = parseInt(arr2[i] || 0, 10);
+    if (num1 > num2) {
+      return 1; // version1 > version2
+    } else if (num1 < num2) {
+      return -1; // version1 < version2
+    }
+  }
+  return 0; // version1 == version2
+}

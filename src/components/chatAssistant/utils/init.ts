@@ -1,3 +1,5 @@
+import './firebase_analytics';
+
 import { getActions } from '../../../global';
 
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';

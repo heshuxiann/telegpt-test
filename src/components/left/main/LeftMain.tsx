@@ -8,15 +8,18 @@ import type { FolderEditDispatch } from '../../../hooks/reducers/useFoldersReduc
 import type { SettingsScreens } from '../../../types';
 import { LeftColumnContent } from '../../../types';
 
-import { PRODUCTION_URL } from '../../../config';
-import { IS_ELECTRON, IS_TOUCH_ENV } from '../../../util/browser/windowEnvironment';
-import buildClassName from '../../../util/buildClassName';
+// import { PRODUCTION_URL } from '../../../config';
+import { IS_TOUCH_ENV } from '../../../util/browser/windowEnvironment';
+// import buildClassName from '../../../util/buildClassName';
+import { fireBaseAnalytics, UPDATE_DEFER_KEY } from '../../chatAssistant/utils/firebase_analytics';
+import { compareVersion } from '../../chatAssistant/utils/util';
 
 import useForumPanelRender from '../../../hooks/useForumPanelRender';
 import useLastCallback from '../../../hooks/useLastCallback';
 import useOldLang from '../../../hooks/useOldLang';
-import useShowTransitionDeprecated from '../../../hooks/useShowTransitionDeprecated';
 
+// import useShowTransitionDeprecated from '../../../hooks/useShowTransitionDeprecated';
+import eventEmitter, { Actions } from '../../chatAssistant/lib/EventEmitter';
 import Button from '../../ui/Button';
 import Transition from '../../ui/Transition';
 import NewChatButton from '../NewChatButton';
@@ -35,8 +38,8 @@ type OwnProps = {
   contactsFilter: string;
   shouldSkipTransition?: boolean;
   foldersDispatch: FolderEditDispatch;
-  isAppUpdateAvailable?: boolean;
-  isElectronUpdateAvailable?: boolean;
+  // isAppUpdateAvailable?: boolean;
+  // isElectronUpdateAvailable?: boolean;
   isForumPanelOpen?: boolean;
   isClosingSearch?: boolean;
   onSearchQuery: (query: string) => void;
@@ -60,8 +63,8 @@ const LeftMain: FC<OwnProps> = ({
   contactsFilter,
   shouldSkipTransition,
   foldersDispatch,
-  isAppUpdateAvailable,
-  isElectronUpdateAvailable,
+  // isAppUpdateAvailable,
+  // isElectronUpdateAvailable,
   isForumPanelOpen,
   onSearchQuery,
   onContentChange,
@@ -72,10 +75,38 @@ const LeftMain: FC<OwnProps> = ({
 }) => {
   const { closeForumPanel } = getActions();
   const [isNewChatButtonShown, setIsNewChatButtonShown] = useState(IS_TOUCH_ENV);
-  const [isElectronAutoUpdateEnabled, setIsElectronAutoUpdateEnabled] = useState(false);
+  // const [isElectronAutoUpdateEnabled, setIsElectronAutoUpdateEnabled] = useState(false);
+  const [shouldRenderUpdateButton, setShouldRenderUpdateButton] = useState(false);
+  const [webFireBase, setWebFireBase] = useState<{
+    force_update_required:boolean;
+    force_update_current_version:string;
+    force_update_store_url:string;
+  }>();
+
+  const handleFireBaseUpdate = (payload:any) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-shadow
+      const { webFireBase } = payload;
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      const { force_update_current_version } = webFireBase;
+      const [version] = JSON.parse(localStorage.getItem(UPDATE_DEFER_KEY) || '[]');
+      const compareRes = compareVersion(version, force_update_current_version);
+      if (compareRes === -1) {
+        setShouldRenderUpdateButton(true);
+        setWebFireBase(webFireBase);
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.log(e);
+    }
+  };
 
   useEffect(() => {
-    window.electron?.getIsAutoUpdateEnabled().then(setIsElectronAutoUpdateEnabled);
+    // window.electron?.getIsAutoUpdateEnabled().then(setIsElectronAutoUpdateEnabled);
+    eventEmitter.on(Actions.UpdateFirebaseConfig, handleFireBaseUpdate);
+    return () => {
+      eventEmitter.off(Actions.UpdateFirebaseConfig, handleFireBaseUpdate);
+    };
   }, []);
 
   const {
@@ -85,10 +116,10 @@ const LeftMain: FC<OwnProps> = ({
   const isForumPanelRendered = isForumPanelOpen && content === LeftColumnContent.ChatList;
   const isForumPanelVisible = isForumPanelRendered && isAnimationStarted;
 
-  const {
-    shouldRender: shouldRenderUpdateButton,
-    transitionClassNames: updateButtonClassNames,
-  } = useShowTransitionDeprecated(isAppUpdateAvailable || isElectronUpdateAvailable);
+  // const {
+  //   shouldRender: shouldRenderUpdateButton,
+  //   transitionClassNames: updateButtonClassNames,
+  // } = useShowTransitionDeprecated(isAppUpdateAvailable || isElectronUpdateAvailable);
 
   const isMouseInside = useRef(false);
 
@@ -137,13 +168,19 @@ const LeftMain: FC<OwnProps> = ({
   });
 
   const handleUpdateClick = useLastCallback(() => {
-    if (IS_ELECTRON && !isElectronAutoUpdateEnabled) {
-      window.open(`${PRODUCTION_URL}/get`, '_blank', 'noopener');
-    } else if (isElectronUpdateAvailable) {
-      window.electron?.installUpdate();
+    fireBaseAnalytics.deferUpdate(webFireBase?.force_update_current_version!);
+    if (webFireBase?.force_update_store_url) {
+      window.location.replace(webFireBase.force_update_store_url);
     } else {
       window.location.reload();
     }
+    // if (IS_ELECTRON && !isElectronAutoUpdateEnabled) {
+    //   window.open(`${PRODUCTION_URL}/get`, '_blank', 'noopener');
+    // } else if (isElectronUpdateAvailable) {
+    //   window.electron?.installUpdate();
+    // } else {
+    //   window.location.reload();
+    // }
   });
 
   const handleSelectNewChannel = useLastCallback(() => {
@@ -231,16 +268,16 @@ const LeftMain: FC<OwnProps> = ({
           }
         }}
       </Transition>
-      {/* {shouldRenderUpdateButton && (
+      {shouldRenderUpdateButton && (
         <Button
           fluid
           badge
-          className={buildClassName('btn-update', updateButtonClassNames)}
+          className="btn-update"
           onClick={handleUpdateClick}
         >
-          {lang('lng_update_telegram')}
+          {lang('lng_update_telegpt')}
         </Button>
-      )} */}
+      )}
       {shouldRenderForumPanel && (
         <ForumPanel
           isOpen={isForumPanelOpen}
