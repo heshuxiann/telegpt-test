@@ -144,7 +144,7 @@ const AddTopicPanel = () => {
         <div className="mb-[24px]">
           <div className="flex items-center justify-between px-[14px] py-[10px] bg-[var(--color-chat-hover)] rounded-[6px] mb-[12px]">
             <span className="text-[var(--color-text)]">Enable strong alerts</span>
-            <Switch onChange={strongAlertChange} />
+            <Switch value={form.strongAlert} onChange={strongAlertChange} />
           </div>
           <span className="text-[14px] text-[#767676]">
             Once enabled, these types of messages will trigger a phone alert.
