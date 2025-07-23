@@ -355,7 +355,7 @@ export interface ActionPayloads {
     forceScrollProfileTab?: boolean;
   } & WithTabId;
   openThreadWithInfo: ActionPayloads['openThread'] & WithTabId;
-  openChatAIWithInfo: {
+  openChatAIWithInfo:WithTabId & {
     chatId: string;
   };
   openLinkedChat: { id: string } & WithTabId;

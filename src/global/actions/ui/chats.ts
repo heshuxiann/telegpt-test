@@ -111,6 +111,7 @@ addActionHandler('openChatWithInfo', (global, actions, payload): ActionReturnTyp
   global = updateTabState(global, {
     ...selectTabState(global, tabId),
     isChatInfoShown: true,
+    isChatAIShown: false,
     nextProfileTab: profileTab,
     forceScrollProfileTab,
   }, tabId);
@@ -126,6 +127,7 @@ addActionHandler('openThreadWithInfo', (global, actions, payload): ActionReturnT
   global = updateTabState(global, {
     ...selectTabState(global, tabId),
     isChatInfoShown: true,
+    isChatAIShown: false,
   }, tabId);
   global = { ...global, lastIsChatInfoShown: true };
   setGlobal(global);
@@ -140,6 +142,7 @@ addActionHandler('openChatAIWithInfo', (global, actions, payload): ActionReturnT
     ...selectTabState(global, tabId),
     isChatAIShown: true,
     isUserPortraitShown: false,
+    isChatInfoShown: false,
   }, tabId);
   global = { ...global, lastIsChatInfoShown: true };
   setGlobal(global);

@@ -3,6 +3,7 @@
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 // eslint-disable-next-line import/no-cycle
 import { aiChatFoldersTask } from '../ai-task/ai-chatfolders-task';
+import telegptSettings from '../api/user-settings';
 import AIChatFoldersStore from './ai-chatfolders-store';
 import ChataiStoreManager from './chatai-store';
 import SummaryTemplateStore from './chatai-summary-template-store';
@@ -45,6 +46,9 @@ export const ChataiStores = {
 export function setChataiStoreBuilderCurrentUserId(_currentUserId: string) {
   if (_currentUserId && (!currentUserId || currentUserId !== _currentUserId)) {
     initChataiStores(_currentUserId);
+    // 更新用户id,同步更新telegpt setting
+    telegptSettings.userId = _currentUserId;
+    telegptSettings.initGptSettings();
   }
   currentUserId = _currentUserId;
 }

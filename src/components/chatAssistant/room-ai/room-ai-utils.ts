@@ -216,7 +216,10 @@ export const createMeetingMentionMessage = (data:{ chatId:string;messageId:numbe
     role: 'assistant',
     id: uuidv4(),
     createdAt: new Date(),
-    content: JSON.stringify(data),
+    content: JSON.stringify({
+      ...data,
+      isConfirmed: false,
+    }),
     annotations: [{
       type: 'google-meet-mention',
     }],

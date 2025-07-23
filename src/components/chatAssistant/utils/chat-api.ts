@@ -342,7 +342,7 @@ export function calendlyRanges(data: {
 export function chatAIChatFolders(data: Object):Promise<{ text: string }> {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/calendly-ranges', {
+    fetch('https://telegpt-three.vercel.app/classify-generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
