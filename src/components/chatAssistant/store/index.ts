@@ -6,14 +6,12 @@ import { aiChatFoldersTask } from '../ai-task/ai-chatfolders-task';
 import telegptSettings from '../api/user-settings';
 import AIChatFoldersStore from './ai-chatfolders-store';
 import ChataiStoreManager from './chatai-store';
-import SummaryTemplateStore from './chatai-summary-template-store';
 import ContactStore from './contact-store';
 import FolderStore from './folder-store';
 import GeneralStore from './general-store';
 import KnowledgeStore from './knowledge-store';
 import MessageStore from './messages-store';
 import SummaryStore from './summary-store';
-import UrgentTopicStore from './urgent-topic-store';
 import UserPortraitMessageStore from './user-portrait-message-store';
 import UserPortraitStore from './user-portrait-store';
 import UsersStore from './user-store';
@@ -35,8 +33,6 @@ export const ChataiStores = {
   user: null as UsersStore | null,
   general: null as GeneralStore | null,
   knowledge: null as KnowledgeStore | null,
-  summaryTemplate: null as SummaryTemplateStore | null,
-  urgentTopic: null as UrgentTopicStore | null,
   folder: null as FolderStore | null,
   aIChatFolders: null as AIChatFoldersStore | null,
   userPortrait: null as UserPortraitStore | null,
@@ -63,8 +59,6 @@ export async function initChataiStores(_currentUserId: string) {
   ChataiStores.user = new UsersStore(chataiStoreManager);
   ChataiStores.general = new GeneralStore(chataiStoreManager);
   ChataiStores.knowledge = new KnowledgeStore(chataiStoreManager);
-  ChataiStores.summaryTemplate = new SummaryTemplateStore(chataiStoreManager);
-  ChataiStores.urgentTopic = new UrgentTopicStore(chataiStoreManager);
   ChataiStores.folder = new FolderStore(chataiStoreManager);
   ChataiStores.aIChatFolders = new AIChatFoldersStore(chataiStoreManager);
   ChataiStores.userPortrait = new UserPortraitStore(chataiStoreManager);

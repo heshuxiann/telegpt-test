@@ -4,8 +4,6 @@
 import type { StoreName } from './chatai-store';
 import type ChataiDB from './chatai-store';
 
-export const SUMMARY_CHATS = 'summaryChats';
-export const URGENT_CHATS = 'urgentChats';
 class GeneralStore {
   private storeName: StoreName = 'general';
 

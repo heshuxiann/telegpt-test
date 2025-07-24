@@ -3,6 +3,8 @@ import React, { memo } from 'react';
 
 import buildClassName from '../../../util/buildClassName';
 
+import './InputText.scss';
+
 type OwnProps = {
   ref?: React.RefObject<HTMLInputElement>;
   id?: string;
@@ -18,6 +20,7 @@ type OwnProps = {
   maxLength?: number;
   tabIndex?: number;
   teactExperimentControlled?: boolean;
+  type?: 'text' | 'number';
   inputMode?: 'text' | 'none' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search';
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onInput?: (e: React.FormEvent<HTMLInputElement>) => void;
@@ -39,6 +42,7 @@ const InputText: FC<OwnProps> = ({
   readOnly,
   placeholder,
   autoComplete,
+  type = 'text',
   inputMode,
   maxLength,
   tabIndex,
@@ -66,9 +70,9 @@ const InputText: FC<OwnProps> = ({
       <input
         ref={ref}
         className="form-control"
-        type="text"
         id={id}
         dir="auto"
+        type={type}
         value={value || ''}
         tabIndex={tabIndex}
         placeholder={placeholder}

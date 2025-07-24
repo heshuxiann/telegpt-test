@@ -1,14 +1,15 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable no-console */
 /* eslint-disable react/jsx-no-bind */
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable max-len */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import { message as showMessage } from 'antd';
 
-import type { UrgentTopic } from '../store/urgent-topic-store';
+import type { IUrgentTopic } from '../api/user-settings';
 
 import { urgentCheckTask } from '../ai-task/urgent-check-task';
-import { ChataiStores } from '../store';
-import { URGENT_CHATS } from '../store/general-store';
+import telegptSettings from '../api/user-settings';
 import { SelectedChats } from './selected-chats';
 
 import Icon from '../component/Icon';
@@ -16,17 +17,17 @@ import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 import './urgent-alert-tab.scss';
 
-const TopicItem = ({ topic, onDelete }: { topic: UrgentTopic;onDelete: (id: string) => void }) => {
+const TopicItem = ({ topic, onDelete }: { topic: IUrgentTopic;onDelete: (id: string) => void }) => {
   const { openDrawer } = useDrawerStore();
   const handeleDeleteTopic = () => {
-    onDelete(topic.id);
+    onDelete(topic.id!);
   };
   const handleEditTopic = () => {
     openDrawer(DrawerKey.AddTopicPanel, topic);
   };
   return (
     <div className="urgent-topic-item p-[20px] bg-[var(--color-chat-hover)] rounded-[8px] flex flex-row items-center justify-between gap-[24px]">
-      <div>{topic.topicName}</div>
+      <div>{topic.topic}</div>
       <div className="urgent-topic-item-actions flex flex-row gap-[8px]">
         <Icon name="edit" className="text-[14px] cursor-pointer" onClick={handleEditTopic} />
         <Icon name="close" className="text-[14px] cursor-pointer" onClick={handeleDeleteTopic} />
@@ -52,32 +53,26 @@ const AddTopic = () => {
 };
 
 const UrgentAlertTab = () => {
-  const [topics, setTopics] = useState<UrgentTopic[]>([]);
-  const [selectedChats, setSelectedChats] = useState<string[]>([]);
+  const { urgent_info } = telegptSettings.telegptSettings;
+  const [topics, setTopics] = useState<IUrgentTopic[]>(urgent_info);
+  const [selectedChats, setSelectedChats] = useState<string[]>(telegptSettings.telegptSettings.urgent_chat_ids);
   const { openDrawer } = useDrawerStore();
-  useEffect(() => {
-    ChataiStores.urgentTopic?.getAllUrgentTopic().then((topics) => {
-      console.log('topics', topics);
-      setTopics(topics);
-    });
-    ChataiStores.general?.get(URGENT_CHATS).then((res) => {
-      setSelectedChats(res || []);
-    });
-  }, []);
-
   const handleDelete = useCallback((id: string) => {
     const newSelected = selectedChats.filter((item) => item !== id);
-    ChataiStores.general?.set(URGENT_CHATS, newSelected);
+    telegptSettings.setSettingOption({
+      urgent_chat_ids: newSelected,
+    });
     setSelectedChats(newSelected);
     urgentCheckTask.updateUrgentChats(newSelected);
   }, [selectedChats]);
 
-  const handleOpenChatSelect = useCallback(async () => {
-    const selectedChats = await ChataiStores.general?.get(URGENT_CHATS);
+  const handleOpenChatSelect = useCallback(() => {
     openDrawer(DrawerKey.ChatPicker, {
       selectedChats,
       onSave: (chats: string[]) => {
-        ChataiStores.general?.set(URGENT_CHATS, chats);
+        telegptSettings.setSettingOption({
+          urgent_chat_ids: chats,
+        });
         openDrawer(DrawerKey.PersonalizeSettings, {
           activeKey: 1,
         });
@@ -94,11 +89,18 @@ const UrgentAlertTab = () => {
         });
       },
     });
-  }, [openDrawer]);
+  }, [openDrawer, selectedChats]);
 
   const handeleDeleteTopic = (id:string) => {
-    ChataiStores.urgentTopic?.deleteUrgentTopic(id);
-    setTopics(topics.filter((t) => t.id !== id));
+    telegptSettings.deleteUrgentTopic(id).then((res:any) => {
+      if (res.code === 0) {
+        setTopics(topics.filter((t) => t.id !== id));
+      } else {
+        showMessage.info('delete failed');
+      }
+    }).catch(() => {
+      showMessage.info('delete failed');
+    });
   };
   return (
     <div className="h-full overflow-auto px-[18px]">

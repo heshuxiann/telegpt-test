@@ -1,11 +1,12 @@
 /* eslint-disable max-len */
 import type { FC } from '../../../lib/teact/teact';
 import React, {
-  useEffect, useState,
+  memo,
+  useState,
 } from '../../../lib/teact/teact';
-import { getActions } from '../../../global';
+import { getActions, withGlobal } from '../../../global';
 
-import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
+import telegptSettings from '../../chatAssistant/api/user-settings';
 
 import useHistoryBack from '../../../hooks/useHistoryBack';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -18,8 +19,10 @@ type OwnProps = {
   isActive?: boolean;
   onReset: () => void;
 };
+type StateProps = { autoTranslate:boolean | undefined };
 
-const AITranslateContent: FC<OwnProps> = ({
+const AITranslateContent: FC<OwnProps & StateProps> = ({
+  autoTranslate,
   isActive,
   onReset,
 }) => {
@@ -29,17 +32,14 @@ const AITranslateContent: FC<OwnProps> = ({
   } = getActions();
   const lang = useOldLang();
 
-  const [autoTranslate, setAutoTranslate] = useState(false);
-
-  useEffect(() => {
-    CHATAI_IDB_STORE.get('auto-translate').then((value) => {
-      setAutoTranslate(value as boolean || false);
-    });
-  }, []);
+  const [displayAutoTranslate, setDisplayAutoTranslate] = useState(autoTranslate);
 
   const handleAutoTranslateChange = useLastCallback((newValue: boolean) => {
-    CHATAI_IDB_STORE.set('auto-translate', newValue);
+    setDisplayAutoTranslate(newValue);
     setSettingOption({ autoTranslate: newValue });
+    telegptSettings.setSettingOption({
+      autoTranslate: newValue,
+    });
   });
 
   useHistoryBack({
@@ -52,7 +52,7 @@ const AITranslateContent: FC<OwnProps> = ({
       <div className="settings-item">
         <Checkbox
           label={lang('Auto Translate')}
-          checked={autoTranslate}
+          checked={displayAutoTranslate}
           onCheck={handleAutoTranslateChange}
         />
       </div>
@@ -66,4 +66,14 @@ const AITranslateContent: FC<OwnProps> = ({
   );
 };
 
-export default AITranslateContent;
+export default memo(withGlobal<OwnProps>(
+  (global): StateProps => {
+    const {
+      autoTranslate,
+    } = global.settings.byKey;
+
+    return {
+      autoTranslate,
+    };
+  },
+)(AITranslateContent));

@@ -1,13 +1,13 @@
 import type { FC } from '../../../lib/teact/teact';
 import React, {
-  useEffect,
+  memo,
   useMemo, useState,
 } from '../../../lib/teact/teact';
-import { getActions } from '../../../global';
+import { getActions, withGlobal } from '../../../global';
 
 import { SUPPORTED_TRANSLATION_LANGUAGES } from '../../../config';
-import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import buildClassName from '../../../util/buildClassName';
+import telegptSettings from '../../chatAssistant/api/user-settings';
 
 import useLastCallback from '../../../hooks/useLastCallback';
 import useOldLang from '../../../hooks/useOldLang';
@@ -42,11 +42,12 @@ const SUPPORTED_LANGUAGES = SUPPORTED_TRANSLATION_LANGUAGES.filter((lang: string
   LOCAL_SUPPORTED_DETECTION_LANGUAGES.includes(lang)
 ));
 
-const AutoTranslateLanguage: FC = () => {
+type StateProps = { autoTranslateLanguage:string | undefined };
+const AutoTranslateLanguage: FC<StateProps> = ({ autoTranslateLanguage }) => {
   const { setSettingOption } = getActions();
   const lang = useOldLang();
   const language = lang.code || 'en';
-  const [displayedOptions, setDisplayedOptions] = useState<string>('');
+  const [displayedOptions, setDisplayedOptions] = useState<string | undefined>(autoTranslateLanguage);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const displayedOptionList: ItemPickerOption[] = useMemo(() => {
     const options = SUPPORTED_LANGUAGES.map((langCode: string) => {
@@ -76,18 +77,14 @@ const AutoTranslateLanguage: FC = () => {
     return options?.filter((option) => option.label.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [language, searchQuery]);
 
-  useEffect(() => {
-    CHATAI_IDB_STORE.get('auto-translate-language').then((lan) => {
-      setDisplayedOptions(lan as string || language);
-    });
-  }, [language]);
-
   const handleChange = useLastCallback((newSelectedIds: string) => {
     setDisplayedOptions(newSelectedIds);
-    CHATAI_IDB_STORE.set('auto-translate-language', newSelectedIds);
     setSettingOption({
       autoTranslateLanguage: newSelectedIds,
       translationLanguage: newSelectedIds,
+    });
+    telegptSettings.setSettingOption({
+      autoTranslateLanguage: newSelectedIds,
     });
   });
 
@@ -112,4 +109,14 @@ const AutoTranslateLanguage: FC = () => {
   );
 };
 
-export default AutoTranslateLanguage;
+export default memo(withGlobal(
+  (global): StateProps => {
+    const {
+      autoTranslateLanguage,
+    } = global.settings.byKey;
+
+    return {
+      autoTranslateLanguage,
+    };
+  },
+)(AutoTranslateLanguage));

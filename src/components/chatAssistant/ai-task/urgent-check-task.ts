@@ -4,37 +4,14 @@ import { v4 as uuidv4 } from 'uuid';
 
 import type { ApiMessage } from '../../../api/types/messages';
 import type { SummaryStoreMessage } from '../store/summary-store';
-import type { UrgentTopic } from '../store/urgent-topic-store';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
+import telegptSettings from '../api/user-settings';
 import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
-import { URGENT_CHATS } from '../store/general-store';
 import { sendGAEvent } from '../utils/analytics';
 import { urgentMessageCheck } from '../utils/chat-api';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
-
-function getStrongAlertPhoneNumber(
-  data: Array<{
-    chatId: string;
-    messageId: string;
-    content: string;
-    matchUrgentTopicIds: string[];
-  }>,
-  topics: Array<UrgentTopic>,
-) {
-  if (data instanceof Array && data.length > 0) {
-    const mergedUniqueTopicIds = Array.from(
-      // eslint-disable-next-line @typescript-eslint/no-shadow
-      new Set(data.flatMap((item) => item.matchUrgentTopicIds)),
-    );
-    const phoneNumber = topics.find(
-      (topic) => mergedUniqueTopicIds.includes(topic.id) && topic.strongAlert,
-    )?.phoneNumber;
-    return phoneNumber || null;
-  }
-  return null;
-}
 
 class UrgentCheckTask {
   private static instance: UrgentCheckTask | undefined;
@@ -70,10 +47,10 @@ class UrgentCheckTask {
     return text;
   }
 
-  async checkUrgentMessage() {
+  checkUrgentMessage() {
     if (!this.pendingMessages.length) return;
 
-    const urgentTopics = await ChataiStores.urgentTopic?.getAllUrgentTopic();
+    const urgentTopics = telegptSettings.telegptSettings.urgent_info;
     if (!urgentTopics?.length) return;
 
     const messages = this.pendingMessages.map((item) => {
@@ -105,8 +82,9 @@ class UrgentCheckTask {
         RoomStorage.increaseUnreadCount(GLOBAL_SUMMARY_CHATID);
         // check strong alert
         try {
-          const strongAlertPhoneNumber = getStrongAlertPhoneNumber(matchs, urgentTopics);
-          if (strongAlertPhoneNumber) {
+          const hasStrongAlert = urgentTopics.find((item:any) => item.is_call);
+          const strongAlertPhoneNumber = telegptSettings.telegptSettings.phone;
+          if (hasStrongAlert && strongAlertPhoneNumber) {
             fetch(`https://telegpt-three.vercel.app/voice-call?phoneNumber=${strongAlertPhoneNumber}`, {
               method: 'GET',
             });
@@ -122,32 +100,11 @@ class UrgentCheckTask {
   }
 
   updateUrgentChats(chats: string[]) {
-    this.urgentChats = chats;
     this.pendingMessages = this.pendingMessages.filter((item) => chats.includes(item.chatId));
-    console.log('checkUrgentMessage', this.pendingMessages);
   }
 
-  getUrgentChats(): Promise<string[]> {
-    return new Promise((resolve) => {
-      if (this.urgentChatsInitialized) {
-        resolve(this.urgentChats);
-      } else {
-        this.urgentChatsInitialized = true;
-        ChataiStores.general
-          ?.get(URGENT_CHATS)
-          .then((chats) => {
-            this.urgentChats = chats || [];
-            resolve(chats || []);
-          })
-          .catch(() => {
-            resolve([]);
-          });
-      }
-    });
-  }
-
-  async addNewMessage(message: ApiMessage) {
-    const urgentChats = (await this.getUrgentChats()) || [];
+  addNewMessage(message: ApiMessage) {
+    const urgentChats = telegptSettings.telegptSettings.urgent_chat_ids;
     if (urgentChats.length === 0 || urgentChats.includes(message.chatId)) {
       this.pendingMessages.push(message);
     }

@@ -1,8 +1,7 @@
 import './firebase_analytics';
 
-import { getActions } from '../../../global';
-
-import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
+// import { getActions } from '../../../global';
+// import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import { aiChatFoldersTask } from '../ai-task/ai-chatfolders-task';
 import { globalSummaryTask } from '../ai-task/global-summary-task';
 import { intelligentReplyTask } from '../ai-task/intelligent-reply-task';
@@ -11,14 +10,6 @@ import { TOOLS_SCHEDULE_MEETING_ID, TOOLS_SEARCH_GROUP_ID, TOOLS_SEARCH_USER_ID 
 import { toolsEmbeddingStore } from '../vector-store';
 
 export const initChatAI = () => {
-  // init data
-  CHATAI_IDB_STORE.get('auto-translate-language').then((language) => {
-    getActions().setSettingOption({ autoTranslateLanguage: language as string || 'en' });
-    getActions().setSettingOption({ translationLanguage: language as string || 'en' });
-  });
-  CHATAI_IDB_STORE.get('auto-translate').then((value) => {
-    getActions().setSettingOption({ autoTranslate: value as boolean || false });
-  });
   // init global summary
   globalSummaryTask.initTask();
   // init intelligent reply task

@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
 import { v4 as uuidv4 } from 'uuid';
 import { getActions, getGlobal } from '../../../global';
 
-import type { CustomSummaryTemplate } from '../store/chatai-summary-template-store';
 import type { SummaryStoreMessage } from '../store/summary-store';
 import { type ApiMessage, MAIN_THREAD_ID } from '../../../api/types/messages';
 import { LoadMoreDirection } from '../../../types';
@@ -16,12 +16,12 @@ import {
   selectBot, selectChat, selectChatLastMessageId, selectUser,
 } from '../../../global/selectors';
 import { getOrderedIds } from '../../../util/folderManager';
+import telegptSettings from '../api/user-settings';
 import RoomStorage from '../room-storage';
 import {
   ChataiStores,
   GLOBAL_SUMMARY_LAST_TIME,
 } from '../store';
-import { SUMMARY_CHATS } from '../store/general-store';
 import { sendGAEvent } from '../utils/analytics';
 import { globalSummary } from '../utils/chat-api';
 import { fetchChatMessageByDeadline, loadTextMessages } from '../utils/fetch-messages';
@@ -99,10 +99,6 @@ class GlobalSummaryTask {
 
   private summaryChats: string[] = [];
 
-  private customizationTemplate:CustomSummaryTemplate | undefined = undefined;
-
-  private summaryChatsInitialized = false;
-
   private timmer: NodeJS.Timeout | undefined;
 
   initTask() {
@@ -131,8 +127,6 @@ class GlobalSummaryTask {
 
     this.timmer = setInterval(executeTask, 60000);
     eventEmitter.on(Actions.ChatAIStoreReady, () => {
-      console.log('ChatAIStoreReady');
-      this.updateSummarySettings();
       setTimeout(() => {
         ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME).then((lastSummaryTime) => {
           if (!lastSummaryTime) {
@@ -152,23 +146,6 @@ class GlobalSummaryTask {
     if (globalSummaryLastTime) {
       this.summaryMessageByDeadline(globalSummaryLastTime, useRangeTime);
     }
-  }
-
-  async updateSummarySettings() {
-    try {
-      this.customizationTemplate = await ChataiStores.general?.get('lastDefinedPrompt');
-      this.summaryChats = await ChataiStores.general?.get(SUMMARY_CHATS) || [];
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  public updateSummaryDefineTemplate(template: CustomSummaryTemplate | undefined) {
-    this.customizationTemplate = template;
-  }
-
-  public updateSummaryChats(chats:string[]) {
-    this.summaryChats = chats;
   }
 
   startSummary(
@@ -210,15 +187,16 @@ class GlobalSummaryTask {
       }
     });
     if (!summaryChats.length) return;
+    const customTopics = this.getCustomTopic();
     globalSummary({
       messages: summaryChats,
       language: new Intl.DisplayNames([autoTranslateLanguage], { type: 'language' }).of(autoTranslateLanguage),
-      definePrompt: this.customizationTemplate?.prompt || '',
+      customTopics,
     }).then((res:any) => {
       const content = {
         ...res.data,
         summaryInfo,
-        customizationTemplate: this.customizationTemplate,
+        customTopics,
       };
       const newMessage: SummaryStoreMessage = {
         timestamp: new Date().getTime(),
@@ -248,6 +226,13 @@ class GlobalSummaryTask {
       });
     });
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  getCustomTopic = () => {
+    const { curious_info, curious_id } = telegptSettings.telegptSettings;
+    const customTopics = curious_info.filter((item:any) => curious_id.includes(item.id));
+    return customTopics;
+  };
 
   initFirstSummary = async () => {
     let unreadMessages: Record<string, ApiMessage[]> = {};
@@ -334,7 +319,9 @@ class GlobalSummaryTask {
     const global = getGlobal();
     // const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
     const orderedIds = await getAllChatIds() || [];
-    const summaryChatIds = this.summaryChats.length ? this.summaryChats : orderedIds;
+    const summaryChatIds = telegptSettings.telegptSettings.summary_chat_ids
+      ? telegptSettings.telegptSettings.summary_chat_ids
+      : orderedIds;
     let summaryTime;
     if (useRangeTime) {
       summaryTime = getAlignedExecutionTimestamp();
@@ -407,22 +394,6 @@ class GlobalSummaryTask {
       });
       this.startSummary(unreadMessages, summaryInfo);
     }
-  }
-
-  getSummaryChats():Promise<string[]> {
-    return new Promise((resolve) => {
-      if (this.summaryChatsInitialized) {
-        resolve(this.summaryChats);
-      } else {
-        this.summaryChatsInitialized = true;
-        ChataiStores.general?.get(SUMMARY_CHATS).then((chats) => {
-          this.summaryChats = chats || [];
-          resolve(chats || []);
-        }).catch(() => {
-          resolve([]);
-        });
-      }
-    });
   }
 
   public static getInstance() {

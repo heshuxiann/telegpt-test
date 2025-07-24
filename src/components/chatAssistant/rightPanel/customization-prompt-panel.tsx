@@ -1,20 +1,21 @@
 /* eslint-disable max-len */
 import React, { useCallback, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { message as showMessage } from 'antd';
+import { getGlobal } from '../../../global';
 
-import TextArea from '../component/textarea';
-import { ChataiStores } from '../store';
+import telegptSettings from '../api/user-settings';
 
 import InputText from '../component/InputText';
+import TextArea from '../component/TextArea';
 import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 const CustomizationPromptPanel = () => {
   const { openDrawer } = useDrawerStore();
-  const [form, setForm] = useState({ title: '', prompt: '' });
+  const [form, setForm] = useState({ topic: '', prompt: '' });
   const [titleError, setTitleError] = useState(false);
   const [promptError, setPromptError] = useState(false);
-  const handleSave = useCallback(async () => {
-    if (form.title.trim().length === 0) {
+  const handleSave = useCallback(() => {
+    if (form.topic.trim().length === 0) {
       setTitleError(true);
       return;
     }
@@ -22,12 +23,21 @@ const CustomizationPromptPanel = () => {
       setPromptError(true);
       return;
     }
-    await ChataiStores.summaryTemplate?.addSummaryTemplate({
-      id: uuidv4(),
+    const global = getGlobal();
+    const { currentUserId } = global;
+    telegptSettings.updateSummarizeTemplate({
+      user_id: currentUserId,
       ...form,
-    });
-    openDrawer(DrawerKey.PersonalizeSettings, {
-      activeKey: 0,
+    }).then((res:any) => {
+      if (res.code === 0) {
+        openDrawer(DrawerKey.PersonalizeSettings, {
+          activeKey: 0,
+        });
+      } else {
+        showMessage.info('save failed');
+      }
+    }).catch(() => {
+      showMessage.info('save failed');
     });
   }, [form, openDrawer]);
   const handleCancel = useCallback(() => {
@@ -36,12 +46,12 @@ const CustomizationPromptPanel = () => {
     });
   }, [openDrawer]);
   const handleTopicNameChange = useCallback((e: React.FormEvent<HTMLInputElement>) => {
-    const title = e.currentTarget.value;
+    const topic = e.currentTarget.value;
     setForm((prev) => {
-      prev.title = title;
+      prev.topic = topic;
       return { ...prev };
     });
-    if (title.trim().length) {
+    if (topic.trim().length) {
       setTitleError(false);
     }
   }, []);
@@ -60,7 +70,7 @@ const CustomizationPromptPanel = () => {
       <p className="text-[14px] text-[#666666]">Please enter the specific topic you want to summarize accurately and add a detailed description. The message summary service will show the content as per your needs.</p>
       <InputText
         label="Topic name"
-        value={form.title}
+        value={form.topic}
         onChange={handleTopicNameChange}
         error={titleError ? 'Please enter the topic name' : undefined}
       />

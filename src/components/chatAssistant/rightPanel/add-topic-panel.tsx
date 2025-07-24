@@ -2,63 +2,55 @@
 /* eslint-disable react/jsx-no-bind */
 /* eslint-disable max-len */
 import React, { useCallback, useState } from 'react';
-import { Switch } from 'antd';
-import { v4 as uuidv4 } from 'uuid';
+import { message as showMessage, Switch } from 'antd';
 
-import type { UrgentTopic } from '../store/urgent-topic-store';
+import type { IUrgentTopic } from '../api/user-settings';
 
-import TextArea from '../component/textarea';
-import { ChataiStores } from '../store';
+import telegptSettings from '../api/user-settings';
 
 import InputText from '../component/InputText';
+import TextArea from '../component/TextArea';
 import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 const AddTopicPanel = () => {
+  const { phone } = telegptSettings.telegptSettings;
   const { openDrawer, drawerParams } = useDrawerStore();
   const [topicError, setTopicError] = useState(false);
   const [descriptionError, setDescriptionError] = useState(false);
   const [phoneNumberError, setPhoneNumberError] = useState(false);
-  const initialValues:UrgentTopic = drawerParams || {
-    id: uuidv4(),
-    topicName: '',
-    topicDescription: '',
-    strongAlert: false,
-    phoneNumber: '',
+  const [phoneNumber, setPhoneNumber] = useState(phone);
+  const initialValues:IUrgentTopic = drawerParams || {
+    topic: '',
+    prompt: '',
+    is_call: false,
+    is_open: false,
   };
-  const [form, setForm] = useState<UrgentTopic>(initialValues);
+  const [form, setForm] = useState<IUrgentTopic>(initialValues);
   const strongAlertChange = (checked:boolean) => {
-    setForm((prev) => {
-      prev.strongAlert = checked;
+    setForm((prev:IUrgentTopic) => {
+      prev.is_call = checked;
       return { ...prev };
     });
     if (!checked) {
       setPhoneNumberError(false);
     }
   };
-  const updateAllTopicPhoneNumber = async (phoneNumber:string) => {
-    const allTopics = await ChataiStores.urgentTopic?.getAllUrgentTopic();
-    allTopics?.map((topic) => {
-      if (topic.phoneNumber) {
-        topic.phoneNumber = phoneNumber;
-      }
-      return topic;
-    });
-    return ChataiStores.urgentTopic?.addUrgentTopics(allTopics || []);
-  };
+
   const handleTopicNameChange = useCallback((e: React.FormEvent<HTMLInputElement>) => {
     const topicName = e.currentTarget.value;
-    setForm((prev) => {
-      prev.topicName = topicName;
+    setForm((prev:IUrgentTopic) => {
+      prev.topic = topicName;
       return { ...prev };
     });
     if (topicName.trim().length) {
       setTopicError(false);
     }
   }, []);
+
   const handleTopicDescriptionChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const topicDescription = e.currentTarget.value;
-    setForm((prev) => {
-      prev.topicDescription = topicDescription;
+    setForm((prev:IUrgentTopic) => {
+      prev.prompt = topicDescription;
       return { ...prev };
     });
     if (topicDescription.trim().length) {
@@ -67,50 +59,44 @@ const AddTopicPanel = () => {
   }, []);
 
   const handlePhoneNumberChange = useCallback((e: React.FormEvent<HTMLInputElement>) => {
-    const phoneNumber = e.currentTarget.value;
-    setForm((prev) => {
-      prev.phoneNumber = phoneNumber;
-      return { ...prev };
-    });
-    if (phoneNumber.trim().length) {
-      setDescriptionError(false);
+    const number = e.currentTarget.value.trim();
+    setPhoneNumber(number);
+    if (number.trim().length === 0) {
+      setPhoneNumberError(false);
     }
   }, []);
-  const handleSave = useCallback(async () => {
-    if (form.topicName.trim().length === 0) {
+
+  const handleSave = useCallback(() => {
+    if (form.topic.trim().length === 0) {
       setTopicError(true);
       return;
     }
-    if (form.topicDescription.trim().length === 0) {
+    if (form.prompt.trim().length === 0) {
       setDescriptionError(true);
       return;
     }
-    if (form.strongAlert && form.phoneNumber.trim().length === 0) {
+    if (form.is_call && phoneNumber.length === 0) {
       setPhoneNumberError(true);
       return;
     }
-    await ChataiStores.urgentTopic?.addUrgentTopic({ ...form });
-    if (form.phoneNumber?.trim().length) {
-      await updateAllTopicPhoneNumber(form.phoneNumber);
-    }
-    openDrawer(DrawerKey.PersonalizeSettings, {
-      activeKey: 1,
+    telegptSettings.updateUrgentTopic(form).then((res:any) => {
+      if (res.code === 0) {
+        openDrawer(DrawerKey.PersonalizeSettings, {
+          activeKey: 1,
+        });
+      } else {
+        showMessage.info('save failed');
+      }
+    }).catch(() => {
+      showMessage.info('save failed');
     });
-    // form.validateFields().then(async (values) => {
-    //   console.log('values', values);
-    //   const topicId = drawerParams?.id || uuidv4();
-    //   await ChataiStores.urgentTopic?.addUrgentTopic({ id: topicId, ...values });
-    //   if (values.phoneNumber) {
-    //     await updateAllTopicPhoneNumber(values.phoneNumber);
-    //     console.log(3333);
-    //   }
-    //   openDrawer(DrawerKey.PersonalizeSettings, {
-    //     activeKey: 1,
-    //   });
-    // }).catch((errorInfo) => {
-    //   console.log('errorInfo', errorInfo);
-    // });
-  }, [form, openDrawer]);
+    if (form.is_call && phoneNumber.length > 0) {
+      telegptSettings.setSettingOption({
+        phone: phoneNumber,
+      });
+    }
+  }, [form, openDrawer, phoneNumber]);
+
   const handleCancel = useCallback(() => {
     openDrawer(DrawerKey.PersonalizeSettings, {
       activeKey: 1,
@@ -124,7 +110,7 @@ const AddTopicPanel = () => {
         </div>
         <InputText
           label="Topic Name"
-          value={form.topicName}
+          value={form.topic}
           onChange={handleTopicNameChange}
           error={topicError ? 'Please enter the topic name' : undefined}
         />
@@ -132,7 +118,7 @@ const AddTopicPanel = () => {
           <TextArea
             className="!mb-[12px]"
             label="Topic Description"
-            value={form.topicDescription}
+            value={form.prompt}
             noReplaceNewlines
             error={descriptionError ? 'Please enter the topic description' : undefined}
             onChange={handleTopicDescriptionChange}
@@ -144,7 +130,7 @@ const AddTopicPanel = () => {
         <div className="mb-[24px]">
           <div className="flex items-center justify-between px-[14px] py-[10px] bg-[var(--color-chat-hover)] rounded-[6px] mb-[12px]">
             <span className="text-[var(--color-text)]">Enable strong alerts</span>
-            <Switch value={form.strongAlert} onChange={strongAlertChange} />
+            <Switch value={form.is_call} onChange={strongAlertChange} />
           </div>
           <span className="text-[14px] text-[#767676]">
             Once enabled, these types of messages will trigger a phone alert.
@@ -152,41 +138,11 @@ const AddTopicPanel = () => {
         </div>
         <InputText
           label="Phone Number"
-          value={form.phoneNumber}
+          type="number"
+          value={phoneNumber}
           onChange={handlePhoneNumberChange}
-          error={phoneNumberError ? 'Please enter phone number' : undefined}
+          error={phoneNumberError ? 'Please enter a valid phone number' : undefined}
         />
-        {/* <Form
-          form={form}
-          layout="vertical"
-          initialValues={initialValues}
-        >
-          <Form.Item label="Topic name" name="topicName" rules={[{ required: true, message: 'Please enter topic name' }]}>
-            <Input className="bg-[var(--color-chat-hover)]" placeholder="Please enter the content topics" />
-          </Form.Item>
-          <Form.Item label="Topic description" name="topicDescription" rules={[{ required: true, message: 'Please enter topic description' }]}>
-            <TextArea
-              className="bg-[var(--color-chat-hover)]"
-              placeholder="Please describe the specific content or keywords that should trigger an alert. For example, if 'Vitalik' + 'ETH' + 'sell' appear, please notify me."
-            />
-          </Form.Item>
-          <div className="mb-[24px]">
-            <div className="flex items-center justify-between px-[14px] py-[10px] bg-[var(--color-chat-hover)] rounded-[6px] mb-[12px]">
-              <span className="text-[var(--color-text)]">Enable strong alerts</span>
-              <Form.Item name="strongAlert" valuePropName="checked" noStyle>
-                <Switch onChange={strongAlertChange} />
-              </Form.Item>
-            </div>
-            <span className="text-[14px] text-[#767676]">
-              Once enabled, these types of messages will trigger a phone alert.
-            </span>
-          </div>
-          {strongAlert && (
-            <Form.Item label="Phone number" name="phoneNumber" rules={[{ required: true, message: 'Please enter phone number' }]}>
-              <Input />
-            </Form.Item>
-          )}
-        </Form> */}
       </div>
       <div className="flex flex-row justify-center gap-[14px] mt-auto mb-[24px]">
         <button

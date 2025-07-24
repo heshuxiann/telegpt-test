@@ -7,8 +7,6 @@ import type { Message } from 'ai';
 import copy from 'copy-to-clipboard';
 import { getActions, getGlobal } from '../../../global';
 
-import type { CustomSummaryTemplate } from '../store/chatai-summary-template-store';
-
 import { isUserId } from '../../../global/helpers';
 import { selectChat, selectUser } from '../../../global/selectors';
 import useOldLang from '../hook/useOldLang';
@@ -25,14 +23,10 @@ import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 import ActionsIcon from '../assets/actions.png';
 import CalendarIcon from '../assets/calendar.png';
-import ChainTrendIcon from '../assets/chain-trend.png';
 import CheckIcon from '../assets/check.png';
-import KeyBusinessIcon from '../assets/key-business.png';
 import MessageIcon from '../assets/message.png';
 import SerenaLogoPath from '../assets/serena.png';
 import UserIcon from '../assets/user.png';
-import UserGroupIcon from '../assets/user-group.png';
-import VectorIcon from '../assets/vector.png';
 import WriteIcon from '../assets/write.png';
 
 interface IProps {
@@ -44,16 +38,6 @@ interface ISummaryInfo {
   summaryStartTime: number;
   summaryEndTime: number;
   summaryChatIds: Array<string>;
-}
-
-interface ISummaryTopicItem {
-  chatId:string;
-  chatRoomName: string;
-  title: string;
-  summaryItems: Array<{
-    content: string;
-    relevantMessageIds: Array<number>;
-  }>;
 }
 
 interface ISummaryPendingItem {
@@ -70,12 +54,21 @@ interface ISummaryGarbageItem {
   relevantMessageIds: number[];
 }
 
-const CustomizationTopicIcon = {
-  'Most Discussed Coins': VectorIcon,
-  'Most Active Users': UserGroupIcon,
-  'Key business updates': KeyBusinessIcon,
-  'On-Chain Trending Topics': ChainTrendIcon,
-};
+interface SummaryTopic {
+  chatId: string;
+  chatRoomName: string;
+  mainTopics: Array<{
+    content: string;
+    relevantMessageIds: number[];
+  }>;
+  customTopics: Array<{
+    topicName: string;
+    summaryItems: Array<{
+      content: string;
+      relevantMessageIds: number[];
+    }>;
+  }>;
+}
 
 /**
  * 时间戳专用时间范围格式化工具
@@ -137,6 +130,58 @@ function formatTimestampRange(start:number | undefined, end:number | undefined) 
   return '';
 }
 
+function mergeTopics(mainTopic: any[], customTopic: any[]):SummaryTopic[] {
+  const mergedMap = new Map<string, {
+    chatId: string;
+    chatRoomName: string;
+    mainTopics: Array<{ content: string; relevantMessageIds: number[] }>;
+    customTopics: Array<{
+      topicName: string;
+      summaryItems: Array<{ content: string; relevantMessageIds: number[] }>;
+    }>;
+  }>();
+
+  // 处理 mainTopic
+  for (const item of mainTopic) {
+    const key = item.chatId;
+    if (!mergedMap.has(key)) {
+      mergedMap.set(key, {
+        chatId: item.chatId,
+        chatRoomName: item.chatRoomName,
+        mainTopics: item.summaryItems || [],
+        customTopics: [],
+      });
+    } else {
+      const existing = mergedMap.get(key)!;
+      existing.mainTopics.push(...(item.summaryItems || []));
+    }
+  }
+
+  // 处理 customTopic
+  for (const item of customTopic) {
+    const key = item.chatId;
+    if (!mergedMap.has(key)) {
+      mergedMap.set(key, {
+        chatId: item.chatId,
+        chatRoomName: item.chatRoomName,
+        mainTopics: [],
+        customTopics: [{
+          topicName: item.topicName,
+          summaryItems: item.summaryItems || [],
+        }],
+      });
+    } else {
+      const existing = mergedMap.get(key)!;
+      existing.customTopics.push({
+        topicName: item.topicName,
+        summaryItems: item.summaryItems || [],
+      });
+    }
+  }
+
+  return Array.from(mergedMap.values());
+}
+
 const ChatAvatar = ({
   chatId, classNames, size, style,
 }: { chatId: string; classNames?: string; size:number;style?: { [key:string]:string } }) => {
@@ -159,11 +204,11 @@ const ChatAvatar = ({
   );
 };
 
-const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; index: number }) => {
-  const { title, summaryItems, chatId } = topicItem;
+const SummaryTopicItem = ({ chatId, topicItem }: {
+  chatId: string;
+  topicItem:{ content:string; relevantMessageIds: number[] }[];
+}) => {
   const { openDrawer } = useDrawerStore();
-  if (!summaryItems.length) return null;
-  if (!title) return null;
   const showMessageDetail = (chatId: string, relevantMessageIds: number[]) => {
     openDrawer(DrawerKey.OriginalMessages, {
       relevantMessages: [{ chatId, messageIds: relevantMessageIds }],
@@ -171,27 +216,21 @@ const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; 
   };
   return (
     <ErrorBoundary>
-      <div>
-        <div className="flex flex-row items-center flex-wrap">
-          <span className="text-[16px] font-bold mr-[24px]">{index + 1}. {title}</span>
-          {chatId && (<ChatAvatar size={20} chatId={chatId} />)}
-        </div>
-        <ul className="list-disc pl-[2px] text-[16px] list-inside">
-          {summaryItems.map((summaryItem: any) => {
-            const { content, relevantMessageIds } = summaryItem;
-            if (!content) return null;
-            return (
-              <li
-                role="button"
-                className="cursor-pointer text-[15px] break-words"
-                onClick={() => showMessageDetail(chatId, relevantMessageIds)}
-              >
-                {content}
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+      <ul className="list-disc pl-[18px] text-[16px] list-inside">
+        {topicItem.map((summaryItem: any) => {
+          const { content, relevantMessageIds } = summaryItem;
+          if (!content) return null;
+          return (
+            <li
+              role="button"
+              className="cursor-pointer text-[15px] break-words"
+              onClick={() => showMessageDetail(chatId, relevantMessageIds)}
+            >
+              {content}
+            </li>
+          );
+        })}
+      </ul>
     </ErrorBoundary>
   );
 };
@@ -255,13 +294,13 @@ const SummaryGarbageItem = ({ garBageItem }: { garBageItem: ISummaryGarbageItem 
 const ActionsItems = ({
   messageId,
   summaryInfo,
-  mainTopic,
+  summaryTopic,
   pendingMatters,
   deleteMessage,
 }: {
   messageId:string;
   summaryInfo: ISummaryInfo | null;
-  mainTopic: ISummaryTopicItem[];
+  summaryTopic: SummaryTopic[];
   pendingMatters: ISummaryPendingItem[];
   deleteMessage: () => void;
 }) => {
@@ -272,8 +311,13 @@ const ActionsItems = ({
     const { summaryStartTime, summaryEndTime } = summaryInfo || {};
     const timeRange = formatTimestampRange(summaryStartTime, summaryEndTime);
     let copyText = `Chat Summary\nTime Range: ${timeRange}`;
-    if (mainTopic.length > 0) {
-      copyText += `\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}`;
+    if (summaryTopic.length > 0) {
+      copyText += `\nKey Topics:\n${summaryTopic.map((item:SummaryTopic) => {
+        let str = item.chatRoomName;
+        str += `\nKey points:\n${item.mainTopics.map((t) => t.content).join('\n')}`;
+        str += `${item.customTopics.map((c) => `${c.topicName}\n${c.summaryItems.map((s) => s.content).join('\n')}`).join('\n')}`;
+        return str;
+      }).join('\n')}`;
     }
     if (pendingMatters.length > 0) {
       copyText += `\nActions Items:\n${pendingMatters.map((item) => `${item.chatRoomName}: ${item.summary}`).join('\n')}`;
@@ -287,8 +331,13 @@ const ActionsItems = ({
     const { summaryStartTime, summaryEndTime } = summaryInfo || {};
     const timeRange = formatTimestampRange(summaryStartTime, summaryEndTime);
     let voiceText = `Chat Summary\nTime Range: ${timeRange}`;
-    if (mainTopic.length > 0) {
-      voiceText += `\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}`;
+    if (summaryTopic.length > 0) {
+      voiceText += `\nKey Topics:\n${summaryTopic.map((item:SummaryTopic) => {
+        let str = item.chatRoomName;
+        str += `\nKey points:\n${item.mainTopics.map((t) => t.content).join('\n')}`;
+        str += `${item.customTopics.map((c) => `${c.topicName}\n${c.summaryItems.map((s) => s.content).join('\n')}`).join('\n')}`;
+        return str;
+      }).join('\n')}`;
     }
     if (pendingMatters.length > 0) {
       voiceText += `\nActions Items:\n${pendingMatters.map((item) => `${item.chatRoomName}: ${item.summary}`).join('\n')}`;
@@ -329,7 +378,7 @@ const ActionsItems = ({
 const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
   return (
     <ErrorBoundary>
-      <div>
+      <div className="mb-[6px]">
         <div className="flex items-center gap-[8px]">
           <img className="w-[52px] h-[52px] rounded-full ml-[-60px]" src={SerenaLogoPath} alt="" />
           <div>
@@ -359,7 +408,7 @@ const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
           </p>
         </div>
         {summaryInfo?.summaryChatIds ? (
-          <div className="flex items-center gap-[8px] mb-[18px]">
+          <div className="flex items-center gap-[8px]">
             <img className="w-[16px] h-[16px]" src={UserIcon} alt="" />
             <span className="font-bold text-[14px]">Groups/friends: </span>
             <div className="flex items-center">
@@ -387,18 +436,14 @@ const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
 
 const MainSummaryContent = ({
   messageId,
-  customizationTemplate,
   summaryInfo,
-  customizationTopic,
-  mainTopic,
+  summaryTopic,
   pendingMatters,
   deleteMessage,
 }: {
   messageId:string;
-  customizationTemplate:CustomSummaryTemplate | null;
   summaryInfo: ISummaryInfo | null;
-  customizationTopic: ISummaryTopicItem[];
-  mainTopic: ISummaryTopicItem[];
+  summaryTopic:SummaryTopic[];
   pendingMatters: ISummaryPendingItem[];
   deleteMessage: () => void;
 }) => {
@@ -406,34 +451,44 @@ const MainSummaryContent = ({
     <div className="w-max-[693px] rounded-[10px] pl-[82px] pr-[25px] pt-[20px] pb-[25px] bg-[var(--color-background)]">
       {/* summary info  */}
       {summaryInfo && <SummaryInfoContent summaryInfo={summaryInfo} />}
-      {/* customization topic  */}
-      {customizationTopic.length > 0 && customizationTemplate && (
-        <div>
-          <p className="flex items-center gap-[8px] mb-[16px]">
-            <span className="text-[18px] font-bold">{customizationTemplate.title}</span>
-            {
-              CustomizationTopicIcon?.[customizationTemplate.title as keyof typeof CustomizationTopicIcon] ? (
-                <img className="w-[16px] h-[16px]" src={CustomizationTopicIcon?.[customizationTemplate.title as keyof typeof CustomizationTopicIcon]} alt="" />
-              ) : (
-                <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
-              )
-            }
-          </p>
-          {customizationTopic.map((item, index) => (
-            <SummaryTopicItem topicItem={item} index={index} />
-          ))}
-        </div>
-      )}
-      {/* maintopic  */}
-      {mainTopic.length > 0 && (
+      {summaryTopic.length > 0 && (
         <div>
           <p className="flex items-center gap-[8px] mb-[16px]">
             <span className="text-[18px] font-bold">Key Topics</span>
             <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
           </p>
-          {mainTopic.map((item, index) => (
-            <SummaryTopicItem topicItem={item} index={index} key={item.title} />
-          ))}
+          {
+            summaryTopic.map((item, index) => {
+              return (
+                <div>
+                  <div className="flex items-center gap-[8px]">
+                    <p className="text-[16px] font-bold">{index + 1}.{item.chatRoomName}</p>
+                    <ChatAvatar size={20} chatId={item.chatId} />
+                  </div>
+                  <ul className="list-disc pl-[2px] text-[16px] list-inside">
+                    {item.mainTopics.length > 0 && (
+                      <li>
+                        <span className="text-[16px] font-bold">Key Points</span>
+                        <SummaryTopicItem chatId={item.chatId} topicItem={item.mainTopics} />
+                      </li>
+                    )}
+                    {
+                      item.customTopics.length > 0 && (
+                        item.customTopics.map((customTopic) => {
+                          return (
+                            <li>
+                              <span className="text-[16px] font-bold">{customTopic.topicName}</span>
+                              <SummaryTopicItem chatId={item.chatId} topicItem={customTopic.summaryItems} />
+                            </li>
+                          );
+                        })
+                      )
+                    }
+                  </ul>
+                </div>
+              );
+            })
+          }
         </div>
       )}
       {/* pending actions  */}
@@ -447,39 +502,39 @@ const MainSummaryContent = ({
         </div>
       )}
       {/* action buttons  */}
-      <ActionsItems messageId={messageId} summaryInfo={summaryInfo} mainTopic={mainTopic} pendingMatters={pendingMatters} deleteMessage={deleteMessage} />
+      <ActionsItems
+        messageId={messageId}
+        summaryInfo={summaryInfo}
+        summaryTopic={summaryTopic}
+        pendingMatters={pendingMatters}
+        deleteMessage={deleteMessage}
+      />
     </div>
   );
 };
 const SummaryContent = ({
   messageId,
-  customizationTemplate,
   summaryInfo,
-  customizationTopic,
-  mainTopic,
+  summaryTopic,
   pendingMatters,
   garbageMessage,
   deleteMessage,
 }:
 {
   messageId: string;
-  customizationTemplate:CustomSummaryTemplate | null;
   summaryInfo: ISummaryInfo | null;
-  customizationTopic: ISummaryTopicItem[];
-  mainTopic: ISummaryTopicItem[];
+  summaryTopic: SummaryTopic[];
   pendingMatters: ISummaryPendingItem[];
   garbageMessage: ISummaryGarbageItem[];
   deleteMessage: () => void;
 }) => {
   return (
     <>
-      {(!mainTopic.length && !pendingMatters.length && !customizationTopic.length) ? null : (
+      {(!summaryTopic.length && !pendingMatters.length) ? null : (
         <MainSummaryContent
           messageId={messageId}
-          customizationTemplate={customizationTemplate}
-          customizationTopic={customizationTopic}
           summaryInfo={summaryInfo}
-          mainTopic={mainTopic}
+          summaryTopic={summaryTopic}
           pendingMatters={pendingMatters}
           deleteMessage={deleteMessage}
         />
@@ -515,22 +570,14 @@ const SummaryContent = ({
 const GlobalSummaryMessage = (props: IProps) => {
   const { message, deleteMessage } = props;
   const [summaryInfo, setSummaryInfo] = useState<ISummaryInfo | null>(null);
-  const [customizationTemplate, setCustomizationTemplate] = useState<CustomSummaryTemplate | null>(null);
-  const [customizationTopic, setCustomizationTopic] = useState<ISummaryTopicItem[]>([]);
-  const [mainTopic, setMainTopic] = useState<ISummaryTopicItem[]>([]);
   const [pendingMatters, setPendingMatters] = useState<ISummaryPendingItem[]>([]);
   const [garbageMessage, setGarbageMessage] = useState<ISummaryGarbageItem[]>([]);
+  const [summaryTopic, setSummaryTopic] = useState<SummaryTopic[]>([]);
   const parseMessage = useCallback((messageContent: string) => {
     const messageObj = JSON.parse(messageContent);
     const {
-      mainTopic, pendingMatters, garbageMessage, customizationTopic, summaryInfo, customizationTemplate,
+      mainTopic, pendingMatters, garbageMessage, customTopic, summaryInfo,
     } = messageObj;
-    if (customizationTopic) {
-      setCustomizationTopic(customizationTopic as ISummaryTopicItem[]);
-    }
-    if (mainTopic) {
-      setMainTopic(mainTopic as ISummaryTopicItem[]);
-    }
     if (pendingMatters) {
       setPendingMatters(pendingMatters as ISummaryPendingItem[]);
     }
@@ -540,9 +587,8 @@ const GlobalSummaryMessage = (props: IProps) => {
     if (summaryInfo) {
       setSummaryInfo(summaryInfo as ISummaryInfo);
     }
-    if (customizationTemplate) {
-      setCustomizationTemplate(customizationTemplate);
-    }
+    const mergeSummaryTopics = mergeTopics(mainTopic, customTopic);
+    setSummaryTopic(mergeSummaryTopics);
   }, []);
   useEffect(() => {
     try {
@@ -558,10 +604,8 @@ const GlobalSummaryMessage = (props: IProps) => {
   return (
     <SummaryContent
       messageId={message.id}
-      customizationTopic={customizationTopic}
-      customizationTemplate={customizationTemplate}
       summaryInfo={summaryInfo}
-      mainTopic={mainTopic}
+      summaryTopic={summaryTopic}
       pendingMatters={pendingMatters}
       garbageMessage={garbageMessage}
       deleteMessage={deleteMessage}

@@ -4,10 +4,9 @@ import React, {
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
-import type { ISettings } from '../../../types';
-
 import { SUPPORTED_TRANSLATION_LANGUAGES } from '../../../config';
 import buildClassName from '../../../util/buildClassName';
+import telegptSettings from '../../chatAssistant/api/user-settings';
 
 import useEffectWithPrevDeps from '../../../hooks/useEffectWithPrevDeps';
 import useHistoryBack from '../../../hooks/useHistoryBack';
@@ -49,7 +48,7 @@ type OwnProps = {
   onReset: () => void;
 };
 
-type StateProps = Pick<ISettings, 'autoTranslateLanguage'>;
+type StateProps = { autoTranslateLanguage:string | undefined };
 
 const SettingsAutoTranslate: FC<OwnProps & StateProps> = ({
   isActive,
@@ -60,7 +59,7 @@ const SettingsAutoTranslate: FC<OwnProps & StateProps> = ({
 
   const lang = useOldLang();
   const language = lang.code || 'en';
-  const [displayedOptions, setDisplayedOptions] = useState<string>('');
+  const [displayedOptions, setDisplayedOptions] = useState<string | undefined>(autoTranslateLanguage);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const displayedOptionList: ItemPickerOption[] = useMemo(() => {
@@ -101,6 +100,9 @@ const SettingsAutoTranslate: FC<OwnProps & StateProps> = ({
     setSettingOption({
       autoTranslateLanguage: newSelectedIds,
       translationLanguage: newSelectedIds,
+    });
+    telegptSettings.setSettingOption({
+      autoTranslateLanguage: newSelectedIds,
     });
   });
 

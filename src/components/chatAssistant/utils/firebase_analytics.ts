@@ -1,20 +1,21 @@
 /* eslint-disable no-null/no-null */
-import { initializeApp } from "firebase/app";
+import { initializeApp } from 'firebase/app';
 import {
   fetchAndActivate,
   getRemoteConfig,
   getValue,
-} from "firebase/remote-config";
-import eventEmitter, { Actions } from "../lib/EventEmitter";
+} from 'firebase/remote-config';
+
+import eventEmitter, { Actions } from '../lib/EventEmitter';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDRc-Q0RzBJ6PnN88XQSlfJIy5JiA4Eamo",
-  authDomain: "im-copilot.firebaseapp.com",
-  projectId: "im-copilot",
-  storageBucket: "im-copilot.firebasestorage.app",
-  messagingSenderId: "496967575175",
-  appId: "1:496967575175:web:07741a144cc34882153a22",
-  measurementId: "G-PTEQ411L8P",
+  apiKey: 'AIzaSyDRc-Q0RzBJ6PnN88XQSlfJIy5JiA4Eamo',
+  authDomain: 'im-copilot.firebaseapp.com',
+  projectId: 'im-copilot',
+  storageBucket: 'im-copilot.firebasestorage.app',
+  messagingSenderId: '496967575175',
+  appId: '1:496967575175:web:07741a144cc34882153a22',
+  measurementId: 'G-PTEQ411L8P',
 };
 
 const app = initializeApp(firebaseConfig);
@@ -23,11 +24,12 @@ remoteConfig.settings = {
   minimumFetchIntervalMillis: 0,
   fetchTimeoutMillis: 60000,
 };
-export const UPDATE_DEFER_KEY = "telegpt_defer_update";
-const POKE_RATE_MS = 3600000;
+export const UPDATE_DEFER_KEY = 'telegpt_defer_update';
+const POKE_RATE_MS = 36000;
 
 class FireBaseAnalytics {
   looper!: ReturnType<typeof setInterval> | null;
+
   constructor() {
     this.looFireBase();
   }
@@ -45,10 +47,11 @@ class FireBaseAnalytics {
   fetchAppVersion(isFirstTime = false) {
     fetchAndActivate(remoteConfig)
       .then(() => {
-        const configKey = "web_force_update_config";
+        const configKey = 'web_force_update_config';
         const webFireBase = getValue(remoteConfig, configKey).asString();
         if (webFireBase) {
           if (isFirstTime) {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             const { force_update_current_version } = JSON.parse(webFireBase);
             this.deferUpdate(force_update_current_version);
           } else {
@@ -59,19 +62,22 @@ class FireBaseAnalytics {
         }
       })
       .catch((err) => {
+        // eslint-disable-next-line no-console
         console.log(err);
       });
   }
+
   /**
    * Ignore the pending update and don't prompt about this version
    * until the next morning (8am).
    */
+  // eslint-disable-next-line class-methods-use-this
   deferUpdate(newVersion: string) {
     const date = new Date(Date.now() + 24 * 60 * 60 * 1000);
     date.setHours(8, 0, 0, 0); // set to next 8am
     localStorage.setItem(
       UPDATE_DEFER_KEY,
-      JSON.stringify([newVersion, date.getTime()])
+      JSON.stringify([newVersion, date.getTime()]),
     );
   }
 }
