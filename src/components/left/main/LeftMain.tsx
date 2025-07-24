@@ -169,11 +169,7 @@ const LeftMain: FC<OwnProps> = ({
 
   const handleUpdateClick = useLastCallback(() => {
     fireBaseAnalytics.deferUpdate(webFireBase?.force_update_current_version!);
-    if (webFireBase?.force_update_store_url) {
-      window.location.replace(webFireBase.force_update_store_url);
-    } else {
-      window.location.reload();
-    }
+    window.location.reload();
     // if (IS_ELECTRON && !isElectronAutoUpdateEnabled) {
     //   window.open(`${PRODUCTION_URL}/get`, '_blank', 'noopener');
     // } else if (isElectronUpdateAvailable) {

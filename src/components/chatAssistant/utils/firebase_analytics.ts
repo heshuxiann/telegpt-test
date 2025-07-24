@@ -25,7 +25,7 @@ remoteConfig.settings = {
   fetchTimeoutMillis: 60000,
 };
 export const UPDATE_DEFER_KEY = 'telegpt_defer_update';
-const POKE_RATE_MS = 36000;
+const POKE_RATE_MS = 3600000;
 
 class FireBaseAnalytics {
   looper!: ReturnType<typeof setInterval> | null;

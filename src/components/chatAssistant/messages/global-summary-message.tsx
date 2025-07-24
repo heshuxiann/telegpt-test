@@ -142,40 +142,44 @@ function mergeTopics(mainTopic: any[], customTopic: any[]):SummaryTopic[] {
   }>();
 
   // 处理 mainTopic
-  for (const item of mainTopic) {
-    const key = item.chatId;
-    if (!mergedMap.has(key)) {
-      mergedMap.set(key, {
-        chatId: item.chatId,
-        chatRoomName: item.chatRoomName,
-        mainTopics: item.summaryItems || [],
-        customTopics: [],
-      });
-    } else {
-      const existing = mergedMap.get(key)!;
-      existing.mainTopics.push(...(item.summaryItems || []));
+  if (mainTopic.length > 0) {
+    for (const item of mainTopic) {
+      const key = item.chatId;
+      if (!mergedMap.has(key)) {
+        mergedMap.set(key, {
+          chatId: item.chatId,
+          chatRoomName: item.chatRoomName,
+          mainTopics: item.summaryItems || [],
+          customTopics: [],
+        });
+      } else {
+        const existing = mergedMap.get(key)!;
+        existing.mainTopics.push(...(item.summaryItems || []));
+      }
     }
   }
 
   // 处理 customTopic
-  for (const item of customTopic) {
-    const key = item.chatId;
-    if (!mergedMap.has(key)) {
-      mergedMap.set(key, {
-        chatId: item.chatId,
-        chatRoomName: item.chatRoomName,
-        mainTopics: [],
-        customTopics: [{
+  if (customTopic.length > 0) {
+    for (const item of customTopic) {
+      const key = item.chatId;
+      if (!mergedMap.has(key)) {
+        mergedMap.set(key, {
+          chatId: item.chatId,
+          chatRoomName: item.chatRoomName,
+          mainTopics: [],
+          customTopics: [{
+            topicName: item.topicName,
+            summaryItems: item.summaryItems || [],
+          }],
+        });
+      } else {
+        const existing = mergedMap.get(key)!;
+        existing.customTopics.push({
           topicName: item.topicName,
           summaryItems: item.summaryItems || [],
-        }],
-      });
-    } else {
-      const existing = mergedMap.get(key)!;
-      existing.customTopics.push({
-        topicName: item.topicName,
-        summaryItems: item.summaryItems || [],
-      });
+        });
+      }
     }
   }
 
