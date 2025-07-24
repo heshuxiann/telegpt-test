@@ -580,7 +580,7 @@ const GlobalSummaryMessage = (props: IProps) => {
   const parseMessage = useCallback((messageContent: string) => {
     const messageObj = JSON.parse(messageContent);
     const {
-      mainTopic, pendingMatters, garbageMessage, customTopic, summaryInfo,
+      mainTopic = [], pendingMatters, garbageMessage, customTopic = [], summaryInfo,
     } = messageObj;
     if (pendingMatters) {
       setPendingMatters(pendingMatters as ISummaryPendingItem[]);
