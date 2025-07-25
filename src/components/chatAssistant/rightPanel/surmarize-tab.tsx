@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-bind */
 /* eslint-disable no-null/no-null */
 /* eslint-disable max-len */
 import React, {
@@ -10,16 +11,69 @@ import { getGlobal } from '../../../global';
 import type { ISummaryTemplate } from '../api/user-settings';
 
 import telegptSettings from '../api/user-settings';
-import { CloseIcon } from '../icons';
 import { SelectedChats } from './selected-chats';
 
+import Icon from '../component/Icon';
 import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 import './surmarize-tab.scss';
 
-const SummarizeTab = () => {
+const SummaryItem = ({
+  template, selectedTemp, handleSelect, onDelete,
+}: {
+  template: ISummaryTemplate;
+  selectedTemp:string[];
+  onDelete: (id: string) => void;
+  handleSelect:(id: string) => void;
+}) => {
+  const { openDrawer } = useDrawerStore();
   const global = getGlobal();
   const { currentUserId } = global;
+  const handeleDeleteTopic = (e:React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDelete(template.id!);
+  };
+  const handleEditTopic = (e:React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openDrawer(DrawerKey.CustomizationPrompt, template);
+  };
+  return (
+    <div
+      className={cx('urgent-topic-item px-[20px] py-[12px] leading-[24px] bg-[var(--color-chat-hover)] rounded-[8px] flex flex-row items-center justify-between gap-[24px]', {
+        '!bg-[var(--color-chat-active)] text-white': selectedTemp.includes(template.id!),
+      })}
+      onClick={() => handleSelect(template.id!)}
+    >
+      <div>{template.topic}</div>
+      {template.user_id === currentUserId && (
+        <div className="urgent-topic-item-actions flex flex-row gap-[8px]">
+          <Icon name="edit" className="text-[14px] cursor-pointer" onClick={handleEditTopic} />
+          <Icon name="close" className="text-[14px] cursor-pointer" onClick={handeleDeleteTopic} />
+        </div>
+      )}
+    </div>
+  );
+};
+
+const AddSummaryTemplate = () => {
+  const { openDrawer } = useDrawerStore();
+  const handleAdd = () => {
+    openDrawer(DrawerKey.CustomizationPrompt);
+  };
+  return (
+    <div
+      className="urgent-topic-item px-[20px] py-[12px] leading-[24px] bg-[var(--color-chat-hover)] rounded-[8px] flex flex-row items-center gap-[8px] text-[var(--color-chat-active)] cursor-pointer"
+      onClick={handleAdd}
+    >
+      <Icon name="add" />
+      <span>Customization</span>
+    </div>
+  );
+};
+
+const SummarizeTab = () => {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   const { curious_info, summary_chat_ids, curious_id } = telegptSettings.telegptSettings;
   const [summaryTemplate, setSummaryTemplate] = useState<ISummaryTemplate[]>(curious_info);
@@ -32,16 +86,12 @@ const SummarizeTab = () => {
     return selectedTemp !== originSelectedTemp;
   }, [originSelectedTemp, selectedTemp]);
 
-  const handleCustomization = useCallback(() => {
-    openDrawer(DrawerKey.CustomizationPrompt);
-  }, [openDrawer]);
-
-  const handleTemplateSelect = useCallback((item: ISummaryTemplate) => {
+  const handleTemplateSelect = useCallback((selectedId: string) => {
     let newSelected: string[] = [];
-    if (selectedTemp.includes(item.id)) {
-      newSelected = selectedTemp.filter((id) => id !== item.id);
+    if (selectedTemp.includes(selectedId)) {
+      newSelected = selectedTemp.filter((id) => id !== selectedId);
     } else {
-      newSelected = [...selectedTemp, item.id];
+      newSelected = [...selectedTemp, selectedId];
     }
     setSelectedTemp(newSelected);
   }, [selectedTemp]);
@@ -57,9 +107,7 @@ const SummarizeTab = () => {
     setOriginSelectedTemp(selectedTemp);
   }, [selectedTemp]);
 
-  const handleDelete = useCallback((e: React.MouseEvent<HTMLDivElement>, id: string) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDelete = useCallback((id: string) => {
     if (selectedTemp.includes(id)) {
       setSelectedTemp(selectedTemp.filter((item) => item !== id));
       setOriginSelectedTemp(selectedTemp.filter((item) => item !== id));
@@ -111,35 +159,14 @@ const SummarizeTab = () => {
   return (
     <div className="h-full overflow-hidden relative">
       <div className="h-full flex flex-col px-[18px] overflow-auto">
-        <h3 className="text-[18px] font-semibold text-[var(--color-text)">What are you curious about?</h3>
+        <h3 className="text-[18px] font-semibold text-[var(--color-text) mb-[24px]">What are you curious about?</h3>
         <div className="flex flex-col gap-[10px]">
           {summaryTemplate.map((item) => {
             return (
-              <div
-                key={item.topic}
-                onClick={() => handleTemplateSelect(item)}
-                className={cx('prompt-template-item flex flex-row gap-[8px] items-center w-fit flex-grow-0 px-[20px] h-[42px] leading-[40px] border-[1px] border-[#B297FF] rounded-[20px] text-[15px] cursor-pointer text-[var(--color-text)]', {
-                  'bg-[#B297FF] text-white': selectedTemp.includes(item.id),
-                })}
-              >
-                <span>{item.topic}</span>
-                {item.user_id === currentUserId && (
-                  <div
-                    className="delete-icon w-[20px] h-[20px] cursor-pointer flex items-center justify-center"
-                    onClick={(e) => handleDelete(e, item.id)}
-                  >
-                    <CloseIcon />
-                  </div>
-                )}
-              </div>
+              <SummaryItem template={item} onDelete={handleDelete} selectedTemp={selectedTemp} handleSelect={handleTemplateSelect} />
             );
           })}
-          <div
-            className="w-[144px] whitespace-nowrap px-[20px] leading-[40px] border-[1px] border-[#B297FF] rounded-[20px] text-[15px] cursor-pointer text-[#8C42F0] font-medium"
-            onClick={handleCustomization}
-          >
-            + Customization
-          </div>
+          <AddSummaryTemplate />
         </div>
         <SelectedChats
           onOpenChatSelect={handleOpenChatSelect}
@@ -150,13 +177,13 @@ const SummarizeTab = () => {
       {actionsVisable ? (
         <div className="flex flex-row justify-center gap-[14px] py-[24px] px-[18px] w-full z-10  absolute bottom-0 left-0">
           <button
-            className="w-[158px] h-[40px] border-[1px] border-[#8C42F0] rounded-[20px]"
+            className="w-[158px] h-[40px] border-[1px] border-[var(--color-chat-active)] rounded-[20px]"
             onClick={handleCancel}
           >
             Cancel
           </button>
           <button
-            className="w-[158px] h-[40px] border-[1px] border-[#8C42F0] bg-[#8C42F0] rounded-[20px] text-white"
+            className="w-[158px] h-[40px] border-[1px] border-[var(--color-chat-active)] bg-[var(--color-chat-active)] rounded-[20px] text-white"
             onClick={handleSave}
           >
             Save

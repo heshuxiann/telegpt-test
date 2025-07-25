@@ -1,7 +1,7 @@
 import { getActions } from '../../../global';
 
 export interface ISummaryTemplate {
-  id: string;
+  id?: string;
   topic: string;
   prompt: string;
   user_id: string;
@@ -30,8 +30,8 @@ interface ITelegptSettings {
   block_chat_ids: string[];
   chat_ids: string[];
   phone: string;
-  autoTranslate: boolean;
-  autoTranslateLanguage: string;
+  autotranslate: boolean;
+  autotranslateLanguage: string;
 }
 const defaultSettings: ITelegptSettings = {
   user_id: '',
@@ -44,8 +44,8 @@ const defaultSettings: ITelegptSettings = {
   block_chat_ids: [],
   chat_ids: [],
   phone: '',
-  autoTranslate: false,
-  autoTranslateLanguage: 'en',
+  autotranslate: false,
+  autotranslateLanguage: 'en',
 };
 class TelegptSettings {
   private settings: ITelegptSettings = defaultSettings;
@@ -107,13 +107,13 @@ class TelegptSettings {
 
   // eslint-disable-next-line class-methods-use-this
   setGlobalSettings(newSettings: Partial<ITelegptSettings>) {
-    const { autoTranslate, autoTranslateLanguage } = newSettings;
-    if (autoTranslate) {
-      getActions().setSettingOption({ autoTranslate: autoTranslate || false });
+    const { autotranslate, autotranslatelanguage } = newSettings;
+    if (autotranslate) {
+      getActions().setSettingOption({ autoTranslate: autotranslate || false });
     }
-    if (autoTranslateLanguage) {
-      getActions().setSettingOption({ autoTranslateLanguage: autoTranslateLanguage || 'en' });
-      getActions().setSettingOption({ translationLanguage: autoTranslateLanguage || 'en' });
+    if (autotranslatelanguage) {
+      getActions().setSettingOption({ autoTranslateLanguage: autotranslatelanguage || 'en' });
+      getActions().setSettingOption({ translationLanguage: autotranslatelanguage || 'en' });
     }
   }
 

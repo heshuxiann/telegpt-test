@@ -89,7 +89,7 @@ export const SelectedChats = (props: Props) => {
         onClick={onOpenChatSelect}
       >
         <div
-          className="flex items-center justify-center w-[40px] h-[40px] rounded-full bg-[#8C42F0] text-white"
+          className="flex items-center justify-center w-[40px] h-[40px] rounded-full bg-[var(--color-chat-active)] text-white"
         >
           <Icon name="add" />
         </div>

@@ -1,7 +1,8 @@
 /* eslint-disable max-len */
 import React, { useCallback, useState } from 'react';
 import { message as showMessage } from 'antd';
-import { getGlobal } from '../../../global';
+
+import type { ISummaryTemplate } from '../api/user-settings';
 
 import telegptSettings from '../api/user-settings';
 
@@ -10,10 +11,14 @@ import TextArea from '../component/TextArea';
 import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 const CustomizationPromptPanel = () => {
-  const { openDrawer } = useDrawerStore();
-  const [form, setForm] = useState({ topic: '', prompt: '' });
+  const { openDrawer, drawerParams } = useDrawerStore();
   const [titleError, setTitleError] = useState(false);
   const [promptError, setPromptError] = useState(false);
+  const initialValues:ISummaryTemplate = drawerParams || {
+    topic: '',
+    prompt: '',
+  };
+  const [form, setForm] = useState(initialValues);
   const handleSave = useCallback(() => {
     if (form.topic.trim().length === 0) {
       setTitleError(true);
@@ -23,12 +28,7 @@ const CustomizationPromptPanel = () => {
       setPromptError(true);
       return;
     }
-    const global = getGlobal();
-    const { currentUserId } = global;
-    telegptSettings.updateSummarizeTemplate({
-      user_id: currentUserId,
-      ...form,
-    }).then((res:any) => {
+    telegptSettings.updateSummarizeTemplate(form).then((res:any) => {
       if (res.code === 0) {
         openDrawer(DrawerKey.PersonalizeSettings, {
           activeKey: 0,
@@ -83,13 +83,13 @@ const CustomizationPromptPanel = () => {
       />
       <div className="flex flex-row justify-center gap-[14px] mt-auto mb-[24px]">
         <button
-          className="w-[158px] h-[40px] border-[1px] border-[#8C42F0] rounded-[20px]"
+          className="w-[158px] h-[40px] border-[1px] border-[var(--color-chat-active)] rounded-[20px]"
           onClick={handleCancel}
         >
           Cancel
         </button>
         <button
-          className="w-[158px] h-[40px] border-[1px] border-[#8C42F0] bg-[#8C42F0] rounded-[20px] text-white"
+          className="w-[158px] h-[40px] border-[1px] border-[var(--color-chat-active)] bg-[var(--color-chat-active)] rounded-[20px] text-white"
           onClick={handleSave}
         >
           Save

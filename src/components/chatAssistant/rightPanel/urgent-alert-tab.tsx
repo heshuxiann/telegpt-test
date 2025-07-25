@@ -26,7 +26,7 @@ const TopicItem = ({ topic, onDelete }: { topic: IUrgentTopic;onDelete: (id: str
     openDrawer(DrawerKey.AddTopicPanel, topic);
   };
   return (
-    <div className="urgent-topic-item p-[20px] bg-[var(--color-chat-hover)] rounded-[8px] flex flex-row items-center justify-between gap-[24px]">
+    <div className="urgent-topic-item px-[20px] py-[12px] leading-[24px] bg-[var(--color-chat-hover)] rounded-[8px] flex flex-row items-center justify-between gap-[24px]">
       <div>{topic.topic}</div>
       <div className="urgent-topic-item-actions flex flex-row gap-[8px]">
         <Icon name="edit" className="text-[14px] cursor-pointer" onClick={handleEditTopic} />
@@ -43,7 +43,7 @@ const AddTopic = () => {
   };
   return (
     <div
-      className="urgent-topic-item p-[20px] bg-[var(--color-chat-hover)] rounded-[8px] flex flex-row items-center gap-[8px] text-[#8C42F0] cursor-pointer"
+      className="urgent-topic-item px-[20px] py-[12px] leading-[24px] bg-[var(--color-chat-hover)] rounded-[8px] flex flex-row items-center gap-[8px] text-[#8C42F0] cursor-pointer"
       onClick={handleAddTopic}
     >
       <Icon name="add" />
@@ -105,7 +105,7 @@ const UrgentAlertTab = () => {
   return (
     <div className="h-full overflow-auto px-[18px]">
       <div>
-        <h3 className="text-[18px] font-semibold">What types of messages require Alert?</h3>
+        <h3 className="text-[18px] font-semibold mb-[24px]">What types of messages require Alert?</h3>
         <div className="flex flex-col gap-[10px]">
           {topics.map((topic) => {
             return <TopicItem topic={topic} onDelete={handeleDeleteTopic} />;

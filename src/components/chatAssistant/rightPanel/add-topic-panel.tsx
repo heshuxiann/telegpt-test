@@ -146,13 +146,13 @@ const AddTopicPanel = () => {
       </div>
       <div className="flex flex-row justify-center gap-[14px] mt-auto mb-[24px]">
         <button
-          className="w-[158px] h-[40px] border-[1px] border-[#8C42F0] rounded-[20px]"
+          className="w-[158px] h-[40px] border-[1px] border-[var(--color-chat-active)] rounded-[20px]"
           onClick={handleCancel}
         >
           Cancel
         </button>
         <button
-          className="w-[158px] h-[40px] border-[1px] border-[#8C42F0] bg-[#8C42F0] rounded-[20px] text-white"
+          className="w-[158px] h-[40px] border-[1px] border-[var(--color-chat-active)] bg-[var(--color-chat-active)] rounded-[20px] text-white"
           onClick={handleSave}
         >
           Save
