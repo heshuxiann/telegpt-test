@@ -8,6 +8,8 @@ import type { IUrgentTopic } from '../api/user-settings';
 
 import { telegptSettings } from '../api/user-settings';
 
+import FloatingActionButton from '../component/FloatingActionButton';
+import Icon from '../component/Icon';
 import InputText from '../component/InputText';
 import TextArea from '../component/TextArea';
 import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
@@ -97,11 +99,6 @@ const AddTopicPanel = () => {
     }
   }, [form, openDrawer, phoneNumber]);
 
-  const handleCancel = useCallback(() => {
-    openDrawer(DrawerKey.PersonalizeSettings, {
-      activeKey: 1,
-    });
-  }, [openDrawer]);
   return (
     <div className="urgent-topic-edit h-full overflow-hidden px-[18px] flex flex-col">
       <div className="h-full overflow-y-auto flex-1">
@@ -144,20 +141,12 @@ const AddTopicPanel = () => {
           error={phoneNumberError ? 'Please enter a valid phone number' : undefined}
         />
       </div>
-      <div className="flex flex-row justify-center gap-[14px] mt-auto mb-[24px]">
-        <button
-          className="w-[158px] h-[40px] border-[1px] border-[var(--color-chat-active)] rounded-[20px]"
-          onClick={handleCancel}
-        >
-          Cancel
-        </button>
-        <button
-          className="w-[158px] h-[40px] border-[1px] border-[var(--color-chat-active)] bg-[var(--color-chat-active)] rounded-[20px] text-white"
-          onClick={handleSave}
-        >
-          Save
-        </button>
-      </div>
+      <FloatingActionButton
+        isShown
+        onClick={handleSave}
+      >
+        <Icon name="check" className="text-white text-[1.5rem]" />
+      </FloatingActionButton>
     </div>
   );
 };

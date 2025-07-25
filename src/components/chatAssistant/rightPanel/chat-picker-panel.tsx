@@ -24,6 +24,8 @@ import sortChatIds from '../../common/helpers/sortChatIds';
 import useOldLang from '../hook/useOldLang';
 
 import Avatar from '../component/Avatar';
+import FloatingActionButton from '../component/FloatingActionButton';
+import Icon from '../component/Icon';
 import { useDrawerStore } from '../global-summary/DrawerContext';
 
 const ChatPickerPanel = () => {
@@ -108,10 +110,6 @@ const ChatPickerPanel = () => {
     setSelected(checkedValues);
   }, []);
 
-  const handleCancel = useCallback(() => {
-    drawerParams?.onCancel();
-  }, [drawerParams]);
-
   const handleSave = useCallback(() => {
     drawerParams?.onSave(selected);
   }, [drawerParams, selected]);
@@ -125,20 +123,12 @@ const ChatPickerPanel = () => {
           </div>
         </Checkbox.Group>
       </div>
-      <div className="flex flex-row justify-center gap-[14px] mt-auto pb-[24px] pt-[12px]">
-        <button
-          className="w-[158px] h-[40px] border-[1px] border-[#8C42F0] rounded-[20px]"
-          onClick={handleCancel}
-        >
-          Cancel
-        </button>
-        <button
-          className="w-[158px] h-[40px] border-[1px] border-[#8C42F0] bg-[#8C42F0] rounded-[20px] text-white"
-          onClick={handleSave}
-        >
-          Save
-        </button>
-      </div>
+      <FloatingActionButton
+        isShown
+        onClick={handleSave}
+      >
+        <Icon name="check" className="text-white text-[1.5rem]" />
+      </FloatingActionButton>
     </div>
   );
 };

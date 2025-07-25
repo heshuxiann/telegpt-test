@@ -1,8 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable react/jsx-no-bind */
 import React, { useState } from 'react';
-import type { TabsProps } from 'antd';
-import { Tabs } from 'antd';
 
 import type { TabWithProperties } from '../component/TabList';
 
@@ -36,12 +34,6 @@ const PersonalizeSettings = () => {
     }
   };
   return (
-    // <Tabs
-    //   className="personalized-settings-tab h-full"
-    //   defaultActiveKey={activeKey}
-    //   items={items}
-    //   onChange={onChange}
-    // />
     <div className="flex flex-col h-full">
       <TabList
         activeTab={selectedTabIndex}

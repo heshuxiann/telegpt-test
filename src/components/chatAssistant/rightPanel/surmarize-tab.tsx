@@ -14,6 +14,7 @@ import type { ISummaryTemplate } from '../api/user-settings';
 import { telegptSettings } from '../api/user-settings';
 import { SelectedChats } from './selected-chats';
 
+import FloatingActionButton from '../component/FloatingActionButton';
 import Icon from '../component/Icon';
 import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
@@ -98,10 +99,6 @@ const SummarizeTab = () => {
     setSelectedTemp(newSelected);
   }, [selectedTemp]);
 
-  const handleCancel = useCallback(() => {
-    setSelectedTemp(curious_id);
-  }, [curious_id]);
-
   const handleSave = useCallback(() => {
     telegptSettings.setSettingOption({
       curious_id: selectedTemp,
@@ -180,22 +177,12 @@ const SummarizeTab = () => {
           onDelete={handleDeleteSummaryChat}
         />
       </div>
-      {actionsVisable ? (
-        <div className="flex flex-row justify-center gap-[14px] py-[24px] px-[18px] w-full z-10  absolute bottom-0 left-0">
-          <button
-            className="w-[158px] h-[40px] border-[1px] border-[var(--color-chat-active)] rounded-[20px]"
-            onClick={handleCancel}
-          >
-            Cancel
-          </button>
-          <button
-            className="w-[158px] h-[40px] border-[1px] border-[var(--color-chat-active)] bg-[var(--color-chat-active)] rounded-[20px] text-white"
-            onClick={handleSave}
-          >
-            Save
-          </button>
-        </div>
-      ) : null}
+      <FloatingActionButton
+        isShown={actionsVisable}
+        onClick={handleSave}
+      >
+        <Icon name="check" className="text-white text-[1.5rem]" />
+      </FloatingActionButton>
     </div>
   );
 };

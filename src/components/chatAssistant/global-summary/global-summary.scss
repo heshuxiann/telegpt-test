@@ -1,18 +1,8 @@
-.global-summary-modal-wrap {
-  .global-summary-modal {
-    padding: 0;
-    margin: 0;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    max-width: unset;
-    .ant-modal-content{
-        height: 100vh;
-        padding: 0;
-        .ant-modal-body{
-            height: 100vh;
-        }
-    }
+.global-summary-inner {
+  transition: width var(--layer-transition);
+}
+@media (min-width: 1276px) {
+  .global-summary-inner.right-panel-open {
+    width: calc(100% - var(--right-column-width));
   }
 }

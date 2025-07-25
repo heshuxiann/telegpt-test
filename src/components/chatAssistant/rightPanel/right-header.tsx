@@ -3,8 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import cx from 'classnames';
 
-import { CloseIcon, LeftOutlined } from '../icons';
-
+import Icon from '../component/Icon';
 import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 interface Props {
@@ -21,7 +20,7 @@ const hasBackDrawer = [
 const HeaderButton = ({ icon, className, onClick }:{ icon:React.ReactNode;className?:string;onClick:()=>void }) => {
   return (
     <div
-      className={cx('flex items-center justify-center cursor-pointer w-[44px] h-[44px] rounded-full text-[var(--color-text-secondary)] hover:bg-[var(--color-interactive-element-hover)]', className)}
+      className={cx('flex items-center justify-center cursor-pointer w-[2.75rem] h-[2.75rem] rounded-full text-[var(--color-text-secondary)] hover:bg-[var(--color-interactive-element-hover)]', className)}
       onClick={onClick}
     >
       {icon}
@@ -53,18 +52,21 @@ const RightHeader = (props: Props) => {
       case DrawerKey.AddTopicPanel:
         setTitle('Customization');
         break;
+      case DrawerKey.ChatPicker:
+        setTitle('Select chat');
+        break;
       default:
         setTitle('');
     }
   }, [handleBack, drawerKey]);
   return (
-    <div className="h-[56px] flex items-center relative py-[0.5rem] px-[0.8125rem]">
+    <div className="h-[56px] flex items-center relative py-[0.5rem] px-[0.8125rem] w-[var(--right-column-width)]">
       {drawerKey && hasBackDrawer.includes(drawerKey) ? (
-        <HeaderButton icon={<LeftOutlined size={24} />} onClick={handleBack} />
+        <HeaderButton icon={<Icon name="arrow-left" className="text-[26px]" />} onClick={handleBack} />
       ) : (
-        <HeaderButton icon={<CloseIcon size={24} />} onClick={onClose} />
+        <HeaderButton icon={<Icon name="close" className="text-[26px]" />} onClick={onClose} />
       )}
-      <div className="text-[16px] font-semibold pl-[1.375rem]">{title}</div>
+      <div className="text-[1.25rem] font-[var(--font-weight-medium)] pl-[1.375rem]">{title}</div>
     </div>
   );
 };

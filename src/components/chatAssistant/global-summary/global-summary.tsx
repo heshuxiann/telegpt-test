@@ -28,6 +28,7 @@ import { createGlobalIntroduceMessage } from './summary-utils';
 import UrgentNotification from './urgent-notification';
 
 import ErrorBoundary from '../ErrorBoundary';
+import { useDrawerStore } from './DrawerContext';
 
 import './global-summary.scss';
 import styles from './global-summary.module.scss';
@@ -35,6 +36,7 @@ import styles from './global-summary.module.scss';
 import SerenaPath from '../assets/serena.png';
 
 const GlobalSummary = forwardRef(() => {
+  const { isOpen } = useDrawerStore();
   const [notificationMessage, setNotificationMessage] = useState<Message | null>(null);
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
   const {
@@ -145,11 +147,17 @@ const GlobalSummary = forwardRef(() => {
       ChataiStores.summary?.storeMessages(msgs);
     }
   }, [messages, status]);
+  const className = buildClassName(
+    styles.globaSummaryBg,
+    'flex flex-col w-full h-full',
+    'global-summary-inner',
+    isOpen && 'right-panel-open',
+  );
 
   return (
     <ErrorBoundary>
       <div className="flex flex-row w-full">
-        <div className={buildClassName(styles.globaSummaryBg, 'flex flex-col w-full h-full flex-1')}>
+        <div className={className}>
           <div className="h-[56px] w-full px-[20px] flex items-center bg-[var(--color-background)]">
             <img className="w-[40px] h-[40px] rounded-full mr-[12px]" src={SerenaPath} alt="Serena" />
             <span className="text-[15px] font-semibold">Serena AI</span>

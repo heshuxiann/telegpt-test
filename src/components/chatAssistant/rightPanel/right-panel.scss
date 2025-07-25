@@ -15,3 +15,9 @@
          width: var(--right-column-width);
     }
 }
+@media (max-width: 1275px) {
+    .summary-panel-container {
+        box-shadow: 0 0.25rem 0.5rem 0.125rem var(--color-default-shadow);
+        border-left: none;
+    }
+}
