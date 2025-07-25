@@ -247,7 +247,7 @@ class GlobalSummaryTask {
         const chat = selectChat(global, chatId);
         const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
         const chatLastMessageId = selectChatLastMessageId(global, chatId) || 0;
-        if (chat && chat.unreadCount && !chatBot && chatLastMessageId) {
+        if (chat && !chatBot && chatLastMessageId) {
           const messages = await loadTextMessages({
             chat,
             sliceSize: 50,
@@ -332,7 +332,7 @@ class GlobalSummaryTask {
       const chat = selectChat(global, chatId);
       const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
       const chatLastMessageId = selectChatLastMessageId(global, chatId) || 0;
-      if (chat && chat.unreadCount && !chatBot && chatLastMessageId) {
+      if (chat && !chatBot && chatLastMessageId) {
         const roomUnreadMsgs = await fetchChatMessageByDeadline({
           chat,
           deadline: deadline / 1000,

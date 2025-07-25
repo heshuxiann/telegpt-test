@@ -38,51 +38,6 @@ export const fetchMessage = (props: {
   });
 };
 
-export const fetchChatUnreadMessage = async (props: {
-  chat: ApiChat;
-  offsetId: number;
-  addOffset: number;
-  sliceSize: number;
-  threadId: number;
-  unreadCount: number;
-  maxCount?: number;
-}): Promise<ApiMessage[]> => {
-  let messages: any[] = [];
-  let totalCount = 0;
-  let { offsetId } = props; // 记录偏移量
-  const mergeCount = Math.min(props.unreadCount, props.maxCount || 100);
-  while (messages.length < mergeCount) {
-    const result = await callApi('fetchMessages', {
-      ...props,
-      offsetId,
-      limit: props.sliceSize,
-    });
-
-    if (!result || !result.messages?.length) {
-      break; // 没有更多消息，退出循环
-    }
-    const resultMessage = result.messages.reverse();
-    const textMessage = resultMessage.filter((msg: ApiMessage) => hasMessageText(msg));
-    if (totalCount + textMessage.length > mergeCount) {
-      messages = messages.concat(
-        textMessage.slice(0, mergeCount - messages.length),
-      );
-      break;
-    } else {
-      messages = messages.concat(textMessage);
-    }
-
-    totalCount += textMessage.length || 0;
-    offsetId = resultMessage[resultMessage.length - 1].id; // 更新 offsetId
-
-    if (resultMessage.length < props.sliceSize) {
-      break; // 本次获取的消息不足 sliceSize，说明没有更多消息了
-    }
-  }
-
-  return messages;
-};
-
 export const fetchChatMessageByDeadline = async (props: {
   chat: ApiChat;
   deadline: number;
