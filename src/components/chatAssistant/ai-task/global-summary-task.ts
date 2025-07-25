@@ -337,7 +337,7 @@ class GlobalSummaryTask {
           chat,
           deadline: deadline / 1000,
           offsetId: chatLastMessageId,
-          addOffset: -30,
+          addOffset: -1,
           sliceSize: 30,
           threadId: MAIN_THREAD_ID,
           maxCount: 100,

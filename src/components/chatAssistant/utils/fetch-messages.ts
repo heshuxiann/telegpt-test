@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 /* eslint-disable no-null/no-null */
 import { getGlobal } from '../../../global';
 
