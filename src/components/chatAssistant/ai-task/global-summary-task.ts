@@ -16,7 +16,7 @@ import {
   selectBot, selectChat, selectChatLastMessageId, selectUser,
 } from '../../../global/selectors';
 import { getOrderedIds } from '../../../util/folderManager';
-import telegptSettings from '../api/user-settings';
+import { telegptSettings } from '../api/user-settings';
 import RoomStorage from '../room-storage';
 import {
   ChataiStores,
@@ -319,9 +319,8 @@ class GlobalSummaryTask {
     const global = getGlobal();
     // const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
     const orderedIds = await getAllChatIds() || [];
-    const summaryChatIds = telegptSettings.telegptSettings.summary_chat_ids
-      ? telegptSettings.telegptSettings.summary_chat_ids
-      : orderedIds;
+    const { summary_chat_ids } = telegptSettings.telegptSettings;
+    const summaryChatIds = summary_chat_ids && summary_chat_ids.length > 0 ? summary_chat_ids : orderedIds;
     let summaryTime;
     if (useRangeTime) {
       summaryTime = getAlignedExecutionTimestamp();

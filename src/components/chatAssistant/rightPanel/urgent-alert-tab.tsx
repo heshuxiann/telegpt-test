@@ -9,7 +9,7 @@ import { message as showMessage } from 'antd';
 import type { IUrgentTopic } from '../api/user-settings';
 
 import { urgentCheckTask } from '../ai-task/urgent-check-task';
-import telegptSettings from '../api/user-settings';
+import { telegptSettings } from '../api/user-settings';
 import { SelectedChats } from './selected-chats';
 
 import Icon from '../component/Icon';
@@ -53,9 +53,9 @@ const AddTopic = () => {
 };
 
 const UrgentAlertTab = () => {
-  const { urgent_info } = telegptSettings.telegptSettings;
+  const { urgent_info, urgent_chat_ids } = telegptSettings.telegptSettings;
   const [topics, setTopics] = useState<IUrgentTopic[]>(urgent_info);
-  const [selectedChats, setSelectedChats] = useState<string[]>(telegptSettings.telegptSettings.urgent_chat_ids);
+  const [selectedChats, setSelectedChats] = useState<string[]>(urgent_chat_ids);
   const { openDrawer } = useDrawerStore();
   const handleDelete = useCallback((id: string) => {
     const newSelected = selectedChats.filter((item) => item !== id);

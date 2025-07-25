@@ -6,17 +6,16 @@ import React, {
 } from 'react';
 import { message as showMessage } from 'antd';
 import cx from 'classnames';
+import { isEqual } from 'lodash';
 import { getGlobal } from '../../../global';
 
 import type { ISummaryTemplate } from '../api/user-settings';
 
-import telegptSettings from '../api/user-settings';
+import { telegptSettings } from '../api/user-settings';
 import { SelectedChats } from './selected-chats';
 
 import Icon from '../component/Icon';
 import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
-
-import './surmarize-tab.scss';
 
 const SummaryItem = ({
   template, selectedTemp, handleSelect, onDelete,
@@ -47,6 +46,9 @@ const SummaryItem = ({
       onClick={() => handleSelect(template.id!)}
     >
       <div>{template.topic}</div>
+      {selectedTemp.includes(template.id!) && (
+        <Icon className="urgent-topic-item-check" name="check" />
+      )}
       {template.user_id === currentUserId && (
         <div className="urgent-topic-item-actions flex flex-row gap-[8px]">
           <Icon name="edit" className="text-[14px] cursor-pointer" onClick={handleEditTopic} />
@@ -83,7 +85,7 @@ const SummarizeTab = () => {
   const { openDrawer } = useDrawerStore();
 
   const actionsVisable = useMemo(() => {
-    return selectedTemp !== originSelectedTemp;
+    return !isEqual(selectedTemp, originSelectedTemp);
   }, [originSelectedTemp, selectedTemp]);
 
   const handleTemplateSelect = useCallback((selectedId: string) => {
@@ -109,8 +111,12 @@ const SummarizeTab = () => {
 
   const handleDelete = useCallback((id: string) => {
     if (selectedTemp.includes(id)) {
-      setSelectedTemp(selectedTemp.filter((item) => item !== id));
-      setOriginSelectedTemp(selectedTemp.filter((item) => item !== id));
+      const newSelectedTemp = selectedTemp.filter((item) => item !== id);
+      setSelectedTemp(newSelectedTemp);
+      setOriginSelectedTemp(newSelectedTemp);
+      telegptSettings.setSettingOption({
+        curious_id: newSelectedTemp,
+      });
     }
     // TODO: delete summary template
     telegptSettings.deleteSummarizeTemplate(id).then((res:any) => {

@@ -31,7 +31,7 @@ interface ITelegptSettings {
   chat_ids: string[];
   phone: string;
   autotranslate: boolean;
-  autotranslateLanguage: string;
+  autotranslatelanguage: string;
 }
 const defaultSettings: ITelegptSettings = {
   user_id: '',
@@ -45,7 +45,7 @@ const defaultSettings: ITelegptSettings = {
   chat_ids: [],
   phone: '',
   autotranslate: false,
-  autotranslateLanguage: 'en',
+  autotranslatelanguage: 'en',
 };
 class TelegptSettings {
   private settings: ITelegptSettings = defaultSettings;
@@ -108,13 +108,9 @@ class TelegptSettings {
   // eslint-disable-next-line class-methods-use-this
   setGlobalSettings(newSettings: Partial<ITelegptSettings>) {
     const { autotranslate, autotranslatelanguage } = newSettings;
-    if (autotranslate) {
-      getActions().setSettingOption({ autoTranslate: autotranslate || false });
-    }
-    if (autotranslatelanguage) {
-      getActions().setSettingOption({ autoTranslateLanguage: autotranslatelanguage || 'en' });
-      getActions().setSettingOption({ translationLanguage: autotranslatelanguage || 'en' });
-    }
+    getActions().setSettingOption({ autoTranslate: autotranslate || false });
+    getActions().setSettingOption({ autoTranslateLanguage: autotranslatelanguage || 'en' });
+    getActions().setSettingOption({ translationLanguage: autotranslatelanguage || 'en' });
   }
 
   updateSummarizeTemplate(template:Partial<ISummaryTemplate>) {
@@ -227,5 +223,4 @@ class TelegptSettings {
     });
   }
 }
-const telegptSettings = new TelegptSettings();
-export default telegptSettings;
+export const telegptSettings = new TelegptSettings();

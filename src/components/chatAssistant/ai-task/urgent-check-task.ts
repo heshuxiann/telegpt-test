@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
 import { v4 as uuidv4 } from 'uuid';
@@ -6,7 +7,7 @@ import type { ApiMessage } from '../../../api/types/messages';
 import type { SummaryStoreMessage } from '../store/summary-store';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
-import telegptSettings from '../api/user-settings';
+import { telegptSettings } from '../api/user-settings';
 import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
 import { sendGAEvent } from '../utils/analytics';
@@ -49,9 +50,8 @@ class UrgentCheckTask {
 
   checkUrgentMessage() {
     if (!this.pendingMessages.length) return;
-
-    const urgentTopics = telegptSettings.telegptSettings.urgent_info;
-    if (!urgentTopics?.length) return;
+    const { urgent_info } = telegptSettings.telegptSettings;
+    if (!urgent_info?.length) return;
 
     const messages = this.pendingMessages.map((item) => {
       return {
@@ -61,7 +61,7 @@ class UrgentCheckTask {
         content: item.content.text?.text,
       };
     });
-    urgentMessageCheck({ messages, urgentTopics }).then((res) => {
+    urgentMessageCheck({ messages, urgentTopics: urgent_info }).then((res) => {
       console.log('urgent check response', res);
       const matchs = res?.data || [];
       if (matchs.length > 0) {
@@ -82,10 +82,10 @@ class UrgentCheckTask {
         RoomStorage.increaseUnreadCount(GLOBAL_SUMMARY_CHATID);
         // check strong alert
         try {
-          const hasStrongAlert = urgentTopics.find((item:any) => item.is_call);
-          const strongAlertPhoneNumber = telegptSettings.telegptSettings.phone;
-          if (hasStrongAlert && strongAlertPhoneNumber) {
-            fetch(`https://telegpt-three.vercel.app/voice-call?phoneNumber=${strongAlertPhoneNumber}`, {
+          const hasStrongAlert = urgent_info.find((item:any) => item.is_call);
+          const { phone } = telegptSettings.telegptSettings;
+          if (hasStrongAlert && phone) {
+            fetch(`https://telegpt-three.vercel.app/voice-call?phoneNumber=${phone}`, {
               method: 'GET',
             });
             sendGAEvent('call_reminder');
@@ -104,8 +104,8 @@ class UrgentCheckTask {
   }
 
   addNewMessage(message: ApiMessage) {
-    const urgentChats = telegptSettings.telegptSettings.urgent_chat_ids;
-    if (urgentChats.length === 0 || urgentChats.includes(message.chatId)) {
+    const { urgent_chat_ids } = telegptSettings.telegptSettings;
+    if (urgent_chat_ids.length === 0 || urgent_chat_ids.includes(message.chatId)) {
       this.pendingMessages.push(message);
     }
   }

@@ -6,7 +6,7 @@ import React, {
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
-import telegptSettings from '../../chatAssistant/api/user-settings';
+import { telegptSettings } from '../../chatAssistant/api/user-settings';
 
 import useHistoryBack from '../../../hooks/useHistoryBack';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -38,7 +38,7 @@ const AITranslateContent: FC<OwnProps & StateProps> = ({
     setDisplayAutoTranslate(newValue);
     setSettingOption({ autoTranslate: newValue });
     telegptSettings.setSettingOption({
-      autoTranslate: newValue,
+      autotranslate: newValue,
     });
   });
 

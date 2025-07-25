@@ -6,7 +6,7 @@ import { getActions, withGlobal } from '../../../global';
 
 import { SUPPORTED_TRANSLATION_LANGUAGES } from '../../../config';
 import buildClassName from '../../../util/buildClassName';
-import telegptSettings from '../../chatAssistant/api/user-settings';
+import { telegptSettings } from '../../chatAssistant/api/user-settings';
 
 import useEffectWithPrevDeps from '../../../hooks/useEffectWithPrevDeps';
 import useHistoryBack from '../../../hooks/useHistoryBack';
@@ -102,7 +102,7 @@ const SettingsAutoTranslate: FC<OwnProps & StateProps> = ({
       translationLanguage: newSelectedIds,
     });
     telegptSettings.setSettingOption({
-      autoTranslateLanguage: newSelectedIds,
+      autotranslatelanguage: newSelectedIds,
     });
   });
 

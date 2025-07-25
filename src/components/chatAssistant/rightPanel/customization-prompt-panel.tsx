@@ -4,7 +4,7 @@ import { message as showMessage } from 'antd';
 
 import type { ISummaryTemplate } from '../api/user-settings';
 
-import telegptSettings from '../api/user-settings';
+import { telegptSettings } from '../api/user-settings';
 
 import InputText from '../component/InputText';
 import TextArea from '../component/TextArea';

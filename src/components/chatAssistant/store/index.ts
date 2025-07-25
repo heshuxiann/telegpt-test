@@ -3,7 +3,7 @@
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 // eslint-disable-next-line import/no-cycle
 import { aiChatFoldersTask } from '../ai-task/ai-chatfolders-task';
-import telegptSettings from '../api/user-settings';
+import { telegptSettings } from '../api/user-settings';
 import AIChatFoldersStore from './ai-chatfolders-store';
 import ChataiStoreManager from './chatai-store';
 import ContactStore from './contact-store';
