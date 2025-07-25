@@ -6,6 +6,8 @@ import type { ISummaryTemplate } from '../api/user-settings';
 
 import { telegptSettings } from '../api/user-settings';
 
+import FloatingActionButton from '../component/FloatingActionButton';
+import Icon from '../component/Icon';
 import InputText from '../component/InputText';
 import TextArea from '../component/TextArea';
 import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
@@ -40,11 +42,7 @@ const CustomizationPromptPanel = () => {
       showMessage.info('save failed');
     });
   }, [form, openDrawer]);
-  const handleCancel = useCallback(() => {
-    openDrawer(DrawerKey.PersonalizeSettings, {
-      activeKey: 0,
-    });
-  }, [openDrawer]);
+
   const handleTopicNameChange = useCallback((e: React.FormEvent<HTMLInputElement>) => {
     const topic = e.currentTarget.value;
     setForm((prev) => {
@@ -81,20 +79,12 @@ const CustomizationPromptPanel = () => {
         error={promptError ? 'Please enter the topic description' : undefined}
         onChange={handleTopicDescriptionChange}
       />
-      <div className="flex flex-row justify-center gap-[14px] mt-auto mb-[24px]">
-        <button
-          className="w-[158px] h-[40px] border-[1px] border-[var(--color-chat-active)] rounded-[20px]"
-          onClick={handleCancel}
-        >
-          Cancel
-        </button>
-        <button
-          className="w-[158px] h-[40px] border-[1px] border-[var(--color-chat-active)] bg-[var(--color-chat-active)] rounded-[20px] text-white"
-          onClick={handleSave}
-        >
-          Save
-        </button>
-      </div>
+      <FloatingActionButton
+        isShown
+        onClick={handleSave}
+      >
+        <Icon name="check" className="text-white text-[1.5rem]" />
+      </FloatingActionButton>
     </div>
   );
 };

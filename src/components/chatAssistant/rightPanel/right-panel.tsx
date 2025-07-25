@@ -51,7 +51,7 @@ export const RightPanel = () => {
     })}
     >
       <RightHeader drawerKey={drawerKey} onClose={closeDrawer} />
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden w-[var(--right-column-width)]">
         {rightPanelContent}
       </div>
     </div>

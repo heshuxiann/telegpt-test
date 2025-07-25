@@ -43,7 +43,7 @@ const AddTopic = () => {
   };
   return (
     <div
-      className="urgent-topic-item px-[20px] py-[12px] leading-[24px] bg-[var(--color-chat-hover)] rounded-[8px] flex flex-row items-center gap-[8px] text-[#8C42F0] cursor-pointer"
+      className="urgent-topic-item px-[20px] py-[12px] leading-[24px] bg-[var(--color-chat-hover)] rounded-[8px] flex flex-row items-center gap-[8px] text-[var(--color-chat-active)] cursor-pointer"
       onClick={handleAddTopic}
     >
       <Icon name="add" />
