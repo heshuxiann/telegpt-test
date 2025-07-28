@@ -47,20 +47,37 @@ const defaultSettings: ITelegptSettings = {
   autotranslate: false,
   autotranslatelanguage: 'en',
 };
+
+const POKE_RATE_MS = 300000;
 class TelegptSettings {
   private settings: ITelegptSettings = defaultSettings;
 
   private user_id:string = '';
 
-  initGptSettings() {
+  private timer: ReturnType<typeof setInterval> | undefined;
+
+  constructor() {
+    this.intervalUpdate();
+  }
+
+  intervalUpdate() {
     const loclaSettings = localStorage.getItem('telegpt-settings');
     this.settings = loclaSettings ? JSON.parse(loclaSettings) : defaultSettings;
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
+    this.timer = setInterval(() => {
+      this.getGptSettings();
+    }, POKE_RATE_MS);
+  }
+
+  getGptSettings() {
+    if (!this.user_id) return;
     fetch(`https://telegpt-three.vercel.app/settings/personalized-settings?user_id=${this.user_id}`, {
       method: 'GET',
     })
       .then((res) => res.json())
       .then((res) => {
-        console.log('res', res);
         if (res.code === 0 && res.data) {
           this.settings = res.data;
           localStorage.setItem('telegpt-settings', JSON.stringify(this.settings));
