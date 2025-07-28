@@ -22,6 +22,12 @@ import {
 } from './google-api';
 import { getAuthState, isTokenValid } from './google-auth';
 
+export const ASK_MEETING_TIME_AND_EMAIL = 'Could you tell me what time would be good for you to have the meeting? Also, could I get your email address?';
+export const ASK_MEETING_TIME = 'Could you tell me what time would be good for you to have the meeting?';
+export const ASK_MEETING_EMAIL = 'Could you please share your email address?';
+
+export type MeetingInformationSuggestType = 'time' | 'email' | 'both';
+
 export function formatMeetingTimeRange(
   startISO: string,
   endISO: string,
@@ -395,17 +401,13 @@ class ScheduleMeeting {
         return;
       }
       if (!this.email.length && !this.date.length) {
-        this.sendMessage(
-          'Could you tell me what time would be good for you to have the meeting? Also, could I get your email address?',
-        );
+        this.sendMessage(ASK_MEETING_TIME_AND_EMAIL);
         return;
       } else if (!this.email.length) {
-        this.sendMessage('Could you please share your email address?');
+        this.sendMessage(ASK_MEETING_EMAIL);
         return;
       } else if (!this.date.length) {
-        this.sendMessage(
-          'Could you tell me what time would be good for you to have the meeting?',
-        );
+        this.sendMessage(ASK_MEETING_TIME);
         return;
       }
       if (this.email.length && this.date.length) {

@@ -18,7 +18,7 @@ import { clearWebTokenAuth } from '../../../util/routing';
 import { setServerTimeOffset } from '../../../util/serverTime';
 import { updateSessionUserId } from '../../../util/sessions';
 import { forceWebsync } from '../../../util/websync';
-import { setChataiStoreBuilderCurrentUserId } from '../../../components/chatAssistant/store';
+import { setChataiStoreBuilderCurrentUserId } from '../../../components/chatAssistant/store/stores';
 import { isChatChannel, isChatSuperGroup } from '../../helpers';
 import {
   addActionHandler, getGlobal, setGlobal,

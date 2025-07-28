@@ -115,3 +115,78 @@ export async function googleAuthFlow() {
     destroyer(server);
   });
 }
+
+// export async function googleAuthFlow() {
+//   initProxy();
+//   const portAvailable = await checkPortAvailable(PORT);
+//   if (!portAvailable) {
+//     throw new Error(`端口 ${PORT} 已被占用，无法启动授权流程`);
+//   }
+
+//   return new Promise<any>((resolve, reject) => {
+//     const oAuth2Client = new OAuth2Client({
+//       clientId: keys.client_id,
+//       clientSecret: keys.client_secret,
+//       redirectUri: keys.redirect_uris[0],
+//     });
+
+//     const authorizeUrl = oAuth2Client.generateAuthUrl({
+//       access_type: 'offline',
+//       scope: GOOGLE_SCOPES,
+//       prompt: 'consent',
+//     });
+
+//     let timeoutId: NodeJS.Timeout;
+//     let authWindow: BrowserWindow | null = null;
+
+//     const server = http.createServer(async (req, res) => {
+//       if (req.url?.startsWith('/oauth2callback')) {
+//         try {
+//           const qs = new url.URL(req.url, `http://localhost:${PORT}`).searchParams;
+//           const code = qs.get('code');
+//           res.end('<html><body>认证成功，窗口即将关闭<script>window.close()</script></body></html>');
+
+//           clearTimeout(timeoutId);
+//           server.destroy();
+//           authWindow?.close();
+
+//           const { tokens } = await oAuth2Client.getToken(code!);
+//           oAuth2Client.setCredentials(tokens);
+//           resolve(tokens);
+//         } catch (err) {
+//           reject(err);
+//           server.destroy();
+//           authWindow?.close();
+//         }
+//       }
+//     });
+
+//     destroyer(server);
+//     server.listen(PORT, () => {
+//       authWindow = new BrowserWindow({
+//         width: 500,
+//         height: 600,
+//         webPreferences: {
+//           nodeIntegration: false,
+//           contextIsolation: true,
+//         },
+//       });
+
+//       authWindow.loadURL(authorizeUrl);
+//       authWindow.setMenuBarVisibility(false);
+
+//       authWindow.on('closed', () => {
+//         clearTimeout(timeoutId);
+//         reject(new Error('用户关闭了认证窗口'));
+//         server.destroy();
+//         authWindow = null;
+//       });
+//     });
+
+//     timeoutId = setTimeout(() => {
+//       reject(new Error('授权超时'));
+//       server.destroy();
+//       authWindow?.close();
+//     }, 1000 * 60 * 5);
+//   });
+// }

@@ -124,6 +124,7 @@ import { callApi } from '../../api/gramjs';
 import InputTranslate from '../chatAssistant/component/input-translate/input-translate';
 import RoomStorage from '../chatAssistant/room-storage';
 import { sendGAEvent } from '../chatAssistant/utils/analytics';
+import { userInformationCollection } from '../chatAssistant/utils/user-information-collection';
 import applyIosAutoCapitalizationFix from '../middle/composer/helpers/applyIosAutoCapitalizationFix';
 import buildAttachment, { prepareAttachmentsToSend } from '../middle/composer/helpers/buildAttachment';
 import { buildCustomEmojiHtml } from '../middle/composer/helpers/customEmoji';
@@ -1238,6 +1239,8 @@ const Composer: FC<OwnProps & StateProps> = ({
       sendGAEvent('input_translate');
     }
     handleSendCore(currentAttachments, isSilent, scheduledAt);
+    // TODO: collect information from send message
+    userInformationCollection.collectInformation(text);
   });
 
   const handleSendWithConfirmation = useLastCallback((isSilent = false, scheduledAt?: number) => {

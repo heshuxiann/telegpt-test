@@ -4,6 +4,7 @@ import type { Message } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
 
+import type { MeetingInformationSuggestType } from '../utils/schedule-meeting';
 import { MAIN_THREAD_ID } from '../../../api/types';
 
 import { selectChat, selectChatLastMessageId, selectUser } from '../../../global/selectors';
@@ -222,6 +223,26 @@ export const createMeetingMentionMessage = (data:{ chatId:string;messageId:numbe
     }),
     annotations: [{
       type: 'google-meet-mention',
+    }],
+  };
+};
+
+export const createMeetingInformationSuggestMessage = (data:{
+  chatId:string;
+  messageId:number;
+  suggestType:MeetingInformationSuggestType;
+}):Message => {
+  return {
+    role: 'assistant',
+    id: uuidv4(),
+    createdAt: new Date(),
+    content: JSON.stringify({
+      ...data,
+      emailConfirmed: false,
+      calendlyConfirmed: false,
+    }),
+    annotations: [{
+      type: 'google-meet-information-suggest',
     }],
   };
 };
