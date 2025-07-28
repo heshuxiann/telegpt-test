@@ -44,7 +44,7 @@ export function setChataiStoreBuilderCurrentUserId(_currentUserId: string) {
     initChataiStores(_currentUserId);
     // 更新用户id,同步更新telegpt setting
     telegptSettings.userId = _currentUserId;
-    telegptSettings.initGptSettings();
+    telegptSettings.getGptSettings();
   }
   currentUserId = _currentUserId;
 }

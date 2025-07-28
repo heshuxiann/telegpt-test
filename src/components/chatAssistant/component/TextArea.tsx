@@ -6,8 +6,6 @@ import React, {
 import { requestForcedReflow, requestMutation } from '../../../lib/fasterdom/fasterdom';
 import buildClassName from '../../../util/buildClassName';
 
-import useLastCallback from '../../../hooks/useLastCallback';
-
 type OwnProps = {
   ref?: React.RefObject<HTMLTextAreaElement>;
   id?: string;
@@ -74,7 +72,7 @@ const TextArea: FC<OwnProps> = ({
     className,
   );
 
-  const resizeHeight = useLastCallback((element: HTMLTextAreaElement) => {
+  const resizeHeight = useCallback((element: HTMLTextAreaElement) => {
     requestMutation(() => {
       element.style.height = '0';
       requestForcedReflow(() => {
@@ -84,13 +82,13 @@ const TextArea: FC<OwnProps> = ({
         };
       });
     });
-  });
+  }, []);
 
   useLayoutEffect(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
     resizeHeight(textarea);
-  }, []);
+  }, [resizeHeight]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const target = e.currentTarget;
@@ -102,7 +100,7 @@ const TextArea: FC<OwnProps> = ({
     }
     resizeHeight(target);
     onChange?.(e);
-  }, [noReplaceNewlines, onChange]);
+  }, [noReplaceNewlines, onChange, resizeHeight]);
 
   return (
     <div className={fullClassName}>
