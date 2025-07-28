@@ -1,0 +1,120 @@
+/* eslint-disable max-len */
+/* eslint-disable react/no-unescaped-entities */
+import React, { useState } from 'react';
+import type { Message } from 'ai';
+import cx from 'classnames';
+import { getActions } from '../../../global';
+
+import { ChataiStores } from '../store';
+import { parseMessage2StoreMessage } from '../store/messages-store';
+import { userInformationCollection } from '../utils/user-information-collection';
+
+const GoogleMeetInformationSuggestMessage = ({ message }:{ message:Message }) => {
+  const {
+    chatId, messageId, emailConfirmed, calendlyConfirmed, suggestType,
+  } = JSON.parse(message.content) || {};
+  const [mergeEmailConfirmed, setMergeEmailConfirmed] = useState(emailConfirmed);
+  const [mergeCalendlyConfirmed, setMergeCalendlyConfirmed] = useState(calendlyConfirmed);
+  const { emails, calendlyUrls } = userInformationCollection.informations;
+
+  const handleCalendlyUrlClick = (url:string) => {
+    if (mergeCalendlyConfirmed) {
+      return;
+    }
+    getActions().sendMessage({
+      messageList: {
+        chatId,
+        threadId: '-1',
+        type: 'thread',
+      },
+      text: url,
+    });
+    setMergeCalendlyConfirmed(true);
+    message.content = JSON.stringify({
+      chatId,
+      messageId,
+      emailConfirmed,
+      calendlyConfirmed: true,
+      suggestType,
+    });
+    ChataiStores?.message?.storeMessage(parseMessage2StoreMessage(chatId, [message])[0]);
+  };
+
+  const handleEmailClick = (email:string) => {
+    if (mergeEmailConfirmed) {
+      return;
+    }
+    getActions().sendMessage({
+      messageList: {
+        chatId,
+        threadId: '-1',
+        type: 'thread',
+      },
+      text: email,
+    });
+    setMergeEmailConfirmed(true);
+    message.content = JSON.stringify({
+      chatId,
+      messageId,
+      emailConfirmed: true,
+      calendlyConfirmed,
+      suggestType,
+    });
+    ChataiStores?.message?.storeMessage(parseMessage2StoreMessage(chatId, [message])[0]);
+  };
+
+  return (
+    <div className="px-[12px] text-[15px]">
+      <div
+        className="p-[10px] border border-solid border-[#D9D9D9] rounded-[16px] w-full bg-white dark:bg-[#292929] dark:border-[#292929]"
+      >
+        {(suggestType === 'both' || suggestType === 'time') && calendlyUrls.length > 0 && (
+          <div>
+            <p>Calendly Suggestions</p>
+            <ul className="list-decimal pl-[18px] mb-[4px]">
+              {calendlyUrls.map((url: any) => {
+                return (
+                  <li>
+                    <button
+                      type="button"
+                      className={cx('mx-[2px] outline-none border-none focus:outline-none focus:ring-0', {
+                        'underline decoration-2': !mergeCalendlyConfirmed,
+                      })}
+                      onClick={() => handleCalendlyUrlClick(url)}
+                    >
+                      {url}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+        {(suggestType === 'both' || suggestType === 'email') && emails.length > 0 && (
+          <div>
+            <p>Emails Suggestions</p>
+            <ul className="list-decimal pl-[18px] mb-[4px]">
+              {emails.map((email: any) => {
+                return (
+                  <li>
+                    <button
+                      type="button"
+                      className={cx('mx-[2px] outline-none border-none focus:outline-none focus:ring-0', {
+                        'underline decoration-2': !mergeEmailConfirmed,
+                      })}
+                      onClick={() => handleEmailClick(email)}
+                    >
+                      {email}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default GoogleMeetInformationSuggestMessage;

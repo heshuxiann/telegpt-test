@@ -17,6 +17,7 @@ import GlobalSummaryMessage from './messages/global-summary-message';
 import GoogleEventCreateMessage from './messages/google-event-create-messages';
 import GoogleEventDetailMessage from './messages/google-event-detail-message';
 import GoogleLoginAuthMessage from './messages/google-login-auth-message';
+import GoogleMeetInformationSuggestMessage from './messages/google-meet-information-suggest-message';
 import GoogleMeetMentionMessage from './messages/google-meet-mention-message';
 import GoogleMeetTimeConfirmMessage from './messages/google-meet-time-confirm-message';
 import { GroupSearchMessage } from './messages/group-search-message';
@@ -53,6 +54,7 @@ export enum AIMessageType {
   GoogleEventDetail = 'google-event-detail',
   GoogleMeetTimeConfirm = 'google-meet-time-confirm',
   GoogleMeetMention = 'google-meet-mention',
+  GoogleMeetInformationSuggest = 'google-meet-information-suggest',
   RoomSummary = 'room-summary',
   RoomActions = 'room-actions',
   MeetingIntroduce = 'global-meeting-introduce',
@@ -164,6 +166,7 @@ const PurePreviewMessage = ({
       {messageType === AIMessageType.GoogleEventDetail && (<GoogleEventDetailMessage message={message} />)}
       {messageType === AIMessageType.GoogleMeetTimeConfirm && (<GoogleMeetTimeConfirmMessage message={message} />)}
       {messageType === AIMessageType.GoogleMeetMention && (<GoogleMeetMentionMessage message={message} />)}
+      {messageType === AIMessageType.GoogleMeetInformationSuggest && (<GoogleMeetInformationSuggestMessage message={message} />)}
       {messageType === AIMessageType.RoomSummary && (
         <RoomSummaryMessage
           message={message}
