@@ -1,19 +1,24 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable max-len */
-import React from 'react';
+import React, { useState } from 'react';
 import type { Message } from '@ai-sdk/react';
+import cx from 'classnames';
 import { getActions } from '../../../global';
 
 import type { ICreateMeetResponse } from '../utils/google-api';
 
+import { ChataiStores } from '../store';
+import { parseMessage2StoreMessage } from '../store/messages-store';
 import { createAuthConfirmModal, createGoogleMeet } from '../utils/google-api';
 import { getAuthState, isTokenValid } from '../utils/google-auth';
 import ScheduleMeeting, { formatMeetingTimeRange } from '../utils/schedule-meeting';
 
 const GoogleMeetTimeConfirmMessage = ({ message }: { message: Message }) => {
   const { content } = message;
-  const { chatId, date, email } = JSON.parse(content || '{}') || {};
-
+  const {
+    chatId, date, email, isConfirmed,
+  } = JSON.parse(content || '{}') || {};
+  const [mergeConfirmed, setMergeConfirmed] = useState(isConfirmed);
   const handleCreateGoogleMeet = ({
     token,
     start,
@@ -48,6 +53,9 @@ const GoogleMeetTimeConfirmMessage = ({ message }: { message: Message }) => {
     });
   };
   const handleTimeSelect = (time: { start: string; end: string }) => {
+    if (mergeConfirmed) {
+      return;
+    }
     if (email.length > 0) {
       const auth = getAuthState();
       if (!auth || !isTokenValid(auth)) {
@@ -82,6 +90,14 @@ const GoogleMeetTimeConfirmMessage = ({ message }: { message: Message }) => {
         scheduleMeeting.start();
       }
     }
+    message.content = JSON.stringify({
+      chatId,
+      date,
+      email,
+      isConfirmed: true,
+    });
+    ChataiStores?.message?.storeMessage(parseMessage2StoreMessage(chatId, [message])[0]);
+    setMergeConfirmed(true);
   };
 
   return (
@@ -94,13 +110,14 @@ const GoogleMeetTimeConfirmMessage = ({ message }: { message: Message }) => {
           {date && date.map((item: any) => {
             return (
               <li>
-                <button
-                  type="button"
-                  className="underline decoration-2 font-semibold cursor-pointer hover:font-bold bg-transparent border-none p-0"
+                <div
+                  className={cx('font-semibold cursor-pointer bg-transparent border-none p-0', {
+                    'underline decoration-2': !mergeConfirmed,
+                  })}
                   onClick={() => handleTimeSelect(item)}
                 >
                   {formatMeetingTimeRange(item.start, item.end)}
-                </button>
+                </div>
               </li>
             );
           })}

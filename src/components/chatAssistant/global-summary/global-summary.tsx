@@ -1,8 +1,4 @@
 /* eslint-disable no-null/no-null */
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable max-len */
-/* eslint-disable @typescript-eslint/no-use-before-define */
-// import type { Dispatch, SetStateAction } from 'react';
 import React, {
   forwardRef,
   memo,
@@ -10,6 +6,7 @@ import React, {
 } from 'react';
 import { useChat } from '@ai-sdk/react';
 import type { Message } from 'ai';
+import { orderBy } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
@@ -21,7 +18,11 @@ import { MultiInput } from '../multi-input';
 import { RightPanel } from '../rightPanel/right-panel';
 import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
-import { parseMessage2SummaryStoreMessage, parseSummaryStoreMessage2Message, type SummaryStoreMessage } from '../store/summary-store';
+import {
+  parseMessage2SummaryStoreMessage,
+  parseSummaryStoreMessage2Message,
+  type SummaryStoreMessage,
+} from '../store/summary-store';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
 import SummaryHeaderActions from './summary-header-actions';
 import { createGlobalIntroduceMessage } from './summary-utils';
@@ -38,7 +39,12 @@ import SerenaPath from '../assets/serena.png';
 const GlobalSummary = forwardRef(() => {
   const { isOpen } = useDrawerStore();
   const [notificationMessage, setNotificationMessage] = useState<Message | null>(null);
-  const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
+  const [summaryMessages, setSummaryMessages] = useState<Message[]>([]);
+  const [viewMessages, setViewMessages] = useState<Message[] >([]);
+  const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({
+    lastTime: undefined,
+    hasMore: true,
+  });
   const {
     scrollToBottom, scrollLocked, isScrollLock,
   } = useScrollToBottom();
@@ -51,10 +57,19 @@ const GlobalSummary = forwardRef(() => {
   });
 
   useEffect(() => {
+    const sorted = orderBy(
+      [...messages, ...summaryMessages],
+      [(item:Message) => new Date(item.createdAt as Date).getTime()],
+      ['asc'],
+    );
+    setViewMessages(sorted);
+  }, [messages, summaryMessages]);
+
+  useEffect(() => {
     if (!isScrollLock) {
       scrollToBottom();
     }
-  }, [isScrollLock, messages, scrollToBottom]);
+  }, [isScrollLock, viewMessages, scrollToBottom]);
 
   const handleLoadMore = useCallback(() => {
     scrollLocked();
@@ -62,7 +77,7 @@ const GlobalSummary = forwardRef(() => {
       ChataiStores.summary?.getMessages(pageInfo?.lastTime, 10)?.then((res) => {
         if (res.messages) {
           const localChatAiMessages = parseSummaryStoreMessage2Message(res.messages);
-          setMessages((prev) => [...localChatAiMessages, ...prev]);
+          setSummaryMessages((prev) => [...localChatAiMessages, ...prev]);
         }
         setPageInfo({
           lastTime: res.lastTime,
@@ -71,32 +86,32 @@ const GlobalSummary = forwardRef(() => {
         resolve();
       });
     });
-  }, [pageInfo?.lastTime, scrollLocked, setMessages]);
+  }, [pageInfo?.lastTime, scrollLocked, setSummaryMessages]);
 
   const handleAddSummaryMessage = useCallback((message: SummaryStoreMessage) => {
-    setMessages((prev) => [...prev, message]);
-  }, [setMessages]);
+    setSummaryMessages((prev) => [...prev, message]);
+  }, [setSummaryMessages]);
 
   const handleAddUrgentMessage = useCallback((message: SummaryStoreMessage) => {
-    setMessages((prev) => [...prev, message]);
+    setSummaryMessages((prev) => [...prev, message]);
     setNotificationMessage(message);
-  }, [setMessages]);
+  }, [setSummaryMessages]);
 
   const getSummaryHistory = useCallback(() => {
-    ChataiStores.summary?.getMessages(undefined, 10)?.then((res) => {
+    ChataiStores.summary?.getMessages(undefined, 30)?.then((res) => {
       if (res.messages.length > 0) {
         const localChatAiMessages = parseSummaryStoreMessage2Message(res.messages);
-        setMessages((prev) => [...localChatAiMessages, ...prev]);
+        setSummaryMessages((prev) => [...localChatAiMessages, ...prev]);
       } else {
         const globalIntroduce = createGlobalIntroduceMessage();
-        setMessages([globalIntroduce]);
+        setSummaryMessages([globalIntroduce]);
       }
       setPageInfo({
         lastTime: res.lastTime,
         hasMore: res.hasMore,
       });
     });
-  }, [setMessages]);
+  }, [setSummaryMessages]);
 
   useEffect(() => {
     eventEmitter.on(Actions.AddUrgentMessage, handleAddUrgentMessage);
@@ -106,9 +121,9 @@ const GlobalSummary = forwardRef(() => {
       eventEmitter.off(Actions.AddUrgentMessage, handleAddUrgentMessage);
       eventEmitter.off(Actions.AddSummaryMessage, handleAddSummaryMessage);
       eventEmitter.off(Actions.ChatAIStoreReady, getSummaryHistory);
-      setMessages([]);
+      setViewMessages([]);
     };
-  }, [getSummaryHistory, handleAddSummaryMessage, handleAddUrgentMessage, setMessages]);
+  }, [getSummaryHistory, handleAddSummaryMessage, handleAddUrgentMessage]);
 
   useEffect(() => {
     if (ChataiStores.summary) {
@@ -126,10 +141,13 @@ const GlobalSummary = forwardRef(() => {
   }, []);
 
   const deleteMessage = useCallback((messageId: string) => {
+    scrollLocked();
     ChataiStores.summary?.delMessage(messageId).then(() => {
-      setMessages((prev) => prev.filter((message) => message.id !== messageId));
+      // setMessages((prev) => prev.filter((message) => message.id !== messageId));
+      // setSummaryMessages((prev) => prev.filter((message) => message.id !== messageId));
+      setViewMessages((prev) => prev.filter((message) => message.id !== messageId));
     });
-  }, [setMessages]);
+  }, [scrollLocked]);
 
   const handleInputSubmit = useCallback((value:string) => {
     scrollToBottom();
@@ -169,7 +187,7 @@ const GlobalSummary = forwardRef(() => {
             <Messages
               className="px-[15%] flex-1"
               status={status}
-              messages={messages}
+              messages={viewMessages}
               deleteMessage={deleteMessage}
               loadMore={handleLoadMore}
               hasMore={pageInfo.hasMore}

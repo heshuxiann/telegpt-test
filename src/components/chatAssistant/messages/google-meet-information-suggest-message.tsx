@@ -2,7 +2,6 @@
 /* eslint-disable react/no-unescaped-entities */
 import React, { useState } from 'react';
 import type { Message } from 'ai';
-import cx from 'classnames';
 import { getActions } from '../../../global';
 
 import { ChataiStores } from '../store';
@@ -76,50 +75,51 @@ const GoogleMeetInformationSuggestMessage = ({ message }:{ message:Message }) =>
       <div
         className="p-[10px] border border-solid border-[#D9D9D9] rounded-[16px] w-full bg-white dark:bg-[#292929] dark:border-[#292929]"
       >
-        {(suggestType === 'both' || suggestType === 'time') && calendlyUrls.length > 0 && (
-          <div>
-            <p>Calendly Suggestions</p>
-            <ul className="list-decimal pl-[18px] mb-[4px]">
+        <p>
+          🔔 I noticed that John wants to schedule a meeting with you. Would you like to send  the calendar and email?
+        </p>
+        <ul className="list-disc pl-[18px] mb-[4px]">
+          {(suggestType === 'both' || suggestType === 'time') && calendlyUrls.length > 0 && (
+            <>
               {calendlyUrls.map((url: any) => {
                 return (
                   <li>
-                    <button
-                      type="button"
-                      className={cx('mx-[2px] outline-none border-none focus:outline-none focus:ring-0', {
-                        'underline decoration-2': !mergeCalendlyConfirmed,
-                      })}
-                      onClick={() => handleCalendlyUrlClick(url)}
-                    >
-                      {url}
-                    </button>
+                    <b>Calendar:</b>{url}
+                    {!mergeCalendlyConfirmed && (
+                      <div
+                        className="mx-[2px] outline-none border-none focus:outline-none focus:ring-0 underline decoration-2"
+                        onClick={() => handleCalendlyUrlClick(url)}
+                      >
+                        Send👉
+                      </div>
+                    )}
                   </li>
                 );
               })}
-            </ul>
-          </div>
-        )}
-        {(suggestType === 'both' || suggestType === 'email') && emails.length > 0 && (
-          <div>
-            <p>Emails Suggestions</p>
-            <ul className="list-decimal pl-[18px] mb-[4px]">
+            </>
+          )}
+          {(suggestType === 'both' || suggestType === 'email') && emails.length > 0 && (
+            <>
               {emails.map((email: any) => {
                 return (
                   <li>
-                    <button
-                      type="button"
-                      className={cx('mx-[2px] outline-none border-none focus:outline-none focus:ring-0', {
-                        'underline decoration-2': !mergeEmailConfirmed,
-                      })}
-                      onClick={() => handleEmailClick(email)}
-                    >
-                      {email}
-                    </button>
+                    <b>Email:</b>{email}
+                    {!mergeEmailConfirmed && (
+                      <button
+                        type="button"
+                        className="mx-[2px] outline-none border-none focus:outline-none focus:ring-0 underline decoration-2"
+                        onClick={() => handleEmailClick(email)}
+                      >
+                        Send👉
+                      </button>
+                    )}
+
                   </li>
                 );
               })}
-            </ul>
-          </div>
-        )}
+            </>
+          )}
+        </ul>
       </div>
     </div>
   );
