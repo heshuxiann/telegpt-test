@@ -371,8 +371,9 @@ function MiddleColumn({
   }, [shouldLoadFullChat, chatId, isReady, loadFullChat]);
 
   const handleAnalyticsMessage = useLastCallback(({ message }:{ message: ApiMessage }) => {
-    const scheduleMeeting = ScheduleMeeting.create({ chatId: message.chatId });
-    if (scheduleMeeting.timeout) {
+    const isMeetingInitiator = message.isOutgoing;
+    const scheduleMeeting = ScheduleMeeting.create({ chatId: message.chatId, isMeetingInitiator });
+    if (scheduleMeeting.timeout || message.isOutgoing || scheduleMeeting.isMeetingInitiator) {
       return;
     }
     const meetingMentionMessage = createMeetingMentionMessage({
