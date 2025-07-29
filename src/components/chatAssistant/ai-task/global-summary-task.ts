@@ -230,7 +230,12 @@ class GlobalSummaryTask {
   // eslint-disable-next-line class-methods-use-this
   getCustomTopic = () => {
     const { curious_info, curious_id } = telegptSettings.telegptSettings;
-    const customTopics = curious_info.filter((item:any) => curious_id.includes(item.id));
+    const customTopics = curious_info.filter((item:any) => curious_id.includes(item.id)).map((item) => {
+      return {
+        topicName: item.topic,
+        topicDescription: item.prompt,
+      };
+    });
     return customTopics;
   };
 

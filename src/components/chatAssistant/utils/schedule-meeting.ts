@@ -25,6 +25,7 @@ import { getAuthState, isTokenValid } from './google-auth';
 export const ASK_MEETING_TIME_AND_EMAIL = 'Could you tell me what time would be good for you to have the meeting? Also, could I get your email address?';
 export const ASK_MEETING_TIME = 'Could you tell me what time would be good for you to have the meeting?';
 export const ASK_MEETING_EMAIL = 'Could you please share your email address?';
+export const MEETING_INVITATION_TIP = "I'll send you the meeting invitation later.";
 
 export type MeetingInformationSuggestType = 'time' | 'email' | 'both';
 
@@ -305,7 +306,7 @@ class ScheduleMeeting {
     }
   }
 
-  private cleanup() {
+  public cleanup() {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     eventEmitter.off(Actions.NewTextMessage, this.handlerRef);
     clearTimeout(this.timeout);
@@ -435,6 +436,9 @@ class ScheduleMeeting {
         onOk: (accessToken: string) => {
           this.handleCreateGoogleMeet(accessToken!);
         },
+        onCancel: () => {
+          this.cleanup();
+        },
       });
     } else {
       this.handleCreateGoogleMeet(auth.accessToken!);
@@ -442,7 +446,7 @@ class ScheduleMeeting {
   }
 
   public handleCreateGoogleMeet(accessToken: string) {
-    this.sendMessage("I'll send you the meeting invitation later.");
+    this.sendMessage(MEETING_INVITATION_TIP);
     const date = this.date[0];
     createGoogleMeet({
       startDate: new Date(date.start),
@@ -451,7 +455,6 @@ class ScheduleMeeting {
       emails: this.email!,
       googleToken: accessToken as string,
     }).then((createMeetResponse: ICreateMeetResponse) => {
-      console.log('createMeetResponse', createMeetResponse);
       if (createMeetResponse) {
         const eventMessage = `Event details \n📝 Title\n${
           createMeetResponse.summary
@@ -466,6 +469,10 @@ class ScheduleMeeting {
             `;
         this.sendMessage(eventMessage);
       }
+      this.cleanup();
+    }).catch((err) => {
+      console.log(err);
+      this.cleanup();
     });
   }
 

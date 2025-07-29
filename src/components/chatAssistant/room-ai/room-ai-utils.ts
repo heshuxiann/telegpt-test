@@ -205,7 +205,9 @@ export const createMeetingTimeConfirmMessage = ({
     role: 'assistant',
     id: uuidv4(),
     createdAt: new Date(),
-    content: JSON.stringify({ chatId, date, email }),
+    content: JSON.stringify({
+      chatId, date, email, isConfirmed: false,
+    }),
     annotations: [{
       type: 'google-meet-time-confirm',
     }],

@@ -32,7 +32,6 @@ import {
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
 import { deleteStoryFromUserPortraitMessage, handleStoryToUserPortraitMessage } from '../../../util/userPortrait';
 import ChatAIMessageQuene from '../../../components/chatAssistant/ai-task/chatai-task';
-import ScheduleMeeting from '../../../components/chatAssistant/utils/schedule-meeting';
 import { messageEmbeddingStore, toolsEmbeddingStore } from '../../../components/chatAssistant/vector-store';
 
 import eventEmitter, {
@@ -332,7 +331,7 @@ function sendToAIAgent(data: ApiUpdate) {
           chatType,
           date: date ? new Date(date * 1000).toISOString().split('T')[0] : '0',
         }).then((res:IVSDocument<any>) => {
-          if (chatType === 'private' && !ScheduleMeeting.get(chatId)) {
+          if (chatType === 'private') {
             isIntentionToScheduleMeeting(res.vector, data.message as ApiMessage);
           }
         });
@@ -350,7 +349,7 @@ async function isIntentionToScheduleMeeting(embedding:number[] | undefined, mess
     queryEmbedding: embedding,
     k: 10,
   });
-  const matchs = vectorSearchResults.similarItems.filter((item:any) => item.score > 0.66);
+  const matchs = vectorSearchResults.similarItems.filter((item:any) => item.score > 0.72);
   if (matchs.length > 0 && matchs.find((item:any) => item.id === 'schedule-meeting')) {
     eventEmitter.emit(Actions.IntentionToScheduleMeeting, { message });
   }

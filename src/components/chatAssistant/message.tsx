@@ -39,6 +39,7 @@ import UrgentCheckMessage from './messages/urgent-check-message';
 import { UserSearchMessage } from './messages/user-search-message';
 import { LoadingIcon } from './icons';
 import { Markdown } from './markdown';
+import { MessageActions } from './message-actions';
 import { MessageReasoning } from './message-reasoning';
 import { PreviewAttachment } from './preview-attachment';
 
@@ -70,7 +71,11 @@ export enum AIMessageType {
   Default = 'default',
 }
 
-const DefaultMessage = ({ message, isLoading }:{ message: Message;isLoading:boolean }) => {
+const DefaultMessage = ({ message, isLoading, deleteMessage }:{
+  message: Message;
+  isLoading:boolean;
+  deleteMessage:() => void;
+}) => {
   return (
     <motion.div
       className="w-full px-[12px] group/message"
@@ -107,6 +112,9 @@ const DefaultMessage = ({ message, isLoading }:{ message: Message;isLoading:bool
                 })}
               >
                 <Markdown>{message.content as string}</Markdown>
+                { message.role !== 'user' && (
+                  <MessageActions message={message} deleteMessage={deleteMessage} />
+                )}
               </div>
             </div>
           )}
@@ -191,7 +199,14 @@ const PurePreviewMessage = ({
       {messageType === AIMessageType.AIReplyMention && (<ReplyMentionMessage message={message} />)}
       {messageType === AIMessageType.AIMediaSummary && (<RoomAIMediaMessage message={message} />)}
       {messageType === AIMessageType.UserPortrait && (<RoomAIUserPortraitMessage userId={message?.content} />)}
-      {messageType === AIMessageType.Default && (<DefaultMessage message={message} isLoading={isLoading} />)}
+      {messageType === AIMessageType.Default && (
+        <DefaultMessage
+          message={message}
+          isLoading={isLoading}
+          // eslint-disable-next-line react/jsx-no-bind
+          deleteMessage={() => deleteMessage?.(message.id)}
+        />
+      )}
     </AnimatePresence>
   );
 };
