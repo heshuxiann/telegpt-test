@@ -234,6 +234,7 @@ interface ScheduleMeetingParams {
   chatId: string;
   email?: string[];
   date?: { start: string; end: string }[];
+  isMeetingInitiator?: boolean;
   hasConfirmed?: boolean;
 }
 class ScheduleMeeting {
@@ -247,6 +248,8 @@ class ScheduleMeeting {
 
   private date: { start: string; end: string }[];
 
+  public isMeetingInitiator:boolean;
+
   public timeout: NodeJS.Timeout | undefined = undefined;
 
   private handlerRef: ({ message }: { message: ApiMessage }) => void;
@@ -256,10 +259,12 @@ class ScheduleMeeting {
     email = [],
     date = [],
     hasConfirmed = false,
+    isMeetingInitiator = false,
   }: ScheduleMeetingParams) {
     this.chatId = chatId;
     this.email = email;
     this.date = date;
+    this.isMeetingInitiator = isMeetingInitiator;
     this.hasConfirmed = hasConfirmed;
     this.handlerRef = ({ message }) => this.handlerImMessage({ message });
   }
@@ -295,7 +300,9 @@ class ScheduleMeeting {
       console.log('已超过五分钟未完成输入，工作流已结束。');
     }, 1000 * 60 * 5);
 
-    this.handler(params);
+    if (!this.isMeetingInitiator) {
+      this.handler(params);
+    }
   }
 
   private cleanup() {
@@ -306,7 +313,8 @@ class ScheduleMeeting {
   }
 
   private handlerImMessage({ message }: { message?: ApiMessage }) {
-    if (message && hasMessageText(message) && !message.isOutgoing) {
+    // 只处理对方发过来的消息
+    if (message && hasMessageText(message) && !this.isMeetingInitiator && !message.isOutgoing) {
       this.handler({
         chatId: message.chatId,
         text: getMessageContent(message).text?.text || '',

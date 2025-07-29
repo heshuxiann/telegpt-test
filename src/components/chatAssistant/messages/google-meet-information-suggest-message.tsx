@@ -63,6 +63,14 @@ const GoogleMeetInformationSuggestMessage = ({ message }:{ message:Message }) =>
     ChataiStores?.message?.storeMessage(parseMessage2StoreMessage(chatId, [message])[0]);
   };
 
+  if (suggestType === 'both' && !calendlyUrls.length && !emails.length) {
+    return undefined;
+  } else if (suggestType === 'email' && !emails.length) {
+    return undefined;
+  } else if (suggestType === 'time' && !calendlyUrls.length) {
+    return undefined;
+  }
+
   return (
     <div className="px-[12px] text-[15px]">
       <div

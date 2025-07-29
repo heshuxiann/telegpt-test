@@ -32,6 +32,7 @@ import {
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
 import { deleteStoryFromUserPortraitMessage, handleStoryToUserPortraitMessage } from '../../../util/userPortrait';
 import ChatAIMessageQuene from '../../../components/chatAssistant/ai-task/chatai-task';
+import ScheduleMeeting from '../../../components/chatAssistant/utils/schedule-meeting';
 import { messageEmbeddingStore, toolsEmbeddingStore } from '../../../components/chatAssistant/vector-store';
 
 import eventEmitter, {
@@ -318,7 +319,7 @@ function sendToAIAgent(data: ApiUpdate) {
       });
       ChatAIMessageQuene.add(data.message as ApiMessage);
       const {
-        date, id, senderId, chatId, isOutgoing,
+        date, id, senderId, chatId,
       } = data.message;
       const messageContent = data.message?.content?.text?.text;
       if (chatId && messageContent) {
@@ -331,7 +332,7 @@ function sendToAIAgent(data: ApiUpdate) {
           chatType,
           date: date ? new Date(date * 1000).toISOString().split('T')[0] : '0',
         }).then((res:IVSDocument<any>) => {
-          if (chatType === 'private' && !isOutgoing) {
+          if (chatType === 'private' && !ScheduleMeeting.get(chatId)) {
             isIntentionToScheduleMeeting(res.vector, data.message as ApiMessage);
           }
         });

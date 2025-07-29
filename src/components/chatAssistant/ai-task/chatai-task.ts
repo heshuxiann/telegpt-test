@@ -9,6 +9,7 @@ import { createMeetingInformationSuggestMessage } from '../room-ai/room-ai-utils
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage } from '../store/messages-store';
 import { ASK_MEETING_EMAIL, ASK_MEETING_TIME, ASK_MEETING_TIME_AND_EMAIL } from '../utils/schedule-meeting';
+import { userInformationCollection } from '../utils/user-information-collection';
 import { intelligentReplyTask } from './intelligent-reply-task';
 import { urgentCheckTask } from './urgent-check-task';
 
@@ -35,8 +36,9 @@ class ChatAIMessageQuene {
 
       // 是否是询问约会相关的信息
       const currentChat = selectCurrentChat(global);
+      const { emails, calendlyUrls } = userInformationCollection.informations;
       if (currentChat?.id === message.chatId && !message.isOutgoing) {
-        if (messageText === ASK_MEETING_TIME_AND_EMAIL) {
+        if (messageText === ASK_MEETING_TIME_AND_EMAIL && (emails.length || calendlyUrls.length)) {
           const suggestMessage = createMeetingInformationSuggestMessage({
             chatId: message.chatId,
             messageId: message.id,
@@ -47,7 +49,7 @@ class ChatAIMessageQuene {
           );
           getActions().openChatAIWithInfo({ chatId: message.chatId });
           eventEmitter.emit(Actions.AddRoomAIMessage, suggestMessage);
-        } else if (messageText === ASK_MEETING_TIME) {
+        } else if (messageText === ASK_MEETING_TIME && calendlyUrls.length) {
           const suggestMessage = createMeetingInformationSuggestMessage({
             chatId: message.chatId,
             messageId: message.id,
@@ -58,7 +60,7 @@ class ChatAIMessageQuene {
           );
           getActions().openChatAIWithInfo({ chatId: message.chatId });
           eventEmitter.emit(Actions.AddRoomAIMessage, suggestMessage);
-        } else if (messageText === ASK_MEETING_EMAIL) {
+        } else if (messageText === ASK_MEETING_EMAIL && emails.length) {
           const suggestMessage = createMeetingInformationSuggestMessage({
             chatId: message.chatId,
             messageId: message.id,
