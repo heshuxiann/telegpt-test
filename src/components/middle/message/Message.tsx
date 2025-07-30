@@ -121,6 +121,7 @@ import buildClassName from '../../../util/buildClassName';
 import { getMessageKey } from '../../../util/keys/messageKey';
 import stopEvent from '../../../util/stopEvent';
 import { isElementInViewport } from '../../../util/visibility/isElementInViewport';
+// import MessageGptMenu from '../../chatAssistant/component/message-gpt-menu';
 import { calculateDimensionsForMessageMedia, getStickerDimensions, REM } from '../../common/helpers/mediaDimensions';
 import { getPeerColorClass } from '../../common/helpers/peerColor';
 import renderText from '../../common/helpers/renderText';
@@ -1707,6 +1708,7 @@ const Message: FC<OwnProps & StateProps> = ({
           )}
           {withAppendix && <MessageAppendix isOwn={isOwn} />}
           {withQuickReactionButton && quickReactionPosition === 'in-content' && renderQuickReactionButton()}
+          {/* <MessageGptMenu /> */}
         </div>
         {message.inlineButtons && (
           <InlineButtons message={message} onClick={clickBotInlineButton} />
@@ -1893,7 +1895,7 @@ export default memo(withGlobal<OwnProps>(
     const maxTimestamp = selectMessageTimestampableDuration(global, message);
 
     const lastPlaybackTimestamp = selectMessageLastPlaybackTimestamp(global, chatId, message.id);
-    const hasTranslation = requestedTranslationLanguage 
+    const hasTranslation = requestedTranslationLanguage
       ? Boolean(selectMessageTranslations(global, message.chatId, requestedTranslationLanguage)[message.id]?.text)
       : undefined;
     const isAccountFrozen = selectIsCurrentUserFrozen(global);
