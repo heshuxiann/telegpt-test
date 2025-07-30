@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import React, { useCallback } from 'react';
 
+import { telegptSettings } from '../api/user-settings';
 import { SettingIcon } from '../icons';
 
 import { DrawerKey, useDrawerStore } from './DrawerContext';
@@ -9,6 +10,7 @@ const SummaryHeaderActions = () => {
   const { openDrawer } = useDrawerStore();
   const handleShowRightPanel = useCallback(() => {
     openDrawer(DrawerKey.PersonalizeSettings);
+    telegptSettings.getGptSettings();
   }, [openDrawer]);
 
   return (
