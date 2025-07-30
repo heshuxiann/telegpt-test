@@ -79,14 +79,14 @@ const GoogleMeetMentionMessage = ({ message }:{ message:Message }) => {
         </div>
         <div>
           👉 Click
-          <div
+          <span
             className={cx('mx-[2px] outline-none border-none focus:outline-none focus:ring-0', {
               'underline decoration-2': !mergeConfirmed,
             })}
             onClick={handleClick}
           >
             "Yes"
-          </div>
+          </span>
           to proceed, or ignore this message.
         </div>
       </div>

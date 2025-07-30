@@ -2,20 +2,24 @@
 /* eslint-disable react/no-unescaped-entities */
 import React, { useState } from 'react';
 import type { Message } from 'ai';
-import { getActions } from '../../../global';
+import { getActions, getGlobal } from '../../../global';
 
+import { getUserFullName } from '../../../global/helpers';
+import { selectUser } from '../../../global/selectors';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage } from '../store/messages-store';
 import { userInformationCollection } from '../utils/user-information-collection';
 
 const GoogleMeetInformationSuggestMessage = ({ message }:{ message:Message }) => {
   const {
-    chatId, messageId, emailConfirmed, calendlyConfirmed, suggestType,
+    chatId, messageId, senderId, emailConfirmed, calendlyConfirmed, suggestType,
   } = JSON.parse(message.content) || {};
   const [mergeEmailConfirmed, setMergeEmailConfirmed] = useState(emailConfirmed);
   const [mergeCalendlyConfirmed, setMergeCalendlyConfirmed] = useState(calendlyConfirmed);
   const { emails, calendlyUrls } = userInformationCollection.informations;
-
+  const global = getGlobal();
+  const peer = senderId ? selectUser(global, senderId) : undefined;
+  const fullName = peer ? getUserFullName(peer) : '';
   const handleCalendlyUrlClick = (url:string) => {
     if (mergeCalendlyConfirmed) {
       return;
@@ -76,7 +80,7 @@ const GoogleMeetInformationSuggestMessage = ({ message }:{ message:Message }) =>
         className="p-[10px] border border-solid border-[#D9D9D9] rounded-[16px] w-full bg-white dark:bg-[#292929] dark:border-[#292929]"
       >
         <p>
-          🔔 I noticed that John wants to schedule a meeting with you. Would you like to send  the calendar and email?
+          🔔 I noticed that {fullName} wants to schedule a meeting with you. Would you like to send  the calendar and email?
         </p>
         <ul className="list-disc pl-[18px] mb-[4px]">
           {(suggestType === 'both' || suggestType === 'time') && calendlyUrls.length > 0 && (

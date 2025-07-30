@@ -42,6 +42,7 @@ class ChatAIMessageQuene {
           const suggestMessage = createMeetingInformationSuggestMessage({
             chatId: message.chatId,
             messageId: message.id,
+            senderId: message.senderId,
             suggestType: 'both',
           });
           ChataiStores?.message?.storeMessage(
@@ -53,6 +54,7 @@ class ChatAIMessageQuene {
           const suggestMessage = createMeetingInformationSuggestMessage({
             chatId: message.chatId,
             messageId: message.id,
+            senderId: message.senderId,
             suggestType: 'time',
           });
           ChataiStores?.message?.storeMessage(
@@ -64,6 +66,7 @@ class ChatAIMessageQuene {
           const suggestMessage = createMeetingInformationSuggestMessage({
             chatId: message.chatId,
             messageId: message.id,
+            senderId: message.senderId,
             suggestType: 'email',
           });
           ChataiStores?.message?.storeMessage(
