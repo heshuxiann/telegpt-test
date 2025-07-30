@@ -48,7 +48,7 @@ const defaultSettings: ITelegptSettings = {
   autotranslatelanguage: 'en',
 };
 
-const POKE_RATE_MS = 300000;
+const POKE_RATE_MS = 600000;
 class TelegptSettings {
   private settings: ITelegptSettings = defaultSettings;
 
