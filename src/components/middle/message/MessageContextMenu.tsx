@@ -441,7 +441,7 @@ const MessageContextMenu: FC<OwnProps> = ({
                   <MenuItem
                     customIcon={(
                       <div className="mr-[1.25rem]">
-                        <MeetingIcon />
+                        <MeetingIcon width={20} height={20} />
                       </div>
                     )}
                     onClick={onScheduleMeet}
@@ -453,7 +453,7 @@ const MessageContextMenu: FC<OwnProps> = ({
                   <MenuItem
                     customIcon={(
                       <div className="mr-[1.25rem]">
-                        <SummarizeIcon />
+                        <SummarizeIcon width={20} height={20} />
                       </div>
                     )}
                     onClick={onSummarize}
@@ -465,7 +465,7 @@ const MessageContextMenu: FC<OwnProps> = ({
                   <MenuItem
                     customIcon={(
                       <div className="mr-[1.25rem]">
-                        <AIReplyIcon />
+                        <AIReplyIcon width={20} height={20} />
                       </div>
                     )}
                     onClick={onSmartReply}

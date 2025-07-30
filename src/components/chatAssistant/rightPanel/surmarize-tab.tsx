@@ -94,6 +94,10 @@ const SummarizeTab = () => {
     if (selectedTemp.includes(selectedId)) {
       newSelected = selectedTemp.filter((id) => id !== selectedId);
     } else {
+      if (selectedTemp.length >= 3) {
+        showMessage.info('You can only select up to three templates.');
+        return;
+      }
       newSelected = [...selectedTemp, selectedId];
     }
     setSelectedTemp(newSelected);

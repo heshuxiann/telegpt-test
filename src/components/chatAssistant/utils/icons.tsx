@@ -5,8 +5,8 @@ import React from "../../../lib/teact/teact";
 export const SummarizeIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={18}
-    height={18}
+    width="16"
+    height="16"
     fill="none"
     {...props}
   >
@@ -26,8 +26,8 @@ export const SummarizeIcon = (props: SVGProps<SVGSVGElement>) => (
 export const AIReplyIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={20}
-    height={20}
+    width="16"
+    height="16"
     fill="none"
     {...props}
   >
@@ -38,11 +38,31 @@ export const AIReplyIcon = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const AITranslateIcon = (props: SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    {...props}
+    fill="none"
+  >
+    <path
+      d="M1.33398 3.33333H6.00065M6.00065 3.33333H9.00065M6.00065 3.33333V2M10.6673 3.33333H9.00065M9.00065 3.33333C8.45398 5.15667 7.30798 6.88 6.00065 8.39533M6.00065 8.39533C4.91798 9.64933 3.72398 10.7607 2.66732 11.6667M6.00065 8.39533C5.33398 7.66667 4.26732 6.2 4.00065 5.66667M6.00065 8.39533L8.00065 10.3333M9.00065 14L9.76265 12M9.76265 12L11.6673 7L13.572 12M9.76265 12H13.572M14.334 14L13.572 12"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M14.0367 6.04952L14.1733 5.73533C14.4134 5.17939 14.8532 4.73354 15.4061 4.48575L15.8283 4.29812C15.8793 4.27454 15.9225 4.23687 15.9528 4.18955C15.9831 4.14224 15.9991 4.08726 15.9991 4.03111C15.9991 3.97496 15.9831 3.91998 15.9528 3.87266C15.9225 3.82535 15.8793 3.78768 15.8283 3.7641L15.4294 3.58646C14.8627 3.33162 14.4153 2.86928 14.1794 2.29469L14.0389 1.95607C14.0182 1.90353 13.9822 1.85842 13.9356 1.82663C13.8889 1.79484 13.8337 1.77783 13.7772 1.77783C13.7207 1.77783 13.6655 1.79484 13.6189 1.82663C13.5722 1.85842 13.5362 1.90353 13.5155 1.95607L13.375 2.29525C13.1389 2.86973 12.6913 3.33187 12.1244 3.58646L11.7261 3.76354C11.6749 3.78705 11.6316 3.82473 11.6012 3.87211C11.5708 3.91948 11.5547 3.97457 11.5547 4.03083C11.5547 4.0871 11.5708 4.14218 11.6012 4.18955C11.6316 4.23693 11.6749 4.27461 11.7261 4.29812L12.1478 4.48631C12.7007 4.73384 13.1408 5.1795 13.3811 5.73533L13.5178 6.04952C13.5391 6.10069 13.5752 6.14439 13.6213 6.17513C13.6675 6.20587 13.7217 6.22228 13.7772 6.22228C13.8327 6.22228 13.8869 6.20587 13.9331 6.17513C13.9793 6.14439 14.0153 6.10069 14.0367 6.04952Z"
+      fill="currentColor"
+    />
+  </svg>
+)
+
 export const MeetingIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={18}
-    height={18}
+    width="16"
+    height="16"
     fill="none"
     {...props}
   >
@@ -62,8 +82,8 @@ export const MeetingIcon = (props: SVGProps<SVGSVGElement>) => (
 export const AISettingIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={20}
-    height={20}
+    width="16"
+    height="16"
     fill="none"
     {...props}
   >
@@ -121,8 +141,8 @@ export const RealTimeAIIcon = (props: SVGProps<SVGSVGElement>) => (
 export const PortraitIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={20}
-    height={20}
+    width="16"
+    height="16"
     fill="none"
     {...props}
   >

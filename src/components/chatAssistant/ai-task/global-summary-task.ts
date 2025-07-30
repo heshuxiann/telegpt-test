@@ -97,8 +97,6 @@ function getAllChatIds():Promise<string[] | undefined> {
 class GlobalSummaryTask {
   private static instance: GlobalSummaryTask | undefined;
 
-  private summaryChats: string[] = [];
-
   private timmer: NodeJS.Timeout | undefined;
 
   initTask() {
@@ -245,7 +243,8 @@ class GlobalSummaryTask {
     const global = getGlobal();
     // const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
     const orderedIds = await getAllChatIds() || [];
-    const summaryChatIds = this.summaryChats.length ? this.summaryChats : orderedIds;
+    const { summary_chat_ids } = telegptSettings.telegptSettings;
+    const summaryChatIds = summary_chat_ids && summary_chat_ids.length > 0 ? summary_chat_ids : orderedIds;
     for (let i = 0; i < summaryChatIds.length; i++) {
       try {
         const chatId = summaryChatIds[i];
