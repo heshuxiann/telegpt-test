@@ -110,7 +110,7 @@ const UrgentAlertTab = () => {
           {topics.map((topic) => {
             return <TopicItem topic={topic} onDelete={handeleDeleteTopic} />;
           })}
-          <AddTopic />
+          {topics.length < 10 && <AddTopic />}
         </div>
       </div>
       <SelectedChats
