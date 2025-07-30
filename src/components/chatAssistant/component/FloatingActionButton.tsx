@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import React from 'react';
+import { debounce } from 'lodash';
 
 import buildClassName from '../../../util/buildClassName';
 
@@ -20,6 +21,8 @@ const FloatingActionButton: FC<OwnProps> = ({
   onClick,
   children,
 }) => {
+  const handleClick = debounce(onClick, 500);
+
   const buttonClassName = buildClassName(
     'FloatingActionButton',
     'w-[3.5rem] bg-[var(--color-primary)] h-[3.5rem] rounded-full flex items-center justify-center',
@@ -31,7 +34,7 @@ const FloatingActionButton: FC<OwnProps> = ({
     <button
       className={buttonClassName}
       disabled={disabled}
-      onClick={isShown && !disabled ? onClick : undefined}
+      onClick={isShown && !disabled ? handleClick : undefined}
       tabIndex={-1}
     >
       {children}

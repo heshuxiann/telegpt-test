@@ -34,13 +34,13 @@ const PersonalizeSettings = () => {
     }
   };
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full w-full">
       <TabList
         activeTab={selectedTabIndex}
         tabs={transactionTabs}
         onSwitchTab={setSelectedTabIndex}
       />
-      <div className="pt-[20px] flex-1">
+      <div className="pt-[20px] flex-1 overflow-y-auto">
         {renderContent()}
       </div>
     </div>

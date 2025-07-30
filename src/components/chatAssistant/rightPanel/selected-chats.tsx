@@ -68,7 +68,7 @@ export const SelectedChats = (props: Props) => {
           isSavedMessages={isSelf}
           size="medium"
         />
-        <div className="flex flex-col gap-[4px] justify-center flex-1">
+        <div className="flex flex-col gap-[4px] justify-center flex-1 overflow-hidden">
           <div className="overflow-hidden overflow-ellipsis whitespace-nowrap">{specialTitle}</div>
           <div>{subtitle}</div>
         </div>

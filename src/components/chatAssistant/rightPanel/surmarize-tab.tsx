@@ -95,7 +95,7 @@ const SummarizeTab = () => {
       newSelected = selectedTemp.filter((id) => id !== selectedId);
     } else {
       if (selectedTemp.length >= 3) {
-        showMessage.info('You can only select up to three templates.');
+        showMessage.info('You can only select up to three topics.');
         return;
       }
       newSelected = [...selectedTemp, selectedId];
@@ -173,7 +173,9 @@ const SummarizeTab = () => {
               <SummaryItem template={item} onDelete={handleDelete} selectedTemp={selectedTemp} handleSelect={handleTemplateSelect} />
             );
           })}
-          <AddSummaryTemplate />
+          {summaryTemplate.length <= 10 && (
+            <AddSummaryTemplate />
+          )}
         </div>
         <SelectedChats
           onOpenChatSelect={handleOpenChatSelect}
