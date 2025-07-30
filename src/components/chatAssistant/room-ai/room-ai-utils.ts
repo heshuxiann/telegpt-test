@@ -232,6 +232,7 @@ export const createMeetingMentionMessage = (data:{ chatId:string;messageId:numbe
 export const createMeetingInformationSuggestMessage = (data:{
   chatId:string;
   messageId:number;
+  senderId:string | undefined;
   suggestType:MeetingInformationSuggestType;
 }):Message => {
   return {
