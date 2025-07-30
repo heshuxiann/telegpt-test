@@ -173,7 +173,7 @@ const SummarizeTab = () => {
               <SummaryItem template={item} onDelete={handleDelete} selectedTemp={selectedTemp} handleSelect={handleTemplateSelect} />
             );
           })}
-          {summaryTemplate.length <= 10 && (
+          {summaryTemplate.length < 10 && (
             <AddSummaryTemplate />
           )}
         </div>
