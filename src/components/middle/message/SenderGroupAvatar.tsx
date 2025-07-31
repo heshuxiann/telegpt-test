@@ -1,5 +1,7 @@
 import type { FC } from '../../../lib/teact/teact';
 import React, {
+  useCallback,
+  useRef,
   useState,
 } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
@@ -7,12 +9,16 @@ import { getActions } from '../../../global';
 import type {
   ApiPeer,
 } from '../../../api/types';
+import type { IAnchorPosition } from '../../../types';
 
-import { PortraitIcon } from '../../chatAssistant/utils/icons';
+import buildClassName from '../../../util/buildClassName';
 
+import useFlag from '../../../hooks/useFlag';
 import useLastCallback from '../../../hooks/useLastCallback';
 
 import Avatar from '../../common/Avatar';
+import { UserPortraitBasicCardMenu } from '../../right/userPortrait/UserPortraitBasicCardMenu';
+import ResponsiveHoverButton from '../../ui/ResponsiveHoverButton';
 
 import styles from './SenderGroupContainer.module.scss';
 
@@ -30,43 +36,61 @@ const SenderGroupAvatar: FC<OwnProps> = ({
   handleAvatarClick,
 }) => {
   const { openUserPortrait } = getActions();
-  const [menuVisible, setMenuVisible] = useState(false);
   const hiddenName = (!avatarPeer && forwardInfo) ? forwardInfo.hiddenUserName : undefined;
+  const [isSymbolMenuOpen, openSymbolMenu, closeSymbolMenu] = useFlag();
+  const [contextMenuAnchor, setContextMenuAnchor] = useState<IAnchorPosition | undefined>(undefined);
+  // eslint-disable-next-line no-null/no-null
+  const triggerRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line no-null/no-null
+  const menuRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line no-null/no-null
+  const ref = useRef<HTMLDivElement>(null);
+  const getTriggerElement = useCallback(() => ref.current, []);
+  const getMenuElement = useCallback(() => menuRef.current!, []);
+  const getRootElement = useCallback(
+    () => ref.current!.closest('.custom-scroll, .no-scrollbar'),
+    [],
+  );
+  const getLayout = useLastCallback(() => ({ withPortal: true, shouldAvoidNegativePosition: true }));
 
-  const handlePortraitClick = useLastCallback(() => {
-    openUserPortrait({ userId: avatarPeer?.id! });
+  const handleActivateSymbolMenu = useLastCallback(() => {
+    openSymbolMenu();
+    const triggerEl = triggerRef.current;
+    if (!triggerEl) return;
+    const { x, y } = triggerEl.getBoundingClientRect();
+    setContextMenuAnchor({ x, y });
   });
 
   return (
-    <div
-      onMouseEnter={() => setMenuVisible(true)}
-      onMouseLeave={() => setMenuVisible(false)}
-      className="relative inline-block"
-    >
-      <Avatar
-        size="small"
-        className={styles.senderAvatar}
-        peer={avatarPeer}
-        text={hiddenName}
-        onClick={avatarPeer ? handleAvatarClick : undefined}
+    <div className="inline-block" ref={ref}>
+      <ResponsiveHoverButton
+        round
+        className={buildClassName('!p-0 !w-auto !h-auto')}
+        color="translucent"
+        onActivate={handleActivateSymbolMenu}
+      >
+        <div ref={triggerRef} className="symbol-menu-trigger" />
+        <Avatar
+          size="small"
+          className={styles.senderAvatar}
+          peer={avatarPeer}
+          text={hiddenName}
+          onClick={avatarPeer ? handleAvatarClick : undefined}
+        />
+      </ResponsiveHoverButton>
+      <UserPortraitBasicCardMenu
+        isOpen={isSymbolMenuOpen}
+        onClose={closeSymbolMenu}
+        userId={avatarPeer?.id!}
+        anchor={contextMenuAnchor}
+        menuRef={menuRef}
+        getTriggerElement={getTriggerElement}
+        getMenuElement={getMenuElement}
+        getRootElement={getRootElement}
+        getLayout={getLayout}
       />
-      {menuVisible && (
-        <div
-          className="absolute top-[-20px] left-[80%] bg-[var(--color-avatar-menu-bg)]
-            text-[var(--color-text)] shadow-lg shadow-black/40 z-10 py-[6px] px-2 rounded-[8px] w-[135px]
-            hover:opacity-90"
-        >
-          <div
-            className="flex items-center gap-2 text-[14px] font-[500] cursor-pointer"
-            onClick={handlePortraitClick}
-          >
-            <PortraitIcon />
-            User Portrait
-          </div>
-        </div>
-      )}
     </div>
-  );
+  )
 };
 
 export default SenderGroupAvatar;

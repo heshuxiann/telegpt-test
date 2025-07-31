@@ -194,8 +194,8 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
   hasFullInfo,
   canReschedule,
   canReply,
-  canSmartReply,
-  canScheduleMeeting,
+  // canSmartReply,
+  // canScheduleMeeting,
   canPin,
   repliesThreadInfo,
   canUnpin,
@@ -759,8 +759,8 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         canSendNow={canSendNow}
         canReschedule={canReschedule}
         canReply={canReply}
-        canSmartReply={canSmartReply}
-        canScheduleMeeting={canScheduleMeeting}
+        // canSmartReply={canSmartReply}
+        // canScheduleMeeting={canScheduleMeeting}
         canQuote={selectionQuoteOffset !== UNQUOTABLE_OFFSET}
         canDelete={canDelete}
         canPin={canPin}
@@ -795,8 +795,8 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         story={story}
         onOpenThread={handleOpenThread}
         onReply={handleReply}
-        onSmartReply={handleSmartReply}
-        onScheduleMeet={handleScheduleMeeting}
+        // onSmartReply={handleSmartReply}
+        // onScheduleMeet={handleScheduleMeeting}
         onEdit={handleEdit}
         onPin={handlePin}
         onUnpin={handleUnpin}
@@ -825,7 +825,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         onTranslate={handleTranslate}
         onShowOriginal={handleShowOriginal}
         onSelectLanguage={handleSelectLanguage}
-        onSummarize={handleSummarize}
+        // onSummarize={handleSummarize}
         userFullName={userFullName}
         canGift={canGift}
       />
