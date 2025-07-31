@@ -121,7 +121,8 @@ import buildClassName from '../../../util/buildClassName';
 import { getMessageKey } from '../../../util/keys/messageKey';
 import stopEvent from '../../../util/stopEvent';
 import { isElementInViewport } from '../../../util/visibility/isElementInViewport';
-// import MessageGptMenu from '../../chatAssistant/component/message-gpt-menu';
+import MessageGptMenu from '../../chatAssistant/component/message-gpt-menu';
+import useMessageGptMenuHandlers from '../../chatAssistant/hook/useMessageGptMenuHandlers';
 import { calculateDimensionsForMessageMedia, getStickerDimensions, REM } from '../../common/helpers/mediaDimensions';
 import { getPeerColorClass } from '../../common/helpers/peerColor';
 import renderText from '../../common/helpers/renderText';
@@ -451,6 +452,8 @@ const Message: FC<OwnProps & StateProps> = ({
   const bottomMarkerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line no-null/no-null
   const quickReactionRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line no-null/no-null
+  const messageContentRef = useRef<HTMLDivElement>(null);
 
   const lang = useOldLang();
 
@@ -477,6 +480,8 @@ const Message: FC<OwnProps & StateProps> = ({
     IS_ANDROID,
     getIsMessageListReady,
   );
+
+  const { isGptMenuOpen, gptMenuPosition } = useMessageGptMenuHandlers(messageContentRef);
 
   useEffect(() => {
     if (isContextMenuOpen) {
@@ -1641,6 +1646,7 @@ const Message: FC<OwnProps & StateProps> = ({
         </div>
       )}
       <div
+        ref={messageContentRef}
         className={buildClassName('message-content-wrapper',
           contentClassName.includes('text') && 'can-select-text',
           contentClassName.includes('giveaway') && 'giveaway-result-content')}
@@ -1708,7 +1714,14 @@ const Message: FC<OwnProps & StateProps> = ({
           )}
           {withAppendix && <MessageAppendix isOwn={isOwn} />}
           {withQuickReactionButton && quickReactionPosition === 'in-content' && renderQuickReactionButton()}
-          {/* <MessageGptMenu /> */}
+          {isGptMenuOpen && (
+            <MessageGptMenu
+              position={gptMenuPosition}
+              message={message}
+              messageListType={messageListType}
+              detectedLanguage={detectedLanguage}
+            />
+          ) }
         </div>
         {message.inlineButtons && (
           <InlineButtons message={message} onClick={clickBotInlineButton} />

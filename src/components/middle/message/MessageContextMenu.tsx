@@ -26,9 +26,9 @@ import {
 } from '../../../global/helpers';
 import buildClassName from '../../../util/buildClassName';
 import { disableScrolling } from '../../../util/scrollLock';
-import SerenaPath from '../../chatAssistant/assets/serena.png';
-import { canSummarize } from '../../chatAssistant/utils/ai-analyse-message';
-import { AIReplyIcon, MeetingIcon, SummarizeIcon } from '../../chatAssistant/utils/icons';
+// import SerenaPath from '../../chatAssistant/assets/serena.png';
+// import { canSummarize } from '../../chatAssistant/utils/ai-analyse-message';
+// import { AIReplyIcon, MeetingIcon, SummarizeIcon } from '../../chatAssistant/utils/icons';
 import { REM } from '../../common/helpers/mediaDimensions';
 import renderText from '../../common/helpers/renderText';
 import { getMessageCopyOptions } from './helpers/copyOptions';
@@ -66,8 +66,8 @@ type OwnProps = {
   reactionsLimit?: number;
   canReschedule?: boolean;
   canReply?: boolean;
-  canSmartReply?: boolean;
-  canScheduleMeeting?: boolean;
+  // canSmartReply?: boolean;
+  // canScheduleMeeting?: boolean;
   canQuote?: boolean;
   repliesThreadInfo?: ApiThreadInfo;
   canPin?: boolean;
@@ -104,8 +104,8 @@ type OwnProps = {
   shouldRenderShowWhen?: boolean;
   canLoadReadDate?: boolean;
   onReply?: NoneToVoidFunction;
-  onSmartReply?: NoneToVoidFunction;
-  onScheduleMeet?: NoneToVoidFunction;
+  // onSmartReply?: NoneToVoidFunction;
+  // onScheduleMeet?: NoneToVoidFunction;
   onOpenThread?: VoidFunction;
   onEdit?: NoneToVoidFunction;
   onPin?: NoneToVoidFunction;
@@ -136,7 +136,7 @@ type OwnProps = {
   onSendPaidReaction?: NoneToVoidFunction;
   onShowPaidReactionModal?: NoneToVoidFunction;
   onReactionPickerOpen?: (position: IAnchorPosition) => void;
-  onSummarize?: NoneToVoidFunction;
+  // onSummarize?: NoneToVoidFunction;
   userFullName?: string;
   canGift?: boolean;
 };
@@ -165,8 +165,8 @@ const MessageContextMenu: FC<OwnProps> = ({
   canReschedule,
   canBuyPremium,
   canReply,
-  canSmartReply,
-  canScheduleMeeting,
+  // canSmartReply,
+  // canScheduleMeeting,
   canQuote,
   canEdit,
   noReplies,
@@ -200,8 +200,8 @@ const MessageContextMenu: FC<OwnProps> = ({
   shouldRenderShowWhen,
   canLoadReadDate,
   onReply,
-  onSmartReply,
-  onScheduleMeet,
+  // onSmartReply,
+  // onScheduleMeet,
   onOpenThread,
   onEdit,
   onPin,
@@ -232,7 +232,7 @@ const MessageContextMenu: FC<OwnProps> = ({
   onTranslate,
   onShowOriginal,
   onSelectLanguage,
-  onSummarize,
+  // onSummarize,
   userFullName,
   canGift,
 }) => {
@@ -255,8 +255,8 @@ const MessageContextMenu: FC<OwnProps> = ({
   const isStarGiftUnique = message.content.action?.type === 'starGiftUnique';
   const shouldShowGiftButton = isUserId(message.chatId)
     && canGift && (isPremiumGift || isGiftCode || isStarGift || isStarGiftUnique);
-  const canAISummarize = canSummarize(message);
-  const canSerenaAI = canAISummarize || canScheduleMeeting || canSmartReply;
+  // const canAISummarize = canSummarize(message);
+  // const canSerenaAI = canAISummarize || canScheduleMeeting || canSmartReply;
 
   const [areItemsHidden, hideItems] = useFlag();
   const [isReady, markIsReady, unmarkIsReady] = useFlag();
@@ -426,7 +426,7 @@ const MessageContextMenu: FC<OwnProps> = ({
           <MenuItem icon="schedule" onClick={onReschedule}>{lang('MessageScheduleEditTime')}</MenuItem>
         )}
 
-        {canSerenaAI && (
+        {/* {canSerenaAI && (
           <MenuItem
             customIcon={(
               <img
@@ -478,7 +478,7 @@ const MessageContextMenu: FC<OwnProps> = ({
           >
             {lang('SerenaAI')}
           </MenuItem>
-        )}
+        )} */}
 
         {canReply && (
           <MenuItem icon="reply" onClick={onReply}>
