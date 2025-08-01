@@ -2377,12 +2377,16 @@ addActionHandler('translateMessagesByTencent', (global, actions, payload): Actio
     const message = selectChatMessage(global, chatId, messageId);
     return message?.content.text!;
   });
+  const { currentUserId } = global;
+  const userName = getUserFullName(selectUser(global, currentUserId!));
 
   callApi('translateTextByTencent', {
     chat,
     messageIds,
     text: texts,
     toLanguageCode,
+    userId: currentUserId!,
+    userName: userName!,
   });
 
   return global;

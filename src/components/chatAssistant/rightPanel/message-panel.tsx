@@ -9,6 +9,7 @@ import { getActions, getGlobal } from '../../../global';
 
 import { type ApiMessage, MESSAGE_DELETED } from '../../../api/types';
 
+import { SERVER_API_URL } from '../../../config';
 import { getChatTitle, getUserFullName } from '../../../global/helpers';
 import { isApiPeerUser } from '../../../global/helpers/peers';
 import { updateChatMessage } from '../../../global/reducers/messages';
@@ -40,7 +41,7 @@ const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) =
   const [isLoading, setIsLoading] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { messages, append } = useChat({
-    api: 'https://telegpt-three.vercel.app/chat',
+    api: `${SERVER_API_URL}/chat`,
     sendExtraMessageFields: true,
     initialMessages: [{
       id: '0',

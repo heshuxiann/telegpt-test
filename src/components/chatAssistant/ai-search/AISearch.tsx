@@ -10,6 +10,7 @@ import type { Message, UIMessage } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
 
+import { SERVER_API_URL } from '../../../config';
 import { selectChat, selectUser } from '../../../global/selectors';
 import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { Messages } from '../messages';
@@ -32,7 +33,7 @@ export const AISearch = () => {
     messages, setMessages, append, status, stop,
   } = useChat({
     id: GLOBAL_SEARCH_CHATID,
-    api: 'https://telegpt-three.vercel.app/chat',
+    api: `${SERVER_API_URL}/chat`,
     sendExtraMessageFields: true,
   });
 
@@ -91,7 +92,7 @@ export const AISearch = () => {
         resolve();
       });
     });
-  }, [pageInfo?.lastTime, setMessages]);
+  }, [pageInfo?.lastTime, scrollLocked, setMessages]);
 
   //   const deleteMessage = useCallback((messageId: string) => {
   //     ChataiStores.message?.delMessage(messageId).then(() => {
@@ -115,7 +116,7 @@ export const AISearch = () => {
     const similarItems = vectorSearchResults.similarItems;
     let searchResult = null;
     if (similarItems.length > 0) {
-      const chatIds = Array.from(new Set(similarItems.map((item) => {
+      const chatIds = Array.from(new Set(similarItems.map((item:any) => {
         if (item.score > 0.7) {
           return (item?.metadata as { chatId: string })?.chatId;
         }
@@ -164,8 +165,7 @@ export const AISearch = () => {
     const similarItems = vectorSearchResults.similarItems;
     let searchResult = null;
     if (similarItems.length > 0) {
-      debugger
-      const senderIds = Array.from(new Set(similarItems.map((item) => {
+      const senderIds = Array.from(new Set(similarItems.map((item:any) => {
         if (item.score > 0.7) {
           return (item?.metadata as { senderId: string })?.senderId;
         }
@@ -205,7 +205,7 @@ export const AISearch = () => {
     });
     const similarItems = vectorSearchResults.similarItems;
     if (similarItems.length > 0) {
-      const messageList = similarItems.map((item) => {
+      const messageList = similarItems.map((item:any) => {
         const { chatId, senderId } = item.metadata as { chatId:string;senderId:string };
         const chat = selectChat(global, chatId);
         if (chat) {
@@ -241,7 +241,7 @@ export const AISearch = () => {
   }, [append, global, scrollToBottom]);
 
   const toolsHitCheck = useCallback((inputValue: string) => {
-    fetch('https://telegpt-three.vercel.app/tool-check', {
+    fetch(`${SERVER_API_URL}/tool-check`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

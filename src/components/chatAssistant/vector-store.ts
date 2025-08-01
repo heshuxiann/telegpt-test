@@ -1,4 +1,6 @@
 /* eslint-disable max-len */
+import { SERVER_API_URL } from '../../config';
+
 import { VectorStorage } from './vector-storage/VectorStorage';
 
 async function embedTextsFn(texts: string[]): Promise<number[][]> {
@@ -6,7 +8,7 @@ async function embedTextsFn(texts: string[]): Promise<number[][]> {
   if (texts.length === 0) {
     return [];
   }
-  const response = await fetch('https://telegpt-three.vercel.app/embeddings', {
+  const response = await fetch(`${SERVER_API_URL}/embeddings`, {
     body: JSON.stringify({
       values: texts,
       //   model: '',

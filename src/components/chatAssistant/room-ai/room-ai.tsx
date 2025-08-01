@@ -15,6 +15,7 @@ import type { UIMessage } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { getActions } from '../../../global';
 
+import { SERVER_API_URL } from '../../../config';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import buildClassName from '../../../util/buildClassName';
@@ -54,7 +55,7 @@ const RoomAIInner = (props: StateProps) => {
   const {
     messages, setMessages, append, stop, status,
   } = useChat({
-    api: 'https://telegpt-three.vercel.app/chat',
+    api: `${SERVER_API_URL}/chat`,
     id: chatId,
     sendExtraMessageFields: true,
   });

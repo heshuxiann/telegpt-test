@@ -11,7 +11,7 @@ import { getGlobal } from '../../../global';
 
 import type { ISummaryTemplate } from '../api/user-settings';
 
-import { telegptSettings } from '../api/user-settings';
+import { buildEntityTypeFromIds, getIdsFromEntityTypes, telegptSettings } from '../api/user-settings';
 import { SelectedChats } from './selected-chats';
 
 import FloatingActionButton from '../component/FloatingActionButton';
@@ -79,10 +79,11 @@ const AddSummaryTemplate = () => {
 const SummarizeTab = () => {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   const { curious_info, summary_chat_ids, curious_id } = telegptSettings.telegptSettings;
+  const selectSummaryChatIds = getIdsFromEntityTypes(summary_chat_ids);
   const [summaryTemplate, setSummaryTemplate] = useState<ISummaryTemplate[]>(curious_info);
   const [originSelectedTemp, setOriginSelectedTemp] = useState<string[]>(curious_id);
   const [selectedTemp, setSelectedTemp] = useState<string[]>(curious_id);
-  const [selectedChats, setSelectedChats] = useState<string[]>(summary_chat_ids);
+  const [selectedChats, setSelectedChats] = useState<string[]>(selectSummaryChatIds);
   const { openDrawer } = useDrawerStore();
 
   const actionsVisable = useMemo(() => {
@@ -134,10 +135,11 @@ const SummarizeTab = () => {
 
   const handleOpenChatSelect = useCallback(() => {
     openDrawer(DrawerKey.ChatPicker, {
-      selectedChats: summary_chat_ids,
+      selectedChats,
       onSave: (chats: string[]) => {
+        const entityTypes = buildEntityTypeFromIds(chats);
         telegptSettings.setSettingOption({
-          summary_chat_ids: chats,
+          summary_chat_ids: entityTypes,
         });
         openDrawer(DrawerKey.PersonalizeSettings, {
           activeKey: 0,
@@ -154,12 +156,13 @@ const SummarizeTab = () => {
         });
       },
     });
-  }, [openDrawer, summary_chat_ids]);
+  }, [openDrawer, selectedChats]);
 
   const handleDeleteSummaryChat = useCallback((id: string) => {
     const newSelected = selectedChats.filter((item) => item !== id);
+    const entityTypes = buildEntityTypeFromIds(newSelected);
     telegptSettings.setSettingOption({
-      summary_chat_ids: newSelected,
+      summary_chat_ids: entityTypes,
     });
     setSelectedChats(newSelected);
   }, [selectedChats]);
