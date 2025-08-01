@@ -1,5 +1,6 @@
 import { getGlobal } from '../../../global';
 
+import { SERVER_API_URL } from '../../../config';
 import { getUserFullName } from '../../../global/helpers';
 import { selectUser } from '../../../global/selectors';
 
@@ -32,7 +33,7 @@ function getUserInfo() {
 export const grammarlyCheck = (text:string):Promise<GrammarlyCheckResponse> => {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/grammarly-check', {
+    fetch(`${SERVER_API_URL}/grammarly-check`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -52,7 +53,7 @@ export const grammarlyCheck = (text:string):Promise<GrammarlyCheckResponse> => {
 export const grammarlyShorten = (text:string):Promise<GrammarlyCheckResponse> => {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/grammarly-shorten', {
+    fetch(`${SERVER_API_URL}/grammarly-shorten`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -72,7 +73,7 @@ export const grammarlyShorten = (text:string):Promise<GrammarlyCheckResponse> =>
 export const grammarlyFormal = (text:string):Promise<GrammarlyCheckResponse> => {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/grammarly-formal', {
+    fetch(`${SERVER_API_URL}/grammarly-formal`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -92,7 +93,7 @@ export const grammarlyFormal = (text:string):Promise<GrammarlyCheckResponse> => 
 export const grammarlyFriendly = (text:string):Promise<GrammarlyCheckResponse> => {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/grammarly-friendly', {
+    fetch(`${SERVER_API_URL}/grammarly-friendly`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -112,7 +113,7 @@ export const grammarlyFriendly = (text:string):Promise<GrammarlyCheckResponse> =
 export const grammarlyRephrase = (text:string):Promise<GrammarlyCheckResponse> => {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/grammarly-rephrase', {
+    fetch(`${SERVER_API_URL}/grammarly-rephrase`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

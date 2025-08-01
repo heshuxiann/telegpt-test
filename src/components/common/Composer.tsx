@@ -60,6 +60,7 @@ import {
   getAllowedAttachmentOptions,
   getReactionKey,
   getStoryKey,
+  getUserFullName,
   isChatAdmin,
   isChatChannel,
   isChatSuperGroup,
@@ -1227,6 +1228,8 @@ const Composer: FC<OwnProps & StateProps> = ({
         const result = await callApi('translateTextByTencent', {
           text: [{ text }],
           toLanguageCode: langCode,
+          userId: currentUserId!,
+          userName: getUserFullName(currentUser),
         });
         if (result && result[0].text) {
           setHtml(result[0].text);

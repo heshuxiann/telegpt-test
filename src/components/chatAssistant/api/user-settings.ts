@@ -1,5 +1,51 @@
 import { getActions } from '../../../global';
 
+import { SERVER_API_URL } from '../../../config';
+import { buildApiPeerId } from '../../../api/gramjs/apiBuilders/peers';
+import { buildMtpPeerId, getEntityTypeById } from '../../../api/gramjs/gramjsBuilders';
+
+// Define the entity types
+type EntityType = 'user' | 'chat' | 'channel';
+
+// Create a mapping object
+export const ENTITY_TYPE_TO_NUMBER: { [key in EntityType]: number } = {
+  user: 0,
+  chat: 1,
+  channel: 2,
+} as const;
+
+// Create a reverse mapping
+export const NUMBER_TO_ENTITY_TYPE: { [key: number]: EntityType } = {
+  0: 'user',
+  1: 'chat',
+  2: 'channel',
+} as const;
+
+export const buildEntityTypeFromIds = (ids: string[]) => {
+  const entityTypes = ids.map((id:string) => {
+    const type = getEntityTypeById(id);
+    const intId = buildMtpPeerId(id, type);
+    return {
+      id: intId,
+      type: ENTITY_TYPE_TO_NUMBER[type],
+    };
+  });
+  return entityTypes;
+};
+
+export const getIdsFromEntityTypes = (entityTypes: { id: bigInt.BigInteger; type: number }[]) => {
+  const ids = entityTypes.map((item) => {
+    if (typeof item === 'object') {
+      const entityType = NUMBER_TO_ENTITY_TYPE[item.type];
+      const id = buildApiPeerId(item.id, entityType);
+      return id;
+    } else {
+      return false;
+    }
+  }).filter(Boolean);
+  return ids;
+};
+
 export interface ISummaryTemplate {
   id?: string;
   topic: string;
@@ -24,8 +70,8 @@ interface ITelegptSettings {
   curious_info: ISummaryTemplate[];
   curious_id: string[];
   urgent_info: IUrgentTopic[];
-  summary_chat_ids: string[];
-  urgent_chat_ids: string[];
+  summary_chat_ids: { id: bigInt.BigInteger; type: number }[];
+  urgent_chat_ids: { id: bigInt.BigInteger; type: number }[];
   fanorite_chat_ids: string[];
   block_chat_ids: string[];
   chat_ids: string[];
@@ -73,7 +119,7 @@ class TelegptSettings {
 
   getGptSettings() {
     if (!this.user_id) return;
-    fetch(`https://telegpt-three.vercel.app/settings/personalized-settings?user_id=${this.user_id}`, {
+    fetch(`${SERVER_API_URL}/settings/personalized-settings?user_id=${this.user_id}`, {
       method: 'GET',
     })
       .then((res) => res.json())
@@ -87,7 +133,7 @@ class TelegptSettings {
   }
 
   updateGptSettings() {
-    fetch(`https://telegpt-three.vercel.app/settings/personalized-settings?user_id=${this.user_id}`, {
+    fetch(`${SERVER_API_URL}/settings/personalized-settings?user_id=${this.user_id}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -132,7 +178,7 @@ class TelegptSettings {
 
   updateSummarizeTemplate(template:Partial<ISummaryTemplate>) {
     return new Promise((resolve, reject) => {
-      fetch('https://telegpt-three.vercel.app/settings/update-summarize', {
+      fetch(`${SERVER_API_URL}/settings/update-summarize`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -166,7 +212,7 @@ class TelegptSettings {
 
   deleteSummarizeTemplate(id: string) {
     return new Promise((resolve, reject) => {
-      fetch(`https://telegpt-three.vercel.app/settings/update-summarize?id=${id}&user_id=${this.user_id}`, {
+      fetch(`${SERVER_API_URL}/settings/update-summarize?id=${id}&user_id=${this.user_id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -187,7 +233,7 @@ class TelegptSettings {
 
   updateUrgentTopic(template:Partial<IUrgentTopic>) {
     return new Promise((resolve, reject) => {
-      fetch('https://telegpt-three.vercel.app/settings/update-urgent', {
+      fetch(`${SERVER_API_URL}/settings/update-urgent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -221,7 +267,7 @@ class TelegptSettings {
 
   deleteUrgentTopic(id: string) {
     return new Promise((resolve, reject) => {
-      fetch(`https://telegpt-three.vercel.app/settings/update-urgent?id=${id}&user_id=${this.user_id}`, {
+      fetch(`${SERVER_API_URL}/settings/update-urgent?id=${id}&user_id=${this.user_id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

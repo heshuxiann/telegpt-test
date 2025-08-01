@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
 
+import { SERVER_API_URL } from '../../../config';
 import { getUserFullName } from '../../../global/helpers';
 import { selectUser } from '../../../global/selectors';
 
@@ -21,9 +22,9 @@ interface ChatProps {
   onFinish?: () => void;
 }
 export const chatAIGenerate = (props: ChatProps) => {
-  // `https://telegpt-three.vercel.app/generate?options=${JSON.stringify({ temperature: 0.1 })}`
+  // `${SERVER_API_URL}/generate?options=${JSON.stringify({ temperature: 0.1 })}`
   const { userId, userName } = getUserInfo();
-  fetch('https://telegpt-three.vercel.app/generate', {
+  fetch(`${SERVER_API_URL}/generate`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -46,7 +47,7 @@ export const chatAITranslate = (data: {
 }): Promise<{ text: string }> => {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/translate', {
+    fetch(`${SERVER_API_URL}/translate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -70,7 +71,7 @@ export const chatAITranslate = (data: {
 export const summaryMessage = (data: Object) => {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/summary', {
+    fetch('${SERVER_API_URL}/summary', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -94,7 +95,7 @@ export const summaryMessage = (data: Object) => {
 export const globalSummary = (data: Object) => {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/global-summary', {
+    fetch(`${SERVER_API_URL}/global-summary`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -118,7 +119,7 @@ export const globalSummary = (data: Object) => {
 export const getActionItems = (data: Object) => {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/action-items', {
+    fetch(`${SERVER_API_URL}/action-items`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -159,7 +160,7 @@ export const getHitTools = (
     params.timeZone = timeZone;
   }
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/tool-check', {
+    fetch(`${SERVER_API_URL}/tool-check`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -179,7 +180,7 @@ export const getHitTools = (
 export function imageAISummary(data: Object) {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/image-summary', {
+    fetch(`${SERVER_API_URL}/image-summary`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -203,7 +204,7 @@ export function imageAISummary(data: Object) {
 export function webPageAISummary(data: Object) {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/webpage-summary', {
+    fetch(`${SERVER_API_URL}/webpage-summary`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -227,7 +228,7 @@ export function webPageAISummary(data: Object) {
 export function documentAISummary(data: Object) {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/document-summary', {
+    fetch(`${SERVER_API_URL}/document-summary`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -250,7 +251,7 @@ export function documentAISummary(data: Object) {
 
 export function audioAISummary(formData: FormData) {
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/audio-summary', {
+    fetch(`${SERVER_API_URL}/audio-summary`, {
       method: 'POST',
       body: formData,
     })
@@ -266,7 +267,7 @@ export function audioAISummary(formData: FormData) {
 
 export function audioToText(formData: FormData): Promise<{ text: string }> {
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/audio-to-text', {
+    fetch(`${SERVER_API_URL}/audio-to-text`, {
       method: 'POST',
       body: formData,
     })
@@ -283,7 +284,7 @@ export function audioToText(formData: FormData): Promise<{ text: string }> {
 export function mentionReply(data: Object) {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/mention-reply', {
+    fetch(`${SERVER_API_URL}/mention-reply`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -308,7 +309,7 @@ export function calendlyRanges(data: {
   calendlyUrl: string;
 }): Promise<{ start: string; end: string }[]> {
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/calendly-ranges', {
+    fetch(`${SERVER_API_URL}/calendly-ranges`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -342,7 +343,7 @@ export function calendlyRanges(data: {
 export function chatAIChatFolders(data: Object):Promise<{ text: string }> {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/classify-generate', {
+    fetch(`${SERVER_API_URL}/classify-generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -366,7 +367,7 @@ export function chatAIChatFolders(data: Object):Promise<{ text: string }> {
 export function urgentMessageCheck(data:Object):Promise<any> {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/urgent-message-check', {
+    fetch(`${SERVER_API_URL}/urgent-message-check`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

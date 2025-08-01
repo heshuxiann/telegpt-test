@@ -9,7 +9,7 @@ import { message as showMessage } from 'antd';
 import type { IUrgentTopic } from '../api/user-settings';
 
 import { urgentCheckTask } from '../ai-task/urgent-check-task';
-import { telegptSettings } from '../api/user-settings';
+import { buildEntityTypeFromIds, getIdsFromEntityTypes, telegptSettings } from '../api/user-settings';
 import { SelectedChats } from './selected-chats';
 
 import Icon from '../component/Icon';
@@ -54,13 +54,15 @@ const AddTopic = () => {
 
 const UrgentAlertTab = () => {
   const { urgent_info, urgent_chat_ids } = telegptSettings.telegptSettings;
+  const selectUrgentChatIds = getIdsFromEntityTypes(urgent_chat_ids);
   const [topics, setTopics] = useState<IUrgentTopic[]>(urgent_info);
-  const [selectedChats, setSelectedChats] = useState<string[]>(urgent_chat_ids);
+  const [selectedChats, setSelectedChats] = useState<string[]>(selectUrgentChatIds);
   const { openDrawer } = useDrawerStore();
   const handleDelete = useCallback((id: string) => {
     const newSelected = selectedChats.filter((item) => item !== id);
+    const entityTypes = buildEntityTypeFromIds(newSelected);
     telegptSettings.setSettingOption({
-      urgent_chat_ids: newSelected,
+      urgent_chat_ids: entityTypes,
     });
     setSelectedChats(newSelected);
     urgentCheckTask.updateUrgentChats(newSelected);
@@ -70,8 +72,9 @@ const UrgentAlertTab = () => {
     openDrawer(DrawerKey.ChatPicker, {
       selectedChats,
       onSave: (chats: string[]) => {
+        const entityTypes = buildEntityTypeFromIds(chats);
         telegptSettings.setSettingOption({
-          urgent_chat_ids: chats,
+          urgent_chat_ids: entityTypes,
         });
         openDrawer(DrawerKey.PersonalizeSettings, {
           activeKey: 1,

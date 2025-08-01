@@ -41,6 +41,7 @@ import {
   MESSAGE_ID_REQUIRED_ERROR,
   PINNED_MESSAGES_LIMIT,
   REACTION_UNREAD_SLICE,
+  SERVER_API_URL,
   SUPPORTED_PHOTO_CONTENT_TYPES,
   SUPPORTED_VIDEO_CONTENT_TYPES,
 } from '../../../config';
@@ -2008,7 +2009,7 @@ export const translateTextByTencentApi = (
   data: Object,
 ): Promise<Array<string>> => {
   return new Promise((resolve, reject) => {
-    fetch('https://telegpt-three.vercel.app/tencent-translate', {
+    fetch(`${SERVER_API_URL}/tencent-translate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2025,13 +2026,15 @@ export const translateTextByTencentApi = (
   });
 };
 
-export async function translateTextByTencent(params: TranslateTextParams) {
+export async function translateTextByTencent(params: TranslateTextParams & { userId: string;userName: string }) {
   const isMessageTranslation = 'chat' in params;
   const { text, toLanguageCode } = params;
   const SourceTextList = text?.map((t: ApiFormattedText) => t.text);
   const result = await translateTextByTencentApi({
     texts: SourceTextList,
     target: toLanguageCode,
+    userId: params.userId,
+    userName: params.userName,
   });
 
   if (!result) return undefined;
