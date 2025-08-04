@@ -150,7 +150,7 @@ const MessageGptMenu:FC<OwnProps & StateProps> = ({
   return (
     <div className={cx('message-gpt-menu', position === 'top' ? 'top-[-32px]' : 'bottom-[-32px]')}>
       <div className="message-gpt-menu-inner">
-        <div className={cx('cursor-none', menuItemClass)}>
+        <div className={cx('!cursor-auto', menuItemClass)}>
           <img className="w-[20px] h-[20px] mt-[-4px]" src={SerenaPath} alt="" />
         </div>
         {canTranslate && (
