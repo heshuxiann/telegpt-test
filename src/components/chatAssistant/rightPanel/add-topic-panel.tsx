@@ -133,13 +133,15 @@ const AddTopicPanel = () => {
             Once enabled, these types of messages will trigger a phone alert.
           </span>
         </div>
-        <InputText
-          label="Phone Number"
-          type="number"
-          value={phoneNumber}
-          onChange={handlePhoneNumberChange}
-          error={phoneNumberError ? 'Please enter a valid phone number' : undefined}
-        />
+        {form.is_call && (
+          <InputText
+            label="Phone Number"
+            type="number"
+            value={phoneNumber}
+            onChange={handlePhoneNumberChange}
+            error={phoneNumberError ? 'Please enter a valid phone number' : undefined}
+          />
+        )}
       </div>
       <FloatingActionButton
         isShown

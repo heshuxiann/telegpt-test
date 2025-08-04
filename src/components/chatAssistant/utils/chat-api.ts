@@ -71,7 +71,7 @@ export const chatAITranslate = (data: {
 export const summaryMessage = (data: Object) => {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch('${SERVER_API_URL}/summary', {
+    fetch(`${SERVER_API_URL}/summary`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

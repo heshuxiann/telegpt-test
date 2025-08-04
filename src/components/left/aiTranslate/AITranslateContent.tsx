@@ -58,7 +58,7 @@ const AITranslateContent: FC<OwnProps & StateProps> = ({
       </div>
       <div className="settings-item settings-item-picker">
         <h4 className="settings-item-header">
-          {lang('Localization.InterfaceLanguage')}
+          {lang('Language')}
         </h4>
         <AutoTranslateLanguage />
       </div>

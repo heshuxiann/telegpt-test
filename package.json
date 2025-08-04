@@ -147,6 +147,7 @@
     "@ai-sdk/react": "^1.1.19",
     "@cryptography/aes": "^0.1.1",
     "@dslate/antd": "^2.0.14",
+    "@lottiefiles/dotlottie-react": "^0.14.4",
     "@radix-ui/react-slot": "^1.1.2",
     "@saplingai/sapling-js": "^1.0.37",
     "ai": "^4.1.51",
