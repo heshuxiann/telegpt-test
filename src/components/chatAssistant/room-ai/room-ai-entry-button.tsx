@@ -8,8 +8,6 @@ import { getActions } from '../../../global';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import RoomStorage from '../room-storage';
 
-import useLastCallback from '../../../hooks/useLastCallback';
-
 // import Button from '../../ui/Button';
 import './room-ai.scss';
 
@@ -27,21 +25,32 @@ const RoomAIEntryButton = (props: OwnProps) => {
   // eslint-disable-next-line no-null/no-null
   const [dotLottie, setDotLottie] = useState<DotLottie | null>(null);
   const [isSummary, setIsSummary] = useState<boolean>(false);
-  const onClick = useLastCallback(() => {
+  const onClick = useCallback(() => {
     openChatAIWithInfo({ chatId });
     RoomStorage.updateRoomAIData(chatId, 'unreadCount', 0);
     setUnreadCount(0);
-  });
-  const updateUnreadCount = useLastCallback((param:{ chatId:string; count:number }) => {
+  }, [chatId]);
+  const updateUnreadCount = useCallback((param:{ chatId:string; count:number }) => {
     if (param.chatId === chatId) {
       setUnreadCount(param.count);
     }
-  });
-  const updateSummaryState = useLastCallback((param:{ chatId:string; state:boolean }) => {
+  }, [chatId]);
+  const updateSummaryState = useCallback((param:{ chatId:string; state:boolean }) => {
     if (param.chatId === chatId) {
       setIsSummary(param.state);
     }
-  });
+  }, [chatId]);
+  const intervalAnimate = useCallback(() => {
+    if (dotLottie && !isSummary) {
+      dotLottie.play();
+    }
+  }, [dotLottie, isSummary]);
+
+  useEffect(() => {
+    const interval = setInterval(intervalAnimate, 10000);
+    return () => clearInterval(interval);
+  }, [chatId, intervalAnimate]);
+
   useEffect(() => {
     const count = RoomStorage.getRoomAIUnreadCount(chatId);
     const summaryState = RoomStorage.getRoomAISummaryState(chatId);
@@ -54,7 +63,7 @@ const RoomAIEntryButton = (props: OwnProps) => {
       eventEmitter.off(Actions.UpdateRoomAIUnreadCount, updateUnreadCount);
       eventEmitter.off(Actions.UpdateRoomAISummaryState, updateSummaryState);
     };
-  }, [chatId, updateUnreadCount]);
+  }, [chatId, updateSummaryState, updateUnreadCount]);
 
   const dotLottieRefCallback = useCallback((dotLottie:DotLottie) => {
     setDotLottie(dotLottie);
@@ -66,15 +75,26 @@ const RoomAIEntryButton = (props: OwnProps) => {
   }, [dotLottie]);
   return (
     <div className="room-ai-entry-button">
-      <DotLottieReact
-        className="w-[60px] h-[60px]"
-        src={isSummary ? serenaWorkUrl : serenaWaitUrl}
-        loop={!!isSummary}
-        autoplay={!!isSummary}
-        dotLottieRefCallback={dotLottieRefCallback}
-        onClick={onClick}
-        onMouseEnter={handleMouseEnter}
-      />
+      {isSummary ? (
+        <DotLottieReact
+          className="w-[60px] h-[60px]"
+          src={serenaWorkUrl}
+          loop
+          autoplay
+          dotLottieRefCallback={dotLottieRefCallback}
+          onClick={onClick}
+        />
+      ) : (
+        <DotLottieReact
+          className="w-[60px] h-[60px]"
+          src={serenaWaitUrl}
+          loop={false}
+          autoplay={false}
+          dotLottieRefCallback={dotLottieRefCallback}
+          onClick={onClick}
+          onMouseEnter={handleMouseEnter}
+        />
+      )}
       {unreadCount > 0 && (
         <div className="room-ai-unread-count">{unreadCount}</div>
       )}
