@@ -53,7 +53,7 @@ export const GlobalIntroduceMessage = () => {
           onClick={sendSmmaryIntroduceMessage}
         >
           <div className="text-[18px] font-bold mb-[10px] text-[var(--color-text)]">
-            📝 AI Summarize
+            📝 AI Summary
           </div>
           <div className="text-[14px] leading-[18px] text-[var(--color-text-secondary)] pr-[120px]">
             Get instant, clear takeaways during the chat

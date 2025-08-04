@@ -271,3 +271,15 @@ export const createUserPortraitMessage = (name: string):Message => {
     }],
   };
 };
+
+export const createNewFeatureReminderMessage = (tip = 'Comming soon!'):Message => {
+  return {
+    role: 'assistant',
+    id: uuidv4(),
+    createdAt: new Date(),
+    content: tip,
+    annotations: [{
+      type: 'new-feature-reminder',
+    }],
+  };
+};

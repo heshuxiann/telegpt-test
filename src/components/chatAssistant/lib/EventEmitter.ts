@@ -19,6 +19,7 @@ export enum Actions {
   AddRoomAIMessage = 'AddRoomAIMessage',
   UpdateRoomAIUnreadCount = 'UpdateRoomAIUnreadCount',
   IntentionToScheduleMeeting = 'IntentionToScheduleMeeting',
+  RoomAIActions = 'RoomAIActions',
   // ai chat folds
   UpdateAIChatFoldersApplying = 'UpdateAIChatFoldersApplying',
   UpdateSettingAIChatFoldersLoading = 'UpdateSettingAIChatFoldersLoading',

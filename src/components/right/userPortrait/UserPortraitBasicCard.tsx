@@ -92,7 +92,7 @@ const UserPortraitBaseCard: FC<StateProps & OwnProps> = ({ userId, user, onClose
                   <div className="flex flex-row flex-wrap items-center gap-2">
                     {portraitInfo?.tags?.map((tag, index) => (
                       <div
-                        className="flex items-center justify-center px-2 rounded-[4px] h-[28px] text-[12px] font-[500]"
+                        className="flex items-center justify-center px-2 rounded-[4px] h-[28px] text-[12px] font-[500] text-black"
                         style={`background: ${PortraitTagColors[index]}`}
                       >
                         {tag}
@@ -111,7 +111,7 @@ const UserPortraitBaseCard: FC<StateProps & OwnProps> = ({ userId, user, onClose
     <div className="w-[24rem]">
       {renderBasicInfo()}
       <div
-        className="h-[42px] flex items-center justify-center text-[var(--color-primary)] text-[14px] font-semibold pt-[0.5rem]"
+        className="h-[42px] flex items-center justify-center text-[var(--color-primary)] text-[14px] font-semibold pt-[0.5rem] cursor-pointer"
         onClick={handlePortraitClick}
       >
         View details

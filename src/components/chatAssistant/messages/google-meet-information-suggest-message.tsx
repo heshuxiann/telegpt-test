@@ -87,15 +87,15 @@ const GoogleMeetInformationSuggestMessage = ({ message }:{ message:Message }) =>
             <>
               {calendlyUrls.map((url: any) => {
                 return (
-                  <li>
+                  <li className="word-break break-all">
                     <b>Calendar:</b>{url}
                     {!mergeCalendlyConfirmed && (
-                      <div
+                      <span
                         className="mx-[2px] outline-none border-none focus:outline-none focus:ring-0 underline decoration-2"
                         onClick={() => handleCalendlyUrlClick(url)}
                       >
                         Send👉
-                      </div>
+                      </span>
                     )}
                   </li>
                 );
@@ -106,16 +106,15 @@ const GoogleMeetInformationSuggestMessage = ({ message }:{ message:Message }) =>
             <>
               {emails.map((email: any) => {
                 return (
-                  <li>
+                  <li className="word-break break-all">
                     <b>Email:</b>{email}
                     {!mergeEmailConfirmed && (
-                      <button
-                        type="button"
+                      <span
                         className="mx-[2px] outline-none border-none focus:outline-none focus:ring-0 underline decoration-2"
                         onClick={() => handleEmailClick(email)}
                       >
                         Send👉
-                      </button>
+                      </span>
                     )}
 
                   </li>

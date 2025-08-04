@@ -150,27 +150,27 @@ const MessageGptMenu:FC<OwnProps & StateProps> = ({
   return (
     <div className={cx('message-gpt-menu', position === 'top' ? 'top-[-32px]' : 'bottom-[-32px]')}>
       <div className="message-gpt-menu-inner">
-        <div className={menuItemClass}>
+        <div className={cx('cursor-none', menuItemClass)}>
           <img className="w-[20px] h-[20px] mt-[-4px]" src={SerenaPath} alt="" />
         </div>
         {canTranslate && (
-          <div className={menuItemClass} onClick={handleTranslate}>
-            <AITranslateIcon width={20} height={20} />
+          <div className={menuItemClass} onClick={handleTranslate} title="Translate">
+            <AITranslateIcon size={16} />
           </div>
         )}
         {canScheduleMeeting && (
-          <div className={menuItemClass} onClick={handleScheduleMeeting}>
-            <MeetingIcon width={20} height={20} />
+          <div className={menuItemClass} onClick={handleScheduleMeeting} title="Schedule meeting">
+            <MeetingIcon size={16} />
           </div>
         )}
         {canAISummarize && (
-          <div className={menuItemClass} onClick={handleSummarize}>
-            <SummarizeIcon width={20} height={20} />
+          <div className={menuItemClass} onClick={handleSummarize} title="Summarize">
+            <SummarizeIcon size={16} />
           </div>
         )}
         {canSmartReply && (
-          <div className={menuItemClass} onClick={handleSmartReply}>
-            <AIReplyIcon width={20} height={20} />
+          <div className={menuItemClass} onClick={handleSmartReply} title="Smart Reply">
+            <AIReplyIcon size={16} />
           </div>
         )}
       </div>

@@ -1,10 +1,13 @@
 /* eslint-disable no-null/no-null */
 /* eslint-disable max-len */
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { Message } from 'ai';
 
+import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
-import { generateRoomActionItems, scheduleGoogleMeeting, summaryRoomMessage } from './room-ai-utils';
+import {
+  createNewFeatureReminderMessage, generateRoomActionItems, scheduleGoogleMeeting, summaryRoomMessage,
+} from './room-ai-utils';
 
 import './room-ai.scss';
 
@@ -17,6 +20,7 @@ interface OwnProps {
 }
 const RoomActions = ({ chatId, insertMessage, setIsLoading }:OwnProps) => {
   const { scrollToBottom } = useScrollToBottom();
+
   const handleScheduleMeeting = () => {
     setIsLoading(true);
     scheduleGoogleMeeting(insertMessage, () => setIsLoading(false));
@@ -38,6 +42,41 @@ const RoomActions = ({ chatId, insertMessage, setIsLoading }:OwnProps) => {
       scrollToBottom();
     }
   };
+
+  const handleNewFeature = () => {
+    const newFeatureMessage: Message = createNewFeatureReminderMessage();
+    insertMessage(newFeatureMessage);
+  };
+
+  const handleActions = (payload:any) => {
+    const { action } = payload;
+    if (payload.chatId === chatId) {
+      switch (action) {
+        case 'summary':
+          handleSummarize();
+          break;
+        case 'schedule-meet':
+          handleScheduleMeeting();
+          break;
+        case 'todo':
+          handleActionItems();
+          break;
+        case 'new-feature':
+          handleNewFeature();
+          break;
+        default:
+          break;
+      }
+    }
+  };
+
+  useEffect(() => {
+    eventEmitter.on(Actions.RoomAIActions, handleActions);
+    return () => {
+      eventEmitter.off(Actions.RoomAIActions, handleActions);
+    };
+  // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
+  }, [chatId]);
 
   return (
     <div className="flex flex-row gap-[6px] mb-[8px] px-[12px] w-full overflow-x-auto scrollbar-none text-[14px] text-[var(--color-text)]">

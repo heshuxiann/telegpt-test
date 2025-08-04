@@ -3,6 +3,7 @@ import React from 'react';
 import type { Message } from '@ai-sdk/react';
 import { getGlobal } from '../../../global';
 
+import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { selectChat } from '../../../global/selectors';
 
 const actionItemClassName = 'h-[40px] w-fit px-[12px] py-[8px] rounded-[6px] bg-[#F5F1FF] text-[14px] text-[var(--color-text)] dark:bg-[#383838]';
@@ -11,6 +12,30 @@ const RoomAIDescriptionMessage = ({ message }:{ message:Message }) => {
   const { content: chatId } = message;
   const global = getGlobal();
   const chat = selectChat(global, chatId);
+  const handleSummarize = () => {
+    eventEmitter.emit(Actions.RoomAIActions, {
+      chatId,
+      action: 'summary',
+    });
+  };
+  const handleScheduleMeeting = () => {
+    eventEmitter.emit(Actions.RoomAIActions, {
+      chatId,
+      action: 'schedule-meet',
+    });
+  };
+  const handleActionItems = () => {
+    eventEmitter.emit(Actions.RoomAIActions, {
+      chatId,
+      action: 'todo',
+    });
+  };
+  const handleNewFeature = () => {
+    eventEmitter.emit(Actions.RoomAIActions, {
+      chatId,
+      action: 'new-feature',
+    });
+  };
   return (
     <div className="px-[12px]">
       <div className="px-3 py-2 rounded-xl text-[var(--color-text)] bg-white dark:bg-[#292929]">
@@ -21,23 +46,23 @@ const RoomAIDescriptionMessage = ({ message }:{ message:Message }) => {
         <div className="mt-[0.5rem]">
           <h3 className="text-[14px] font-semibold">🚀 Here’s what I can help you with:</h3>
           <div className="flex flex-col gap-[8px] mt-[0.5rem]">
-            <div className={actionItemClassName}>
-              🧠 Summarize key conversations
+            <div className={actionItemClassName} onClick={handleSummarize}>
+              🧠 Chat Summary
             </div>
-            <div className={actionItemClassName}>
-              📅 Schedule meetings
+            <div className={actionItemClassName} onClick={handleScheduleMeeting}>
+              📅 Schedule Meeting
             </div>
-            <div className={actionItemClassName}>
+            <div className={actionItemClassName} onClick={handleActionItems}>
               ✅ Action Items
             </div>
-            <div className={actionItemClassName}>
-              🔍 Group search
+            <div className={actionItemClassName} onClick={handleNewFeature}>
+              🔍 Group Search
             </div>
-            <div className={actionItemClassName}>
+            <div className={actionItemClassName} onClick={handleNewFeature}>
               👮 User Portrait
             </div>
-            <div className={actionItemClassName}>
-              🎯 Project tracking
+            <div className={actionItemClassName} onClick={handleNewFeature}>
+              🎯 Project Tracking
             </div>
           </div>
         </div>
