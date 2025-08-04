@@ -18,6 +18,7 @@ export enum Actions {
   // room ai
   AddRoomAIMessage = 'AddRoomAIMessage',
   UpdateRoomAIUnreadCount = 'UpdateRoomAIUnreadCount',
+  UpdateRoomAISummaryState = 'UpdateRoomAISummaryState',
   IntentionToScheduleMeeting = 'IntentionToScheduleMeeting',
   RoomAIActions = 'RoomAIActions',
   // ai chat folds

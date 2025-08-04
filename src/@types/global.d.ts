@@ -96,6 +96,11 @@ declare module '*.strings' {
   export default url;
 }
 
+declare module '*.json' {
+  const value: any;
+  export default value;
+}
+
 declare module 'pako/dist/pako_inflate' {
   function inflate(...args: any[]): string;
 }

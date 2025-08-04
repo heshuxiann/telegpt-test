@@ -67,7 +67,7 @@ import {
 import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
-import RoomAIActionButton from '../chatAssistant/room-ai/room-ai-action-button';
+import RoomAIEntryWrapper from '../chatAssistant/room-ai/room-ai-entry-wrapper';
 import { createMeetingMentionMessage } from '../chatAssistant/room-ai/room-ai-utils';
 import { ChataiStores } from '../chatAssistant/store';
 import { parseMessage2StoreMessage } from '../chatAssistant/store/messages-store';
@@ -750,7 +750,7 @@ function MiddleColumn({
               </div>
             </Transition>
 
-            <RoomAIActionButton
+            <RoomAIEntryWrapper
               chatId={renderingChatId!}
             />
 
