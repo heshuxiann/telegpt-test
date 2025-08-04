@@ -64,7 +64,6 @@ class RoomStorage {
     localStorage.setItem('room-ai-data', JSON.stringify(parsedData));
     if (type === 'unreadCount') {
       eventEmitter.emit(Actions.UpdateRoomAIUnreadCount, { chatId, count: value });
-      eventEmitter.emit(Actions.UpdateRoomAISummaryState, { chatId, state: true });
     } else if (type === 'summaryState') {
       eventEmitter.emit(Actions.UpdateRoomAISummaryState, { chatId, state: value });
     }
@@ -127,7 +126,7 @@ class RoomStorage {
           ChataiStores.message?.storeMessage(newMessage as StoreMessage);
           eventEmitter.emit(Actions.AddRoomAIMessage, newMessage);
           this.increaseUnreadCount(chatId);
-          // this.updateRoomAIData(chatId, 'summaryState', false);
+          this.updateRoomAIData(chatId, 'summaryState', false);
         });
       }
     }
