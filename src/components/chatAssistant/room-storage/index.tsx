@@ -35,6 +35,11 @@ class RoomStorage {
     return roomAIData ? JSON.parse(roomAIData)?.[chatId]?.unreadCount || 0 : 0;
   }
 
+  public static getRoomAISummaryState(chatId: string) {
+    const roomAIData = localStorage.getItem('room-ai-data');
+    return roomAIData ? JSON.parse(roomAIData)?.[chatId]?.summaryState || false : false;
+  }
+
   public static getRoomTranslateLanguage(chatId: string) {
     const roomAIData = localStorage.getItem('room-ai-data');
     return roomAIData ? JSON.parse(roomAIData)?.[chatId]?.translateLanguage || '' : '';
@@ -59,6 +64,9 @@ class RoomStorage {
     localStorage.setItem('room-ai-data', JSON.stringify(parsedData));
     if (type === 'unreadCount') {
       eventEmitter.emit(Actions.UpdateRoomAIUnreadCount, { chatId, count: value });
+      eventEmitter.emit(Actions.UpdateRoomAISummaryState, { chatId, state: true });
+    } else if (type === 'summaryState') {
+      eventEmitter.emit(Actions.UpdateRoomAISummaryState, { chatId, state: value });
     }
   }
 
@@ -80,6 +88,8 @@ class RoomStorage {
       const chat = selectChat(this.global, chatId);
       const summaryCount = Math.max(unreadCount, 20);
       if (chat) {
+        // 更新总结中的状态
+        this.updateRoomAIData(chatId, 'summaryState', true);
         const messages = await fetchChatMessageByOffsetId({
           chat,
           offsetId: lastMessageId,
@@ -117,6 +127,7 @@ class RoomStorage {
           ChataiStores.message?.storeMessage(newMessage as StoreMessage);
           eventEmitter.emit(Actions.AddRoomAIMessage, newMessage);
           this.increaseUnreadCount(chatId);
+          // this.updateRoomAIData(chatId, 'summaryState', false);
         });
       }
     }

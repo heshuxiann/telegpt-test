@@ -19,7 +19,7 @@
   -ms-overflow-style: none; /* IE 10+ */
 }
 
-.room-ai-floating-button {
+.room-ai-entry-wrapper {
   position: absolute;
   right: max(1rem, env(safe-area-inset-right));
   bottom: 14rem;
@@ -30,7 +30,7 @@
   .Button {
     padding: 0;
   }
-  &-unread-count {
+  .room-ai-unread-count{
     min-width: 1.5rem;
     height: 1.5rem;
     padding: 0 0.4375rem;
@@ -49,7 +49,7 @@
   }
 }
 @media (min-width: 1276px) {
-  #Main.right-column-open .room-ai-floating-button {
+  #Main.right-column-open .room-ai-entry-wrapper{
     --translate-x: calc(-1 * var(--right-column-width));
   }
 }
