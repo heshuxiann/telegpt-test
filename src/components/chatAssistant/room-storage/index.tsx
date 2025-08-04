@@ -82,11 +82,11 @@ class RoomStorage {
     const unreadCount = this.getRoomUnreadCount(chatId);
     const lastMessageId = selectChatLastMessageId(this.global, chatId, 'all') || 0;
     if (unreadCount > 5 && lastMessageId - lastSummaryId > 5 && lastFocusTime < Date.now() - 1000 * 60 * 5) {
-      // eslint-disable-next-line no-console
-      console.log('开始总结');
       const chat = selectChat(this.global, chatId);
       const summaryCount = Math.max(unreadCount, 20);
       if (chat) {
+        // eslint-disable-next-line no-console
+        console.log('开始总结');
         // 更新总结中的状态
         this.updateRoomAIData(chatId, 'summaryState', true);
         const messages = await fetchChatMessageByOffsetId({
@@ -126,6 +126,10 @@ class RoomStorage {
           ChataiStores.message?.storeMessage(newMessage as StoreMessage);
           eventEmitter.emit(Actions.AddRoomAIMessage, newMessage);
           this.increaseUnreadCount(chatId);
+          this.updateRoomAIData(chatId, 'summaryState', false);
+        }).catch((err) => {
+          // eslint-disable-next-line no-console
+          console.log(err);
           this.updateRoomAIData(chatId, 'summaryState', false);
         });
       }
