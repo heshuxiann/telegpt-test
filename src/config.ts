@@ -13,8 +13,9 @@ export const PRODUCTION_HOSTNAME = 'web.telegram.org';
 // export const PRODUCTION_URL = 'https://web.telegram.org/a';
 export const PRODUCTION_URL = 'https://telegpt.org';
 export const WEB_VERSION_BASE = 'https://web.telegram.org/'; // Used to redirect to other versions
-export const SERVER_API_URL = 'https://api.telegpt.org';
-// export const SERVER_API_URL = 'https://telegpt-three.vercel.app';
+// export const SERVER_API_URL = 'https://api.telegpt.org';
+// export const SERVER_API_URL = 'http://localhost:3000';
+export const SERVER_API_URL = 'https://telegpt-three.vercel.app';
 export const BASE_URL = process.env.BASE_URL;
 export const ACCOUNT_QUERY = 'account';
 
