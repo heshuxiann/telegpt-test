@@ -12,7 +12,7 @@ import { getIdsFromEntityTypes, telegptSettings } from '../api/user-settings';
 import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
 import { sendGAEvent } from '../utils/analytics';
-import { urgentMessageCheck } from '../utils/chat-api';
+import { getCurrentUserInfo, urgentMessageCheck } from '../utils/chat-api';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
 
 class UrgentCheckTask {
@@ -85,8 +85,9 @@ class UrgentCheckTask {
         try {
           const hasStrongAlert = urgent_info.find((item:any) => item.is_call);
           const { phone } = telegptSettings.telegptSettings;
+          const { userId, userName } = getCurrentUserInfo();
           if (hasStrongAlert && phone) {
-            fetch(`${SERVER_API_URL}/voice-call?phoneNumber=${phone}`, {
+            fetch(`${SERVER_API_URL}/voice-call?phoneNumber=${phone}&userId=${userId}&userName=${userName}`, {
               method: 'GET',
             });
             sendGAEvent('call_reminder');

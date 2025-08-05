@@ -19,7 +19,7 @@ import { callApi } from '../../../api/gramjs';
 import useOldLang from '../hook/useOldLang';
 import { ArrowRightIcon, SendIcon } from '../icons';
 import { languagePrompt } from '../prompt';
-import { chatAIGenerate } from '../utils/chat-api';
+import { chatAIGenerate, getCurrentUserInfo } from '../utils/chat-api';
 import { cn, formatTimestamp } from '../utils/util';
 import { knowledgeEmbeddingStore } from '../vector-store';
 
@@ -33,6 +33,7 @@ import ChatAILogoPath from '../assets/cgat-ai-logo.png';
 
 const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) => {
   const global = getGlobal();
+  const { userId, userName } = getCurrentUserInfo();
   const lang = useOldLang();
   const chat = selectChat(global, chatId);
   const [message, setMessage] = useState<ApiMessage | undefined>(undefined);
@@ -41,7 +42,7 @@ const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) =
   const [isLoading, setIsLoading] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { messages, append } = useChat({
-    api: `${SERVER_API_URL}/chat`,
+    api: `${SERVER_API_URL}/chat?userId=${userId}&userName=${userName}&platform=web`,
     sendExtraMessageFields: true,
     initialMessages: [{
       id: '0',
