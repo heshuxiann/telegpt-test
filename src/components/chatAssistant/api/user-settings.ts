@@ -26,7 +26,7 @@ export const buildEntityTypeFromIds = (ids: string[]) => {
     const type = getEntityTypeById(id);
     const intId = buildMtpPeerId(id, type);
     return {
-      id: intId,
+      id: Number(intId),
       type: ENTITY_TYPE_TO_NUMBER[type],
     };
   });

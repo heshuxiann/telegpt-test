@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import dayjs from 'dayjs';
 import { uniq } from 'lodash';
 import type { FC } from '../../../lib/teact/teact';
@@ -101,7 +102,7 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
                 <div className="flex flex-row flex-wrap items-center gap-2">
                   {userPortraitInfo?.tags?.map((tag, index) => (
                     <div
-                      className="flex items-center justify-center px-2 rounded-[4px] h-[28px] text-[12px] font-[500]"
+                      className="flex items-center justify-center px-2 rounded-[4px] h-[28px] text-[12px] font-[500] text-black"
                       style={`background: ${PortraitTagColors[index]}`}
                     >
                       {tag}
