@@ -24,7 +24,7 @@ const RoomAIEntryButton = (props: OwnProps) => {
   const [unreadCount, setUnreadCount] = useState(0);
   // eslint-disable-next-line no-null/no-null
   const [dotLottie, setDotLottie] = useState<DotLottie | null>(null);
-  const [isSummary, setIsSummary] = useState<boolean>(true);
+  const [isSummary, setIsSummary] = useState<boolean>(false);
   const onClick = useCallback(() => {
     openChatAIWithInfo({ chatId });
     RoomStorage.updateRoomAIData(chatId, 'unreadCount', 0);
