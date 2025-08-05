@@ -1,9 +1,11 @@
 /* eslint-disable max-len */
 import { SERVER_API_URL } from '../../config';
+import { getCurrentUserInfo } from './utils/chat-api';
 
 import { VectorStorage } from './vector-storage/VectorStorage';
 
 async function embedTextsFn(texts: string[]): Promise<number[][]> {
+  const { userId, userName } = getCurrentUserInfo();
   texts = texts.filter((text) => text.trim() !== ''); // Filter out empty strings
   if (texts.length === 0) {
     return [];
@@ -11,7 +13,8 @@ async function embedTextsFn(texts: string[]): Promise<number[][]> {
   const response = await fetch(`${SERVER_API_URL}/embeddings`, {
     body: JSON.stringify({
       values: texts,
-      //   model: '',
+      userId,
+      userName,
     }),
     headers: {
       'Content-Type': 'application/json',

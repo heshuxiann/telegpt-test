@@ -17,6 +17,7 @@ import { Messages } from '../messages';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { sendGAEvent } from '../utils/analytics';
+import { getCurrentUserInfo } from '../utils/chat-api';
 import { messageEmbeddingStore } from '../vector-store';
 
 import { AISearchInput } from './AISearchInput';
@@ -25,6 +26,7 @@ const GLOBAL_SEARCH_CHATID = '777889';
 
 export const AISearch = () => {
   const global = getGlobal();
+  const { userId, userName } = getCurrentUserInfo();
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
   const {
     scrollToBottom, scrollLocked, isScrollLock,
@@ -33,7 +35,7 @@ export const AISearch = () => {
     messages, setMessages, append, status, stop,
   } = useChat({
     id: GLOBAL_SEARCH_CHATID,
-    api: `${SERVER_API_URL}/chat`,
+    api: `${SERVER_API_URL}/chat?userId=${userId}&userName=${userName}&platform=web`,
     sendExtraMessageFields: true,
   });
 

@@ -271,6 +271,9 @@ const SummaryGarbageItem = ({ garBageItem }: { garBageItem: ISummaryGarbageItem 
       relevantMessages: [{ chatId, messageIds: relevantMessageIds }],
     });
   };
+  if (!isUserId(chatId)) {
+    return undefined;
+  }
   return (
     <ErrorBoundary>
       <div

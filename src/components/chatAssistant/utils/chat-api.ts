@@ -5,7 +5,7 @@ import { SERVER_API_URL } from '../../../config';
 import { getUserFullName } from '../../../global/helpers';
 import { selectUser } from '../../../global/selectors';
 
-export const getUserInfo = () => {
+export const getCurrentUserInfo = () => {
   const global = getGlobal();
   const { currentUserId } = global;
   const user = selectUser(global, currentUserId!);
@@ -23,7 +23,7 @@ interface ChatProps {
 }
 export const chatAIGenerate = (props: ChatProps) => {
   // `${SERVER_API_URL}/generate?options=${JSON.stringify({ temperature: 0.1 })}`
-  const { userId, userName } = getUserInfo();
+  const { userId, userName } = getCurrentUserInfo();
   fetch(`${SERVER_API_URL}/generate`, {
     method: 'POST',
     headers: {
@@ -45,7 +45,7 @@ export const chatAITranslate = (data: {
   langCode: string;
   text: string;
 }): Promise<{ text: string }> => {
-  const { userId, userName } = getUserInfo();
+  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/translate`, {
       method: 'POST',
@@ -69,7 +69,7 @@ export const chatAITranslate = (data: {
 };
 
 export const summaryMessage = (data: Object) => {
-  const { userId, userName } = getUserInfo();
+  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/summary`, {
       method: 'POST',
@@ -93,7 +93,7 @@ export const summaryMessage = (data: Object) => {
 };
 
 export const globalSummary = (data: Object) => {
-  const { userId, userName } = getUserInfo();
+  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/global-summary`, {
       method: 'POST',
@@ -117,7 +117,7 @@ export const globalSummary = (data: Object) => {
 };
 
 export const getActionItems = (data: Object) => {
-  const { userId, userName } = getUserInfo();
+  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/action-items`, {
       method: 'POST',
@@ -144,7 +144,7 @@ export const getHitTools = (
   text: string,
   timeZone?: string,
 ): Promise<Array<any>> => {
-  const { userId, userName } = getUserInfo();
+  const { userId, userName } = getCurrentUserInfo();
   const params: any = {
     userId,
     userName,
@@ -178,7 +178,7 @@ export const getHitTools = (
 };
 
 export function imageAISummary(data: Object) {
-  const { userId, userName } = getUserInfo();
+  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/image-summary`, {
       method: 'POST',
@@ -202,7 +202,7 @@ export function imageAISummary(data: Object) {
 }
 
 export function webPageAISummary(data: Object) {
-  const { userId, userName } = getUserInfo();
+  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/webpage-summary`, {
       method: 'POST',
@@ -226,7 +226,7 @@ export function webPageAISummary(data: Object) {
 }
 
 export function documentAISummary(data: Object) {
-  const { userId, userName } = getUserInfo();
+  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/document-summary`, {
       method: 'POST',
@@ -250,6 +250,9 @@ export function documentAISummary(data: Object) {
 }
 
 export function audioAISummary(formData: FormData) {
+  const { userId, userName } = getCurrentUserInfo();
+  formData.append('userId', userId!);
+  formData.append('userName', userName!);
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/audio-summary`, {
       method: 'POST',
@@ -266,6 +269,9 @@ export function audioAISummary(formData: FormData) {
 }
 
 export function audioToText(formData: FormData): Promise<{ text: string }> {
+  const { userId, userName } = getCurrentUserInfo();
+  formData.append('userId', userId!);
+  formData.append('userName', userName!);
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/audio-to-text`, {
       method: 'POST',
@@ -282,7 +288,7 @@ export function audioToText(formData: FormData): Promise<{ text: string }> {
 }
 
 export function mentionReply(data: Object) {
-  const { userId, userName } = getUserInfo();
+  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/mention-reply`, {
       method: 'POST',
@@ -308,13 +314,18 @@ export function mentionReply(data: Object) {
 export function calendlyRanges(data: {
   calendlyUrl: string;
 }): Promise<{ start: string; end: string }[]> {
+  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/calendly-ranges`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        userId,
+        userName,
+        ...data,
+      }),
     })
       .then((res) => res.json())
       .then((res) => {
@@ -341,7 +352,7 @@ export function calendlyRanges(data: {
 }
 
 export function chatAIChatFolders(data: Object):Promise<{ text: string }> {
-  const { userId, userName } = getUserInfo();
+  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/classify-generate`, {
       method: 'POST',
@@ -365,7 +376,7 @@ export function chatAIChatFolders(data: Object):Promise<{ text: string }> {
 }
 
 export function urgentMessageCheck(data:Object):Promise<any> {
-  const { userId, userName } = getUserInfo();
+  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/urgent-message-check`, {
       method: 'POST',

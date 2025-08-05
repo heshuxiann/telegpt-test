@@ -26,7 +26,7 @@ import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { sendGAEvent } from '../utils/analytics';
-import { getHitTools } from '../utils/chat-api';
+import { getCurrentUserInfo, getHitTools } from '../utils/chat-api';
 import { getAuthState, isTokenValid } from '../utils/google-auth';
 import { toolsEmbeddingStore } from '../vector-store';
 import RoomActions from './room-actions';
@@ -46,6 +46,7 @@ interface StateProps {
 const RoomAIInner = (props: StateProps) => {
   const { showNotification } = getActions();
   const { chatId } = props;
+  const { userId, userName } = getCurrentUserInfo();
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
   const [isLoading, setIsLoading] = useState(false);
   const tokenRef = useRef<string | null>(null);
@@ -55,7 +56,7 @@ const RoomAIInner = (props: StateProps) => {
   const {
     messages, setMessages, append, stop, status,
   } = useChat({
-    api: `${SERVER_API_URL}/chat`,
+    api: `${SERVER_API_URL}/chat?userId=${userId}&userName=${userName}&platform=web`,
     id: chatId,
     sendExtraMessageFields: true,
   });

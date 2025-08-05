@@ -24,6 +24,7 @@ import {
   parseSummaryStoreMessage2Message,
   type SummaryStoreMessage,
 } from '../store/summary-store';
+import { getCurrentUserInfo } from '../utils/chat-api';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
 import SummaryHeaderActions from './summary-header-actions';
 import { createGlobalIntroduceMessage } from './summary-utils';
@@ -39,6 +40,7 @@ import SerenaPath from '../assets/serena.png';
 
 const GlobalSummary = forwardRef(() => {
   const { isOpen } = useDrawerStore();
+  const { userId, userName } = getCurrentUserInfo();
   const [notificationMessage, setNotificationMessage] = useState<Message | null>(null);
   const [summaryMessages, setSummaryMessages] = useState<Message[]>([]);
   const [viewMessages, setViewMessages] = useState<Message[] >([]);
@@ -52,7 +54,7 @@ const GlobalSummary = forwardRef(() => {
   const {
     messages, setMessages, append, stop, status,
   } = useChat({
-    api: `${SERVER_API_URL}/chat`,
+    api: `${SERVER_API_URL}/chat?userId=${userId}&userName=${userName}&platform=web`,
     id: GLOBAL_SUMMARY_CHATID,
     sendExtraMessageFields: true,
   });
