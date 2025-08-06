@@ -52,13 +52,13 @@ const RoomAIEntryButton = (props: OwnProps) => {
   }, [chatId, intervalAnimate]);
 
   useEffect(() => {
+    eventEmitter.on(Actions.UpdateRoomAIUnreadCount, updateUnreadCount);
+    eventEmitter.on(Actions.UpdateRoomAISummaryState, updateSummaryState);
     const count = RoomStorage.getRoomAIUnreadCount(chatId);
     const summaryState = RoomStorage.getRoomAISummaryState(chatId);
     setUnreadCount(count);
     setIsSummary(summaryState);
     RoomStorage.summary(chatId);
-    eventEmitter.on(Actions.UpdateRoomAIUnreadCount, updateUnreadCount);
-    eventEmitter.on(Actions.UpdateRoomAISummaryState, updateSummaryState);
     return () => {
       eventEmitter.off(Actions.UpdateRoomAIUnreadCount, updateUnreadCount);
       eventEmitter.off(Actions.UpdateRoomAISummaryState, updateSummaryState);
@@ -73,11 +73,20 @@ const RoomAIEntryButton = (props: OwnProps) => {
       dotLottie?.play();
     }
   }, [dotLottie]);
+
+  // 确保当 isSummary 为 true 时动画播放
+  useEffect(() => {
+    if (isSummary && dotLottie) {
+      dotLottie.play();
+    }
+  }, [isSummary, dotLottie]);
+
   return (
     <div className="room-ai-entry-button">
       {isSummary ? (
         <DotLottieReact
-          className="w-[60px] h-[60px]"
+          key="serenaWork"
+          className="w-[62px] h-[62px]"
           src={serenaWorkUrl}
           loop
           autoplay
@@ -86,6 +95,7 @@ const RoomAIEntryButton = (props: OwnProps) => {
         />
       ) : (
         <DotLottieReact
+          key="serenaWait"
           className="w-[60px] h-[60px]"
           src={serenaWaitUrl}
           loop={false}

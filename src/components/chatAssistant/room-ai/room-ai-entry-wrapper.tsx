@@ -21,7 +21,7 @@ const RoomAIEntryWrapper = (props: StateProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (containerRef.current && chatId) {
-      injectMessageAI(containerRef.current, { ...props });
+      injectMessageAI(containerRef.current, { chatId });
     }
   // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, [chatId]);
