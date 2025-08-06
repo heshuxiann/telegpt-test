@@ -153,8 +153,6 @@ function loadWindowUrl(window: BrowserWindow, url?: string, hash?: string): void
     window.loadURL(`http://localhost:1234${hash}`);
     window.webContents.openDevTools();
   }
-  // window.loadURL('https://jsonsucoder.github.io/ai-tg-web');
-  // window.loadURL(`file://${__dirname}/index.html${hash}`);
   // if (url && checkIsWebContentsUrlAllowed(url)) {
   //   window.loadURL(url);
   // } else if (!app.isPackaged) {

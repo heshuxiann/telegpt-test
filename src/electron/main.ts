@@ -3,7 +3,6 @@ import 'v8-compile-cache';
 
 import { app, ipcMain, nativeImage } from 'electron';
 import contextMenu from 'electron-context-menu';
-import log from 'electron-log';
 import path from 'path';
 
 import { initDeeplink } from './deeplink';
@@ -42,7 +41,6 @@ app.on('ready', () => {
 ipcMain.handle('google-login', async () => {
   try {
     const tokens = await googleAuthFlow();
-    log.info('tokens----->', tokens);
     return tokens;
   } catch (e) {
     console.error(e);
