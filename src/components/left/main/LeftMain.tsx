@@ -89,7 +89,7 @@ const LeftMain: FC<OwnProps> = ({
       const { webFireBase } = payload;
       // eslint-disable-next-line @typescript-eslint/naming-convention
       const { force_update_current_version } = webFireBase;
-      const [version] = JSON.parse(localStorage.getItem(UPDATE_DEFER_KEY) || '[]');
+      const [version] = JSON.parse(localStorage.getItem(UPDATE_DEFER_KEY) || '["0.0.0",0]');
       const compareRes = compareVersion(version, force_update_current_version);
       if (compareRes === -1) {
         setShouldRenderUpdateButton(true);
@@ -169,7 +169,13 @@ const LeftMain: FC<OwnProps> = ({
 
   const handleUpdateClick = useLastCallback(() => {
     fireBaseAnalytics.deferUpdate(webFireBase?.force_update_current_version!);
-    window.location.reload();
+    // window.location.reload();
+    if (webFireBase?.force_update_store_url!) {
+      window.location.href = webFireBase?.force_update_store_url!;
+    } else {
+      window.location.reload();
+    }
+
     // if (IS_ELECTRON && !isElectronAutoUpdateEnabled) {
     //   window.open(`${PRODUCTION_URL}/get`, '_blank', 'noopener');
     // } else if (isElectronUpdateAvailable) {
