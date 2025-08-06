@@ -126,8 +126,8 @@ export const RoomsTab = (props: Props) => {
         <button
           className={`font-medium text-base ${
             activeTab === 'summary'
-              ? 'text-black active'
-              : 'text-gray-500'
+              ? 'text-[var(--color-text)] active'
+              : 'text-[var(--color-text-secondary)] '
           }`}
           onClick={() => setActiveTab('summary')}
         >
@@ -136,8 +136,8 @@ export const RoomsTab = (props: Props) => {
         <button
           className={`font-medium text-base ${
             activeTab === 'ignored'
-              ? 'text-black active'
-              : 'text-gray-500'
+              ? 'text-[var(--color-text)] active'
+              : 'text-[var(--color-text-secondary)] '
           }`}
           onClick={() => setActiveTab('ignored')}
         >
