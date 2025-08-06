@@ -10,7 +10,7 @@ import type { IUrgentTopic } from '../api/user-settings';
 
 import { urgentCheckTask } from '../ai-task/urgent-check-task';
 import { buildEntityTypeFromIds, getIdsFromEntityTypes, telegptSettings } from '../api/user-settings';
-import { SelectedChats } from './selected-chats';
+import { RoomsTab } from './rooms-tab';
 
 import Icon from '../component/Icon';
 import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
@@ -53,46 +53,10 @@ const AddTopic = () => {
 };
 
 const UrgentAlertTab = () => {
-  const { urgent_info, urgent_chat_ids } = telegptSettings.telegptSettings;
-  const selectUrgentChatIds = getIdsFromEntityTypes(urgent_chat_ids);
+  const { urgent_info, ignored_urgent_chat_ids } = telegptSettings.telegptSettings;
+  const selectUrgentChatIds = getIdsFromEntityTypes(ignored_urgent_chat_ids);
   const [topics, setTopics] = useState<IUrgentTopic[]>(urgent_info);
-  const [selectedChats, setSelectedChats] = useState<string[]>(selectUrgentChatIds);
-  const { openDrawer } = useDrawerStore();
-  const handleDelete = useCallback((id: string) => {
-    const newSelected = selectedChats.filter((item) => item !== id);
-    const entityTypes = buildEntityTypeFromIds(newSelected);
-    telegptSettings.setSettingOption({
-      urgent_chat_ids: entityTypes,
-    });
-    setSelectedChats(newSelected);
-    urgentCheckTask.updateUrgentChats(newSelected);
-  }, [selectedChats]);
-
-  const handleOpenChatSelect = useCallback(() => {
-    openDrawer(DrawerKey.ChatPicker, {
-      selectedChats,
-      onSave: (chats: string[]) => {
-        const entityTypes = buildEntityTypeFromIds(chats);
-        telegptSettings.setSettingOption({
-          urgent_chat_ids: entityTypes,
-        });
-        openDrawer(DrawerKey.PersonalizeSettings, {
-          activeKey: 1,
-        });
-        urgentCheckTask.updateUrgentChats(chats);
-      },
-      onCancel: () => {
-        openDrawer(DrawerKey.PersonalizeSettings, {
-          activeKey: 1,
-        });
-      },
-      onBack: () => {
-        openDrawer(DrawerKey.PersonalizeSettings, {
-          activeKey: 1,
-        });
-      },
-    });
-  }, [openDrawer, selectedChats]);
+  const [ignoredIds, setIgnoredIds] = useState<string[]>(selectUrgentChatIds);
 
   const handeleDeleteTopic = (id:string) => {
     telegptSettings.deleteUrgentTopic(id).then((res:any) => {
@@ -105,6 +69,28 @@ const UrgentAlertTab = () => {
       showMessage.info('delete failed');
     });
   };
+  const handleIgnored = useCallback(
+    (id: string) => {
+      const newSelected = [...ignoredIds, id];
+      setIgnoredIds(newSelected);
+      const entityTypes = buildEntityTypeFromIds(newSelected);
+      telegptSettings.setSettingOption({
+        ignored_urgent_chat_ids: entityTypes,
+      });
+      urgentCheckTask.updateUrgentChats(newSelected);
+    }, [ignoredIds],
+  );
+  const handleUnIgnored = useCallback(
+    (id: string) => {
+      const newSelected = ignoredIds.filter((item) => item !== id);
+      setIgnoredIds(newSelected);
+      const entityTypes = buildEntityTypeFromIds(newSelected);
+      telegptSettings.setSettingOption({
+        ignored_urgent_chat_ids: entityTypes,
+      });
+      urgentCheckTask.updateUrgentChats(newSelected);
+    }, [ignoredIds],
+  );
   return (
     <div className="h-full overflow-auto px-[18px]">
       <div>
@@ -116,11 +102,7 @@ const UrgentAlertTab = () => {
           {topics.length < 10 && <AddTopic />}
         </div>
       </div>
-      <SelectedChats
-        onOpenChatSelect={handleOpenChatSelect}
-        selected={selectedChats}
-        onDelete={handleDelete}
-      />
+      <RoomsTab ignoredIds={ignoredIds} onIgnored={handleIgnored} onUnIgnored={handleUnIgnored} title="Chats for Urgent" />
     </div>
   );
 };

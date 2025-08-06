@@ -1,3 +1,4 @@
+import bigInt from 'big-integer';
 import { getActions } from '../../../global';
 
 import { SERVER_API_URL } from '../../../config';
@@ -33,11 +34,11 @@ export const buildEntityTypeFromIds = (ids: string[]) => {
   return entityTypes;
 };
 
-export const getIdsFromEntityTypes = (entityTypes: { id: bigInt.BigInteger; type: number }[]) => {
+export const getIdsFromEntityTypes = (entityTypes: { id: number; type: number }[]) => {
   const ids = entityTypes.map((item) => {
     if (typeof item === 'object') {
       const entityType = NUMBER_TO_ENTITY_TYPE[item.type];
-      const id = buildApiPeerId(item.id, entityType);
+      const id = buildApiPeerId(bigInt(item.id), entityType);
       return id;
     } else {
       return false;
@@ -70,8 +71,10 @@ interface ITelegptSettings {
   curious_info: ISummaryTemplate[];
   curious_id: string[];
   urgent_info: IUrgentTopic[];
-  summary_chat_ids: { id: bigInt.BigInteger; type: number }[];
-  urgent_chat_ids: { id: bigInt.BigInteger; type: number }[];
+  summary_chat_ids: { id: number; type: number }[];
+  ignored_summary_chat_ids: { id: number; type: number }[];
+  urgent_chat_ids: { id: number; type: number }[];
+  ignored_urgent_chat_ids: { id: number; type: number }[];
   fanorite_chat_ids: string[];
   block_chat_ids: string[];
   chat_ids: string[];
@@ -85,7 +88,9 @@ const defaultSettings: ITelegptSettings = {
   curious_id: [],
   urgent_info: [],
   summary_chat_ids: [],
+  ignored_summary_chat_ids: [],
   urgent_chat_ids: [],
+  ignored_urgent_chat_ids: [],
   fanorite_chat_ids: [],
   block_chat_ids: [],
   chat_ids: [],

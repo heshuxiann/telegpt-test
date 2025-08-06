@@ -6,8 +6,9 @@ import { v4 as uuidv4 } from 'uuid';
 import type { ApiMessage } from '../../../api/types/messages';
 import type { SummaryStoreMessage } from '../store/summary-store';
 
-import { SERVER_API_URL } from '../../../config';
+import { ALL_FOLDER_ID, SERVER_API_URL } from '../../../config';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
+import { getOrderedIds } from '../../../util/folderManager';
 import { getIdsFromEntityTypes, telegptSettings } from '../api/user-settings';
 import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
@@ -20,11 +21,9 @@ class UrgentCheckTask {
 
   private pendingMessages: ApiMessage[] = [];
 
-  private urgentChats: string[] = [];
-
-  private urgentChatsInitialized: boolean = false;
-
   private timmer: NodeJS.Timeout | undefined;
+
+  private orderedIds: string[] = [];
 
   initTask() {
     if (this.timmer) {
@@ -33,6 +32,7 @@ class UrgentCheckTask {
     this.timmer = setInterval(() => {
       this.checkUrgentMessage();
     }, 1000 * 60 * 5); // 每5分钟检查一次
+    this.orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
   }
 
   static getTextWithoutEntities(text: string, entities: any[]): string {
@@ -106,8 +106,9 @@ class UrgentCheckTask {
   }
 
   addNewMessage(message: ApiMessage) {
-    const { urgent_chat_ids } = telegptSettings.telegptSettings;
-    const selectUrgentChatIds = getIdsFromEntityTypes(urgent_chat_ids);
+    const { ignored_urgent_chat_ids } = telegptSettings.telegptSettings;
+    const ignoredIds = getIdsFromEntityTypes(ignored_urgent_chat_ids);
+    const selectUrgentChatIds = this.orderedIds.filter((id) => !ignoredIds.includes(id));
     if (selectUrgentChatIds.includes(message.chatId)) {
       this.pendingMessages.push(message);
     }

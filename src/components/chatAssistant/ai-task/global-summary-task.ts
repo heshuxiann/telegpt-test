@@ -237,32 +237,31 @@ class GlobalSummaryTask {
     return customTopics;
   };
 
-  initFirstSummary = async () => {
+  // 处理聊天消息的公共方法
+  private async processChatMessages(
+    summaryChatIds: string[],
+    getMessageFunction: (chat: any, chatLastMessageId: number) => Promise<ApiMessage[]>,
+    summaryStartTime: number | null,
+    summaryEndTime: number,
+  ) {
     let unreadMessages: Record<string, ApiMessage[]> = {};
     let totalLength = 0;
+    let summaryCount = 0; // 添加计数器
     const global = getGlobal();
-    // const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
-    const orderedIds = await getAllChatIds() || [];
-    const { summary_chat_ids } = telegptSettings.telegptSettings;
-    const selectSummaryChatIds = getIdsFromEntityTypes(summary_chat_ids);
-    const summaryChatIds = selectSummaryChatIds && selectSummaryChatIds.length > 0 ? selectSummaryChatIds : orderedIds;
+    const MAX_SUMMARY_COUNT = 3; // 设置最大总结次数
+
     for (let i = 0; i < summaryChatIds.length; i++) {
       try {
         const chatId = summaryChatIds[i];
         const chat = selectChat(global, chatId);
         const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
         const chatLastMessageId = selectChatLastMessageId(global, chatId) || 0;
+
         if (chat && !chatBot && chatLastMessageId) {
-          const messages = await loadTextMessages({
-            chat,
-            sliceSize: 50,
-            threadId: MAIN_THREAD_ID,
-            offsetId: chatLastMessageId,
-            direction: LoadMoreDirection.Backwards,
-            maxCount: 50,
-          });
+          const messages = await getMessageFunction(chat, chatLastMessageId);
+
           if (messages.length > 0) {
-            let tempMsgs = [];
+            let tempMsgs: ApiMessage[] = [];
 
             for (const msg of messages) {
               const text = msg?.content?.text?.text || '';
@@ -275,13 +274,21 @@ class GlobalSummaryTask {
                 }
                 unreadMessages[chatId].push(...tempMsgs);
 
-                // 执行 summary
-                const summaryInfo = getSummaryInfo({
-                  startTime: null,
-                  endTime: Date.now(),
-                  chats: unreadMessages,
-                });
-                this.startSummary(unreadMessages, summaryInfo);
+                // 检查是否已达到最大总结次数
+                if (summaryCount < MAX_SUMMARY_COUNT) {
+                  // 执行 summary
+                  const summaryInfo = getSummaryInfo({
+                    startTime: summaryStartTime,
+                    endTime: summaryEndTime,
+                    chats: unreadMessages,
+                  });
+                  this.startSummary(unreadMessages, summaryInfo);
+                  summaryCount++;
+                } else {
+                  // 已达到最大总结次数，结束循环
+                  console.log('已达到最大总结次数，结束处理');
+                  return;
+                }
 
                 // 清空
                 unreadMessages = {};
@@ -307,98 +314,70 @@ class GlobalSummaryTask {
         continue;
       }
     }
-    // 如果还有，仍需执行一次
-    if (Object.keys(unreadMessages).length > 0) {
+
+    // 如果还有未处理消息且未达到最大总结次数，仍需执行一次
+    if (Object.keys(unreadMessages).length > 0 && summaryCount < MAX_SUMMARY_COUNT) {
       const summaryInfo = getSummaryInfo({
-        startTime: null,
-        endTime: Date.now(),
+        startTime: summaryStartTime,
+        endTime: summaryEndTime,
         chats: unreadMessages,
       });
       this.startSummary(unreadMessages, summaryInfo);
+      summaryCount++;
+    } else if (summaryCount >= MAX_SUMMARY_COUNT) {
+      console.log('已达到最大总结次数，剩余消息不再处理');
     }
+  }
+
+  initFirstSummary = async () => {
+    const orderedIds = await getAllChatIds() || [];
+    const { ignored_summary_chat_ids } = telegptSettings.telegptSettings;
+    const ignoredIds = getIdsFromEntityTypes(ignored_summary_chat_ids);
+    const summaryChatIds = orderedIds.filter((id) => !ignoredIds.includes(id));
+    const summaryEndTime = Date.now();
+
+    await this.processChatMessages(
+      summaryChatIds,
+      (chat, chatLastMessageId) => loadTextMessages({
+        chat,
+        sliceSize: 50,
+        threadId: MAIN_THREAD_ID,
+        offsetId: chatLastMessageId,
+        direction: LoadMoreDirection.Backwards,
+        maxCount: 50,
+      }),
+      null,
+      summaryEndTime,
+    );
   };
 
   async summaryMessageByDeadline(deadline: number, useRangeTime: boolean = true) {
-    let unreadMessages: Record<string, ApiMessage[]> = {};
-    let totalLength = 0;
-    const global = getGlobal();
-    // const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
     const orderedIds = await getAllChatIds() || [];
-    const { summary_chat_ids } = telegptSettings.telegptSettings;
-    const selectSummaryChatIds = getIdsFromEntityTypes(summary_chat_ids);
-    const summaryChatIds = selectSummaryChatIds && selectSummaryChatIds.length > 0 ? selectSummaryChatIds : orderedIds;
+    const { ignored_summary_chat_ids } = telegptSettings.telegptSettings;
+    const ignoredIds = getIdsFromEntityTypes(ignored_summary_chat_ids);
+    const summaryChatIds = orderedIds.filter((id) => !ignoredIds.includes(id));
+
     let summaryTime;
     if (useRangeTime) {
-      summaryTime = getAlignedExecutionTimestamp();
+      summaryTime = getAlignedExecutionTimestamp() || Date.now();
     } else {
       summaryTime = Date.now();
     }
-    for (let i = 0; i < summaryChatIds.length; i++) {
-      const chatId = summaryChatIds[i];
-      const chat = selectChat(global, chatId);
-      const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
-      const chatLastMessageId = selectChatLastMessageId(global, chatId) || 0;
-      if (chat && !chatBot && chatLastMessageId) {
-        const roomUnreadMsgs = await fetchChatMessageByDeadline({
-          chat,
-          deadline: deadline / 1000,
-          offsetId: chatLastMessageId,
-          addOffset: -1,
-          sliceSize: 30,
-          threadId: MAIN_THREAD_ID,
-          maxCount: 100,
-        });
-        if (roomUnreadMsgs.length > 0) {
-          let tempMsgs = [];
 
-          for (const msg of roomUnreadMsgs) {
-            const text = msg?.content?.text?.text || '';
-            const msgLength = text.length;
-
-            if (totalLength + msgLength > 40000) {
-              // 先将当前 tempMsgs 存到 unreadMessages
-              if (!unreadMessages[chatId]) {
-                unreadMessages[chatId] = [];
-              }
-              unreadMessages[chatId].push(...tempMsgs);
-
-              // 执行 summary
-              const summaryInfo = getSummaryInfo({
-                startTime: deadline,
-                endTime: summaryTime,
-                chats: unreadMessages,
-              });
-              this.startSummary(unreadMessages, summaryInfo);
-
-              // 清空
-              unreadMessages = {};
-              totalLength = 0;
-              tempMsgs = [];
-            }
-
-            tempMsgs.push(msg);
-            totalLength += msgLength;
-          }
-
-          // 当前 chatId 处理完，把 tempMsgs 加到 unreadMessages
-          if (tempMsgs.length > 0) {
-            if (!unreadMessages[chatId]) {
-              unreadMessages[chatId] = [];
-            }
-            unreadMessages[chatId].push(...tempMsgs);
-          }
-        }
-      }
-    }
-    // 如果还有，仍需执行一次
-    if (Object.keys(unreadMessages).length > 0) {
-      const summaryInfo = getSummaryInfo({
-        startTime: deadline,
-        endTime: summaryTime,
-        chats: unreadMessages,
-      });
-      this.startSummary(unreadMessages, summaryInfo);
-    }
+    await this.processChatMessages(
+      summaryChatIds,
+      (chat, chatLastMessageId) => fetchChatMessageByDeadline({
+        chat,
+        deadline: deadline / 1000,
+        offsetId: chatLastMessageId,
+        addOffset: -1,
+        sliceSize: 30,
+        threadId: MAIN_THREAD_ID,
+        maxCount: 100,
+      }),
+      deadline,
+      summaryTime,
+    );
   }
 
   public static getInstance() {
