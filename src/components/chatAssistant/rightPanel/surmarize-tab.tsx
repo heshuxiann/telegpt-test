@@ -12,7 +12,7 @@ import { getGlobal } from '../../../global';
 import type { ISummaryTemplate } from '../api/user-settings';
 
 import { buildEntityTypeFromIds, getIdsFromEntityTypes, telegptSettings } from '../api/user-settings';
-import { SelectedChats } from './selected-chats';
+import { RoomsTab } from './rooms-tab';
 
 import FloatingActionButton from '../component/FloatingActionButton';
 import Icon from '../component/Icon';
@@ -78,13 +78,12 @@ const AddSummaryTemplate = () => {
 
 const SummarizeTab = () => {
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  const { curious_info, summary_chat_ids, curious_id } = telegptSettings.telegptSettings;
-  const selectSummaryChatIds = getIdsFromEntityTypes(summary_chat_ids);
+  const { curious_info, ignored_summary_chat_ids, curious_id } = telegptSettings.telegptSettings;
+  const ignoredChatIds = getIdsFromEntityTypes(ignored_summary_chat_ids);
   const [summaryTemplate, setSummaryTemplate] = useState<ISummaryTemplate[]>(curious_info);
   const [originSelectedTemp, setOriginSelectedTemp] = useState<string[]>(curious_id);
   const [selectedTemp, setSelectedTemp] = useState<string[]>(curious_id);
-  const [selectedChats, setSelectedChats] = useState<string[]>(selectSummaryChatIds);
-  const { openDrawer } = useDrawerStore();
+  const [ignoredIds, setIgnoredIds] = useState<string[]>(ignoredChatIds);
 
   const actionsVisable = useMemo(() => {
     return !isEqual(selectedTemp, originSelectedTemp);
@@ -133,39 +132,27 @@ const SummarizeTab = () => {
     });
   }, [selectedTemp, summaryTemplate]);
 
-  const handleOpenChatSelect = useCallback(() => {
-    openDrawer(DrawerKey.ChatPicker, {
-      selectedChats,
-      onSave: (chats: string[]) => {
-        const entityTypes = buildEntityTypeFromIds(chats);
-        telegptSettings.setSettingOption({
-          summary_chat_ids: entityTypes,
-        });
-        openDrawer(DrawerKey.PersonalizeSettings, {
-          activeKey: 0,
-        });
-      },
-      onCancel: () => {
-        openDrawer(DrawerKey.PersonalizeSettings, {
-          activeKey: 0,
-        });
-      },
-      onBack: () => {
-        openDrawer(DrawerKey.PersonalizeSettings, {
-          activeKey: 0,
-        });
-      },
-    });
-  }, [openDrawer, selectedChats]);
+  const handleIgnored = useCallback(
+    (id: string) => {
+      const newSelected = [...ignoredIds, id];
+      setIgnoredIds(newSelected);
+      const entityTypes = buildEntityTypeFromIds(newSelected);
+      telegptSettings.setSettingOption({
+        ignored_summary_chat_ids: entityTypes,
+      });
+    }, [ignoredIds],
+  );
+  const handleUnIgnored = useCallback(
+    (id: string) => {
+      const newSelected = ignoredIds.filter((item) => item !== id);
+      setIgnoredIds(newSelected);
+      const entityTypes = buildEntityTypeFromIds(newSelected);
+      telegptSettings.setSettingOption({
+        ignored_summary_chat_ids: entityTypes,
+      });
+    }, [ignoredIds],
+  );
 
-  const handleDeleteSummaryChat = useCallback((id: string) => {
-    const newSelected = selectedChats.filter((item) => item !== id);
-    const entityTypes = buildEntityTypeFromIds(newSelected);
-    telegptSettings.setSettingOption({
-      summary_chat_ids: entityTypes,
-    });
-    setSelectedChats(newSelected);
-  }, [selectedChats]);
   return (
     <div className="h-full overflow-hidden relative">
       <div className="h-full flex flex-col px-[18px] overflow-auto">
@@ -180,11 +167,7 @@ const SummarizeTab = () => {
             <AddSummaryTemplate />
           )}
         </div>
-        <SelectedChats
-          onOpenChatSelect={handleOpenChatSelect}
-          selected={selectedChats}
-          onDelete={handleDeleteSummaryChat}
-        />
+        <RoomsTab ignoredIds={ignoredIds} onIgnored={handleIgnored} onUnIgnored={handleUnIgnored} title="Chats for Summary" />
       </div>
       <FloatingActionButton
         isShown={actionsVisable}

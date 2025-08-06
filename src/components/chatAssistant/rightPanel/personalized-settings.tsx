@@ -17,7 +17,7 @@ const PersonalizeSettings = () => {
   const [selectedTabIndex, setSelectedTabIndex] = useState(drawerParams?.activeKey || 0);
   const transactionTabs: TabWithProperties[] = [
     {
-      title: 'Summarize',
+      title: 'Chat Summary',
     },
     {
       title: 'Urgent Alert',

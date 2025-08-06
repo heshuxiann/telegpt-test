@@ -11,7 +11,8 @@ export const RELEASE_DATETIME = process.env.RELEASE_DATETIME;
 
 export const PRODUCTION_HOSTNAME = 'web.telegram.org';
 // export const PRODUCTION_URL = 'https://web.telegram.org/a';
-export const PRODUCTION_URL = 'https://app.telegpt.org';
+// export const PRODUCTION_URL = 'https://app.telegpt.org';
+export const PRODUCTION_URL = 'https://aquaverse.github.io/telegpt-web-app/';
 export const WEB_VERSION_BASE = 'https://web.telegram.org/'; // Used to redirect to other versions
 // export const SERVER_API_URL = 'https://api.telegpt.org';
 // export const SERVER_API_URL = 'http://localhost:3000';
