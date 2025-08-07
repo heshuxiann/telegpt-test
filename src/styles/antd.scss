@@ -1,0 +1,8 @@
+.ant-popover {
+  .ant-popover-arrow::before {
+    background: var(--color-chat-hover) !important;
+  }
+  .ant-popover-inner {
+    background-color: var(--color-chat-hover) !important;
+  }
+}

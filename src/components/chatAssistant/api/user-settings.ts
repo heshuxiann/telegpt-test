@@ -137,7 +137,7 @@ class TelegptSettings {
       });
   }
 
-  updateGptSettings() {
+  updateGptSettings(callback?: (res: any) => void) {
     fetch(`${SERVER_API_URL}/settings/personalized-settings?user_id=${this.user_id}`, {
       method: 'POST',
       headers: {
@@ -150,7 +150,7 @@ class TelegptSettings {
     })
       .then((res) => res.json())
       .then((res) => {
-        console.log('settings', res);
+        callback?.(res);
       });
   }
 
@@ -163,14 +163,14 @@ class TelegptSettings {
     return this.settings;
   }
 
-  setSettingOption(newSettings: Partial<ITelegptSettings>) {
+  setSettingOption(newSettings: Partial<ITelegptSettings>, callback?: (res: any) => void) {
     this.settings = {
       ...this.settings,
       ...newSettings,
     };
     localStorage.setItem('telegpt-settings', JSON.stringify(this.settings));
     this.setGlobalSettings(newSettings);
-    this.updateGptSettings();
+    this.updateGptSettings(callback);
   }
 
   // eslint-disable-next-line class-methods-use-this

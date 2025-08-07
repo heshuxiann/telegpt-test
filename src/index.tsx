@@ -30,6 +30,7 @@ import App from './components/App';
 import './styles/index.css';
 import './assets/fonts/roboto.css';
 import './styles/index.scss';
+import './styles/antd.scss';
 
 if (STRICTERDOM_ENABLED) {
   enableStrict();
