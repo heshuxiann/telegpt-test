@@ -4,11 +4,13 @@
 /* eslint-disable max-len */
 import React, { useCallback, useEffect, useState } from 'react';
 import type { Message } from 'ai';
+import { message as showMessage, Popover } from 'antd';
 import copy from 'copy-to-clipboard';
 import { getActions, getGlobal } from '../../../global';
 
 import { isUserId } from '../../../global/helpers';
 import { selectChat, selectUser } from '../../../global/selectors';
+import { buildEntityTypeFromIds, getIdsFromEntityTypes, telegptSettings } from '../api/user-settings';
 import useOldLang from '../hook/useOldLang';
 import { useSpeechPlayer } from '../hook/useSpeechPlayer';
 import {
@@ -18,6 +20,7 @@ import {
 import { cn, formatTimestamp } from '../utils/util';
 
 import Avatar from '../component/Avatar';
+import Icon from '../component/Icon';
 import ErrorBoundary from '../ErrorBoundary';
 import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
@@ -187,8 +190,8 @@ function mergeTopics(mainTopic: any[], customTopic: any[]):SummaryTopic[] {
 }
 
 const ChatAvatar = ({
-  chatId, classNames, size, style,
-}: { chatId: string; classNames?: string; size:number;style?: { [key:string]:string } }) => {
+  chatId, classNames, size, style, tooltip,
+}: { chatId: string; classNames?: string; size:number;style?: { [key:string]:string } ;tooltip?: boolean }) => {
   const global = getGlobal();
   let peer;
   if (isUserId(chatId)) {
@@ -204,6 +207,7 @@ const ChatAvatar = ({
       className={cn(classNames, 'overlay-avatar inline-block cursor-pointer')}
       size={size}
       peer={peer}
+      tooltip={tooltip}
     />
   );
 };
@@ -441,6 +445,32 @@ const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
   );
 };
 
+const IgnoreSummaryButton = ({ chatId }:{ chatId:string }) => {
+  const handleIgnore = () => {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const { ignored_summary_chat_ids } = telegptSettings.telegptSettings;
+    const ignoredChatIds = getIdsFromEntityTypes(ignored_summary_chat_ids);
+    const newSelected = [...ignoredChatIds, chatId];
+    const entityTypes = buildEntityTypeFromIds(newSelected);
+    telegptSettings.setSettingOption({
+      ignored_summary_chat_ids: entityTypes,
+    }, (res) => {
+      if (res.code === 0) {
+        showMessage.info('ignore success');
+      }
+    });
+  };
+  return (
+    <div
+      className="flex items-center gap-[4px] cursor-pointer transition-colors duration-200 text-[14px] text-[var(--color-text)]"
+      onClick={handleIgnore}
+    >
+      <Icon name="eye-crossed" />
+      <span className="font-semibold">Ignore this chat</span>
+    </div>
+  );
+};
+
 const MainSummaryContent = ({
   messageId,
   summaryInfo,
@@ -468,9 +498,13 @@ const MainSummaryContent = ({
             summaryTopic.map((item, index) => {
               return (
                 <div>
-                  <div className="flex items-center gap-[8px]">
-                    <p className="text-[16px] font-bold">{index + 1}.{item.chatRoomName}</p>
-                    <ChatAvatar size={20} chatId={item.chatId} />
+                  <div className="flex items-center justify-between gap-[8px]">
+                    <Popover className="room-info-popover" placement="top" content={<IgnoreSummaryButton chatId={item.chatId} />}>
+                      <div className="flex items-center gap-[8px]">
+                        <p className="text-[16px] font-bold">{index + 1}.{item.chatRoomName}</p>
+                        <ChatAvatar size={20} chatId={item.chatId} />
+                      </div>
+                    </Popover>
                   </div>
                   <ul className="list-disc pl-[2px] text-[16px] list-inside">
                     {item.mainTopics.length > 0 && (

@@ -69,6 +69,7 @@ type OwnProps = {
   noPersonalPhoto?: boolean;
   clickOpenRoom?: boolean;
   clickOpenAIAssiatant?: boolean;
+  tooltip?:boolean;
   onClick?: (e: ReactMouseEvent<HTMLDivElement, MouseEvent>, hasMedia: boolean) => void;
 };
 
@@ -91,6 +92,7 @@ const Avatar: FC<OwnProps> = ({
   noPersonalPhoto,
   clickOpenAIAssiatant = true,
   clickOpenRoom = true,
+  tooltip = false,
   onClick,
 }) => {
   const { openChat, openChatAIWithInfo } = getActions();
@@ -271,8 +273,7 @@ const Avatar: FC<OwnProps> = ({
     customColor ? { '--color-user': customColor } : {},
     style || {},
   );
-
-  return (
+  return tooltip ? (
     <Tooltip placement="top" title={hoverTitle}>
       <div
         ref={ref}
@@ -290,6 +291,22 @@ const Avatar: FC<OwnProps> = ({
         </div>
       </div>
     </Tooltip>
+  ) : (
+    <div
+      ref={ref}
+      className={fullClassName}
+      id={realPeer?.id}
+      data-peer-id={realPeer?.id}
+      data-test-sender-id={IS_TEST ? realPeer?.id : undefined}
+      aria-label={typeof content === 'string' ? author : undefined}
+      style={customStyle as unknown as React.CSSProperties}
+      onClick={handleClick}
+      onMouseDown={handleMouseDown}
+    >
+      <div className="inner">
+        {content}
+      </div>
+    </div>
   );
 };
 
