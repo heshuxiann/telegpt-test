@@ -7,10 +7,6 @@ import type { AuthState } from './google-auth';
 import { IS_ELECTRON } from '../../../util/browser/windowEnvironment';
 import { getAuthState, setAuthState } from './google-auth';
 
-// export const GOOGLE_APP_CLIENT_ID_DEV = '545055439232-l17p8a5fs7b5377726doqt2cpd9qfta4.apps.googleusercontent.com';
-// export const GOOGLE_API_KEY_DEV = 'AIzaSyAc7yi96E4qjF16-n40wDm-Wz0MPZnLLs8';
-export const GOOGLE_APP_CLIENT_ID_DEV = '538884342692-inhfm6belmn0fehubug12jv1hdo1113d.apps.googleusercontent.com';
-export const GOOGLE_API_KEY_DEV = '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';
 export const GOOGLE_SCOPES = [
   'openid',
   'profile',
@@ -45,7 +41,7 @@ export async function loginWithGoogle():Promise<AuthState> {
   }
   return new Promise((resolve, reject) => {
     const client = window.google.accounts.oauth2.initTokenClient({
-      client_id: GOOGLE_APP_CLIENT_ID_DEV,
+      client_id: process.env.GOOGLE_APP_CLIENT_ID!,
       scope: GOOGLE_SCOPES.join(' '),
       prompt: 'consent',
       ux_mode: 'popup',
@@ -164,7 +160,7 @@ export const createGoogleMeet = ({
       },
     };
     fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&alt=json&key=${GOOGLE_API_KEY_DEV}`,
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&alt=json&key=${process.env.GOOGLE_API_KEY}`,
       {
         method: 'POST',
         headers: {
@@ -191,7 +187,7 @@ export const getGoogleCalendarFreeBusy = ():Promise<{ start:string; end:string }
       timeMax: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 未来3天
       items: [{ id: 'primary' }], // 查询主日历
     };
-    fetch(`https://www.googleapis.com/calendar/v3/freeBusy?key=${GOOGLE_API_KEY_DEV}`, {
+    fetch(`https://www.googleapis.com/calendar/v3/freeBusy?key=${process.env.GOOGLE_API_KEY}`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${auth?.accessToken}`,
