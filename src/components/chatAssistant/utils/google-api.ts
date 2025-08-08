@@ -7,8 +7,10 @@ import type { AuthState } from './google-auth';
 import { IS_ELECTRON } from '../../../util/browser/windowEnvironment';
 import { getAuthState, setAuthState } from './google-auth';
 
-export const GOOGLE_APP_CLIENT_ID_DEV = '545055439232-l17p8a5fs7b5377726doqt2cpd9qfta4.apps.googleusercontent.com';
-export const GOOGLE_API_KEY_DEV = 'AIzaSyAc7yi96E4qjF16-n40wDm-Wz0MPZnLLs8';
+// export const GOOGLE_APP_CLIENT_ID_DEV = '545055439232-l17p8a5fs7b5377726doqt2cpd9qfta4.apps.googleusercontent.com';
+// export const GOOGLE_API_KEY_DEV = 'AIzaSyAc7yi96E4qjF16-n40wDm-Wz0MPZnLLs8';
+export const GOOGLE_APP_CLIENT_ID_DEV = '538884342692-inhfm6belmn0fehubug12jv1hdo1113d.apps.googleusercontent.com';
+export const GOOGLE_API_KEY_DEV = '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';
 export const GOOGLE_SCOPES = [
   'openid',
   'profile',
