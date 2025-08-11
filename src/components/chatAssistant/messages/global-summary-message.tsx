@@ -445,25 +445,11 @@ const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
   );
 };
 
-const IgnoreSummaryButton = ({ chatId }:{ chatId:string }) => {
-  const handleIgnore = () => {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const { ignored_summary_chat_ids } = telegptSettings.telegptSettings;
-    const ignoredChatIds = getIdsFromEntityTypes(ignored_summary_chat_ids);
-    const newSelected = [...ignoredChatIds, chatId];
-    const entityTypes = buildEntityTypeFromIds(newSelected);
-    telegptSettings.setSettingOption({
-      ignored_summary_chat_ids: entityTypes,
-    }, (res) => {
-      if (res.code === 0) {
-        showMessage.info('ignore success');
-      }
-    });
-  };
+const IgnoreSummaryButton = ({ chatId, handleIgnore }:{ chatId:string ;handleIgnore:(id:string) => void }) => {
   return (
     <div
       className="flex items-center gap-[4px] cursor-pointer transition-colors duration-200 text-[14px] text-[var(--color-text)]"
-      onClick={handleIgnore}
+      onClick={() => handleIgnore(chatId)}
     >
       <Icon name="eye-crossed" />
       <span className="font-semibold">Ignore this chat</span>
@@ -484,6 +470,22 @@ const MainSummaryContent = ({
   pendingMatters: ISummaryPendingItem[];
   deleteMessage: () => void;
 }) => {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const { ignored_summary_chat_ids } = telegptSettings.telegptSettings;
+  const ignoredChatIds = getIdsFromEntityTypes(ignored_summary_chat_ids);
+  const [ignoredIds, setIgnoredIds] = useState<string[]>(ignoredChatIds);
+  const handleIgnore = useCallback((id:string) => {
+    const newSelected = [...new Set([...ignoredIds, id])];
+    const entityTypes = buildEntityTypeFromIds(newSelected);
+    setIgnoredIds(newSelected);
+    telegptSettings.setSettingOption({
+      ignored_summary_chat_ids: entityTypes,
+    }, (res) => {
+      if (res.code === 0) {
+        showMessage.info('ignore success');
+      }
+    });
+  }, [ignoredIds]);
   return (
     <div className="w-max-[693px] rounded-[10px] pl-[82px] pr-[25px] pt-[20px] pb-[25px] bg-[var(--color-background)]">
       {/* summary info  */}
@@ -499,12 +501,26 @@ const MainSummaryContent = ({
               return (
                 <div>
                   <div className="flex items-center justify-between gap-[8px]">
-                    <Popover className="room-info-popover" placement="top" content={<IgnoreSummaryButton chatId={item.chatId} />}>
+                    {ignoredIds.includes(item.chatId) ? (
                       <div className="flex items-center gap-[8px]">
                         <p className="text-[16px] font-bold">{index + 1}.{item.chatRoomName}</p>
                         <ChatAvatar size={20} chatId={item.chatId} />
                       </div>
-                    </Popover>
+                    ) : (
+                      <Popover
+                        className="room-info-popover"
+                        placement="top"
+                        content={
+                          <IgnoreSummaryButton chatId={item.chatId} handleIgnore={handleIgnore} />
+                        }
+                      >
+                        <div className="flex items-center gap-[8px]">
+                          <p className="text-[16px] font-bold">{index + 1}.{item.chatRoomName}</p>
+                          <ChatAvatar size={20} chatId={item.chatId} />
+                        </div>
+                      </Popover>
+                    )}
+
                   </div>
                   <ul className="list-disc pl-[2px] text-[16px] list-inside">
                     {item.mainTopics.length > 0 && (

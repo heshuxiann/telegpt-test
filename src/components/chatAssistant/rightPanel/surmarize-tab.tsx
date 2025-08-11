@@ -134,7 +134,7 @@ const SummarizeTab = () => {
 
   const handleIgnored = useCallback(
     (id: string) => {
-      const newSelected = [...ignoredIds, id];
+      const newSelected = [...new Set([...ignoredIds, id])];
       setIgnoredIds(newSelected);
       const entityTypes = buildEntityTypeFromIds(newSelected);
       telegptSettings.setSettingOption({
