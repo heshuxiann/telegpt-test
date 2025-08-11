@@ -44,8 +44,8 @@ export class VectorStorage<T> {
     if (!this.openaiApiKey && !options.embedTextsFn) {
       console.error('VectorStorage: pass as an option either an OpenAI API key or a custom embedTextsFn function.');
     } else {
-      // this.loadFromIndexDbStorage();
-      // TODO 检测indexdb的存储空间是否超出限制,定期清除
+      // 启动定期检测和清理机制
+      this.startPeriodicCleanup();
     }
   }
 
@@ -308,23 +308,6 @@ export class VectorStorage<T> {
     return result;
   }
 
-  // private async saveToIndexDbStorage(): Promise<void> {
-  //   if (!this.db) {
-  //     this.db = await this.initDB();
-  //   }
-  //   try {
-  //     const tx = this.db.transaction('documents', 'readwrite');
-  //     await tx.objectStore('documents').clear();
-  //     for (const doc of this.documents) {
-  //       // eslint-disable-next-line no-await-in-loop
-  //       await tx.objectStore('documents').put(doc);
-  //     }
-  //     await tx.done;
-  //   } catch (error: any) {
-  //     console.error('Failed to save to IndexedDB:', error.message);
-  //   }
-  // }
-
   private async addToIndexDbStorage(documents:Array<IVSDocument<T>>): Promise<void> {
     if (!this.db) {
       this.db = await this.initDB();
@@ -341,17 +324,92 @@ export class VectorStorage<T> {
     }
   }
 
-  // private removeDocsLRU(): void {
-  //   if (getObjectSizeInMB(this.documents) > this.maxSizeInMB) {
-  //     // Sort documents by hit counter (ascending) and then by timestamp (ascending)
-  //     this.documents.sort((a, b) => (a.hits ?? 0) - (b.hits ?? 0) || a.timestamp - b.timestamp);
+  /**
+   * 启动定期清理机制，每小时检查一次数据量
+   */
+  private startPeriodicCleanup(): void {
+    // 立即执行一次检查
+    this.checkAndCleanupData();
 
-  //     // Remove documents until the size is below the limit
-  //     while (getObjectSizeInMB(this.documents) > this.maxSizeInMB) {
-  //       this.documents.shift();
-  //     }
-  //   }
-  // }
+    // 每小时检查一次（3600000毫秒）
+    setInterval(() => {
+      this.checkAndCleanupData();
+    }, 3600000);
+  }
+
+  /**
+   * 检查数据量并清理老数据
+   * 当数据超过20000条时，按时间删除最老的数据，保留最新的15000条
+   */
+  private async checkAndCleanupData(): Promise<void> {
+    try {
+      if (!this.db) {
+        this.db = await this.initDB();
+      }
+
+      const tx = this.db.transaction('documents', 'readwrite');
+      const store = tx.objectStore('documents');
+      const index = store.index('timestamp');
+
+      // 统计总数据量
+      const totalCount = await store.count();
+
+      if (totalCount > 40000) {
+        console.log(`VectorStorage: 检测到数据量超过限制 (${totalCount} > 40000)，开始清理老数据...`);
+
+        // 获取所有文档按时间戳排序（最新的在前）
+        const allDocs: IVSDocument<T>[] = [];
+        for await (const cursor of index.iterate(null, 'prev')) {
+          allDocs.push(cursor.value);
+        }
+
+        // 保留最新的15000条，删除其余的
+        const docsToKeep = allDocs.slice(0, 35000);
+        const docsToDelete = allDocs.slice(35000);
+
+        // 清空存储
+        await store.clear();
+
+        // 重新添加要保留的文档
+        for (const doc of docsToKeep) {
+          await store.put(doc);
+        }
+
+        await tx.done;
+
+        console.log(`VectorStorage: 清理完成，删除了 ${docsToDelete.length} 条老数据，保留了 ${docsToKeep.length} 条最新数据`);
+      } else {
+        console.log(`VectorStorage: 数据量检查完成，当前数据量: ${totalCount}`);
+      }
+    } catch (error) {
+      console.error('VectorStorage: 数据清理过程中发生错误:', error);
+    }
+  }
+
+  /**
+   * 手动触发数据清理
+   */
+  public async manualCleanup(): Promise<void> {
+    await this.checkAndCleanupData();
+  }
+
+  /**
+   * 获取当前数据库中的文档数量
+   */
+  public async getDocumentCount(): Promise<number> {
+    try {
+      if (!this.db) {
+        this.db = await this.initDB();
+      }
+      const tx = this.db.transaction('documents', 'readonly');
+      const count = await tx.objectStore('documents').count();
+      await tx.done;
+      return count;
+    } catch (error) {
+      console.error('VectorStorage: 获取文档数量时发生错误:', error);
+      return 0;
+    }
+  }
 }
 
 function calcVectorMagnitude(doc: IVSDocument<any>): number {
