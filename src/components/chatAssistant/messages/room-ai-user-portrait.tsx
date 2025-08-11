@@ -27,7 +27,7 @@ const RoomAIUserPortraitMessage: React.FC<IProps> = (props) => {
       <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] text-[var(--color-text)] p-3 text-[14px]">
         <div className="flex items-center gap-2">
           <img src={SerenaPath} className="w-[18px] h-[18px]" />
-          Serena AI
+          Tely
         </div>
         {user ? (
           <div

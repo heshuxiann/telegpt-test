@@ -83,7 +83,7 @@ const SummaryActivity = ({
       <div className="flex items-center justify-between gap-1 px-3">
         <div className="flex items-center gap-2">
           <img src={SerenaPath} className="w-[22px] h-[22px]" alt="" />
-          <div className="font-[600]">Serena AI</div>
+          <div className="font-[600]">Tely</div>
         </div>
         <div className="text-[12px] text-[#979797]">
           {dayjs(data?.time).format('MMM D')}, {data?.timeRange?.split('-')?.[1]}
@@ -135,7 +135,7 @@ export const StoryActivity = ({
       <div className="flex items-center justify-between gap-1 px-3">
         <div className="flex items-center gap-2">
           <img src={SerenaPath} className="w-[22px] h-[22px]" alt="" />
-          <div className="font-[600]">Serena AI</div>
+          <div className="font-[600]">Tely</div>
         </div>
         <div className="text-[12px] text-[#979797]">
           {dayjs(data?.time).format('MMM D, HH:mm')}

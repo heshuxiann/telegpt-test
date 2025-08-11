@@ -79,7 +79,7 @@ const AIChatFoldersTip: FC<OwnProps & StateProps> = ({
         <AIChatFolderIcon />
       </div>
       <div className="leading-[16px] text-[13px] text-[var(--color-aichatfolders-tag-text)]">
-        Your chat has been automatically organized in folders by Serena Ai.
+        Your chat has been automatically organized in folders by Tely.
       </div>
       {(isFristShow || step === AIChatFolderStep.apply) && (
         <>

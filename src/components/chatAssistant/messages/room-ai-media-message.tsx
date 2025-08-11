@@ -223,7 +223,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
           ) : (
             <div className="flex items-center gap-2">
               <img src={SerenaPath} className="w-[18px] h-[18px]" />
-              Serena AI
+              Tely
             </div>
           )}
           <div className="flex flex-col gap-[6px] mt-2">

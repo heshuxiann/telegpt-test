@@ -1,9 +1,9 @@
-productName: Telegpt
+productName: TeleGPT
 artifactName: ${productName}-${arch}.${ext}
 appId: org.telegram.TelegramA
 extraMetadata:
   main: ./dist/electron.js
-  productName: Telegpt
+  productName: TeleGPT
 files:
   - "dist"
   - "package.json"
@@ -24,7 +24,7 @@ protocols:
 publish:
   provider: github
   owner: Ajaxy
-  repo: telegram-tt
+  repo: TeleGPT
   releaseType: draft
 win:
   target:
