@@ -30,7 +30,7 @@ export function selectChat<T extends GlobalState>(global: T, chatId: string): Ap
     return {
       id: GLOBAL_SUMMARY_CHATID,
       isSerena: true,
-      title: 'Serena AI',
+      title: 'Tely',
     } as ApiChat;
   }
   return global.chats.byId[chatId];
