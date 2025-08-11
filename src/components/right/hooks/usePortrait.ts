@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from '../../../lib/teact/teact';
+import { getGlobal } from '../../../global';
 
 import type { TextMessage } from '../../../util/userPortrait';
 import type { UserPortraitMessageInfo } from '../../chatAssistant/store/user-portrait-message-store';
@@ -51,8 +52,11 @@ const SUMMARY_PROMPT = `
            - 行情数据、交易记录、质押金额、区块信息等
            - 涉及数字、价格、网址、时间等要素的内容
            - 用户的观点、经验分享、操作建议、趋势判断等
-    - content：请忽略那些单独看不出任何实际含义的短消息（如单句“来了”、“哈”、“好”等），但如多条短句连贯构成了有价值的观点或讨论内容，请一并保留、整合后总结。
-    - content： 如该群聊中没有任何有价值的内容，则直接返回原信息
+    - content 必须剔除下列内容：
+      - 单独的短语、问候、无意义的表情或单字回复（如“来了”“哈”“好”）
+      - 无法单独体现价值的闲聊碎片
+    - 如果多条短句连贯构成有价值的观点或讨论，请合并后保留
+    - 如果某个群聊**没有任何有价值的内容**，则**完全省略该群聊，不在输出中显示**
     - 输出格式及字段说明：
       [
         {
@@ -160,10 +164,13 @@ export default function usePortrait({ userId }: Props) {
       );
       if (groupMessages.length === 0) return;
       setLoading(true);
+      const global = getGlobal();
+      const { autoTranslateLanguage = 'en' } = global.settings.byKey;
       chatAIGenerate({
         data: {
           messages: [
             { role: 'system', content: SUMMARY_PROMPT },
+            { role: 'system', content: `响应必须完全用以下目标语言编写:${autoTranslateLanguage},不要使用其他语言。` },
             { role: 'user', content: JSON.stringify(groupMessages) },
           ],
         },
