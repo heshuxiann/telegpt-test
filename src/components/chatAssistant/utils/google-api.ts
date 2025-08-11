@@ -12,10 +12,6 @@ export const GOOGLE_SCOPES = [
   'profile',
   'email',
   'https://www.googleapis.com/auth/calendar',
-  'https://www.googleapis.com/auth/calendar.events',
-  'https://www.googleapis.com/auth/calendar.readonly',
-  'https://www.googleapis.com/auth/calendar.events.freebusy',
-  'https://www.googleapis.com/auth/calendar.freebusy',
 ];
 
 export function loadGoogleSdk(): Promise<void> {
