@@ -658,6 +658,18 @@ const Composer: FC<OwnProps & StateProps> = ({
     editedMessage: editingMessage,
   });
 
+  useEffect(() => {
+    // @ts-ignore
+    globalThis.p__handleFileSelect = handleFileSelect;
+
+    return () => {
+      // @ts-ignore
+      globalThis.p__handleFileSelect = undefined;
+      // @ts-ignore
+      delete globalThis.p__handleFileSelect;
+    };
+  }, [handleFileSelect]);
+
   const [isBotKeyboardOpen, openBotKeyboard, closeBotKeyboard] = useFlag();
   const [isBotCommandMenuOpen, openBotCommandMenu, closeBotCommandMenu] = useFlag();
   const [isSymbolMenuOpen, openSymbolMenu, closeSymbolMenu] = useFlag();
