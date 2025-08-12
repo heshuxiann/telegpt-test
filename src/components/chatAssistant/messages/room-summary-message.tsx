@@ -2,17 +2,22 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable max-len */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  useCallback, useEffect, useRef, useState,
+} from 'react';
 import type { Message } from 'ai';
 import copy from 'copy-to-clipboard';
+import { toBlob } from 'html-to-image';
 import { getActions, getGlobal } from '../../../global';
 
 import { isUserId } from '../../../global/helpers';
-import { selectChat, selectUser } from '../../../global/selectors';
+import {
+  selectChat, selectCurrentMessageList, selectUser,
+} from '../../../global/selectors';
 import useOldLang from '../hook/useOldLang';
 import { useSpeechPlayer } from '../hook/useSpeechPlayer';
 import {
-  CopyIcon, DeleteIcon, VoiceIcon,
+  CopyIcon, DeleteIcon, MessageShareIcon, VoiceIcon,
   VoiceingIcon,
 } from '../icons';
 import { cn, formatTimestamp } from '../utils/util';
@@ -24,6 +29,8 @@ import ActionsIcon from '../assets/actions.png';
 import CalendarIcon from '../assets/calendar.png';
 import CheckIcon from '../assets/check.png';
 import MessageIcon from '../assets/message.png';
+import SerenaPath from '../assets/serena.png';
+import ShareHeaderBg from '../assets/share-header-bg.png';
 import UserIcon from '../assets/user.png';
 import WriteIcon from '../assets/write.png';
 
@@ -119,12 +126,14 @@ const ActionsItems = ({
   mainTopic,
   pendingMatters,
   deleteMessage,
+  shareMessage,
 }: {
   messageId: string;
   summaryInfo: ISummaryInfo | null;
   mainTopic: ISummaryTopicItem[];
   pendingMatters: ISummaryPendingItem[];
   deleteMessage: () => void;
+  shareMessage: () => void;
 }) => {
   const lang = useOldLang();
   const { showNotification } = getActions();
@@ -180,18 +189,32 @@ const ActionsItems = ({
           <VoiceIcon size={24} />
         </div>
       )}
-      <div className="w-[20px] h-[20px] cursor-pointer" onClick={deleteMessage}>
+      <div className="w-[20px] h-[20px] cursor-pointer hidden" onClick={deleteMessage}>
         <DeleteIcon size={20} />
       </div>
+      {
+        // @ts-ignore
+        globalThis.p__handleFileSelect && (
+          <div className="w-[24px] h-[24px] text-[#676B74] cursor-pointer" onClick={shareMessage}>
+            <MessageShareIcon size={24} />
+          </div>
+        )
+      }
     </div>
   );
 };
 
-const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
+const SummaryInfoContent = ({
+  summaryInfo,
+  title = <>Chat Summary</>,
+}:{
+  summaryInfo: ISummaryInfo;
+  title?: any;
+}) => {
   return (
     <ErrorBoundary>
       <div>
-        <p className="text-[22px] font-bold mb-[16px]">Chat Summary</p>
+        <p className="text-[22px] font-bold mb-[16px]">{title}</p>
         <div className="flex items-center flex-wrap">
           <p className="flex items-center gap-[8px] pr-[20px]">
             <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
@@ -254,10 +277,17 @@ const MainSummaryContent = ({
   pendingMatters: ISummaryPendingItem[];
   deleteMessage: () => void;
 }) => {
+  const [capturing, setCapturing] = useState(false);
+  const global = getGlobal();
+  const { chatId } = selectCurrentMessageList(global) || {};
+  const targetUser = selectUser(global, chatId!);
+
   return (
-    <div className="mx-auto rounded-[10px] bg-white px-3 py-2 dark:bg-[#292929]">
+    <div className="mx-auto rounded-[10px] px-3 py-2 dark:bg-[#292929] bg-white">
       {/* summary info  */}
-      {summaryInfo && <SummaryInfoContent summaryInfo={summaryInfo} />}
+      {summaryInfo && (
+        <SummaryInfoContent summaryInfo={summaryInfo} />
+      )}
       {/* maintopic  */}
       {mainTopic.length > 0 && (
         <div>
@@ -286,8 +316,57 @@ const MainSummaryContent = ({
         summaryInfo={summaryInfo}
         mainTopic={mainTopic}
         pendingMatters={pendingMatters}
+        // eslint-disable-next-line react/jsx-no-bind
         deleteMessage={deleteMessage}
+        // eslint-disable-next-line react/jsx-no-bind
+        shareMessage={() => {
+          setCapturing(true);
+        }}
       />
+      <ShareCard
+        capturing={capturing}
+        // eslint-disable-next-line react/jsx-no-bind
+        captureCallback={() => {
+          setCapturing(false);
+        }}
+      >
+        {summaryInfo && (
+          <SummaryInfoContent
+            summaryInfo={summaryInfo}
+            title={(
+              <>
+                Chat Summary
+                <span className="ml-2 text-xs opacity-75">{
+                  ((name) => (name ? `[${name}]` : ''))([targetUser?.firstName ?? '', targetUser?.lastName ?? ''].join(' ').trim())
+                }
+                </span>
+              </>
+            )}
+          />
+        )}
+        {/* maintopic  */}
+        {mainTopic.length > 0 && (
+          <div>
+            <p className="flex items-center gap-[8px]">
+              <span className="text-[18px] font-bold">Key Topics</span>
+              <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
+            </p>
+            {mainTopic.map((item, index) => (
+              <SummaryTopicItem topicItem={item} index={index} />
+            ))}
+          </div>
+        )}
+        {/* pending actions  */}
+        {pendingMatters.length > 0 && (
+          <div>
+            <p className="flex items-center gap-[8px]">
+              <span className="text-[18px] font-bold">Actions Items</span>
+              <img className="w-[16px] h-[16px]" src={ActionsIcon} alt="" />
+            </p>
+            {pendingMatters.map((item) => (<SummaryPenddingItem pendingItem={item} />))}
+          </div>
+        )}
+      </ShareCard>
     </div>
   );
 };
@@ -336,5 +415,67 @@ const RoomSummaryMessage = (props: IProps) => {
     </div>
   );
 };
+
+function ShareCard({
+  capturing = false,
+  children,
+  captureCallback = () => {},
+}: {
+  capturing: boolean;
+  children?: any;
+  captureCallback?: () => void;
+}) {
+  const domRef = useRef<HTMLDivElement>();
+  const global = getGlobal();
+  const { currentUserId } = global;
+  const currentUser = selectUser(global, currentUserId!);
+
+  useEffect(() => {
+    if (domRef.current) {
+      setTimeout(() => {
+        toBlob(domRef.current!)
+          .then((blob) => {
+            const file = new File([blob!], 'telegpt.org.png', { type: 'image/png' });
+            // @ts-ignore
+            globalThis?.p__handleFileSelect?.([file], true);
+            captureCallback();
+          });
+      }, 100);
+    }
+  }, [capturing, captureCallback]);
+
+  if (!capturing) return null;
+
+  return (
+    <div className="fixed top-0 left-0 translate-x-[-1000000px] translate-y-[-100000px]">
+      <div
+        ref={domRef}
+        className="relative w-[390px] box-content overflow-hidden rounded-[20px] bg-white text-black"
+      >
+        <div className="absolute top-0 left-0 w-full blur-xl pointer-events-none">
+          <img src={ShareHeaderBg} alt="" className="w-full" />
+        </div>
+        <div className="relative py-3 px-4 flex flex-col gap-2">
+          <div className="flex flex-row justify-end items-center gap-2 text-xs">
+            <Avatar
+              className="w-[20px] h-[20px]"
+              peer={currentUser}
+            />
+            <span>{currentUser?.firstName}</span>
+            <span>{currentUser?.lastName}</span>
+          </div>
+
+          {children}
+        </div>
+        <section className="flex flex-row gap-1 items-center justify-center py-2 text-xs bg-[#F7FAFF]">
+          <img className="inline w-[20px] h-[20px] rounded-full" src={SerenaPath} alt="Serena" />
+          Powered by
+          <span className="text-[#2996FF]">telepgt.org</span>
+        </section>
+      </div>
+    </div>
+
+  );
+}
 
 export default RoomSummaryMessage;

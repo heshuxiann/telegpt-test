@@ -167,6 +167,7 @@
     "formdata-polyfill": "^4.0.10",
     "framer-motion": "^12.4.10",
     "google-auth-library": "^10.1.0",
+    "html-to-image": "^1.11.13",
     "idb": "^8.0.2",
     "idb-keyval": "^6.2.1",
     "lodash.debounce": "^4.0.8",
