@@ -23,8 +23,8 @@ protocols:
       - tg
 publish:
   provider: github
-  owner: Ajaxy
-  repo: TeleGPT
+  owner: Aquaverse
+  repo: ai-tg-web
   releaseType: draft
 win:
   target:
