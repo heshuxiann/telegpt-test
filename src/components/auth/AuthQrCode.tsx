@@ -11,7 +11,7 @@ import { disableStrict, enableStrict } from '../../lib/fasterdom/stricterdom';
 import { selectSharedSettings } from '../../global/selectors/sharedState';
 import buildClassName from '../../util/buildClassName';
 import { oldSetLanguage } from '../../util/oldLangProvider';
-import TeleGptLogo from '../chatAssistant/assets/guidance/telegpt-logo.png';
+import TeleGptLogo from '../chatAssistant/assets/serena.png';
 import { LOCAL_TGS_URLS } from '../common/helpers/animatedAssets';
 import { navigateBack } from './helpers/backNavigation';
 import { getSuggestedLanguage } from './helpers/getSuggestedLanguage';
