@@ -280,7 +280,7 @@ const MainSummaryContent = ({
   const [capturing, setCapturing] = useState(false);
   const global = getGlobal();
   const { chatId } = selectCurrentMessageList(global) || {};
-  const targetUser = selectUser(global, chatId!);
+  const chat = selectChat(global, chatId!);
 
   return (
     <div className="mx-auto rounded-[10px] px-3 py-2 dark:bg-[#292929] bg-white">
@@ -336,10 +336,7 @@ const MainSummaryContent = ({
             title={(
               <>
                 Chat Summary
-                <span className="ml-2 text-xs opacity-75">{
-                  ((name) => (name ? `[${name}]` : ''))([targetUser?.firstName ?? '', targetUser?.lastName ?? ''].join(' ').trim())
-                }
-                </span>
+                <span className="ml-2 text-xs text-[#979797]">[{chat?.title}]</span>
               </>
             )}
           />
@@ -450,13 +447,13 @@ function ShareCard({
     <div className="fixed top-0 left-0 translate-x-[-1000000px] translate-y-[-100000px]">
       <div
         ref={domRef}
-        className="relative w-[390px] box-content overflow-hidden rounded-[20px] bg-white text-black"
+        className="relative w-[390px] box-content overflow-hidden bg-white text-black"
       >
         <div className="absolute top-0 left-0 w-full blur-xl pointer-events-none">
           <img src={ShareHeaderBg} alt="" className="w-full" />
         </div>
         <div className="relative py-3 px-4 flex flex-col gap-2">
-          <div className="flex flex-row justify-end items-center gap-2 text-xs">
+          <div className="flex flex-row justify-end items-center gap-2 text-xs text-[#979797]">
             <Avatar
               className="w-[20px] h-[20px]"
               peer={currentUser}
