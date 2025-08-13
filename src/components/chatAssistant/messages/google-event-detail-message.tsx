@@ -113,6 +113,7 @@ function ShareCard({
       setTimeout(() => {
         toBlob(domRef.current!)
           .then((blob) => {
+            // return 123;
             const file = new File([blob!], 'telegpt.org.png', { type: 'image/png' });
             // @ts-ignore
             globalThis?.p__handleFileSelect?.([file], true);
@@ -128,13 +129,13 @@ function ShareCard({
     <div className="fixed top-0 left-0 translate-x-[-1000000px] translate-y-[-100000px]">
       <div
         ref={domRef}
-        className="relative w-[330px] box-content overflow-hidden rounded-[20px] bg-white text-black"
+        className="relative w-[330px] box-content overflow-hidden bg-white text-black"
       >
         <div className="absolute top-0 left-0 w-full blur-xl pointer-events-none">
           <img src={ShareHeaderBg} alt="" className="w-full" />
         </div>
         <div className="relative py-3 px-4 flex flex-col gap-2">
-          <div className="flex flex-row justify-end items-center gap-2 text-xs">
+          <div className="flex flex-row justify-end items-center gap-2 text-xs text-[#979797]">
             <Avatar
               className="w-[20px] h-[20px]"
               peer={currentUser}
