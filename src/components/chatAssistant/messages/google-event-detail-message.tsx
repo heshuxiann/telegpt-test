@@ -1,14 +1,25 @@
 /* eslint-disable max-len */
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { Message } from 'ai';
+import { toBlob } from 'html-to-image';
+import { getGlobal } from '../../../global';
 
+import { selectUser } from '../../../global/selectors';
+import { MessageShareIcon } from '../icons';
 import { formatMeetingTimeRange } from '../utils/schedule-meeting';
 import { FormLabel } from './google-event-create-messages';
 
+import Avatar from '../component/Avatar';
+
+import SerenaPath from '../assets/serena.png';
+import ShareHeaderBg from '../assets/share-header-bg.png';
+
 const GoogleEventDetailMessage = ({ message }:{ message:Message }) => {
   const [messageContent, setMessageContent] = useState<any>(null);
+  const [capturing, setCapturing] = useState(false);
+
   useEffect(() => {
     try {
       const parsedMessage = JSON.parse(message.content);
@@ -20,38 +31,129 @@ const GoogleEventDetailMessage = ({ message }:{ message:Message }) => {
   if (!messageContent) {
     return null;
   }
+
+  const contentJSX = (
+    <>
+      <div>
+        <FormLabel lable="title" />
+        <span className="text-[14px]">{messageContent?.summary}</span>
+      </div>
+      {messageContent?.attendees?.length > 0 && (
+        <div>
+          <FormLabel lable="guests" />
+          {messageContent?.attendees?.map((attendee: any) => (
+            <div className="text-[14px]" key={attendee.email}>{attendee.email}</div>
+          ))}
+        </div>
+      )}
+      <div>
+        <FormLabel lable="time" />
+        <div className="flex flex-col">
+          <span className="text-[14px]">
+            {formatMeetingTimeRange(messageContent.start.dateTime, messageContent.end.dateTime)}
+          </span>
+          <span className="text-[14px] text-[#979797]">{messageContent.start.timeZone}</span>
+        </div>
+      </div>
+      <div>
+        <FormLabel lable="meet" />
+        <span className="text-[14px]">{messageContent?.hangoutLink}</span>
+      </div>
+    </>
+  );
+
   return (
     <div className="px-[12px]">
       <div className="flex-col gap-[12px] p-[10px] border border-solid  border-[#D9D9D9] rounded-[16px] w-[326px] bg-white dark:bg-[#292929] dark:border-[#292929]">
         <div className="text-[14px] font-semibold">Event details</div>
-        <div>
-          <FormLabel lable="title" />
-          <span className="text-[14px]">{messageContent?.summary}</span>
-        </div>
-        {messageContent?.attendees?.length > 0 && (
-          <div>
-            <FormLabel lable="guests" />
-            {messageContent?.attendees?.map((attendee: any) => (
-              <div className="text-[14px]" key={attendee.email}>{attendee.email}</div>
-            ))}
-          </div>
-        )}
-        <div>
-          <FormLabel lable="time" />
-          <div className="flex flex-col">
-            <span className="text-[14px]">
-              {formatMeetingTimeRange(messageContent.start.dateTime, messageContent.end.dateTime)}
-            </span>
-            <span className="text-[14px] text-[#979797]">{messageContent.start.timeZone}</span>
-          </div>
-        </div>
-        <div>
-          <FormLabel lable="meet" />
-          <span className="text-[14px]">{messageContent?.hangoutLink}</span>
-        </div>
+        {contentJSX}
+        {
+          // @ts-ignore
+          globalThis.p__handleFileSelect && (
+            <div
+              className="w-[24px] h-[24px] text-[#676B74] cursor-pointer"
+              onClick={() => {
+                setCapturing(true);
+              }}
+            >
+              <MessageShareIcon size={24} />
+            </div>
+          )
+        }
       </div>
+      <ShareCard
+        capturing={capturing}
+        // eslint-disable-next-line react/jsx-no-bind
+        captureCallback={() => {
+          setCapturing(false);
+        }}
+      >
+        {contentJSX}
+      </ShareCard>
     </div>
   );
 };
+
+function ShareCard({
+  capturing = false,
+  children,
+  captureCallback = () => {},
+}: {
+  capturing: boolean;
+  children?: any;
+  captureCallback?: () => void;
+}) {
+  const domRef = useRef<HTMLDivElement>();
+  const global = getGlobal();
+  const { currentUserId } = global;
+  const currentUser = selectUser(global, currentUserId!);
+
+  useEffect(() => {
+    if (domRef.current) {
+      setTimeout(() => {
+        toBlob(domRef.current!)
+          .then((blob) => {
+            const file = new File([blob!], 'telegpt.org.png', { type: 'image/png' });
+            // @ts-ignore
+            globalThis?.p__handleFileSelect?.([file], true);
+            captureCallback();
+          });
+      }, 100);
+    }
+  }, [capturing, captureCallback]);
+
+  if (!capturing) return null;
+
+  return (
+    <div className="fixed top-0 left-0 translate-x-[-1000000px] translate-y-[-100000px]">
+      <div
+        ref={domRef}
+        className="relative w-[330px] box-content overflow-hidden rounded-[20px] bg-white text-black"
+      >
+        <div className="absolute top-0 left-0 w-full blur-xl pointer-events-none">
+          <img src={ShareHeaderBg} alt="" className="w-full" />
+        </div>
+        <div className="relative py-3 px-4 flex flex-col gap-2">
+          <div className="flex flex-row justify-end items-center gap-2 text-xs">
+            <Avatar
+              className="w-[20px] h-[20px]"
+              peer={currentUser}
+            />
+            <span>{currentUser?.firstName}</span>
+            <span>{currentUser?.lastName}</span>
+          </div>
+
+          {children}
+        </div>
+        <section className="flex flex-row gap-1 items-center justify-center py-2 text-xs bg-[#F7FAFF]">
+          <img className="inline w-[20px] h-[20px] rounded-full" src={SerenaPath} alt="Serena" />
+          Powered by
+          <span className="text-[#2996FF]">telepgt.org</span>
+        </section>
+      </div>
+    </div>
+
+  );
+}
 
 export default GoogleEventDetailMessage;
