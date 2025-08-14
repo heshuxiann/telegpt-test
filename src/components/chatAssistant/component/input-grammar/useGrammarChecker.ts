@@ -297,7 +297,7 @@ export function useGrammarChecker(
 
     el.innerText = fullText;
     lastTextRef.current = fullText;
-
+    setHtml(fullText);
     setErrorRanges([]);
     setErrorMarkers([]);
     inputNlpRuleCheck();

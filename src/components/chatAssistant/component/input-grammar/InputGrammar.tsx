@@ -159,7 +159,7 @@ const ErrorsReview = ({
   return (
     <div className="h-[190px] flex flex-col overflow-hidden">
       <div className="flex flex-row items-center justify-between">
-        <h3>Review suggestions</h3>
+        <h3 className="text-[var(--color-text)]">Review suggestions</h3>
         <div className="h-[26px] rounded-[6px] overflow-hidden flex flex-row">
           <div className="w-[21px] bg-[#F1F1F1] cursor-pointer" onClick={handleClickPrev}>
             <LeftOutlined />

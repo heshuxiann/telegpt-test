@@ -22,7 +22,11 @@ const HighlightedText: React.FC<Props> = ({ text, errors }) => {
 
     // 添加错误前的正常文本
     if (offset > lastIndex) {
-      fragments.push(<span key={`normal-${index}`}>{text.slice(lastIndex, offset)}</span>);
+      fragments.push(
+        <span key={`normal-${index}`} className="text-[var(--color-text)]">
+          {text.slice(lastIndex, offset)}
+        </span>,
+      );
     }
 
     // 添加错误词 + 建议
@@ -32,7 +36,7 @@ const HighlightedText: React.FC<Props> = ({ text, errors }) => {
     fragments.push(
       <span
         key={`error-${index}`}
-        className="bg-black/15 line-through mr-[4px]"
+        className="bg-black/15 line-through mr-[4px] text-[var(--color-text)]"
       >
         {original}
       </span>,
