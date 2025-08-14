@@ -31,10 +31,10 @@ const TooltipContent = (
     handleFixError(errorIndex);
   };
   return (
-    <div className="InputErrorTooltip__content">
+    <div className="text-[var(--color-text)]">
       <div>ReplaceMent</div>
       <div
-        className="max-w-[min(30vw,400px)] px-[12px] py-[10px] rounded-[8px] cursor-pointer hover:bg-[#F4F4F5]"
+        className="max-w-[min(30vw,400px)] px-[12px] py-[10px] rounded-[8px] cursor-pointer hover:bg-[var(--color-primary)] hover:text-white"
         onClick={handleClick}
       >
         {replacement}
