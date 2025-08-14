@@ -6,3 +6,10 @@
     background-color: var(--color-chat-hover) !important;
   }
 }
+.ant-modal-content {
+  background-color: var(--color-background) !important;
+}
+.ant-modal-confirm-content,
+.ant-modal-confirm-title {
+  color: var(--color-text) !important;
+}
