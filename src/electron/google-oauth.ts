@@ -23,8 +23,8 @@ import { initProxy } from './proxy';
 
 const PORT = 51217;
 const keys = {
-  client_id: '545055439232-bckq5vdtgnraldt5jkvaedf2ranv9md7.apps.googleusercontent.com',
-  client_secret: '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',
+  client_id: '538884342692-bd9rssgp81hhlgmp4p1i1id5gh4rdm5u.apps.googleusercontent.com',
+  client_secret: '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',
   redirect_uris: [`http://localhost:${PORT}/oauth2callback`],
 };
 const GOOGLE_SCOPES = [
@@ -32,10 +32,6 @@ const GOOGLE_SCOPES = [
   'profile',
   'email',
   'https://www.googleapis.com/auth/calendar',
-  'https://www.googleapis.com/auth/calendar.events',
-  'https://www.googleapis.com/auth/calendar.readonly',
-  'https://www.googleapis.com/auth/calendar.events.freebusy',
-  'https://www.googleapis.com/auth/calendar.freebusy',
 ];
 
 function checkPortAvailable(port: number): Promise<boolean> {
