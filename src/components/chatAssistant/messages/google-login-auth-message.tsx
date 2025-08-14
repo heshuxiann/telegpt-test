@@ -5,7 +5,7 @@
 import React, {
   useCallback,
 } from 'react';
-import { Button } from 'antd';
+import { Button, message as showMessage } from 'antd';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { IS_ELECTRON } from '../../../util/browser/windowEnvironment';
@@ -44,6 +44,7 @@ const GoogleLoginAuthMessage = (props:IProps) => {
         deleteMessage();
       }).catch((error) => {
         console.error('Google login failed:', error);
+        showMessage.info('Google login failed');
       });
     }
   }, [deleteMessage]);
