@@ -56,7 +56,7 @@ const HighlightedText: React.FC<Props> = ({ text, errors }) => {
 
   // 添加最后剩余的文本
   if (lastIndex < text.length) {
-    fragments.push(<span key="end">{text.slice(lastIndex)}</span>);
+    fragments.push(<span key="end" className="text-[var(--color-text)]">{text.slice(lastIndex)}</span>);
   }
 
   return <p>{fragments}</p>;
