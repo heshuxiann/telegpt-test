@@ -136,8 +136,8 @@ const GlobalSummary = forwardRef(() => {
 
   useEffect(() => {
     const lastFocusTime = RoomStorage.getRoomLastFocusTime(GLOBAL_SUMMARY_CHATID);
-    // 再次聚焦间隔20分钟触发一次总结
-    if (lastFocusTime && lastFocusTime < Date.now() - 1000 * 60 * 20) {
+    // 再次聚焦间隔6小时触发一次总结
+    if (lastFocusTime && lastFocusTime < Date.now() - 1000 * 60 * 60 * 6) {
       globalSummaryTask.initSummaryChats(false);
     }
     RoomStorage.updateRoomAIData(GLOBAL_SUMMARY_CHATID, 'lastFocusTime', new Date().getTime());

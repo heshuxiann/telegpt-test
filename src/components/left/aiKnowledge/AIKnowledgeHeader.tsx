@@ -16,7 +16,7 @@ const AIKnowledgeHeader: FC<OwnProps> = ({ onReset, showAddButton, onShowAddModa
   const oldLang = useOldLang();
 
   function renderHeaderContent() {
-    return <h3>{oldLang('AI Knowledge Base')}</h3>;
+    return <h3>{oldLang('Quick Replies')}</h3>;
   }
   const handleAdd = useCallback(() => {
     onShowAddModal('add');

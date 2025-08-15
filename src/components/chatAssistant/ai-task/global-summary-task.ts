@@ -107,20 +107,24 @@ class GlobalSummaryTask {
       const currentTime = new Date();
       const hours = currentTime.getHours();
       const minutes = currentTime.getMinutes();
-      // 9:00 - 12:00 每30分钟执行一次
-      if (hours >= 9 && hours < 12 && minutes % 30 === 0) {
+      // 10:00 am or 8:00 pm
+      if ((hours === 10 || hours === 20) && minutes === 0) {
         this.initSummaryChats();
       }
+      // // 9:00 - 12:00 每30分钟执行一次
+      // if (hours >= 9 && hours < 12 && minutes % 30 === 0) {
+      //   this.initSummaryChats();
+      // }
 
-      // 14:00 - 17:00 每30分钟执行一次
-      if (hours >= 14 && hours < 17 && minutes % 30 === 0) {
-        this.initSummaryChats();
-      }
+      // // 14:00 - 17:00 每30分钟执行一次
+      // if (hours >= 14 && hours < 17 && minutes % 30 === 0) {
+      //   this.initSummaryChats();
+      // }
 
-      // 17:00 - 23:00 每2小时执行一次
-      if (hours >= 17 && hours < 23 && (hours - 17) % 2 === 0 && minutes === 0) {
-        this.initSummaryChats();
-      }
+      // // 17:00 - 23:00 每2小时执行一次
+      // if (hours >= 17 && hours < 23 && (hours - 17) % 2 === 0 && minutes === 0) {
+      //   this.initSummaryChats();
+      // }
     };
 
     this.timmer = setInterval(executeTask, 60000);

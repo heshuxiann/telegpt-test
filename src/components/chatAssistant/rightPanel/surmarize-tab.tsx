@@ -16,6 +16,7 @@ import { RoomsTab } from './rooms-tab';
 
 import FloatingActionButton from '../component/FloatingActionButton';
 import Icon from '../component/Icon';
+import Spinner from '../component/Spinner';
 import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 const SummaryItem = ({
@@ -84,6 +85,7 @@ const SummarizeTab = () => {
   const [originSelectedTemp, setOriginSelectedTemp] = useState<string[]>(curious_id);
   const [selectedTemp, setSelectedTemp] = useState<string[]>(curious_id);
   const [ignoredIds, setIgnoredIds] = useState<string[]>(ignoredChatIds);
+  const [isLoading, setIsLoading] = useState(false);
 
   const actionsVisable = useMemo(() => {
     return !isEqual(selectedTemp, originSelectedTemp);
@@ -104,10 +106,13 @@ const SummarizeTab = () => {
   }, [selectedTemp]);
 
   const handleSave = useCallback(() => {
+    setIsLoading(true);
     telegptSettings.setSettingOption({
       curious_id: selectedTemp,
+    }, () => {
+      setIsLoading(false);
+      setOriginSelectedTemp(selectedTemp);
     });
-    setOriginSelectedTemp(selectedTemp);
   }, [selectedTemp]);
 
   const handleDelete = useCallback((id: string) => {
@@ -173,7 +178,12 @@ const SummarizeTab = () => {
         isShown={actionsVisable}
         onClick={handleSave}
       >
-        <Icon name="check" className="text-white text-[1.5rem]" />
+        {isLoading ? (
+          <Spinner color="white" />
+        ) : (
+          <Icon name="check" className="text-white text-[1.5rem]" />
+        )}
+
       </FloatingActionButton>
     </div>
   );
