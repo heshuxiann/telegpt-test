@@ -28,6 +28,7 @@ import buildStyle from '../../../util/buildStyle';
 import captureEscKeyListener from '../../../util/captureEscKeyListener';
 import { formatDateToString } from '../../../util/dates/dateFormat';
 import AIMenuIcon from '../../chatAssistant/assets/ai-menu.png';
+import { UPDATE_DEFER_KEY } from '../../chatAssistant/utils/firebase_analytics';
 
 import useAppLayout from '../../../hooks/useAppLayout';
 import useConnectionStatus from '../../../hooks/useConnectionStatus';
@@ -264,13 +265,16 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
     );
   }, [globalSearchChatId, selectedSearchDate]);
 
+  const [version] = JSON.parse(localStorage.getItem(UPDATE_DEFER_KEY) || '["0.0.0",0]');
+
   return (
     <div className="LeftMainHeader">
       <div id="LeftMainHeader" className="left-header" ref={headerRef}>
         {oldLang.isRtl && <div className="DropdownMenuFiller" />}
         <DropdownMenu
           trigger={MainButton}
-          footer={`${APP_NAME} ${versionString}`}
+          // footer={`${APP_NAME} ${versionString}`}
+          footer={`TeleGPT ${version || ''}`}
           className={buildClassName(
             'main-menu',
             oldLang.isRtl && 'rtl',

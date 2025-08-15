@@ -128,7 +128,7 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
             <div className="font-[600]">Group Coverage</div>
             <div>
               Participates in {userPortraitInfo?.chatCount} TG groups{' '}
-              {chatTags?.length > 0 && `(${uniq(chatTags).join(',')})`}
+              {chatTags?.length > 0 && chatTags?.filter(Boolean).length > 0 && `(${uniq(chatTags).join(',')})`}
             </div>
           </div>
         )}
