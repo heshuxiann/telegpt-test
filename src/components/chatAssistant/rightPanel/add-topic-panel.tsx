@@ -11,6 +11,7 @@ import { telegptSettings } from '../api/user-settings';
 import FloatingActionButton from '../component/FloatingActionButton';
 import Icon from '../component/Icon';
 import InputText from '../component/InputText';
+import Spinner from '../component/Spinner';
 import TextArea from '../component/TextArea';
 import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
@@ -21,6 +22,7 @@ const AddTopicPanel = () => {
   const [descriptionError, setDescriptionError] = useState(false);
   const [phoneNumberError, setPhoneNumberError] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState(phone);
+  const [isLoading, setIsLoading] = useState(false);
   const initialValues:IUrgentTopic = drawerParams || {
     topic: '',
     prompt: '',
@@ -81,22 +83,25 @@ const AddTopicPanel = () => {
       setPhoneNumberError(true);
       return;
     }
+    setIsLoading(true);
     telegptSettings.updateUrgentTopic(form).then((res:any) => {
+      setIsLoading(false);
       if (res.code === 0) {
         openDrawer(DrawerKey.PersonalizeSettings, {
           activeKey: 1,
         });
+        if (form.is_call && phoneNumber.length > 0) {
+          telegptSettings.setSettingOption({
+            phone: phoneNumber,
+          });
+        }
       } else {
         showMessage.info('save failed');
       }
     }).catch(() => {
       showMessage.info('save failed');
+      setIsLoading(false);
     });
-    if (form.is_call && phoneNumber.length > 0) {
-      telegptSettings.setSettingOption({
-        phone: phoneNumber,
-      });
-    }
   }, [form, openDrawer, phoneNumber]);
 
   return (
@@ -147,7 +152,11 @@ const AddTopicPanel = () => {
         isShown
         onClick={handleSave}
       >
-        <Icon name="check" className="text-white text-[1.5rem]" />
+        {isLoading ? (
+          <Spinner color="white" />
+        ) : (
+          <Icon name="check" className="text-white text-[1.5rem]" />
+        )}
       </FloatingActionButton>
     </div>
   );

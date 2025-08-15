@@ -9,6 +9,7 @@ import { telegptSettings } from '../api/user-settings';
 import FloatingActionButton from '../component/FloatingActionButton';
 import Icon from '../component/Icon';
 import InputText from '../component/InputText';
+import Spinner from '../component/Spinner';
 import TextArea from '../component/TextArea';
 import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
@@ -16,6 +17,7 @@ const CustomizationPromptPanel = () => {
   const { openDrawer, drawerParams } = useDrawerStore();
   const [titleError, setTitleError] = useState(false);
   const [promptError, setPromptError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const initialValues:ISummaryTemplate = drawerParams || {
     topic: '',
     prompt: '',
@@ -30,7 +32,9 @@ const CustomizationPromptPanel = () => {
       setPromptError(true);
       return;
     }
+    setIsLoading(true);
     telegptSettings.updateSummarizeTemplate(form).then((res:any) => {
+      setIsLoading(false);
       if (res.code === 0) {
         openDrawer(DrawerKey.PersonalizeSettings, {
           activeKey: 0,
@@ -83,7 +87,11 @@ const CustomizationPromptPanel = () => {
         isShown
         onClick={handleSave}
       >
-        <Icon name="check" className="text-white text-[1.5rem]" />
+        {isLoading ? (
+          <Spinner color="white" />
+        ) : (
+          <Icon name="check" className="text-white text-[1.5rem]" />
+        )}
       </FloatingActionButton>
     </div>
   );

@@ -228,7 +228,7 @@ const LeftSideMenuItems = ({
         customIcon={<img className="icon" src={AIKnowledgeIcon} alt="ai-knowledge" style={buildStyle('width: 24px;height: 24px;max-width: 24px;')} />}
         onClick={onSelectAIKnowledge}
       >
-        {oldLang('AI Knowledge Base')}
+        {oldLang('Quick Replies')}
       </MenuItem>
       <MenuItem
         customIcon={<img className="icon" src={AITranslateIcon} alt="ai-translate" style={buildStyle('width: 24px;height: 24px;max-width: 24px;')} />}

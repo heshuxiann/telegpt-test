@@ -81,7 +81,14 @@ const AIKnowledgeEditor = (props: OwnProps) => {
   return (
     <div className="flex flex-col gap-[20px] h-full">
       <div className="flex-1 flex flex-col overflow-hidden">
-        <DSlate className="flex-1 flex flex-col overflow-hidden" ref={ref} value={value} onChange={setValue} toolbar={['history', 'bold', 'italic', 'decoration', 'text-align', 'list']} />
+        <DSlate
+          className="flex-1 flex flex-col overflow-hidden"
+          ref={ref}
+          value={value}
+          onChange={setValue}
+          toolbar={['history', 'bold', 'italic', 'decoration', 'text-align', 'list']}
+          placeholder="Save your most-used answers as Quick Replies — e.g. your email, Calendly link, or a short project intro. Next time someone asks, insert it in one tap. "
+        />
         {valueError && <ErrorTip message={valueError} />}
       </div>
       <div className="flex flex-col gap-[8px]">
