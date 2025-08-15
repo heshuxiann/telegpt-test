@@ -32,7 +32,7 @@ class UrgentCheckTask {
     }
     this.timmer = setInterval(() => {
       this.checkUrgentMessage();
-    }, 1000 * 60 * 1); // 每5分钟检查一次
+    }, 1000 * 60 * 5); // 每5分钟检查一次
     this.orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
   }
 
