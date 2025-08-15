@@ -15,7 +15,7 @@ const Spinner: FC<{
 }) => {
   return (
     <div className={cx(
-      'Spinner', className, color, backgroundColor && 'with-background', backgroundColor && `bg-${backgroundColor}`,
+      'Spinner-GPT', className, color, backgroundColor && 'with-background', backgroundColor && `bg-${backgroundColor}`,
     )}
     >
       <div className="Spinner__inner" />
