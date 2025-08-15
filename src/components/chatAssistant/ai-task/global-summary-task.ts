@@ -60,6 +60,15 @@ function getAlignedExecutionTimestamp(): number | null {
   return null;
 }
 
+function getCurrentHourTimestamp() {
+  const now = new Date();
+  const hours = now.getHours();
+
+  // 计算当前小时对应的整点时间戳（分钟设为0）
+  const hourTimestamp = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, 0, 0).getTime();
+  return hourTimestamp;
+}
+
 function getSummaryInfo({
   startTime,
   endTime,
@@ -361,12 +370,12 @@ class GlobalSummaryTask {
     const ignoredIds = getIdsFromEntityTypes(ignored_summary_chat_ids);
     const summaryChatIds = orderedIds.filter((id) => !ignoredIds.includes(id));
 
-    let summaryTime;
-    if (useRangeTime) {
-      summaryTime = getAlignedExecutionTimestamp() || Date.now();
-    } else {
-      summaryTime = Date.now();
-    }
+    const summaryTime = getCurrentHourTimestamp();
+    // if (useRangeTime) {
+    //   summaryTime = getAlignedExecutionTimestamp() || Date.now();
+    // } else {
+    //   summaryTime = Date.now();
+    // }
 
     await this.processChatMessages(
       summaryChatIds,

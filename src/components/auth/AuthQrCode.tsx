@@ -166,7 +166,7 @@ const AuthCode = ({
       )}
       <div className="flex flex-col items-center max-w-[48rem] mx-auto mb-[1.5rem]">
         <img src={TeleGptLogo} alt="" className="w-[104px] h-[100px] mb-[36px]" />
-        <div className="text-[55px] leading-[66px] font-bold mb-[20px]">Telegpt </div>
+        <div className="text-[55px] leading-[66px] font-bold mb-[20px]">TeleGPT </div>
         <div className="text-[28px] leading-[27px] font-medium mb-[30px]">Message Smarter with AI. Achieve More.</div>
         <p className="text-[18px] text-[#666666] text-center">
           Welcome to the official Telegpt web client. Built for speed, performance, and privacy. Your conversations remain yours — we never read or save any messages. Feel safe using it.
