@@ -27,13 +27,13 @@ const Serena = (props:IProps) => {
       <div className="status status-clickable">
         <div className="Avatar" style={buildStyle(`--_size: ${AVATAR_SIZES.large}px;`)}>
           <div className="inner">
-            <img className="Avatar__media avatar-media opacity-transition slow open shown" src={SerenaPath} alt="Tely" />
+            <img className="Avatar__media avatar-media opacity-transition slow open shown" src={SerenaPath} alt="Tely AI" />
           </div>
         </div>
       </div>
       <div className="info">
         <div className="info-row">
-          <div className="title">Tely</div>
+          <div className="title">Tely AI</div>
         </div>
       </div>
     </ListItem>

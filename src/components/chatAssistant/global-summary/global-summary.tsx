@@ -180,8 +180,8 @@ const GlobalSummary = forwardRef(() => {
       <div className="flex flex-row w-full">
         <div className={className}>
           <div className="h-[56px] w-full px-[20px] flex items-center bg-[var(--color-background)]">
-            <img className="w-[40px] h-[40px] rounded-full mr-[12px]" src={SerenaPath} alt="Tely" />
-            <span className="text-[15px] font-semibold">Tely</span>
+            <img className="w-[40px] h-[40px] rounded-full mr-[12px]" src={SerenaPath} alt="Tely AI" />
+            <span className="text-[15px] font-semibold">Tely AI</span>
             <div className="flex items-center ml-auto gap-[20px]">
               <SummaryHeaderActions />
             </div>

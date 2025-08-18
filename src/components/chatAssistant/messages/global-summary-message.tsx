@@ -393,7 +393,7 @@ const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
         <div className="flex items-center gap-[8px]">
           <img className="w-[52px] h-[52px] rounded-full ml-[-60px]" src={SerenaLogoPath} alt="" />
           <div>
-            <p className="text-[16px] font-semibold">Tely</p>
+            <p className="text-[16px] font-semibold">Tely AI</p>
             {summaryInfo?.summaryEndTime ? (
               <p className="text-[14px] text-[#A8A6AC]">{formatTimestamp(summaryInfo.summaryEndTime)}</p>
             ) : null}
@@ -602,7 +602,7 @@ const SummaryContent = ({
           <div className="flex items-center gap-[8px]">
             <img className="w-[52px] h-[52px] rounded-full ml-[-60px]" src={SerenaLogoPath} alt="" />
             <div>
-              <p className="text-[16px] font-semibold">Tely</p>
+              <p className="text-[16px] font-semibold">Tely AI</p>
               {summaryInfo?.summaryEndTime ? (
                 <p className="text-[14px] text-[#A8A6AC]">{formatTimestamp(summaryInfo.summaryEndTime)}</p>
               ) : null}
