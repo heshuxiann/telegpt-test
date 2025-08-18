@@ -589,6 +589,13 @@ class ScheduleMeeting {
     userSection.appendChild(avatarContainer);
     userSection.appendChild(firstName);
     userSection.appendChild(lastName);
+    // Create card title
+    const cardTitleSection = document.createElement('div');
+    cardTitleSection.textContent = 'Meeting Invitation';
+    cardTitleSection.style.cssText = `
+      font-size: 20px;
+      font-weight: 600;
+    `;
 
     // Create title section
     const titleSection = document.createElement('div');
@@ -750,6 +757,7 @@ class ScheduleMeeting {
     // Assemble the card
     cardElement.appendChild(bgElement);
     contentElement.appendChild(userSection);
+    contentElement.appendChild(cardTitleSection);
     contentElement.appendChild(titleSection);
     if (guestsSection) {
       contentElement.appendChild(guestsSection);
