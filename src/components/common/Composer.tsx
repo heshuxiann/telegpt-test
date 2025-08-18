@@ -1241,7 +1241,7 @@ const Composer: FC<OwnProps & StateProps> = ({
           text: [{ text }],
           toLanguageCode: langCode,
           userId: currentUserId!,
-          userName: getUserFullName(currentUser),
+          userName: getUserFullName(currentUser)!,
         });
         if (result && result[0].text) {
           setHtml(result[0].text);

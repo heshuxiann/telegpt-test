@@ -111,7 +111,11 @@ function ShareCard({
   useEffect(() => {
     if (domRef.current) {
       setTimeout(() => {
-        toBlob(domRef.current!)
+        toBlob(domRef.current!, {
+          width: 330,
+          pixelRatio: 2, // Higher pixel ratio for better quality
+          quality: 1, // Maximum quality
+        })
           .then((blob) => {
             // return 123;
             const file = new File([blob!], 'telegpt.org.png', { type: 'image/png' });

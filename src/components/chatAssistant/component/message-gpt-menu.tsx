@@ -1,6 +1,6 @@
 import cx from 'classnames';
 import type { FC } from '../../../lib/teact/teact';
-import React, { memo } from '../../../lib/teact/teact';
+import React, { memo, useState } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type { ApiMessage } from '../../../api/types';
@@ -54,25 +54,33 @@ const MessageGptMenu:FC<OwnProps & StateProps> = ({
   message, position, canScheduleMeeting, canAISummarize, canSmartReply, canTranslate,
 }) => {
   const canSerenaAI = canScheduleMeeting || canAISummarize || canSmartReply || canTranslate;
+  const [isSchedulingMeeting, setIsSchedulingMeeting] = useState(false);
+
   const handleScheduleMeeting = useLastCallback(() => {
+    if (isSchedulingMeeting) return;
+
+    setIsSchedulingMeeting(true);
     const chatId = message.chatId;
     const text = getMessageContent(message)?.text?.text || '';
     const scheduleMeeting = ScheduleMeeting.create({ chatId });
     const auth = getAuthState();
-    if (!auth || !isTokenValid(auth)) {
-      createAuthConfirmModal({
-        onOk: () => {
-          scheduleMeeting.start({
-            chatId,
-            text,
-          });
-        },
-      });
-    } else {
+
+    const startMeeting = () => {
       scheduleMeeting.start({
         chatId,
         text,
       });
+      // Reset the flag after a delay to prevent rapid clicks
+      setTimeout(() => setIsSchedulingMeeting(false), 2000);
+    };
+
+    if (!auth || !isTokenValid(auth)) {
+      createAuthConfirmModal({
+        onOk: startMeeting,
+        onCancel: () => setIsSchedulingMeeting(false),
+      });
+    } else {
+      startMeeting();
     }
   });
   const handleSmartReply = useLastCallback(async () => {
