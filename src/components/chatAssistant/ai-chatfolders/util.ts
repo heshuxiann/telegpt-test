@@ -1,7 +1,11 @@
 /* eslint-disable */
 import { ApiMessage } from "../../../api/types";
 import { getActions, getGlobal, setGlobal } from "../../../global";
-import { selectBot, selectChat } from "../../../global/selectors";
+import {
+  selectBot,
+  selectChat,
+  selectChatType,
+} from "../../../global/selectors";
 import {
   ChataiStores,
   GLOBAL_AI_TAG,
@@ -93,7 +97,21 @@ export function groupAiChatFoldersRes(list: AIChatFolder[]) {
   AI_CHATFOLDERS_LIST.forEach((item) => {
     const listIds = list
       .filter((o) => o?.categoryTag?.indexOf(item) >= 0)
-      ?.map((i) => i?.chatId);
+      ?.map((i) => {
+        if (item === "Spam") {
+          // 过滤Bot和群聊
+          const global = getGlobal();
+          const chatType = selectChatType(global, i?.chatId?.toString());
+          if(chatType === "users"){
+            return i?.chatId;
+          }else{
+            return null;
+          }
+        } else {
+          return i?.chatId;
+        }
+      })
+      ?.filter((id): id is number => id !== null && id !== undefined);
     if (listIds?.length) {
       data[item] = listIds;
     }

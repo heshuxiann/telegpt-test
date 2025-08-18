@@ -38,14 +38,6 @@ const GoogleEventDetailMessage = ({ message }:{ message:Message }) => {
         <FormLabel lable="title" />
         <span className="text-[14px]">{messageContent?.summary}</span>
       </div>
-      {messageContent?.attendees?.length > 0 && (
-        <div>
-          <FormLabel lable="guests" />
-          {messageContent?.attendees?.map((attendee: any) => (
-            <div className="text-[14px]" key={attendee.email}>{attendee.email}</div>
-          ))}
-        </div>
-      )}
       <div>
         <FormLabel lable="time" />
         <div className="flex flex-col">
@@ -55,6 +47,14 @@ const GoogleEventDetailMessage = ({ message }:{ message:Message }) => {
           <span className="text-[14px] text-[#979797]">{messageContent.start.timeZone}</span>
         </div>
       </div>
+      {messageContent?.attendees?.length > 0 && (
+        <div>
+          <FormLabel lable="guests" />
+          {messageContent?.attendees?.map((attendee: any) => (
+            <div className="text-[14px]" key={attendee.email}>{attendee.email}</div>
+          ))}
+        </div>
+      )}
       <div>
         <FormLabel lable="meet" />
         <span className="text-[14px]">{messageContent?.hangoutLink}</span>
@@ -147,7 +147,7 @@ function ShareCard({
             <span>{currentUser?.firstName}</span>
             <span>{currentUser?.lastName}</span>
           </div>
-
+          <div className="text-[20px] font-bold">Meeting Invitation</div>
           {children}
         </div>
         <section className="flex flex-row gap-1 items-center justify-center py-2 text-xs bg-[#F7FAFF]">
