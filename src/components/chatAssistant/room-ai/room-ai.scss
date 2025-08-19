@@ -20,9 +20,7 @@
 }
 
 .room-ai-entry-wrapper {
-  position: absolute;
-  right: max(1rem, env(safe-area-inset-right));
-  bottom: 14rem;
+  position: fixed;
   z-index: var(--z-scroll-down-button);
   --translate-x: 0;
   transition: transform var(--layer-transition), opacity 0.2s ease;

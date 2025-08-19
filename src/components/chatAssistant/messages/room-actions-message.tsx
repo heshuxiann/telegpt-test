@@ -4,18 +4,12 @@
 /* eslint-disable max-len */
 import React, { useCallback, useEffect, useState } from 'react';
 import type { Message } from 'ai';
-import copy from 'copy-to-clipboard';
-import { getActions, getGlobal } from '../../../global';
+import { getGlobal } from '../../../global';
 
 import { isUserId } from '../../../global/helpers';
 import { selectChat, selectUser } from '../../../global/selectors';
-import useOldLang from '../hook/useOldLang';
-import { useSpeechPlayer } from '../hook/useSpeechPlayer';
-import {
-  CopyIcon, DeleteIcon, VoiceIcon,
-  VoiceingIcon,
-} from '../icons';
 import { cn, formatTimestamp } from '../utils/util';
+import MessageActionsItems from './message-actions-button';
 
 import Avatar from '../component/Avatar';
 import ErrorBoundary from '../ErrorBoundary';
@@ -28,7 +22,6 @@ import UserIcon from '../assets/user.png';
 
 interface IProps {
   message: Message;
-  deleteMessage: () => void;
 }
 interface ISummaryInfo {
   summaryTime: number;
@@ -69,7 +62,7 @@ const SummaryPenddingItem = ({ pendingItem }: { pendingItem: ISummaryPendingItem
     <ErrorBoundary>
       <div className="flex gap-[8px] my-[4px] cursor-pointer">
         <img className="w-[18px] h-[18px] mt-[2px]" src={CheckIcon} alt="" />
-        <span className="text-[15px]">{pendingItem.summary}</span>
+        <span className="text-[15px]" data-readable>{pendingItem.summary}</span>
       </div>
     </ErrorBoundary>
   );
@@ -77,55 +70,15 @@ const SummaryPenddingItem = ({ pendingItem }: { pendingItem: ISummaryPendingItem
 
 const ActionsItems = ({
   messageId,
-  pendingMatters,
-  deleteMessage,
 }: {
   messageId: string;
-  pendingMatters: ISummaryPendingItem[];
-  deleteMessage: () => void;
 }) => {
-  const lang = useOldLang();
-  const { showNotification } = getActions();
-  const { isSpeaking, speak, stop } = useSpeechPlayer(messageId);
-  const handleCopy = () => {
-    const copyText = `Actions Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}`;
-    copy(copyText);
-    showNotification({
-      message: lang('TextCopied'),
-    });
-  };
-  const handleVoicePlay = () => {
-    const voiceText = `Actions Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}\n`;
-    if (isSpeaking) {
-      stop();
-    } else {
-      speak(voiceText);
-    }
-  };
   return (
-    <div className="flex items-center gap-[8px]">
-      <div className="w-[24px] h-[24px] text-[#676B74] cursor-pointer" onClick={handleCopy}>
-        <CopyIcon size={24} />
-      </div>
-      {isSpeaking ? (
-        <div
-          className="w-[24px] h-[24px] text-[#676B74] cursor-pointer"
-          onClick={stop}
-        >
-          <VoiceingIcon size={24} />
-        </div>
-      ) : (
-        <div
-          className="w-[24px] h-[24px] text-[#676B74] cursor-pointer"
-          onClick={handleVoicePlay}
-        >
-          <VoiceIcon size={24} />
-        </div>
-      )}
-      <div className="w-[20px] h-[20px] cursor-pointer" onClick={deleteMessage}>
-        <DeleteIcon size={20} />
-      </div>
-    </div>
+    <MessageActionsItems
+      canCopy
+      canVoice
+      message={{ id: messageId } as Message}
+    />
   );
 };
 
@@ -134,25 +87,25 @@ const ActionInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
     <ErrorBoundary>
       <div>
         <p className="flex items-center gap-[8px] mb-[16px]">
-          <span className="text-[18px] font-bold">Actions Items</span>
+          <span className="text-[18px] font-bold" data-readable>Actions Items</span>
           <img className="w-[16px] h-[16px]" src={ActionsIcon} alt="" />
         </p>
         <div className="flex items-center gap-[20px]">
           <p className="flex items-center gap-[8px]">
             <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
             <div className="flex items-center gap-[4px]">
-              <span className="mr-[4px] font-bold text-[14px]">Time:</span>
+              <span className="mr-[4px] font-bold text-[14px]" data-readable-inline>Time:</span>
               {summaryInfo?.summaryTime ? (
-                <p className="text-[14px] text-[#A8A6AC]">{formatTimestamp(summaryInfo.summaryTime)}</p>
+                <p className="text-[14px] text-[#A8A6AC]" data-readable-inline>{formatTimestamp(summaryInfo.summaryTime)}</p>
               ) : null}
             </div>
           </p>
           <p className="flex items-center gap-[8px]">
             <img className="w-[16px] h-[16px]" src={MessageIcon} alt="" />
             <div className="flex items-center gap-[4px]">
-              <span className="font-bold text-[14px]">Messages:</span>
+              <span className="font-bold text-[14px]" data-readable-inline>Messages:</span>
               {summaryInfo?.messageCount ? (
-                <span>{summaryInfo?.messageCount}</span>
+                <span data-readable-inline>{summaryInfo?.messageCount}</span>
               ) : null}
             </div>
           </p>
@@ -160,7 +113,7 @@ const ActionInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
         {summaryInfo?.userIds ? (
           <div className="flex items-center gap-[8px] mb-[18px]">
             <img className="w-[16px] h-[16px]" src={UserIcon} alt="" />
-            <span className="font-bold text-[14px]">Groups/friends: </span>
+            <span className="font-bold text-[14px]" data-readable>Groups/friends: </span>
             <div className="flex items-center">
               {summaryInfo.userIds.slice(0, 5).map((id: string, index: number) => {
                 return (
@@ -174,7 +127,7 @@ const ActionInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
                 );
               })}
               {summaryInfo.userIds.length > 10 ? (
-                <div className="w-[24px] h-[24px] rounded-full bg-[#979797] text-[12px] whitespace-nowrap flex items-center justify-center">{summaryInfo.userIds.length - 10}+</div>
+                <div className="w-[24px] h-[24px] rounded-full bg-[#979797] text-[12px] whitespace-nowrap flex items-center justify-center" data-readable>{summaryInfo.userIds.length - 10}+</div>
               ) : null}
             </div>
           </div>
@@ -185,7 +138,7 @@ const ActionInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
 };
 
 const RoomActionMessage = (props: IProps) => {
-  const { message, deleteMessage } = props;
+  const { message } = props;
   const [summaryInfo, setSummaryInfo] = useState<ISummaryInfo | null>(null);
   const [pendingMatters, setPendingMatters] = useState<ISummaryPendingItem[]>([]);
   const parseMessage = useCallback((messageContent: string) => {
@@ -212,7 +165,7 @@ const RoomActionMessage = (props: IProps) => {
   return (
     <div className="px-[12px] w-full">
       {(!pendingMatters.length) ? null : (
-        <div className="mx-auto rounded-[10px] px-3 py-2 bg-white dark:bg-[#292929]">
+        <div className="mx-auto rounded-[10px] px-3 py-2 bg-white dark:bg-[#292929]" data-message-container>
           {/* summary info  */}
           {summaryInfo && <ActionInfoContent summaryInfo={summaryInfo} />}
           {/* pending actions  */}
@@ -222,7 +175,7 @@ const RoomActionMessage = (props: IProps) => {
             </div>
           )}
           {/* action buttons  */}
-          <ActionsItems messageId={message.id} pendingMatters={pendingMatters} deleteMessage={deleteMessage} />
+          <ActionsItems messageId={message.id} />
         </div>
       )}
     </div>

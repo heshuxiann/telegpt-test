@@ -71,10 +71,9 @@ export enum AIMessageType {
   Default = 'default',
 }
 
-const DefaultMessage = ({ message, isLoading, deleteMessage }:{
+const DefaultMessage = ({ message, isLoading }:{
   message: Message;
   isLoading:boolean;
-  deleteMessage:() => void;
 }) => {
   return (
     <motion.div
@@ -113,7 +112,7 @@ const DefaultMessage = ({ message, isLoading, deleteMessage }:{
               >
                 <Markdown>{message.content as string}</Markdown>
                 { message.role !== 'user' && (
-                  <MessageActions message={message} deleteMessage={deleteMessage} />
+                  <MessageActions message={message} />
                 )}
               </div>
             </div>
@@ -175,20 +174,8 @@ const PurePreviewMessage = ({
       {messageType === AIMessageType.GoogleMeetTimeConfirm && (<GoogleMeetTimeConfirmMessage message={message} />)}
       {messageType === AIMessageType.GoogleMeetMention && (<GoogleMeetMentionMessage message={message} />)}
       {messageType === AIMessageType.GoogleMeetInformationSuggest && (<GoogleMeetInformationSuggestMessage message={message} />)}
-      {messageType === AIMessageType.RoomSummary && (
-        <RoomSummaryMessage
-          message={message}
-          // eslint-disable-next-line react/jsx-no-bind
-          deleteMessage={() => deleteMessage?.(message.id)}
-        />
-      )}
-      {messageType === AIMessageType.RoomActions && (
-        <RoomActionMessage
-          message={message}
-          // eslint-disable-next-line react/jsx-no-bind
-          deleteMessage={() => deleteMessage?.(message.id)}
-        />
-      )}
+      {messageType === AIMessageType.RoomSummary && (<RoomSummaryMessage message={message} />)}
+      {messageType === AIMessageType.RoomActions && (<RoomActionMessage message={message} />)}
       {messageType === AIMessageType.MeetingIntroduce && (<IntroduceMeetingMessage />)}
       {messageType === AIMessageType.SummaryIntroduce && (<IntroduceSummaryMessage />)}
       {messageType === AIMessageType.TranslationIntroduce && (<IntroduceTranslationMessage />)}
@@ -199,14 +186,7 @@ const PurePreviewMessage = ({
       {messageType === AIMessageType.AIReplyMention && (<ReplyMentionMessage message={message} />)}
       {messageType === AIMessageType.AIMediaSummary && (<RoomAIMediaMessage message={message} />)}
       {messageType === AIMessageType.UserPortrait && (<RoomAIUserPortraitMessage userId={message?.content} />)}
-      {messageType === AIMessageType.Default && (
-        <DefaultMessage
-          message={message}
-          isLoading={isLoading}
-          // eslint-disable-next-line react/jsx-no-bind
-          deleteMessage={() => deleteMessage?.(message.id)}
-        />
-      )}
+      {messageType === AIMessageType.Default && (<DefaultMessage message={message} isLoading={isLoading} />)}
     </AnimatePresence>
   );
 };

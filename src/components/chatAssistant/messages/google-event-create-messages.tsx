@@ -95,6 +95,7 @@ const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
   const [emailError, setEmailError] = useState('');
   const [dateError, setDateError] = useState('');
   const [titleError, setTitleError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedTimezone, setSelectedTimezone] = useState<string>(
     Intl.DateTimeFormat().resolvedOptions().timeZone,
   );
@@ -160,6 +161,9 @@ const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
     setEmails((prev) => prev.filter((item) => item !== email));
   }, []);
   const handleSubmit = useCallback(() => {
+    if (isSubmitting) {
+      return;
+    }
     if (!title) {
       setTitleError('Please enter the title');
       return;
@@ -172,6 +176,7 @@ const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
       setEmailError('Please enter the email');
       return;
     }
+    setIsSubmitting(true);
     const auth = getAuthState();
     const attendees: { email: string }[] = [];
     if (emails.length) {
@@ -195,8 +200,10 @@ const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
       });
     }).catch((err) => {
       console.log(err);
+    }).finally(() => {
+      setIsSubmitting(false);
     });
-  }, [emails, endDate, message, selectedTimezone, startDate, title]);
+  }, [emails, endDate, isSubmitting, message, selectedTimezone, startDate, title]);
   return (
     <ConfigProvider theme={{ algorithm: themeKey === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
       <div className="google-event-create-message px-[12px]">
@@ -247,7 +254,14 @@ const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
               ))
             )}
           </div>
-          <Button type="primary" className="!bg-[#8C42F0] w-full" htmlType="submit" onClick={handleSubmit}>
+          <Button
+            type="primary"
+            className="!bg-[#8C42F0] w-full"
+            htmlType="submit"
+            onClick={handleSubmit}
+            loading={isSubmitting}
+            disabled={isSubmitting}
+          >
             Confirm
           </Button>
         </div>

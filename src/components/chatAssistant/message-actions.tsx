@@ -5,16 +5,10 @@ import { getActions } from '../../global';
 
 import { useSpeechPlayer } from './hook/useSpeechPlayer';
 import {
-  CopyIcon, DeleteIcon, VoiceIcon, VoiceingIcon,
+  CopyIcon, VoiceIcon, VoiceingIcon,
 } from './icons';
 
-export const MessageActions = ({
-  message,
-  deleteMessage,
-}: {
-  message:Message;
-  deleteMessage: () => void;
-}) => {
+export const MessageActions = ({ message }: { message:Message }) => {
   const { showNotification } = getActions();
   const { isSpeaking, speak, stop } = useSpeechPlayer(message.id);
   const handleCopy = () => {
@@ -51,9 +45,6 @@ export const MessageActions = ({
           <VoiceIcon size={24} />
         </div>
       )}
-      <div className="w-[20px] h-[20px] cursor-pointer" onClick={deleteMessage}>
-        <DeleteIcon size={20} />
-      </div>
     </div>
   );
 };

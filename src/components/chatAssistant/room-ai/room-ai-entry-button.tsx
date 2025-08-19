@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable max-len */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  useCallback, useEffect, useRef, useState,
+} from 'react';
 import type { DotLottie } from '@lottiefiles/dotlottie-react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { getActions } from '../../../global';
@@ -25,11 +27,20 @@ const RoomAIEntryButton = (props: OwnProps) => {
   // eslint-disable-next-line no-null/no-null
   const [dotLottie, setDotLottie] = useState<DotLottie | null>(null);
   const [isSummary, setIsSummary] = useState<boolean>(false);
-  const onClick = useCallback(() => {
+  const containerRef = useRef<HTMLDivElement>(undefined);
+  const onClick = useCallback((e: React.MouseEvent) => {
+    // 检查是否正在拖拽，如果是则阻止点击
+    const wrapper = e.currentTarget.closest('.room-ai-entry-wrapper');
+    if (wrapper && wrapper.getAttribute('data-dragging') === 'true') {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
     openChatAIWithInfo({ chatId });
     RoomStorage.updateRoomAIData(chatId, 'unreadCount', 0);
     setUnreadCount(0);
-  }, [chatId]);
+  }, [chatId, openChatAIWithInfo]);
   const updateUnreadCount = useCallback((param:{ chatId:string; count:number }) => {
     if (param.chatId === chatId) {
       setUnreadCount(param.count);
@@ -49,9 +60,7 @@ const RoomAIEntryButton = (props: OwnProps) => {
   useEffect(() => {
     const interval = setInterval(intervalAnimate, 10000);
     return () => clearInterval(interval);
-  }, [chatId, intervalAnimate]);
-
-  useEffect(() => {
+  }, [chatId, intervalAnimate]); useEffect(() => {
     eventEmitter.on(Actions.UpdateRoomAIUnreadCount, updateUnreadCount);
     eventEmitter.on(Actions.UpdateRoomAISummaryState, updateSummaryState);
     const count = RoomStorage.getRoomAIUnreadCount(chatId);
@@ -68,12 +77,12 @@ const RoomAIEntryButton = (props: OwnProps) => {
   const dotLottieRefCallback = useCallback((dotLottie:DotLottie) => {
     setDotLottie(dotLottie);
   }, []);
+
   const handleMouseEnter = useCallback(() => {
     if (dotLottie) {
       dotLottie?.play();
     }
   }, [dotLottie]);
-
   // 确保当 isSummary 为 true 时动画播放
   useEffect(() => {
     if (isSummary && dotLottie) {
@@ -82,7 +91,11 @@ const RoomAIEntryButton = (props: OwnProps) => {
   }, [isSummary, dotLottie]);
 
   return (
-    <div className="room-ai-entry-button">
+    <div
+      ref={containerRef}
+      className="room-ai-entry-button"
+
+    >
       {isSummary ? (
         <DotLottieReact
           key="serenaWork"

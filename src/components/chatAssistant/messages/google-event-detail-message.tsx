@@ -7,9 +7,9 @@ import { toBlob } from 'html-to-image';
 import { getGlobal } from '../../../global';
 
 import { selectUser } from '../../../global/selectors';
-import { MessageShareIcon } from '../icons';
 import { formatMeetingTimeRange } from '../utils/schedule-meeting';
 import { FormLabel } from './google-event-create-messages';
+import MessageActionsItems from './message-actions-button';
 
 import Avatar from '../component/Avatar';
 
@@ -35,51 +35,48 @@ const GoogleEventDetailMessage = ({ message }:{ message:Message }) => {
   const contentJSX = (
     <>
       <div>
-        <FormLabel lable="title" />
-        <span className="text-[14px]">{messageContent?.summary}</span>
+        <FormLabel lable="title" data-readable />
+        <span className="text-[14px]" data-readable>{messageContent?.summary}</span>
       </div>
       <div>
-        <FormLabel lable="time" />
+        <FormLabel lable="time" data-readable />
         <div className="flex flex-col">
-          <span className="text-[14px]">
+          <span className="text-[14px]" data-readable>
             {formatMeetingTimeRange(messageContent.start.dateTime, messageContent.end.dateTime)}
           </span>
-          <span className="text-[14px] text-[#979797]">{messageContent.start.timeZone}</span>
+          <span className="text-[14px] text-[#979797]" data-readable>{messageContent.start.timeZone}</span>
         </div>
       </div>
       {messageContent?.attendees?.length > 0 && (
         <div>
-          <FormLabel lable="guests" />
+          <FormLabel lable="guests" data-readable />
           {messageContent?.attendees?.map((attendee: any) => (
-            <div className="text-[14px]" key={attendee.email}>{attendee.email}</div>
+            <div className="text-[14px]" key={attendee.email} data-readable>{attendee.email}</div>
           ))}
         </div>
       )}
       <div>
-        <FormLabel lable="meet" />
-        <span className="text-[14px]">{messageContent?.hangoutLink}</span>
+        <FormLabel lable="meet" data-readable />
+        <span className="text-[14px]" data-readable>{messageContent?.hangoutLink}</span>
       </div>
     </>
   );
 
   return (
     <div className="px-[12px]">
-      <div className="flex-col gap-[12px] p-[10px] border border-solid  border-[#D9D9D9] rounded-[16px] w-[326px] bg-white dark:bg-[#292929] dark:border-[#292929]">
-        <div className="text-[14px] font-semibold">Event details</div>
+      <div className="flex-col gap-[12px] p-[10px] border border-solid  border-[#D9D9D9] rounded-[16px] w-[326px] bg-white dark:bg-[#292929] dark:border-[#292929]" data-message-container>
+        <div className="text-[14px] font-semibold" data-readable>Event details</div>
         {contentJSX}
-        {
-          // @ts-ignore
-          globalThis.p__handleFileSelect && (
-            <div
-              className="w-[24px] h-[24px] text-[#676B74] cursor-pointer"
-              onClick={() => {
-                setCapturing(true);
-              }}
-            >
-              <MessageShareIcon size={24} />
-            </div>
-          )
-        }
+        <MessageActionsItems
+          canCopy
+          canVoice
+          canShare
+          message={message}
+          // eslint-disable-next-line react/jsx-no-bind
+          onClickShare={() => {
+            setCapturing(true);
+          }}
+        />
       </div>
       <ShareCard
         capturing={capturing}
