@@ -161,7 +161,7 @@ const SummarizeTab = () => {
   return (
     <div className="h-full overflow-hidden relative">
       <div className="h-full flex flex-col px-[18px] overflow-auto">
-        <h3 className="text-[18px] font-semibold text-[var(--color-text) mb-[24px]">What are you curious about?</h3>
+        <h3 className="text-[18px] font-semibold text-[var(--color-text) mb-[24px]">Topic Preferences</h3>
         <div className="flex flex-col gap-[10px]">
           {summaryTemplate.map((item) => {
             return (
