@@ -4,8 +4,8 @@
 /* eslint-disable max-len */
 import React, { useCallback, useEffect, useState } from 'react';
 import type { Message } from 'ai';
-import { message as showMessage, Popover } from 'antd';
-import { getGlobal } from '../../../global';
+import { Popover } from 'antd';
+import { getActions, getGlobal } from '../../../global';
 
 import { isUserId } from '../../../global/helpers';
 import { selectChat, selectUser } from '../../../global/selectors';
@@ -393,7 +393,9 @@ const MainSummaryContent = ({
       ignored_summary_chat_ids: entityTypes,
     }, (res) => {
       if (res.code === 0) {
-        showMessage.info('ignore success');
+        getActions().showNotification({
+          message: 'This chat will no longer be included in future summaries.',
+        });
       }
     });
   }, [ignoredIds]);

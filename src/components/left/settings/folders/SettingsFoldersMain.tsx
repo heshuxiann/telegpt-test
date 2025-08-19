@@ -6,13 +6,17 @@ import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiChatFolder } from '../../../../api/types';
 
-import { AI_FOLDER_ID, ALL_FOLDER_ID, PRESET_FOLDER_ID, STICKER_SIZE_FOLDER_SETTINGS, UNREAD_FOLDER_ID } from '../../../../config';
+import {
+  AI_FOLDER_ID, ALL_FOLDER_ID, PRESET_FOLDER_ID, STICKER_SIZE_FOLDER_SETTINGS, UNREAD_FOLDER_ID,
+} from '../../../../config';
 import { getFolderDescriptionText } from '../../../../global/helpers';
 import { selectIsCurrentUserPremium } from '../../../../global/selectors';
 import { selectCurrentLimit } from '../../../../global/selectors/limits';
+import { selectSharedSettings } from '../../../../global/selectors/sharedState';
 import { isBetween } from '../../../../util/math';
 import { MEMO_EMPTY_ARRAY } from '../../../../util/memo';
 import { throttle } from '../../../../util/schedulers';
+import { filterAIFolder } from '../../../chatAssistant/ai-chatfolders/util';
 import { LOCAL_TGS_URLS } from '../../../common/helpers/animatedAssets';
 import { renderTextWithEntities } from '../../../common/helpers/renderTextWithEntities';
 
@@ -27,8 +31,6 @@ import Button from '../../../ui/Button';
 import Draggable from '../../../ui/Draggable';
 import ListItem from '../../../ui/ListItem';
 import Loading from '../../../ui/Loading';
-import { selectSharedSettings } from "../../../../global/selectors/sharedState"
-import { filterAIFolder } from "../../../chatAssistant/ai-chatfolders/util"
 
 type OwnProps = {
   isActive?: boolean;
@@ -261,6 +263,7 @@ const SettingsFoldersMain: FC<OwnProps & StateProps> = ({
             const draggedTop = (state.orderedFolderIds?.indexOf(folder.id) ?? 0) * FOLDER_HEIGHT_PX;
             const top = (state.dragOrderIds?.indexOf(folder.id) ?? 0) * FOLDER_HEIGHT_PX;
 
+            // eslint-disable-next-line max-len
             if (folder.id === ALL_FOLDER_ID || folder.id === PRESET_FOLDER_ID || folder.id === UNREAD_FOLDER_ID || folder.id === AI_FOLDER_ID) {
               return (
                 <Draggable
@@ -288,7 +291,15 @@ const SettingsFoldersMain: FC<OwnProps & StateProps> = ({
                         noCustomEmojiPlayback: folder.noTitleAnimations,
                       })}
                     </span>
-                    <span className="subtitle">{lang('FoldersAllChatsDesc')}</span>
+                    <span className="subtitle">
+                      {/* {lang('FoldersAllChatsDesc')} */}
+                      {
+                        folder.id === UNREAD_FOLDER_ID
+                          ? lang('FoldersUnreadChatsDesc') : folder.id === PRESET_FOLDER_ID
+                            ? 'Preset Tags' : folder.id === AI_FOLDER_ID
+                              ? 'AI-Generated Tags' : lang('FoldersAllChatsDesc')
+                      }
+                    </span>
                   </ListItem>
                 </Draggable>
               );

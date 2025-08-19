@@ -47,7 +47,7 @@ const AddTopic = () => {
       onClick={handleAddTopic}
     >
       <Icon name="add" />
-      <span>Add Topic</span>
+      <span>New Topic</span>
     </div>
   );
 };

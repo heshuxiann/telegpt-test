@@ -108,7 +108,7 @@ const AddTopicPanel = () => {
     <div className="urgent-topic-edit h-full overflow-hidden px-[18px] flex flex-col">
       <div className="h-full overflow-y-auto flex-1">
         <div className="text-[14px] text-[#666666] mb-[24px]">
-          Please set the topics and content descriptions for which you need alerts. When a message contains these contents, an alert will be triggered.
+          Please set the topics and descriptions for which you want alerts. When a message contains these keywords, you’ll be notified.
         </div>
         <InputText
           label="Topic Name"

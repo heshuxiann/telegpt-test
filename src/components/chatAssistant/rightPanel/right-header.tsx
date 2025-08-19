@@ -50,7 +50,7 @@ const RightHeader = (props: Props) => {
         break;
       case DrawerKey.CustomizationPrompt:
       case DrawerKey.AddTopicPanel:
-        setTitle('Customization');
+        setTitle('Add Topics');
         break;
       case DrawerKey.ChatPicker:
         setTitle('Select chat');
