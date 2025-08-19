@@ -15,7 +15,7 @@ const AIKnowledgeEmptyContent = ({ onAdd }:{ onAdd:NoneToVoidFunction }) => {
     <div className="flex flex-col justify-center items-center px-[30px] pt-[120px]">
       <img src={AIKnowledgeEmpty} alt="AIKnowledge" className="w-[125px] h-[125px] mb-[12px]" />
       <span className="text-[14px] text-[#676B74]">
-        You can store frequently used personal information, company details, and business materials here. During chats, the AI will use this content to generate intelligent responses.
+        Store your frequently used personal info, company details, and business materials here.During chats, AI will reference this content to deliver more relevant and intelligent responses.
       </span>
       <Button
         round

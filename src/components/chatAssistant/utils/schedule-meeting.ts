@@ -460,7 +460,6 @@ class ScheduleMeeting {
   }
 
   public handleCreateGoogleMeet(accessToken: string) {
-    this.sendMessage(MEETING_INVITATION_TIP);
     const date = this.date[0];
     createGoogleMeet({
       startDate: new Date(date.start),
@@ -469,6 +468,7 @@ class ScheduleMeeting {
       emails: this.email!,
       googleToken: accessToken as string,
     }).then((createMeetResponse: ICreateMeetResponse) => {
+      this.sendMessage(MEETING_INVITATION_TIP);
       if (createMeetResponse) {
         // const eventMessage = `Event details \n📝 Title\n${
         //   createMeetResponse.summary
@@ -803,6 +803,7 @@ class ScheduleMeeting {
           }
           // Clean up the temporary element
           document.body.removeChild(container);
+          this.cleanup();
         })
         .catch((error) => {
           console.error('Error generating screenshot:', error);
@@ -810,6 +811,7 @@ class ScheduleMeeting {
           if (document.body.contains(container)) {
             document.body.removeChild(container);
           }
+          this.cleanup();
         });
     }, 200);
   }

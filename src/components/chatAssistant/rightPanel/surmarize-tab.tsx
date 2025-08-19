@@ -72,7 +72,7 @@ const AddSummaryTemplate = () => {
       onClick={handleAdd}
     >
       <Icon name="add" />
-      <span>Customization</span>
+      <span>New Topic</span>
     </div>
   );
 };

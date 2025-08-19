@@ -662,7 +662,7 @@ const RightHeader: FC<OwnProps & StateProps> = ({
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      Real-time assistant
+                      Real-time Assistant
                       <label className="Switcher no-animation" title="">
                         <input
                           type="checkbox"

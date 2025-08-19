@@ -69,7 +69,9 @@ const CustomizationPromptPanel = () => {
   }, []);
   return (
     <div className="h-full flex flex-col px-[18px]">
-      <p className="text-[14px] text-[#666666]">Please enter the specific topic you want to summarize accurately and add a detailed description. The message summary service will show the content as per your needs.</p>
+      <p className="text-[14px] text-[#666666]">
+        Enter a topic you want AI to track and summarize. Add details so summaries are more accurate and relevant.
+      </p>
       <InputText
         label="Topic name"
         value={form.topic}

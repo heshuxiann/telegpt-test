@@ -80,7 +80,7 @@ const GoogleMeetInformationSuggestMessage = ({ message }:{ message:Message }) =>
         className="p-[10px] border border-solid border-[#D9D9D9] rounded-[16px] w-full bg-white dark:bg-[#292929] dark:border-[#292929]"
       >
         <p>
-          🔔 I noticed that {fullName} wants to schedule a meeting with you. Would you like to send  the calendar and email?
+          🔔 {fullName} would like to schedule a meeting with you. Would you like to send your calendar link or email address?
         </p>
         <ul className="list-disc pl-[18px] mb-[4px]">
           {(suggestType === 'both' || suggestType === 'time') && calendlyUrls.length > 0 && (

@@ -110,7 +110,7 @@ function PureMultimodalInput({
     <div className="relative w-full flex flex-col gap-4">
       <AITextarea
         ref={textareaRef}
-        placeholder="Send a message..."
+        placeholder="Ask me about your chats..."
         value={inputValue}
         onChange={handleInput}
         className={cx(

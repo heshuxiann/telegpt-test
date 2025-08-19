@@ -81,13 +81,13 @@ const RoomActions = ({ chatId, insertMessage, setIsLoading }:OwnProps) => {
   return (
     <div className="flex flex-row gap-[6px] mb-[8px] px-[12px] w-full overflow-x-auto scrollbar-none text-[14px] text-[var(--color-text)]">
       <div className={actionItemClassName} onClick={handleSummarize}>
-        🧠 Chat Summarize
+        🧠 Chat Summary
       </div>
       <div className={actionItemClassName} onClick={handleScheduleMeeting}>
         📅 Schedule meeting
       </div>
       <div className={actionItemClassName} onClick={handleActionItems}>
-        ✅ To-do list
+        ✅ Action Items
       </div>
     </div>
   );
