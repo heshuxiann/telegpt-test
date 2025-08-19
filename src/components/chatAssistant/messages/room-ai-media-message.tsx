@@ -13,6 +13,7 @@ import useMedia from "../hook/useMedia";
 import { MediaViewerOrigin } from "../../../types";
 import SerenaPath from "../../chatAssistant/assets/serena.png";
 import { checkIsImage, checkIsUrl } from "../utils/ai-analyse-message";
+import MessageActionsItems from "./message-actions-button";
 
 type IProps = {
   message: Message;
@@ -34,10 +35,10 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
     message = content?.message;
     try {
       summaryInfo = JSON.parse(content?.summaryInfo);
-    } catch (error) {}
+    } catch (error) { }
     isAuto = content?.isAuto;
     status = content?.status;
-  } catch (error) {}
+  } catch (error) { }
 
   const isOwn = message ? isOwnMessage(message) : false;
   const waveformCanvasRef = message?.content?.voice
@@ -46,12 +47,12 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
 
   const imgBlobUrl = message?.content?.photo
     ? useMedia(
-        message?.content?.photo
-          ? getPhotoMediaHash(message?.content?.photo, "inline")
-          : undefined,
-        false,
-        ApiMediaFormat.BlobUrl
-      )
+      message?.content?.photo
+        ? getPhotoMediaHash(message?.content?.photo, "inline")
+        : undefined,
+      false,
+      ApiMediaFormat.BlobUrl
+    )
     : undefined;
   const fullMediaData = message?.content?.photo?.blobUrl || imgBlobUrl;
   const forcedWidth = message?.content?.photo?.thumbnail?.width;
@@ -181,17 +182,17 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
     if (webPage || isUrl) {
       return summaryInfo?.title ? (
         <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)]">
-          <div className="font-[600] text-[16px]">
+          <div className="font-[600] text-[16px]" data-readable>
             Summary of the Article: "{summaryInfo?.title}"
           </div>
           <div className="flex flex-col gap-[6px] mt-3">
-            <div className="font-[600]">Key Highlights:</div>
+            <div className="font-[600]" data-readable>Key Highlights:</div>
             <div className="flex flex-col">
               {summaryInfo?.highlights?.map((item: any, index: number) => {
                 return (
                   <div className="flex flex-col" key={index}>
                     <div className="flex flex-row items-center flex-wrap">
-                      <span className="mr-[24px]">
+                      <span className="mr-[24px]" data-readable>
                         {index + 1}. {item?.title}
                       </span>
                     </div>
@@ -199,7 +200,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
                       {item?.content?.map(
                         (contentItem: any, contentIndex: number) => {
                           return (
-                            <li className="break-word" key={contentIndex}>
+                            <li className="break-word" key={contentIndex} data-readable>
                               {contentItem}
                             </li>
                           );
@@ -211,42 +212,44 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
               })}
             </div>
           </div>
+          <MessageActionsItems canCopy canVoice message={props.message} />
         </div>
       ) : (
-        <NoSummaryContent content="website page" />
+        <NoSummaryContent content="website page" message={props.message} />
       );
     } else if (photo || isImage) {
       return (
         <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] text-[var(--color-text)] p-3 text-[14px]">
           {isAuto ? (
-            <div className="font-[600]">Image summarize</div>
+            <div className="font-[600]" data-readable>Image summarize</div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" data-readable>
               <img src={SerenaPath} className="w-[18px] h-[18px]" />
               Tely AI
             </div>
           )}
-          <div className="flex flex-col gap-[6px] mt-2">
+          <div className="flex flex-col gap-[6px] mt-2" data-readable>
             {summaryInfo?.text}
           </div>
+          <MessageActionsItems canCopy canVoice message={props.message} />
         </div>
       );
     } else {
       return (
         <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)]">
-          <div className="font-[600] text-[16px]">Key Highlights:</div>
+          <div className="font-[600] text-[16px]" data-readable>Key Highlights:</div>
           <div className="flex flex-col mt-2">
             {summaryInfo?.map((item: any, index: number) => {
               return (
                 <div className="flex flex-col" key={index}>
                   <div className="flex flex-row items-center flex-wrap">
-                    <span className="mr-[24px] font-[600]">{item?.title}</span>
+                    <span className="mr-[24px] font-[600]" data-readable>{item?.title}</span>
                   </div>
                   <ul className="list-disc list-inside ml-3 mb-1">
                     {item?.content?.map(
                       (contentItem: any, contentIndex: number) => {
                         return (
-                          <li className="break-word" key={contentIndex}>
+                          <li className="break-word" key={contentIndex} data-readable>
                             {contentItem}
                           </li>
                         );
@@ -257,13 +260,14 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
               );
             })}
           </div>
+          <MessageActionsItems canCopy canVoice message={props.message} />
         </div>
       );
     }
   }
 
   return (
-    <div className="flex flex-col gap-2 px-3 text-[14px]">
+    <div className="flex flex-col gap-2 px-3 text-[14px]" data-message-container>
       {!isAuto && (
         <div className="text-right">
           <AIRoomBubble>Summarize this {getType()}</AIRoomBubble>
@@ -273,7 +277,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
       {status === "loading" ? (
         <ThinkingMessage />
       ) : status === "error" ? (
-        <NoSummaryContent content={getType() || ""} />
+        <NoSummaryContent content={getType() || ""} message={props.message} />
       ) : (
         renderSummary()
       )}
@@ -331,13 +335,16 @@ export const AppendixIcon = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const NoSummaryContent = ({ content }: { content: string }) => {
+const NoSummaryContent = ({ content, message }: { content: string; message: Message }) => {
   return (
     <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)]">
-      I couldn’t find any accessible content from the {content} you provided. It
-      appears the search query didn’t return any results. Could you please paste
-      the text you want summarized? That way, I can give you a clear and
-      accurate summary!
+      <span data-readable>
+        I couldn't find any accessible content from the {content} you provided. It
+        appears the search query didn't return any results. Could you please paste
+        the text you want summarized? That way, I can give you a clear and
+        accurate summary!
+      </span>
+      <MessageActionsItems canCopy canVoice message={message} />
     </div>
   );
 };

@@ -6,21 +6,15 @@ import React, {
   useCallback, useEffect, useRef, useState,
 } from 'react';
 import type { Message } from 'ai';
-import copy from 'copy-to-clipboard';
 import { toBlob } from 'html-to-image';
-import { getActions, getGlobal } from '../../../global';
+import { getGlobal } from '../../../global';
 
 import { isUserId } from '../../../global/helpers';
 import {
   selectChat, selectCurrentMessageList, selectUser,
 } from '../../../global/selectors';
-import useOldLang from '../hook/useOldLang';
-import { useSpeechPlayer } from '../hook/useSpeechPlayer';
-import {
-  CopyIcon, DeleteIcon, MessageShareIcon, VoiceIcon,
-  VoiceingIcon,
-} from '../icons';
 import { cn, formatTimestamp } from '../utils/util';
+import MessageActionsItems from './message-actions-button';
 
 import Avatar from '../component/Avatar';
 import ErrorBoundary from '../ErrorBoundary';
@@ -36,7 +30,6 @@ import WriteIcon from '../assets/write.png';
 
 interface IProps {
   message: Message;
-  deleteMessage: () => void;
 }
 interface ISummaryInfo {
   summaryTime: number;
@@ -88,7 +81,7 @@ const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; 
     <ErrorBoundary>
       <div>
         <div className="flex flex-row items-center flex-wrap">
-          <span className="text-[16px] font-bold mr-[24px]">{index + 1}. {title}</span>
+          <span className="text-[16px] font-bold mr-[24px]" data-readable>{index + 1}. {title}</span>
         </div>
         <ul className="list-disc pl-[2px] text-[16px] list-inside">
           {summaryItems.map((summaryItem: any) => {
@@ -98,6 +91,7 @@ const SummaryTopicItem = ({ topicItem, index }: { topicItem: ISummaryTopicItem; 
               <li
                 role="button"
                 className="cursor-pointer text-[15px] break-words"
+                data-readable
               >
                 {content}
               </li>
@@ -114,93 +108,9 @@ const SummaryPenddingItem = ({ pendingItem }: { pendingItem: ISummaryPendingItem
     <ErrorBoundary>
       <div className="flex gap-[8px] my-[4px] cursor-pointer">
         <img className="w-[18px] h-[18px] mt-[2px]" src={CheckIcon} alt="" />
-        <span className="text-[15px]">{pendingItem.summary}</span>
+        <span className="text-[15px]" data-readable>{pendingItem.summary}</span>
       </div>
     </ErrorBoundary>
-  );
-};
-
-const ActionsItems = ({
-  messageId,
-  summaryInfo,
-  mainTopic,
-  pendingMatters,
-  deleteMessage,
-  shareMessage,
-}: {
-  messageId: string;
-  summaryInfo: ISummaryInfo | null;
-  mainTopic: ISummaryTopicItem[];
-  pendingMatters: ISummaryPendingItem[];
-  deleteMessage: () => void;
-  shareMessage: () => void;
-}) => {
-  const lang = useOldLang();
-  const { showNotification } = getActions();
-  const { isSpeaking, speak, stop } = useSpeechPlayer(messageId);
-  const handleCopy = () => {
-    const { summaryTime } = summaryInfo || {};
-    const time = formatTimestamp(summaryTime!);
-    let copyText = `Chat Summary\nTime: ${time}`;
-    if (mainTopic.length > 0) {
-      copyText += `\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}`;
-    }
-    if (pendingMatters.length > 0) {
-      copyText += `\nActions Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}`;
-    }
-    copy(copyText);
-    showNotification({
-      message: lang('TextCopied'),
-    });
-  };
-  const handleVoicePlay = () => {
-    const { summaryTime } = summaryInfo || {};
-    const time = formatTimestamp(summaryTime!);
-    let voiceText = `Chat Summary\nTime: ${time}`;
-    if (mainTopic.length > 0) {
-      voiceText += `\nKey Topics:\n${mainTopic.map((item:ISummaryTopicItem) => `${item.title}:\n ${item.summaryItems.map((subItem) => subItem.content).join(';\n ')}`).join('\n')}`;
-    }
-    if (pendingMatters.length > 0) {
-      voiceText += `\nActions Items:\n${pendingMatters.map((item) => `${item.summary}`).join('\n')}`;
-    }
-    if (isSpeaking) {
-      stop();
-    } else {
-      speak(voiceText);
-    }
-  };
-  return (
-    <div className="flex items-center gap-[8px]">
-      <div className="w-[24px] h-[24px] text-[#676B74] cursor-pointer" onClick={handleCopy}>
-        <CopyIcon size={24} />
-      </div>
-      {isSpeaking ? (
-        <div
-          className="w-[24px] h-[24px] text-[#676B74] cursor-pointer"
-          onClick={stop}
-        >
-          <VoiceingIcon size={24} />
-        </div>
-      ) : (
-        <div
-          className="w-[24px] h-[24px] text-[#676B74] cursor-pointer"
-          onClick={handleVoicePlay}
-        >
-          <VoiceIcon size={24} />
-        </div>
-      )}
-      <div className="w-[20px] h-[20px] cursor-pointer hidden" onClick={deleteMessage}>
-        <DeleteIcon size={20} />
-      </div>
-      {
-        // @ts-ignore
-        globalThis.p__handleFileSelect && (
-          <div className="w-[24px] h-[24px] text-[#676B74] cursor-pointer" onClick={shareMessage}>
-            <MessageShareIcon size={24} />
-          </div>
-        )
-      }
-    </div>
   );
 };
 
@@ -214,14 +124,14 @@ const SummaryInfoContent = ({
   return (
     <ErrorBoundary>
       <div>
-        <p className="text-[22px] font-bold mb-[16px]">{title}</p>
+        <p className="text-[22px] font-bold mb-[16px]" data-readable>{title}</p>
         <div className="flex items-center flex-wrap">
           <p className="flex items-center gap-[8px] pr-[20px]">
             <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
             <div className="flex items-center gap-[4px]">
-              <span className="mr-[4px] font-bold text-[14px]">Time:</span>
+              <span className="mr-[4px] font-bold text-[14px]" data-readable-inline>Time:</span>
               {summaryInfo?.summaryTime ? (
-                <p className="text-[14px] text-[#A8A6AC] whitespace-nowrap">
+                <p className="text-[14px] text-[#A8A6AC] whitespace-nowrap" data-readable-inline>
                   {formatTimestamp(summaryInfo.summaryTime)}
                 </p>
               ) : null}
@@ -230,9 +140,9 @@ const SummaryInfoContent = ({
           <p className="flex items-center gap-[8px]">
             <img className="w-[16px] h-[16px]" src={MessageIcon} alt="" />
             <div className="flex items-center gap-[4px]">
-              <span className="font-bold text-[14px]">Messages:</span>
+              <span className="font-bold text-[14px]" data-readable data-readable-inline>Messages:</span>
               {summaryInfo?.messageCount ? (
-                <span>{summaryInfo?.messageCount}</span>
+                <span data-readable data-readable-inline>{summaryInfo?.messageCount}</span>
               ) : null}
             </div>
           </p>
@@ -269,13 +179,11 @@ const MainSummaryContent = ({
   summaryInfo,
   mainTopic,
   pendingMatters,
-  deleteMessage,
 }: {
   messageId:string;
   summaryInfo: ISummaryInfo | null;
   mainTopic: ISummaryTopicItem[];
   pendingMatters: ISummaryPendingItem[];
-  deleteMessage: () => void;
 }) => {
   const [capturing, setCapturing] = useState(false);
   const global = getGlobal();
@@ -283,7 +191,7 @@ const MainSummaryContent = ({
   const chat = selectChat(global, chatId!);
 
   return (
-    <div className="mx-auto rounded-[10px] px-3 py-2 dark:bg-[#292929] bg-white">
+    <div className="mx-auto rounded-[10px] px-3 py-2 dark:bg-[#292929] bg-white" data-message-container>
       {/* summary info  */}
       {summaryInfo && (
         <SummaryInfoContent summaryInfo={summaryInfo} />
@@ -292,7 +200,7 @@ const MainSummaryContent = ({
       {mainTopic.length > 0 && (
         <div>
           <p className="flex items-center gap-[8px] mb-[16px]">
-            <span className="text-[18px] font-bold">Key Topics</span>
+            <span className="text-[18px] font-bold" data-readable>Key Topics</span>
             <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
           </p>
           {mainTopic.map((item, index) => (
@@ -304,22 +212,20 @@ const MainSummaryContent = ({
       {pendingMatters.length > 0 && (
         <div>
           <p className="flex items-center gap-[8px] mb-[16px]">
-            <span className="text-[18px] font-bold">Actions Items</span>
+            <span className="text-[18px] font-bold" data-readable>Actions Items</span>
             <img className="w-[16px] h-[16px]" src={ActionsIcon} alt="" />
           </p>
           {pendingMatters.map((item) => (<SummaryPenddingItem pendingItem={item} />))}
         </div>
       )}
       {/* action buttons  */}
-      <ActionsItems
-        messageId={messageId}
-        summaryInfo={summaryInfo}
-        mainTopic={mainTopic}
-        pendingMatters={pendingMatters}
+      <MessageActionsItems
+        canCopy
+        canVoice
+        canShare
+        message={{ id: messageId } as Message}
         // eslint-disable-next-line react/jsx-no-bind
-        deleteMessage={deleteMessage}
-        // eslint-disable-next-line react/jsx-no-bind
-        shareMessage={() => {
+        onClickShare={() => {
           setCapturing(true);
         }}
       />
@@ -345,7 +251,7 @@ const MainSummaryContent = ({
         {mainTopic.length > 0 && (
           <div>
             <p className="flex items-center gap-[8px]">
-              <span className="text-[18px] font-bold">Key Topics</span>
+              <span className="text-[18px] font-bold" data-readable>Key Topics</span>
               <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
             </p>
             {mainTopic.map((item, index) => (
@@ -357,7 +263,7 @@ const MainSummaryContent = ({
         {pendingMatters.length > 0 && (
           <div>
             <p className="flex items-center gap-[8px]">
-              <span className="text-[18px] font-bold">Actions Items</span>
+              <span className="text-[18px] font-bold" data-readable>Actions Items</span>
               <img className="w-[16px] h-[16px]" src={ActionsIcon} alt="" />
             </p>
             {pendingMatters.map((item) => (<SummaryPenddingItem pendingItem={item} />))}
@@ -368,7 +274,7 @@ const MainSummaryContent = ({
   );
 };
 const RoomSummaryMessage = (props: IProps) => {
-  const { message, deleteMessage } = props;
+  const { message } = props;
   const [summaryInfo, setSummaryInfo] = useState<ISummaryInfo | null>(null);
   const [mainTopic, setMainTopic] = useState<ISummaryTopicItem[]>([]);
   const [pendingMatters, setPendingMatters] = useState<ISummaryPendingItem[]>([]);
@@ -406,7 +312,6 @@ const RoomSummaryMessage = (props: IProps) => {
           summaryInfo={summaryInfo}
           mainTopic={mainTopic}
           pendingMatters={pendingMatters}
-          deleteMessage={deleteMessage}
         />
       )}
     </div>

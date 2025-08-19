@@ -5,19 +5,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import type { Message } from 'ai';
 import { message as showMessage, Popover } from 'antd';
-import copy from 'copy-to-clipboard';
-import { getActions, getGlobal } from '../../../global';
+import { getGlobal } from '../../../global';
 
 import { isUserId } from '../../../global/helpers';
 import { selectChat, selectUser } from '../../../global/selectors';
 import { buildEntityTypeFromIds, getIdsFromEntityTypes, telegptSettings } from '../api/user-settings';
-import useOldLang from '../hook/useOldLang';
-import { useSpeechPlayer } from '../hook/useSpeechPlayer';
-import {
-  CopyIcon, DeleteIcon, VoiceIcon,
-  VoiceingIcon,
-} from '../icons';
 import { cn, formatTimestamp } from '../utils/util';
+import MessageActionsItems from './message-actions-button';
 
 import Avatar from '../component/Avatar';
 import Icon from '../component/Icon';
@@ -233,6 +227,7 @@ const SummaryTopicItem = ({ chatId, topicItem }: {
               role="button"
               className="cursor-pointer text-[15px] break-words"
               onClick={() => showMessageDetail(chatId, relevantMessageIds)}
+              data-readable
             >
               {content}
             </li>
@@ -258,7 +253,7 @@ const SummaryPenddingItem = ({ pendingItem }: { pendingItem: ISummaryPendingItem
         onClick={showMessageDetail}
       >
         <img className="w-[18px] h-[18px] mt-[2px]" src={CheckIcon} alt="" />
-        <span className="text-[15px]">{pendingItem.summary}</span>
+        <span className="text-[15px]" data-readable>{pendingItem.summary}</span>
         <ChatAvatar size={20} chatId={pendingItem.chatId} />
       </div>
     </ErrorBoundary>
@@ -302,90 +297,6 @@ const SummaryGarbageItem = ({ garBageItem }: { garBageItem: ISummaryGarbageItem 
   );
 };
 
-const ActionsItems = ({
-  messageId,
-  summaryInfo,
-  summaryTopic,
-  pendingMatters,
-  deleteMessage,
-}: {
-  messageId:string;
-  summaryInfo: ISummaryInfo | null;
-  summaryTopic: SummaryTopic[];
-  pendingMatters: ISummaryPendingItem[];
-  deleteMessage: () => void;
-}) => {
-  const lang = useOldLang();
-  const { showNotification } = getActions();
-  const { isSpeaking, speak, stop } = useSpeechPlayer(messageId);
-  const handleCopy = () => {
-    const { summaryStartTime, summaryEndTime } = summaryInfo || {};
-    const timeRange = formatTimestampRange(summaryStartTime, summaryEndTime);
-    let copyText = `Chat Summary\nTime Range: ${timeRange}`;
-    if (summaryTopic.length > 0) {
-      copyText += `\nKey Topics:\n${summaryTopic.map((item:SummaryTopic) => {
-        let str = item.chatRoomName;
-        str += `\nKey points:\n${item.mainTopics.map((t) => t.content).join('\n')}`;
-        str += `${item.customTopics.map((c) => `${c.topicName}\n${c.summaryItems.map((s) => s.content).join('\n')}`).join('\n')}`;
-        return str;
-      }).join('\n')}`;
-    }
-    if (pendingMatters.length > 0) {
-      copyText += `\nActions Items:\n${pendingMatters.map((item) => `${item.chatRoomName}: ${item.summary}`).join('\n')}`;
-    }
-    copy(copyText);
-    showNotification({
-      message: lang('TextCopied'),
-    });
-  };
-  const handleVoicePlay = () => {
-    const { summaryStartTime, summaryEndTime } = summaryInfo || {};
-    const timeRange = formatTimestampRange(summaryStartTime, summaryEndTime);
-    let voiceText = `Chat Summary\nTime Range: ${timeRange}`;
-    if (summaryTopic.length > 0) {
-      voiceText += `\nKey Topics:\n${summaryTopic.map((item:SummaryTopic) => {
-        let str = item.chatRoomName;
-        str += `\nKey points:\n${item.mainTopics.map((t) => t.content).join('\n')}`;
-        str += `${item.customTopics.map((c) => `${c.topicName}\n${c.summaryItems.map((s) => s.content).join('\n')}`).join('\n')}`;
-        return str;
-      }).join('\n')}`;
-    }
-    if (pendingMatters.length > 0) {
-      voiceText += `\nActions Items:\n${pendingMatters.map((item) => `${item.chatRoomName}: ${item.summary}`).join('\n')}`;
-    }
-    if (isSpeaking) {
-      stop();
-    } else {
-      speak(voiceText);
-    }
-  };
-  return (
-    <div className="message-actions flex items-center gap-[8px]">
-      <div className="w-[24px] h-[24px] text-[#676B74] cursor-pointer" onClick={handleCopy}>
-        <CopyIcon size={24} />
-      </div>
-      {isSpeaking ? (
-        <div
-          className="w-[24px] h-[24px] text-[#676B74] cursor-pointer"
-          onClick={stop}
-        >
-          <VoiceingIcon size={24} />
-        </div>
-      ) : (
-        <div
-          className="w-[24px] h-[24px] text-[#676B74] cursor-pointer"
-          onClick={handleVoicePlay}
-        >
-          <VoiceIcon size={24} />
-        </div>
-      )}
-      <div className="w-[20px] h-[20px] cursor-pointer" onClick={deleteMessage}>
-        <DeleteIcon size={20} />
-      </div>
-    </div>
-  );
-};
-
 const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
   return (
     <ErrorBoundary>
@@ -399,21 +310,21 @@ const SummaryInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
             ) : null}
           </div>
         </div>
-        <p className="text-[22px] font-bold mb-[16px]">Chat Summary</p>
+        <p className="text-[22px] font-bold mb-[16px]" data-readable>Chat Summary</p>
         <div className="flex items-center gap-[20px]">
           <p className="flex items-center gap-[8px]">
             <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
             <div className="flex items-center gap-[4px]">
-              <span className="mr-[4px] font-bold text-[14px]">Time range:</span>
-              {formatTimestampRange(summaryInfo?.summaryStartTime, summaryInfo?.summaryEndTime)}
+              <span className="mr-[4px] font-bold text-[14px]" data-readable data-readable-inline>Time range:</span>
+              <span data-readable data-readable-inline>{formatTimestampRange(summaryInfo?.summaryStartTime, summaryInfo?.summaryEndTime)}</span>
             </div>
           </p>
           <p className="flex items-center gap-[8px]">
             <img className="w-[16px] h-[16px]" src={MessageIcon} alt="" />
             <div className="flex items-center gap-[4px]">
-              <span className="font-bold text-[14px]">Messages:</span>
+              <span className="font-bold text-[14px]" data-readable data-readable-inline>Messages:</span>
               {summaryInfo?.summaryMessageCount ? (
-                <span>{summaryInfo?.summaryMessageCount}</span>
+                <span data-readable data-readable-inline>{summaryInfo?.summaryMessageCount}</span>
               ) : null}
             </div>
           </p>
@@ -487,13 +398,16 @@ const MainSummaryContent = ({
     });
   }, [ignoredIds]);
   return (
-    <div className="w-max-[693px] rounded-[10px] pl-[82px] pr-[25px] pt-[20px] pb-[25px] bg-[var(--color-background)]">
+    <div
+      className="w-max-[693px] rounded-[10px] pl-[82px] pr-[25px] pt-[20px] pb-[25px] bg-[var(--color-background)]"
+      data-message-container
+    >
       {/* summary info  */}
       {summaryInfo && <SummaryInfoContent summaryInfo={summaryInfo} />}
       {summaryTopic.length > 0 && (
         <div>
           <p className="flex items-center gap-[8px] mb-[16px]">
-            <span className="text-[18px] font-bold">Key Topics</span>
+            <span className="text-[18px] font-bold" data-readable>Key Topics</span>
             <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
           </p>
           {
@@ -503,7 +417,7 @@ const MainSummaryContent = ({
                   <div className="flex items-center justify-between gap-[8px]">
                     {ignoredIds.includes(item.chatId) ? (
                       <div className="flex items-center gap-[8px]">
-                        <p className="text-[16px] font-bold">{index + 1}.{item.chatRoomName}</p>
+                        <p className="text-[16px] font-bold" data-readable>{index + 1}.{item.chatRoomName}</p>
                         <ChatAvatar size={20} chatId={item.chatId} />
                       </div>
                     ) : (
@@ -515,7 +429,7 @@ const MainSummaryContent = ({
                         }
                       >
                         <div className="flex items-center gap-[8px]">
-                          <p className="text-[16px] font-bold">{index + 1}.{item.chatRoomName}</p>
+                          <p className="text-[16px] font-bold" data-readable>{index + 1}.{item.chatRoomName}</p>
                           <ChatAvatar size={20} chatId={item.chatId} />
                         </div>
                       </Popover>
@@ -525,7 +439,7 @@ const MainSummaryContent = ({
                   <ul className="list-disc pl-[2px] text-[16px] list-inside">
                     {item.mainTopics.length > 0 && (
                       <li>
-                        <span className="text-[16px] font-bold">Key Points</span>
+                        <span className="text-[16px] font-bold" data-readable>Key Points</span>
                         <SummaryTopicItem chatId={item.chatId} topicItem={item.mainTopics} />
                       </li>
                     )}
@@ -534,7 +448,7 @@ const MainSummaryContent = ({
                         item.customTopics.map((customTopic) => {
                           return (
                             <li>
-                              <span className="text-[16px] font-bold">{customTopic.topicName}</span>
+                              <span className="text-[16px] font-bold" data-readable>{customTopic.topicName}</span>
                               <SummaryTopicItem chatId={item.chatId} topicItem={customTopic.summaryItems} />
                             </li>
                           );
@@ -552,19 +466,19 @@ const MainSummaryContent = ({
       {pendingMatters.length > 0 && (
         <div>
           <p className="flex items-center gap-[8px] mb-[16px]">
-            <span className="text-[18px] font-bold">Actions Items</span>
+            <span className="text-[18px] font-bold" data-readable>Actions Items</span>
             <img className="w-[16px] h-[16px]" src={ActionsIcon} alt="" />
           </p>
           {pendingMatters.map((item) => (<SummaryPenddingItem pendingItem={item} />))}
         </div>
       )}
       {/* action buttons  */}
-      <ActionsItems
-        messageId={messageId}
-        summaryInfo={summaryInfo}
-        summaryTopic={summaryTopic}
-        pendingMatters={pendingMatters}
-        deleteMessage={deleteMessage}
+      <MessageActionsItems
+        canCopy
+        canVoice
+        canDelete
+        onDelete={deleteMessage}
+        message={{ id: messageId } as Message}
       />
     </div>
   );
