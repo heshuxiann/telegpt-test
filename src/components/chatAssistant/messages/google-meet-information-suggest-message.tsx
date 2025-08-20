@@ -12,14 +12,17 @@ import { userInformationCollection } from '../utils/user-information-collection'
 
 const GoogleMeetInformationSuggestMessage = ({ message }:{ message:Message }) => {
   const {
-    chatId, messageId, senderId, emailConfirmed, calendlyConfirmed, suggestType,
+    chatId, messageId, emailConfirmed, calendlyConfirmed, suggestType,
   } = JSON.parse(message.content) || {};
   const [mergeEmailConfirmed, setMergeEmailConfirmed] = useState(emailConfirmed);
   const [mergeCalendlyConfirmed, setMergeCalendlyConfirmed] = useState(calendlyConfirmed);
   const { emails, calendlyUrls } = userInformationCollection.informations;
   const global = getGlobal();
-  const peer = senderId ? selectUser(global, senderId) : undefined;
-  const fullName = peer ? getUserFullName(peer) : '';
+  const renderName = () => {
+    const user = selectUser(global, chatId);
+    const fullName = user ? getUserFullName(user) : '';
+    return fullName;
+  };
   const handleCalendlyUrlClick = (url:string) => {
     if (mergeCalendlyConfirmed) {
       return;
@@ -80,7 +83,7 @@ const GoogleMeetInformationSuggestMessage = ({ message }:{ message:Message }) =>
         className="p-[10px] border border-solid border-[#D9D9D9] rounded-[16px] w-full bg-white dark:bg-[#292929] dark:border-[#292929]"
       >
         <p>
-          🔔 {fullName} would like to schedule a meeting with you. Would you like to send your calendar link or email address?
+          🔔 {renderName()} would like to schedule a meeting with you. Would you like to send your calendar link or email address?
         </p>
         <ul className="list-disc pl-[18px] mb-[4px]">
           {(suggestType === 'both' || suggestType === 'time') && calendlyUrls.length > 0 && (
