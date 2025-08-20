@@ -71,7 +71,7 @@ const RoomAIDescriptionMessage = ({ message }:{ message:Message }) => {
           <ul className="list-disc pl-[24px] text-[14px] text-[var(--color-text)]">
             <li>What was discussed in the group yesterday?</li>
             <li>
-              Has there been any mention of client  . feedback in the group?
+              Has there been any mention of client feedback in the group?
             </li>
           </ul>
         </div>
