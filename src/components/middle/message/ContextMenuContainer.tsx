@@ -30,7 +30,6 @@ import {
   areReactionsEmpty,
   getCanPostInChat,
   getIsDownloading,
-  getMessageContent,
   getMessageDownloadableMedia,
   getMessageVideo,
   getUserFullName,
@@ -76,14 +75,6 @@ import {
 } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import { copyTextToClipboard } from '../../../util/clipboard';
-import {
-  audioSummary, checkIsUrl, documentSummary, photoSummary, videoSummary, voiceToAudioSummary, webPageSummary,
-} from '../../chatAssistant/utils/ai-analyse-message';
-import { chatAIGenerate } from '../../chatAssistant/utils/chat-api';
-import { createAuthConfirmModal } from '../../chatAssistant/utils/google-api';
-import { getAuthState, isTokenValid } from '../../chatAssistant/utils/google-auth';
-import ScheduleMeeting from '../../chatAssistant/utils/schedule-meeting';
-import { knowledgeEmbeddingStore } from '../../chatAssistant/vector-store';
 import { getSelectionAsFormattedText } from './helpers/getSelectionAsFormattedText';
 import { isSelectionRangeInsideMessage } from './helpers/isSelectionRangeInsideMessage';
 
@@ -93,7 +84,6 @@ import useOldLang from '../../../hooks/useOldLang';
 import useSchedule from '../../../hooks/useSchedule';
 import useShowTransition from '../../../hooks/useShowTransition';
 
-import eventEmitter from '../../chatAssistant/lib/EventEmitter';
 import PinMessageModal from '../../common/PinMessageModal.async';
 import ConfirmDialog from '../../ui/ConfirmDialog';
 import MessageContextMenu from './MessageContextMenu';
@@ -277,7 +267,6 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
     addLocalPaidReaction,
     openPaidReactionModal,
     reportMessages,
-    openChatAIWithInfo,
   } = getActions();
 
   const lang = useOldLang();
@@ -433,71 +422,6 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         quoteText,
         quoteOffset: selectionQuoteOffset,
         replyToPeerId: undefined,
-      });
-    }
-    closeMenu();
-  });
-
-  const handleSmartReply = useLastCallback(async () => {
-    closeMenu();
-    if (message.content.text?.text) {
-      updateDraftReplyInfo({
-        replyToMsgId: message.id, replyToPeerId: undefined, quoteText: undefined, quoteOffset: undefined,
-      });
-      const vectorSearchResults = await knowledgeEmbeddingStore.similaritySearch({
-        query: message.content.text?.text,
-      });
-      type Metadata = { answer: string }; // Define the type for metadata
-      const similarResult = vectorSearchResults.similarItems[0] as { metadata: Metadata; score: number } | undefined;
-      if (similarResult && similarResult.score > 0.8) {
-        eventEmitter.emit('update-input-text', similarResult.metadata.answer);
-      } else {
-        eventEmitter.emit('update-input-spiner', true);
-        chatAIGenerate({
-          data: {
-            messages: [
-              {
-                role: 'system',
-                content: '你是一个多语种智能助手。接收用户消息后，自动识别其使用的语言，并用相同的语言进行自然、得体的回复。你应该理解消息的语境，确保回复简洁、友好且符合语言习惯。',
-                id: '1',
-              },
-              {
-                role: 'user',
-                content: `请回复下面的消息: ${message.content.text?.text}`,
-                id: '2',
-              },
-            ],
-          },
-          onResponse: (response) => {
-            eventEmitter.emit('update-input-text', response);
-          },
-          onFinish: () => {
-            // eslint-disable-next-line no-console
-            console.log('Finish');
-          },
-        });
-      }
-    }
-  });
-
-  const handleScheduleMeeting = useLastCallback(() => {
-    const chatId = message.chatId;
-    const text = getMessageContent(message)?.text?.text || '';
-    const scheduleMeeting = ScheduleMeeting.create({ chatId });
-    const auth = getAuthState();
-    if (!auth || !isTokenValid(auth)) {
-      createAuthConfirmModal({
-        onOk: () => {
-          scheduleMeeting.start({
-            chatId,
-            text,
-          });
-        },
-      });
-    } else {
-      scheduleMeeting.start({
-        chatId,
-        text,
       });
     }
     closeMenu();
@@ -704,28 +628,6 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
     reportMessages({
       chatId: chat.id, messageIds: reportMessageIds,
     });
-  });
-
-  const handleSummarize = useLastCallback(async () => {
-    const {
-      photo, document, webPage, voice, audio, text, video,
-    } = message.content;
-    const isUrl = checkIsUrl(text?.text);
-    await openChatAIWithInfo({ chatId: message.chatId });
-    if (photo) {
-      photoSummary(message);
-    } else if ((webPage && !text?.text) || isUrl) {
-      webPageSummary(message);
-    } else if (document) {
-      documentSummary(message);
-    } else if (voice) {
-      voiceToAudioSummary(message);
-    } else if (audio) {
-      audioSummary(message);
-    } else if (video) {
-      videoSummary(message);
-    }
-    closeMenu();
   });
 
   if (noOptions) {

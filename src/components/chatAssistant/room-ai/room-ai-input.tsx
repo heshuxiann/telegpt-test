@@ -25,7 +25,7 @@ import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 import { sanitizeUIMessages } from '../../../lib/utils';
 import { AITextarea } from '../component/AITextarea';
 import { Button } from '../component/button';
-import { StopIcon } from '../icons';
+import { PaperclipIcon, StopIcon } from '../icons';
 
 function PureMultimodalInput({
   status,
@@ -132,7 +132,8 @@ function PureMultimodalInput({
         }}
       />
 
-      <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-col justify-end">
+      <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row items-center justify-end">
+        <AttachmentsButton status={status} />
         {status === 'submitted' ? (
           <StopButton stop={stop} setMessages={setMessages} />
         ) : (
@@ -145,6 +146,24 @@ function PureMultimodalInput({
     </div>
   );
 }
+
+function PureAttachmentsButton({
+  status,
+}: {
+  status: UseChatHelpers['status'];
+}) {
+  return (
+    <Button
+      onClick={() => { }}
+      disabled={status !== 'ready'}
+      className="text-[var(--color-text-secondary)]"
+    >
+      <PaperclipIcon size={24} />
+    </Button>
+  );
+}
+
+const AttachmentsButton = memo(PureAttachmentsButton);
 
 export const RoomAIInput = memo(
   PureMultimodalInput,
@@ -164,7 +183,6 @@ function PureStopButton({
 }) {
   return (
     <Button
-      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
       onClick={(event) => {
         event.preventDefault();
         stop();
@@ -187,7 +205,6 @@ function PureSendButton({
 }) {
   return (
     <Button
-      className="!px-0 !py-0 !w-[24px] !h-[24px] !bg-transparent "
       onClick={(event) => {
         event.preventDefault();
         submitForm();
