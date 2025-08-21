@@ -606,6 +606,22 @@ addActionHandler('exitForwardMode', (global, actions, payload): ActionReturnType
   setGlobal(global);
 });
 
+addActionHandler('openRoomAttachmentsModal', (global, actions, payload): ActionReturnType => {
+  const { tabId = getCurrentTabId() } = payload || {};
+
+  return updateTabState(global, {
+    isRoomAttachmentsModalOpen: true,
+  }, tabId);
+});
+
+addActionHandler('closeRoomAttachmentsModal', (global, actions, payload): ActionReturnType => {
+  const { tabId = getCurrentTabId() } = payload || {};
+
+  return updateTabState(global, {
+    isRoomAttachmentsModalOpen: undefined,
+  }, tabId);
+});
+
 addActionHandler('openForwardMenuForSelectedMessages', (global, actions, payload): ActionReturnType => {
   const { tabId = getCurrentTabId() } = payload || {};
   const tabState = selectTabState(global, tabId);
@@ -1057,9 +1073,22 @@ addActionHandler('openDeleteMessageModal', (global, actions, payload): ActionRet
 
 addActionHandler('closeDeleteMessageModal', (global, actions, payload): ActionReturnType => {
   const { tabId = getCurrentTabId() } = payload || {};
-
   return updateTabState(global, {
     deleteMessageModal: undefined,
+  }, tabId);
+});
+
+addActionHandler('openRoomAttachmentsModal', (global, actions, payload): ActionReturnType => {
+  const { tabId = getCurrentTabId() } = payload || {};
+  return updateTabState(global, {
+    isRoomAttachmentsModalOpen: true,
+  }, tabId);
+});
+
+addActionHandler('closeRoomAttachmentsModal', (global, actions, payload): ActionReturnType => {
+  const { tabId = getCurrentTabId() } = payload || {};
+  return updateTabState(global, {
+    isRoomAttachmentsModalOpen: undefined,
   }, tabId);
 });
 

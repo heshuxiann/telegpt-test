@@ -356,6 +356,7 @@ export type TabState = {
   };
 
   isShareMessageModalShown?: boolean;
+  isRoomAttachmentsModalOpen?: boolean;
 
   replyingMessage: {
     fromChatId?: string;

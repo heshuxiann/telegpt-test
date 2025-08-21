@@ -41,6 +41,7 @@ type OwnProps = {
   isSelected?: boolean;
   transferProgress?: number;
   actionIcon?: IconName;
+  onSelect?: () => void;
   onClick?: () => void;
   onDateClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
 };
@@ -63,6 +64,7 @@ const File: FC<OwnProps> = ({
   transferProgress,
   actionIcon,
   onClick,
+  onSelect,
   onDateClick,
 }) => {
   const lang = useOldLang();
@@ -101,7 +103,7 @@ const File: FC<OwnProps> = ({
   );
 
   return (
-    <div ref={elementRef} className={fullClassName} dir={lang.isRtl ? 'rtl' : undefined}>
+    <div ref={elementRef} className={fullClassName} dir={lang.isRtl ? 'rtl' : undefined} onClick={onSelect}>
       {isSelectable && (
         <div className="message-select-control no-selection">
           {isSelected && <Icon name="select" />}
