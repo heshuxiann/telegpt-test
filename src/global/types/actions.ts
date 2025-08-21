@@ -2405,6 +2405,9 @@ export interface ActionPayloads {
   } & WithTabId);
   closeDeleteMessageModal: WithTabId | undefined;
 
+  openRoomAttachmentsModal: WithTabId | undefined;
+  closeRoomAttachmentsModal: WithTabId | undefined;
+
   transcribeAudio: {
     chatId: string;
     messageId: number;

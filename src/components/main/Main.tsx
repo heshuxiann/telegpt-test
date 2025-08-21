@@ -40,6 +40,7 @@ import { Bundles, loadBundle } from '../../util/moduleLoader';
 import { parseInitialLocationHash, parseLocationHash } from '../../util/routing';
 import updateIcon from '../../util/updateIcon';
 import GuidanceModal from '../chatAssistant/component/guidance/guidance-modal';
+import RoomAttachmentsModal from '../chatAssistant/room-ai/room-attachments-modal';
 
 import useInterval from '../../hooks/schedulers/useInterval';
 import useTimeout from '../../hooks/schedulers/useTimeout';
@@ -145,6 +146,7 @@ type StateProps = {
   isSynced?: boolean;
   isAccountFrozen?: boolean;
   isAppConfigLoaded?: boolean;
+  isRoomAttachmentsModalOpen?: boolean;
 };
 
 const APP_OUTDATED_TIMEOUT_MS = 5 * 60 * 1000; // 5 min
@@ -200,6 +202,7 @@ const Main = ({
   currentUserId,
   isAccountFrozen,
   isAppConfigLoaded,
+  isRoomAttachmentsModalOpen,
 }: OwnProps & StateProps) => {
   const {
     initMain,
@@ -258,6 +261,7 @@ const Main = ({
     loadAllChats,
     loadAllStories,
     loadAllHiddenStories,
+    closeRoomAttachmentsModal,
   } = getActions();
 
   if (DEBUG && !DEBUG_isLogged) {
@@ -553,6 +557,10 @@ const Main = ({
     closeCustomEmojiSets();
   });
 
+  const handleRoomAttachmentsModalClose = useLastCallback(() => {
+    closeRoomAttachmentsModal();
+  });
+
   // Online status and browser tab indicators
   useBackgroundMode(handleBlur, handleFocus, !!IS_ELECTRON);
   useBeforeUnload(handleBlur);
@@ -613,6 +621,9 @@ const Main = ({
       <DeleteFolderDialog folder={deleteFolderDialog} />
       <ReactionPicker isOpen={isReactionPickerOpen} />
       <DeleteMessageModal isOpen={isDeleteMessageModalOpen} />
+      {isRoomAttachmentsModalOpen && (
+        <RoomAttachmentsModal isOpen={Boolean(isRoomAttachmentsModalOpen)} onClose={handleRoomAttachmentsModalClose} />
+      )}
       <GuidanceModal />
     </div>
   );
@@ -706,6 +717,7 @@ export default memo(withGlobal<OwnProps>(
       isSynced: global.isSynced,
       isAccountFrozen,
       isAppConfigLoaded: global.isAppConfigLoaded,
+      isRoomAttachmentsModalOpen: selectTabState(global).isRoomAttachmentsModalOpen,
     };
   },
 )(Main));

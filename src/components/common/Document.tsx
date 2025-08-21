@@ -41,6 +41,7 @@ type OwnProps = {
   autoLoadFileMaxSizeMb?: number;
   isDownloading?: boolean;
   shouldWarnAboutSvg?: boolean;
+  onSelect?: () => void;
   onCancelUpload?: () => void;
   onMediaClick?: () => void;
 } & ({
@@ -70,6 +71,7 @@ const Document = ({
   shouldWarnAboutSvg,
   isDownloading,
   message,
+  onSelect,
   onCancelUpload,
   onMediaClick,
   onDateClick,
@@ -187,6 +189,7 @@ const Document = ({
         isSelected={isSelected}
         actionIcon={withMediaViewer ? (isDocumentVideo(document) ? 'play' : 'eye') : 'download'}
         onClick={handleClick}
+        onSelect={onSelect}
         onDateClick={onDateClick ? handleDateClick : undefined}
       />
       <ConfirmDialog
