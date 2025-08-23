@@ -782,7 +782,7 @@ function MiddleColumn({
                   {IS_TRANSLATION_SUPPORTED && <ChatLanguageModal isOpen={isChatLanguageModalOpen} />}
                 </div >
               </Transition >
-
+              <RoomAIEntryWrapper chatId={chatId} />
               <FloatingActionButtons
                 withScrollDown={renderingIsScrollDownShown}
                 canPost={renderingCanPost}

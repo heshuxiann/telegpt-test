@@ -1,9 +1,5 @@
-/* eslint-disable teactn/no-unused-prop-types */
-/* eslint-disable react/no-unused-prop-types */
-/* eslint-disable @typescript-eslint/no-use-before-define */
-/* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-null/no-null */
-import React, {
+import {
   memo, useEffect, useRef,
 } from '../../../lib/teact/teact';
 import { withGlobal } from '../../../global';
@@ -14,9 +10,9 @@ import GlobalSummary from './global-summary';
 
 const injectMessageAI = injectComponent(GlobalSummary);
 const GlobalSummaryWrapper = () => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>();
   useEffect(() => {
-    let injected: { unmount: () => void } | undefined;
+    let injected: { ref: { current: any }; unmount: () => void } | null = null;
     if (containerRef.current) {
       injected = injectMessageAI(containerRef.current, {});
     }

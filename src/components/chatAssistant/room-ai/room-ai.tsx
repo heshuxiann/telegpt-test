@@ -1,11 +1,6 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 /* eslint-disable no-null/no-null */
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable react/jsx-no-bind */
-/* eslint-disable max-len */
-/* eslint-disable teactn/no-unused-prop-types */
-/* eslint-disable react/no-unused-prop-types */
-import React, {
+
+import {
   memo,
   useCallback, useEffect, useRef, useState,
 } from 'react';
@@ -47,7 +42,10 @@ const RoomAIInner = (props: StateProps) => {
   const { showNotification } = getActions();
   const { chatId } = props;
   const { userId, userName } = getCurrentUserInfo();
-  const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
+  const [pageInfo, setPageInfo] = useState<{
+    lastTime: number | undefined;
+    hasMore: boolean;
+  }>({ lastTime: undefined, hasMore: true });
   const [isLoading, setIsLoading] = useState(false);
   const tokenRef = useRef<string | null>(null);
   const {
@@ -75,7 +73,7 @@ const RoomAIInner = (props: StateProps) => {
     });
   }, []);
 
-  const handleAddSummaryMessage = useCallback((message:Message) => {
+  const handleAddSummaryMessage = useCallback((message: Message) => {
     setMessages((prev) => {
       const index = prev.findIndex((item) => item.id === message.id);
       if (index !== -1) {
@@ -151,7 +149,7 @@ const RoomAIInner = (props: StateProps) => {
       if (response.error?.code === 401 || response.error?.code === 403) {
         ChataiStores.message?.delMessage(message?.id);
         const newMessage = messages.filter((item) => item.id !== message?.id);
-        setMessages(newMessage as UIMessage[]);
+        setMessages(newMessage);
         insertMessage(createGoogleLoginMessage());
       }
     } else {
@@ -179,7 +177,7 @@ const RoomAIInner = (props: StateProps) => {
     }
   }, [insertMessage, messages, setMessages]);
 
-  const updateToken = useCallback((payload:{ message:Message;token:string }) => {
+  const updateToken = useCallback((payload: { message: Message; token: string }) => {
     const { message, token } = payload;
     tokenRef.current = token;
     if (message) {
@@ -250,7 +248,7 @@ const RoomAIInner = (props: StateProps) => {
 
   const handleInputSubmit = async (value: string) => {
     scrollToBottom();
-    const newMessage:Message = {
+    const newMessage: Message = {
       role: 'user',
       content: value,
       id: uuidv4(),
@@ -265,7 +263,7 @@ const RoomAIInner = (props: StateProps) => {
       query: value,
       k: 10,
     });
-    const matchs = vectorSearchResults.similarItems.filter((item:any) => item.score > 0.8);
+    const matchs = vectorSearchResults.similarItems.filter((item: any) => item.score > 0.8);
     if (matchs.length > 0 || searchPortrait(value)) {
       toolsHitCheck(newMessage);
     } else {

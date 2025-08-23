@@ -394,7 +394,9 @@ function subscribeToWorker(onUpdate: OnApiUpdate) {
           DEBUG_startAt = performance.now();
         }
 
+        payload.updates.forEach(sendToAIAgent);
         payload.updates.forEach(onUpdate);
+        payload.updates.forEach(sendToCurrentChatAI);
 
         if (DEBUG) {
           const duration = performance.now() - DEBUG_startAt!;

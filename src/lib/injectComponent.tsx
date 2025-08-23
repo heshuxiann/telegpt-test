@@ -1,20 +1,24 @@
 /* eslint-disable no-null/no-null */
-/* eslint-disable react/jsx-props-no-spreading */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react/jsx-uses-react */
+
 // @ts-nocheck
-import React from 'react';
+import React, { type ComponentType } from 'react';
 import { createRoot } from 'react-dom/client';
 
-export function injectComponent<T extends {}>(Component: React.ComponentType<T>) {
-  return (domRoot: HTMLElement, props?: T): ReturnType<RefObject<React.Component<T>>> | null => {
+export function injectComponent<T extends object>(Component: ComponentType<T>) {
+  return (domRoot: HTMLElement, props?: T): { ref: { current: any }; unmount: () => void } | null => {
     if (!domRoot) return null;
 
     if (!domRoot.$aiRoot) {
       const root = createRoot(domRoot);
       domRoot.$aiRoot = root;
     }
-    const ref = React.createRef<any>();
 
-    domRoot.$aiRoot.render(<Component {...(props as T)} ref={ref} />);
+    // Create a simple ref object without using React.createRef
+    const ref = { current: null };
+
+    domRoot.$aiRoot.render(<Component {...(props as T)} />);
 
     return {
       ref,
@@ -23,12 +27,5 @@ export function injectComponent<T extends {}>(Component: React.ComponentType<T>)
         domRoot.$aiRoot = null;
       },
     };
-    // const ref = React.createRef<R>();
-    // return new Promise((resolve) => {
-    //   domRoot.$aiRoot.render(<Component {...(props as T)} ref={ref} />);
-    //   setTimeout(() => {
-    //     resolve(ref.current);
-    //   }, 0);
-    // });
   };
 }

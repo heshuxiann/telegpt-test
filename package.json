@@ -208,6 +208,7 @@
     "remark-gfm": "^4.0.1",
     "server-destroy": "^1.0.1",
     "slate": "^0.114.0",
+    "slate-dom": "^0.117.4",
     "slate-react": "^0.114.2",
     "sonner": "^2.0.1",
     "tailwind-merge": "^3.0.2",

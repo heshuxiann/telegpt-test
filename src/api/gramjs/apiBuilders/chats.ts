@@ -1,4 +1,3 @@
-import type BigInt from 'big-integer';
 import { Api as GramJs } from '../../../lib/gramjs';
 import type { Entity } from '../../../lib/gramjs/types';
 
@@ -130,19 +129,6 @@ function buildApiChatFieldsFromPeerEntity(
     ...buildApiChatPermissions(peerEntity),
     ...buildApiChatRestrictions(peerEntity),
     ...buildApiChatMigrationInfo(peerEntity),
-    fakeType: isScam ? 'scam' : (isFake ? 'fake' : undefined),
-    color,
-    isJoinToSend,
-    isJoinRequest,
-    isForum,
-    areStoriesHidden,
-    maxStoryId,
-    hasStories: Boolean(maxStoryId) && !storiesUnavailable,
-    emojiStatus,
-    boostLevel,
-    botVerificationIconId,
-    subscriptionUntil,
-    paidMessagesStars: paidMessagesStars?.toJSNumber(),
   };
 }
 
