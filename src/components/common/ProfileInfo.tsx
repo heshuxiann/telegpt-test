@@ -1,10 +1,11 @@
 import type { FC } from '../../lib/teact/teact';
-import React, { memo, useEffect, useState } from '../../lib/teact/teact';
+import { memo, useEffect, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type {
   ApiChat, ApiPeerPhotos, ApiSticker, ApiTopic, ApiUser, ApiUserStatus,
 } from '../../api/types';
+import type { AnimationLevel } from '../../types';
 import { MediaViewerOrigin } from '../../types';
 
 import {
@@ -20,13 +21,16 @@ import {
   selectUser,
   selectUserStatus,
 } from '../../global/selectors';
+import { selectSharedSettings } from '../../global/selectors/sharedState.ts';
 import { IS_TOUCH_ENV } from '../../util/browser/windowEnvironment';
 import buildClassName from '../../util/buildClassName';
 import { captureEvents, SwipeDirection } from '../../util/captureEvents';
 import { MEMO_EMPTY_ARRAY } from '../../util/memo';
+import { resolveTransitionName } from '../../util/resolveTransitionName.ts';
 import renderText from './helpers/renderText';
 
 import useIntervalForceUpdate from '../../hooks/schedulers/useIntervalForceUpdate';
+import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useOldLang from '../../hooks/useOldLang';
 import usePreviousDeprecated from '../../hooks/usePreviousDeprecated';
@@ -45,6 +49,7 @@ type OwnProps = {
   peerId: string;
   forceShowSelf?: boolean;
   canPlayVideo: boolean;
+  isForMonoforum?: boolean;
 };
 
 type StateProps =
@@ -56,6 +61,7 @@ type StateProps =
     avatarOwnerId?: string;
     topic?: ApiTopic;
     messagesCount?: number;
+    animationLevel: AnimationLevel;
     emojiStatusSticker?: ApiSticker;
     emojiStatusSlug?: string;
     profilePhotos?: ApiPeerPhotos;
@@ -77,10 +83,12 @@ const ProfileInfo: FC<OwnProps & StateProps> = ({
   avatarOwnerId,
   topic,
   messagesCount,
+  animationLevel,
   emojiStatusSticker,
   emojiStatusSlug,
   profilePhotos,
   peerId,
+  isForMonoforum,
 }) => {
   const {
     openMediaViewer,
@@ -91,7 +99,8 @@ const ProfileInfo: FC<OwnProps & StateProps> = ({
     openUniqueGiftBySlug,
   } = getActions();
 
-  const lang = useOldLang();
+  const oldLang = useOldLang();
+  const lang = useLang();
 
   useIntervalForceUpdate(user ? STATUS_UPDATE_INTERVAL : undefined);
 
@@ -99,8 +108,6 @@ const ProfileInfo: FC<OwnProps & StateProps> = ({
   const prevMediaIndex = usePreviousDeprecated(mediaIndex);
   const prevAvatarOwnerId = usePreviousDeprecated(avatarOwnerId);
   const [hasSlideAnimation, setHasSlideAnimation] = useState(true);
-  // slideOptimized doesn't work well when animation is dynamically disabled
-  const slideAnimation = hasSlideAnimation ? (lang.isRtl ? 'slideRtl' : 'slide') : 'none';
 
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const isFirst = photos.length <= 1 || currentPhotoIndex === 0;
@@ -217,9 +224,9 @@ const ProfileInfo: FC<OwnProps & StateProps> = ({
           letterClassName={styles.topicIconTitle}
           noLoopLimit
         />
-        <h3 className={styles.topicTitle} dir={lang.isRtl ? 'rtl' : undefined}>{renderText(topic!.title)}</h3>
+        <h3 className={styles.topicTitle} dir={oldLang.isRtl ? 'rtl' : undefined}>{renderText(topic!.title)}</h3>
         <p className={styles.topicMessagesCounter}>
-          {messagesCount ? lang('Chat.Title.Topic', messagesCount, 'i') : lang('lng_forum_no_messages')}
+          {messagesCount ? oldLang('Chat.Title.Topic', messagesCount, 'i') : oldLang('lng_forum_no_messages')}
         </p>
       </div>
     );
@@ -265,6 +272,14 @@ const ProfileInfo: FC<OwnProps & StateProps> = ({
     const isSystemBotChat = isSystemBot(peerId);
     if (isAnonymousForwards || isSystemBotChat) return undefined;
 
+    if (isForMonoforum) {
+      return (
+        <span className={buildClassName(styles.status, 'status')} dir="auto">
+          {lang('MonoforumStatus')}
+        </span>
+      );
+    }
+
     if (user) {
       return (
         <div
@@ -275,11 +290,11 @@ const ProfileInfo: FC<OwnProps & StateProps> = ({
           )}
         >
           <span className={styles.userStatus} dir="auto">
-            {getUserStatus(lang, user, userStatus)}
+            {getUserStatus(oldLang, user, userStatus)}
           </span>
           {userStatus?.isReadDateRestrictedByMe && (
             <span className={styles.getStatus} onClick={handleOpenGetReadDateModal}>
-              <span>{lang('StatusHiddenShow')}</span>
+              <span>{oldLang('StatusHiddenShow')}</span>
             </span>
           )}
         </div>
@@ -287,11 +302,12 @@ const ProfileInfo: FC<OwnProps & StateProps> = ({
     }
 
     return (
-      <span className={buildClassName(styles.status, 'status')} dir="auto">{
-        isChatChannel(chat!)
-          ? lang('Subscribers', chat!.membersCount ?? 0, 'i')
-          : lang('Members', chat!.membersCount ?? 0, 'i')
-      }
+      <span className={buildClassName(styles.status, 'status')} dir="auto">
+        {
+          isChatChannel(chat!)
+            ? oldLang('Subscribers', chat!.membersCount ?? 0, 'i')
+            : oldLang('Members', chat!.membersCount ?? 0, 'i')
+        }
       </span>
     );
   }
@@ -303,7 +319,7 @@ const ProfileInfo: FC<OwnProps & StateProps> = ({
   return (
     <div
       className={buildClassName('ProfileInfo')}
-      dir={lang.isRtl ? 'rtl' : undefined}
+      dir={oldLang.isRtl ? 'rtl' : undefined}
     >
       <div className={styles.photoWrapper}>
         {renderPhotoTabs()}
@@ -314,7 +330,7 @@ const ProfileInfo: FC<OwnProps & StateProps> = ({
           )}
           >
             <div className={styles.fallbackPhotoContents}>
-              {lang(profilePhotos.personalPhoto.isVideo ? 'UserInfo.CustomVideo' : 'UserInfo.CustomPhoto')}
+              {oldLang(profilePhotos.personalPhoto.isVideo ? 'UserInfo.CustomVideo' : 'UserInfo.CustomPhoto')}
             </div>
           </div>
         )}
@@ -332,35 +348,38 @@ const ProfileInfo: FC<OwnProps & StateProps> = ({
                   size="mini"
                 />
               )}
-              {lang(profilePhotos.fallbackPhoto.isVideo ? 'UserInfo.PublicVideo' : 'UserInfo.PublicPhoto')}
+              {oldLang(profilePhotos.fallbackPhoto.isVideo ? 'UserInfo.PublicVideo' : 'UserInfo.PublicPhoto')}
             </div>
           </div>
         )}
-        <Transition activeKey={currentPhotoIndex} name={slideAnimation}>
+        <Transition
+          activeKey={currentPhotoIndex}
+          name={resolveTransitionName('slide', animationLevel, !hasSlideAnimation, oldLang.isRtl)}
+        >
           {renderPhoto}
         </Transition>
 
         {!isFirst && (
           <button
             type="button"
-            dir={lang.isRtl ? 'rtl' : undefined}
+            dir={oldLang.isRtl ? 'rtl' : undefined}
             className={buildClassName(styles.navigation, styles.navigation_prev)}
-            aria-label={lang('AccDescrPrevious')}
+            aria-label={oldLang('AccDescrPrevious')}
             onClick={selectPreviousMedia}
           />
         )}
         {!isLast && (
           <button
             type="button"
-            dir={lang.isRtl ? 'rtl' : undefined}
+            dir={oldLang.isRtl ? 'rtl' : undefined}
             className={buildClassName(styles.navigation, styles.navigation_next)}
-            aria-label={lang('Next')}
+            aria-label={oldLang('Next')}
             onClick={selectNextMedia}
           />
         )}
       </div>
 
-      <div className={styles.info} dir={lang.isRtl ? 'rtl' : 'auto'}>
+      <div className={styles.info} dir={oldLang.isRtl ? 'rtl' : 'auto'}>
         {(user || chat) && (
           <FullNameTitle
             peer={(user || chat)!}
@@ -387,6 +406,7 @@ export default memo(withGlobal<OwnProps>(
     const isForum = chat?.isForum;
     const { threadId: currentTopicId } = selectCurrentMessageList(global) || {};
     const topic = isForum && currentTopicId ? selectTopic(global, peerId, currentTopicId) : undefined;
+    const { animationLevel } = selectSharedSettings(global);
 
     const emojiStatus = (user || chat)?.emojiStatus;
     const emojiStatusSticker = emojiStatus ? global.customEmojis.byId[emojiStatus.documentId] : undefined;
@@ -398,6 +418,7 @@ export default memo(withGlobal<OwnProps>(
       chat,
       mediaIndex,
       avatarOwnerId,
+      animationLevel,
       emojiStatusSticker,
       emojiStatusSlug,
       profilePhotos,

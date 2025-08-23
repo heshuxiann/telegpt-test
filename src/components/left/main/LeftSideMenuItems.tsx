@@ -1,9 +1,7 @@
-/* eslint-disable max-len */
+import type React from '../../../lib/teact/teact';
 import { Modal } from 'antd';
-import React, {
-  memo, useCallback, useEffect, useMemo, useState,
-} from '../../../lib/teact/teact';
-import { getActions, getGlobal, withGlobal } from '../../../global';
+import { memo, useMemo ,useCallback ,useState ,useEffect } from '../../../lib/teact/teact';
+import { getActions, withGlobal, getGlobal } from '../../../global';
 
 import type { ApiUser } from '../../../api/types';
 import type { GlobalState } from '../../../global/types';
@@ -22,7 +20,7 @@ import {
 } from '../../../config';
 import {
   INITIAL_PERFORMANCE_STATE_MAX,
-  INITIAL_PERFORMANCE_STATE_MID,
+  INITIAL_PERFORMANCE_STATE_MED,
   INITIAL_PERFORMANCE_STATE_MIN,
 } from '../../../global/initialState';
 import { selectTabState, selectTheme, selectUser } from '../../../global/selectors';
@@ -114,6 +112,10 @@ const LeftSideMenuItems = ({
 
   const bots = useMemo(() => Object.values(attachBots).filter((bot) => bot.isForSideMenu), [attachBots]);
 
+  const handleSelectMyProfile = useLastCallback(() => {
+    openChatWithInfo({ id: currentUserId, shouldReplaceHistory: true, profileTab: 'stories' });
+  });
+
   const handleSelectSaved = useLastCallback(() => {
     openChat({ id: currentUserId, shouldReplaceHistory: true });
   });
@@ -135,9 +137,9 @@ const LeftSideMenuItems = ({
     }
     const performanceSettings = newLevel === ANIMATION_LEVEL_MIN
       ? INITIAL_PERFORMANCE_STATE_MIN
-      : (newLevel === ANIMATION_LEVEL_MAX ? INITIAL_PERFORMANCE_STATE_MAX : INITIAL_PERFORMANCE_STATE_MID);
+      : (newLevel === ANIMATION_LEVEL_MAX ? INITIAL_PERFORMANCE_STATE_MAX : INITIAL_PERFORMANCE_STATE_MED);
 
-    setSharedSettingOption({ animationLevel: newLevel as AnimationLevel });
+    setSharedSettingOption({ animationLevel: newLevel as AnimationLevel, wasAnimationLevelSetManually: true });
     updatePerformanceSettings(performanceSettings);
   });
 
@@ -275,7 +277,7 @@ const LeftSideMenuItems = ({
         </MenuItem>
       )}
       <MenuItem
-        icon="user"
+        icon="group"
         onClick={onSelectContacts}
       >
         {oldLang('Contacts')}
@@ -290,12 +292,6 @@ const LeftSideMenuItems = ({
           onMenuClosed={onBotMenuClosed}
         />
       ))}
-      <MenuItem
-        icon="play-story"
-        onClick={handleOpenMyStories}
-      >
-        {oldLang('Settings.MyStories')}
-      </MenuItem>
       <MenuItem
         icon="settings"
         onClick={onSelectSettings}

@@ -1,25 +1,25 @@
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useEffect, useRef, useState,
 } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
 
 import type { FolderEditDispatch } from '../../../hooks/reducers/useFoldersReducer';
-import type { SettingsScreens } from '../../../types';
 import { LeftColumnContent } from '../../../types';
 
-// import { PRODUCTION_URL } from '../../../config';
-import { IS_TOUCH_ENV } from '../../../util/browser/windowEnvironment';
-// import buildClassName from '../../../util/buildClassName';
+import { PRODUCTION_URL } from '../../../config';
+import { IS_ELECTRON, IS_TOUCH_ENV } from '../../../util/browser/windowEnvironment';
+import buildClassName from '../../../util/buildClassName';
 import { fireBaseAnalytics, UPDATE_DEFER_KEY } from '../../chatAssistant/utils/firebase_analytics';
 import { compareVersion } from '../../chatAssistant/utils/util';
 
 import useForumPanelRender from '../../../hooks/useForumPanelRender';
 import useLastCallback from '../../../hooks/useLastCallback';
 import useOldLang from '../../../hooks/useOldLang';
-
 // import useShowTransitionDeprecated from '../../../hooks/useShowTransitionDeprecated';
 import eventEmitter, { Actions } from '../../chatAssistant/lib/EventEmitter';
+import useShowTransitionDeprecated from '../../../hooks/useShowTransitionDeprecated';
+
 import Button from '../../ui/Button';
 import Transition from '../../ui/Transition';
 import NewChatButton from '../NewChatButton';
@@ -43,8 +43,6 @@ type OwnProps = {
   isForumPanelOpen?: boolean;
   isClosingSearch?: boolean;
   onSearchQuery: (query: string) => void;
-  onContentChange: (content: LeftColumnContent) => void;
-  onSettingsScreenSelect: (screen: SettingsScreens) => void;
   onTopicSearch: NoneToVoidFunction;
   isAccountFrozen?: boolean;
   onReset: () => void;
@@ -67,23 +65,21 @@ const LeftMain: FC<OwnProps> = ({
   // isElectronUpdateAvailable,
   isForumPanelOpen,
   onSearchQuery,
-  onContentChange,
-  onSettingsScreenSelect,
   onReset,
   onTopicSearch,
   isAccountFrozen,
 }) => {
-  const { closeForumPanel } = getActions();
+  const { closeForumPanel, openLeftColumnContent } = getActions();
   const [isNewChatButtonShown, setIsNewChatButtonShown] = useState(IS_TOUCH_ENV);
   // const [isElectronAutoUpdateEnabled, setIsElectronAutoUpdateEnabled] = useState(false);
   const [shouldRenderUpdateButton, setShouldRenderUpdateButton] = useState(false);
   const [webFireBase, setWebFireBase] = useState<{
-    force_update_required:boolean;
-    force_update_current_version:string;
-    force_update_store_url:string;
+    force_update_required: boolean;
+    force_update_current_version: string;
+    force_update_store_url: string;
   }>();
 
-  const handleFireBaseUpdate = (payload:any) => {
+  const handleFireBaseUpdate = (payload: any) => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-shadow
       const { webFireBase } = payload;
@@ -147,23 +143,23 @@ const LeftMain: FC<OwnProps> = ({
   });
 
   const handleSelectSettings = useLastCallback(() => {
-    onContentChange(LeftColumnContent.Settings);
+    openLeftColumnContent({ contentKey: LeftColumnContent.Settings });
   });
 
   const handleSelectAIKonwledge = useLastCallback(() => {
-    onContentChange(LeftColumnContent.AIKonwledge);
+    openLeftColumnContent({ contentKey: LeftColumnContent.AIKonwledge });
   });
 
   const handleSelectAITranslate = useLastCallback(() => {
-    onContentChange(LeftColumnContent.AITranslate);
+    openLeftColumnContent({ contentKey: LeftColumnContent.AITranslate });
   });
 
   const handleSelectContacts = useLastCallback(() => {
-    onContentChange(LeftColumnContent.Contacts);
+    openLeftColumnContent({ contentKey: LeftColumnContent.Contacts });
   });
 
   const handleSelectArchived = useLastCallback(() => {
-    onContentChange(LeftColumnContent.Archived);
+    openLeftColumnContent({ contentKey: LeftColumnContent.Archived });
     closeForumPanel();
   });
 
@@ -186,11 +182,11 @@ const LeftMain: FC<OwnProps> = ({
   });
 
   const handleSelectNewChannel = useLastCallback(() => {
-    onContentChange(LeftColumnContent.NewChannelStep1);
+    openLeftColumnContent({ contentKey: LeftColumnContent.NewChannelStep1 });
   });
 
   const handleSelectNewGroup = useLastCallback(() => {
-    onContentChange(LeftColumnContent.NewGroupStep1);
+    openLeftColumnContent({ contentKey: LeftColumnContent.NewGroupStep1 });
   });
 
   useEffect(() => {
@@ -248,8 +244,6 @@ const LeftMain: FC<OwnProps> = ({
               return (
                 <ChatFolders
                   shouldHideFolderTabs={isForumPanelVisible}
-                  onSettingsScreenSelect={onSettingsScreenSelect}
-                  onLeftColumnContentChange={onContentChange}
                   foldersDispatch={foldersDispatch}
                   isForumPanelOpen={isForumPanelVisible}
                 />

@@ -1,6 +1,6 @@
 import type { PerformanceType } from '../types';
 import type { GlobalState, SharedState, TabState } from './types';
-import { NewChatMembersProgress } from '../types';
+import { LeftColumnContent, NewChatMembersProgress, SettingsScreens } from '../types';
 
 import {
   ANIMATION_LEVEL_DEFAULT,
@@ -9,6 +9,7 @@ import {
   DEFAULT_MESSAGE_TEXT_SIZE_PX,
   DEFAULT_PATTERN_COLOR,
   DEFAULT_PLAYBACK_RATE,
+  DEFAULT_RESALE_GIFTS_FILTER_OPTIONS,
   DEFAULT_VOLUME,
   IOS_DEFAULT_MESSAGE_TEXT_SIZE_PX,
   MACOS_DEFAULT_MESSAGE_TEXT_SIZE_PX,
@@ -33,7 +34,7 @@ export const INITIAL_PERFORMANCE_STATE_MAX: PerformanceType = {
   snapEffect: true,
 };
 
-export const INITIAL_PERFORMANCE_STATE_MID: PerformanceType = {
+export const INITIAL_PERFORMANCE_STATE_MED: PerformanceType = {
   animatedEmoji: true,
   autoplayGifs: true,
   autoplayVideos: true,
@@ -46,8 +47,8 @@ export const INITIAL_PERFORMANCE_STATE_MID: PerformanceType = {
   pageTransitions: true,
   reactionEffects: true,
   rightColumnAnimations: false,
-  stickerEffects: false,
-  storyRibbonAnimations: false,
+  stickerEffects: true,
+  storyRibbonAnimations: true,
   snapEffect: false,
 };
 
@@ -87,7 +88,6 @@ export const INITIAL_SHARED_STATE: SharedState = {
     canDisplayChatInTitle: true,
     shouldAllowHttpTransport: true,
     shouldWarnAboutSvg: true,
-    realTimeAssistants: {},
   },
   isInitial: true,
 };
@@ -157,6 +157,7 @@ export const INITIAL_GLOBAL_STATE: GlobalState = {
     byChatId: {},
     sponsoredByChatId: {},
     pollById: {},
+    webPageById: {},
     playbackByChatId: {},
   },
 
@@ -180,6 +181,7 @@ export const INITIAL_GLOBAL_STATE: GlobalState = {
     shouldSendGrouped: true,
     isInvertedMedia: undefined,
     webPageMediaSize: undefined,
+    shouldSendInHighQuality: false,
   },
 
   scheduledMessages: {
@@ -310,6 +312,7 @@ export const INITIAL_GLOBAL_STATE: GlobalState = {
         patternColor: DARK_THEME_PATTERN_COLOR,
       },
     },
+    accountDaysTtl: 365,
   },
 
   serviceNotifications: [],
@@ -363,6 +366,11 @@ export const INITIAL_TAB_STATE: TabState = {
 
   userSearch: {},
 
+  leftColumn: {
+    contentKey: LeftColumnContent.ChatList,
+    settingsScreen: SettingsScreens.Main,
+  },
+
   middleSearch: {
     byChatThreadKey: {},
   },
@@ -384,6 +392,15 @@ export const INITIAL_TAB_STATE: TabState = {
       ...DEFAULT_GIFT_PROFILE_FILTER_OPTIONS,
     },
     giftsByPeerId: {},
+  },
+
+  resaleGifts: {
+    gifts: [],
+    count: 0,
+    updateIteration: 0,
+    filter: {
+      ...DEFAULT_RESALE_GIFTS_FILTER_OPTIONS,
+    },
   },
 
   storyViewer: {

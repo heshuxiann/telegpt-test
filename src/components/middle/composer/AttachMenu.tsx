@@ -1,8 +1,8 @@
-import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useEffect,
   useMemo,
 } from '../../../lib/teact/teact';
+import { getActions } from '../../../global';
 
 import type { ApiAttachMenuPeerType, ApiMessage } from '../../../api/types';
 import type { GlobalState } from '../../../global/types';
@@ -17,8 +17,6 @@ import {
   getMessageAudio, getMessageDocument,
   getMessagePhoto,
   getMessageVideo, getMessageVoice,
-  getMessageWebPagePhoto,
-  getMessageWebPageVideo,
 } from '../../../global/helpers';
 import { IS_TOUCH_ENV } from '../../../util/browser/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
@@ -46,6 +44,7 @@ export type OwnProps = {
   isButtonVisible: boolean;
   canAttachMedia: boolean;
   canAttachPolls: boolean;
+  canAttachToDoLists: boolean;
   canSendPhotos: boolean;
   canSendVideos: boolean;
   canSendDocuments: boolean;
@@ -55,22 +54,24 @@ export type OwnProps = {
   peerType?: ApiAttachMenuPeerType;
   shouldCollectDebugLogs?: boolean;
   theme: ThemeKey;
-  onFileSelect: (files: File[], shouldSuggestCompression?: boolean) => void;
-  onPollCreate: NoneToVoidFunction;
-  onMenuOpen: NoneToVoidFunction;
-  onMenuClose: NoneToVoidFunction;
   canEditMedia?: boolean;
   editingMessage?: ApiMessage;
   messageListType?: MessageListType;
   paidMessagesStars?: number;
+  onFileSelect: (files: File[]) => void;
+  onPollCreate: NoneToVoidFunction;
+  onTodoListCreate: NoneToVoidFunction;
+  onMenuOpen: NoneToVoidFunction;
+  onMenuClose: NoneToVoidFunction;
 };
 
-const AttachMenu: FC<OwnProps> = ({
+const AttachMenu = ({
   chatId,
   threadId,
   isButtonVisible,
   canAttachMedia,
   canAttachPolls,
+  canAttachToDoLists,
   canSendPhotos,
   canSendVideos,
   canSendDocuments,
@@ -80,15 +81,19 @@ const AttachMenu: FC<OwnProps> = ({
   isScheduled,
   theme,
   shouldCollectDebugLogs,
-  onFileSelect,
-  onMenuOpen,
-  onMenuClose,
-  onPollCreate,
   canEditMedia,
   editingMessage,
   messageListType,
   paidMessagesStars,
-}) => {
+  onFileSelect,
+  onMenuOpen,
+  onMenuClose,
+  onPollCreate,
+  onTodoListCreate,
+}: OwnProps) => {
+  const {
+    updateAttachmentSettings,
+  } = getActions();
   const [isAttachMenuOpen, openAttachMenu, closeAttachMenu] = useFlag();
   const [handleMouseEnter, handleMouseLeave, markMouseInside] = useMouseInside(isAttachMenuOpen, closeAttachMenu);
 
@@ -99,8 +104,8 @@ const AttachMenu: FC<OwnProps> = ({
   const isMenuOpen = isAttachMenuOpen || isAttachmentBotMenuOpen;
 
   const isPhotoOrVideo = editingMessage && editingMessage?.groupedId
-    && Boolean(getMessagePhoto(editingMessage) || getMessageWebPagePhoto(editingMessage)
-      || Boolean(getMessageVideo(editingMessage) || getMessageWebPageVideo(editingMessage)));
+    && Boolean(getMessagePhoto(editingMessage)
+      || Boolean(getMessageVideo(editingMessage)));
   const isFile = editingMessage && editingMessage?.groupedId && Boolean(getMessageAudio(editingMessage)
     || getMessageVoice(editingMessage) || getMessageDocument(editingMessage));
 
@@ -126,29 +131,31 @@ const AttachMenu: FC<OwnProps> = ({
     }
   });
 
-  const handleFileSelect = useLastCallback((e: Event, shouldSuggestCompression?: boolean) => {
+  const handleFileSelect = useLastCallback((e: Event) => {
     const { files } = e.target as HTMLInputElement;
     const validatedFiles = validateFiles(files);
 
     if (validatedFiles?.length) {
-      onFileSelect(validatedFiles, shouldSuggestCompression);
+      onFileSelect(validatedFiles);
     }
   });
 
   const handleQuickSelect = useLastCallback(() => {
+    updateAttachmentSettings({ shouldCompress: true });
     openSystemFilesDialog(
       Array.from(canSendVideoAndPhoto ? CONTENT_TYPES_WITH_PREVIEW : (
         canSendPhotos ? SUPPORTED_PHOTO_CONTENT_TYPES : SUPPORTED_VIDEO_CONTENT_TYPES
       )).join(','),
-      (e) => handleFileSelect(e, true),
+      (e) => handleFileSelect(e),
     );
   });
 
   const handleDocumentSelect = useLastCallback(() => {
+    updateAttachmentSettings({ shouldCompress: false });
     openSystemFilesDialog(!canSendDocuments && canSendAudios
       ? Array.from(SUPPORTED_AUDIO_CONTENT_TYPES).join(',') : (
         '*'
-      ), (e) => handleFileSelect(e, false));
+      ), (e) => handleFileSelect(e));
   });
 
   const handleSendLogs = useLastCallback(() => {
@@ -256,6 +263,9 @@ const AttachMenu: FC<OwnProps> = ({
         )}
         {canAttachPolls && !editingMessage && (
           <MenuItem icon="poll" onClick={onPollCreate}>{oldLang('Poll')}</MenuItem>
+        )}
+        {canAttachToDoLists && !editingMessage && (
+          <MenuItem icon="select" onClick={onTodoListCreate}>{lang('TitleToDoList')}</MenuItem>
         )}
 
         {!editingMessage && !canEditMedia && !isScheduled && bots?.map((bot) => (

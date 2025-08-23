@@ -1,5 +1,5 @@
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useEffect, useMemo, useState,
 } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
@@ -15,6 +15,7 @@ import type {
   ApiStickerSetInfo,
   ApiThreadInfo,
   ApiTypeStory,
+  ApiWebPage,
 } from '../../../api/types';
 import type {
   ActiveDownloads,
@@ -25,22 +26,22 @@ import type {
 } from '../../../types';
 import { MAIN_THREAD_ID } from '../../../api/types';
 
+import {
+  TODO_ITEMS_LIMIT,
+} from '../../../config';
 import { PREVIEW_AVATAR_COUNT, SERVICE_NOTIFICATIONS_USER_ID } from '../../../config';
 import {
   areReactionsEmpty,
   getCanPostInChat,
   getIsDownloading,
-  getMessageDownloadableMedia,
   getMessageVideo,
   getUserFullName,
-  hasMessageText,
   hasMessageTtl,
   isActionMessage,
   isChatChannel,
   isChatGroup,
   isMessageLocal,
   isOwnMessage,
-  isUserId,
   isUserRightBanned,
 } from '../../../global/helpers';
 import {
@@ -67,18 +68,22 @@ import {
   selectPollFromMessage,
   selectRequestedChatTranslationLanguage,
   selectRequestedMessageTranslationLanguage,
+  selectSavedDialogIdFromMessage,
   selectStickerSet,
   selectThreadInfo,
   selectTopic,
   selectUser,
   selectUserStatus,
 } from '../../../global/selectors';
+import { selectMessageDownloadableMedia } from '../../../global/selectors/media';
 import buildClassName from '../../../util/buildClassName';
 import { copyTextToClipboard } from '../../../util/clipboard';
+import { isUserId } from '../../../util/entities/ids';
 import { getSelectionAsFormattedText } from './helpers/getSelectionAsFormattedText';
 import { isSelectionRangeInsideMessage } from './helpers/isSelectionRangeInsideMessage';
 
 import useFlag from '../../../hooks/useFlag';
+import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 import useOldLang from '../../../hooks/useOldLang';
 import useSchedule from '../../../hooks/useSchedule';
@@ -106,6 +111,7 @@ export type OwnProps = {
 type StateProps = {
   threadId?: ThreadId;
   poll?: ApiPoll;
+  webPage?: ApiWebPage;
   story?: ApiTypeStory;
   chat?: ApiChat;
   availableReactions?: ApiAvailableReaction[];
@@ -127,6 +133,7 @@ type StateProps = {
   canDelete?: boolean;
   canReport?: boolean;
   canEdit?: boolean;
+  canAppendTodoList?: boolean;
   canForward?: boolean;
   canFaveSticker?: boolean;
   canUnfaveSticker?: boolean;
@@ -159,6 +166,7 @@ type StateProps = {
   isWithPaidReaction?: boolean;
   userFullName?: string;
   canGift?: boolean;
+  savedDialogId?: string;
 };
 
 const selection = window.getSelection();
@@ -176,6 +184,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
   customEmojiSets,
   album,
   poll,
+  webPage,
   story,
   anchor,
   targetHref,
@@ -184,8 +193,6 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
   hasFullInfo,
   canReschedule,
   canReply,
-  // canSmartReply,
-  // canScheduleMeeting,
   canPin,
   repliesThreadInfo,
   canUnpin,
@@ -195,6 +202,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
   canReport,
   canShowReactionList,
   canEdit,
+  canAppendTodoList,
   enabledReactions,
   reactionsLimit,
   isPrivate,
@@ -228,6 +236,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
   userFullName,
   canGift,
   className,
+  savedDialogId,
   onClose,
   onCloseAnimationEnd,
 }) => {
@@ -267,9 +276,12 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
     addLocalPaidReaction,
     openPaidReactionModal,
     reportMessages,
+    openTodoListModal,
+    showNotification,
   } = getActions();
 
-  const lang = useOldLang();
+  const oldLang = useOldLang();
+  const lang = useLang();
   const { ref: containerRef } = useShowTransition({
     isOpen,
     onCloseAnimationEnd,
@@ -338,15 +350,16 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
   }, [message.reactions?.recentReactions, message.seenByDates]);
 
   const isDownloading = useMemo(() => {
+    const global = getGlobal();
     if (album) {
       return album.messages.some((msg) => {
-        const downloadableMedia = getMessageDownloadableMedia(msg);
+        const downloadableMedia = selectMessageDownloadableMedia(global, msg);
         if (!downloadableMedia) return false;
         return getIsDownloading(activeDownloads, downloadableMedia);
       });
     }
 
-    const downloadableMedia = getMessageDownloadableMedia(message);
+    const downloadableMedia = selectMessageDownloadableMedia(global, message);
     if (!downloadableMedia) return false;
     return getIsDownloading(activeDownloads, downloadableMedia);
   }, [activeDownloads, album, message]);
@@ -371,7 +384,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
 
     const selectionText = getSelectionAsFormattedText(selectionRange);
 
-    const messageText = message.content.text!.text!.replace(/\u00A0/g, ' ');
+    const messageText = message.content.text!.text.replace(/\u00A0/g, ' ');
 
     const canQuote = selectionText.text.trim().length > 0
       && messageText.includes(selectionText.text);
@@ -421,6 +434,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         replyToMsgId: message.id,
         quoteText,
         quoteOffset: selectionQuoteOffset,
+        monoforumPeerId: savedDialogId,
         replyToPeerId: undefined,
       });
     }
@@ -436,7 +450,34 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
   });
 
   const handleEdit = useLastCallback(() => {
-    setEditingId({ messageId: message.id });
+    if (message.content.todo) {
+      openTodoListModal({
+        chatId: message.chatId,
+        messageId: message.id,
+      });
+    } else {
+      setEditingId({ messageId: message.id });
+    }
+    closeMenu();
+  });
+
+  const handleAppendTodoList = useLastCallback(() => {
+    if (!isCurrentUserPremium) {
+      showNotification({
+        message: lang('SubscribeToTelegramPremiumForAppendToDo'),
+        action: {
+          action: 'openPremiumModal',
+          payload: { initialSection: 'todo' },
+        },
+        actionText: oldLang('PremiumMore'),
+      });
+    } else {
+      openTodoListModal({
+        chatId: message.chatId,
+        messageId: message.id,
+        forNewTask: true,
+      });
+    }
     closeMenu();
   });
 
@@ -543,8 +584,9 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
   });
 
   const handleDownloadClick = useLastCallback(() => {
+    const global = getGlobal();
     (album?.messages || [message]).forEach((msg) => {
-      const downloadableMedia = getMessageDownloadableMedia(msg);
+      const downloadableMedia = selectMessageDownloadableMedia(global, msg);
       if (!downloadableMedia) return;
 
       if (isDownloading) {
@@ -661,8 +703,6 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         canSendNow={canSendNow}
         canReschedule={canReschedule}
         canReply={canReply}
-        // canSmartReply={canSmartReply}
-        // canScheduleMeeting={canScheduleMeeting}
         canQuote={selectionQuoteOffset !== UNQUOTABLE_OFFSET}
         canDelete={canDelete}
         canPin={canPin}
@@ -670,6 +710,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         repliesThreadInfo={repliesThreadInfo}
         canUnpin={canUnpin}
         canEdit={canEdit}
+        canAppendTodoList={canAppendTodoList}
         canForward={canForward}
         canFaveSticker={canFaveSticker}
         canUnfaveSticker={canUnfaveSticker}
@@ -694,12 +735,14 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         isInSavedMessages={isInSavedMessages}
         noReplies={noReplies}
         poll={poll}
+        webPage={webPage}
         story={story}
         onOpenThread={handleOpenThread}
         onReply={handleReply}
         // onSmartReply={handleSmartReply}
         // onScheduleMeet={handleScheduleMeeting}
         onEdit={handleEdit}
+        onAppendTodoList={handleAppendTodoList}
         onPin={handlePin}
         onUnpin={handleUnpin}
         onForward={handleForward}
@@ -727,7 +770,6 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         onTranslate={handleTranslate}
         onShowOriginal={handleShowOriginal}
         onSelectLanguage={handleSelectLanguage}
-        // onSummarize={handleSummarize}
         userFullName={userFullName}
         canGift={canGift}
       />
@@ -740,8 +782,8 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
       <ConfirmDialog
         isOpen={isClosePollDialogOpen}
         onClose={closeClosePollDialog}
-        text={lang('lng_polls_stop_warning')}
-        confirmLabel={lang('lng_polls_stop_sure')}
+        text={oldLang('lng_polls_stop_warning')}
+        confirmLabel={oldLang('lng_polls_stop_sure')}
         confirmHandler={handlePollClose}
       />
       {canReschedule && calendar}
@@ -817,12 +859,13 @@ export default memo(withGlobal<OwnProps>(
     const canSendText = chat && !isUserRightBanned(chat, 'sendPlain', chatFullInfo);
 
     const canReplyInChat = chat && threadId ? getCanPostInChat(chat, topic, isMessageThread, chatFullInfo)
-     && canSendText : false;
+      && canSendText : false;
 
     const isLocal = isMessageLocal(message);
     const hasTtl = hasMessageTtl(message);
     const canShowSeenBy = Boolean(!isLocal
       && chat
+      && !chat.isMonoforum
       && !isMessageUnread
       && seenByMaxChatMembers
       && seenByExpiresAt
@@ -858,7 +901,11 @@ export default memo(withGlobal<OwnProps>(
     const story = storyData ? selectPeerStory(global, storyData.peerId, storyData.id) : undefined;
 
     const canGift = selectCanGift(global, message.chatId);
-    const hasTextContent = hasMessageText(message);
+
+    const savedDialogId = selectSavedDialogIdFromMessage(global, message);
+    const todoItemsMax = global.appConfig?.todoItemsMax || TODO_ITEMS_LIMIT;
+    const canAppendTodoList = message.content.todo?.todo.othersCanAppend
+      && message.content.todo?.todo.items?.length < todoItemsMax;
 
     return {
       threadId,
@@ -871,12 +918,11 @@ export default memo(withGlobal<OwnProps>(
       canSendNow: isScheduled,
       canReschedule: isScheduled,
       canReply: !isPinned && !isScheduled && canReplyGlobally,
-      canSmartReply: !isPinned && !isScheduled && canReplyGlobally && canSendText && hasTextContent,
-      canScheduleMeeting: !isOwn && hasTextContent,
       canPin: !isScheduled && canPin,
       canUnpin: !isScheduled && canUnpin,
       canDelete,
       canEdit: !isPinned && canEdit,
+      canAppendTodoList,
       canForward: !isScheduled && canForward,
       canFaveSticker: !isScheduled && canFaveSticker,
       canUnfaveSticker: !isScheduled && canUnfaveSticker,
@@ -917,6 +963,7 @@ export default memo(withGlobal<OwnProps>(
       story,
       userFullName,
       canGift,
+      savedDialogId,
     };
   },
 )(ContextMenuContainer));

@@ -1,11 +1,12 @@
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import type React from '../../../lib/teact/teact';
+import {
   memo, useEffect, useMemo, useRef,
 } from '../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../global';
+import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type {
-  ApiChat, ApiInputMessageReplyInfo, ApiMessage, ApiPeer,
+  ApiChat, ApiInputMessageReplyInfo, ApiInputSuggestedPostInfo, ApiMessage, ApiPeer,
 } from '../../../api/types';
 import type { MessageListType, ThreadId } from '../../../types/index';
 
@@ -21,12 +22,13 @@ import {
   selectForwardedSender,
   selectIsChatWithSelf,
   selectIsCurrentUserPremium,
-  selectPeer,
   selectSender,
   selectTabState,
 } from '../../../global/selectors';
+import { selectIsMediaNsfw } from '../../../global/selectors/media';
 import buildClassName from '../../../util/buildClassName';
 import captureEscKeyListener from '../../../util/captureEscKeyListener';
+import { unique } from '../../../util/iteratees';
 import { getPeerColorClass } from '../../common/helpers/peerColor';
 
 import useContextMenuHandlers from '../../../hooks/useContextMenuHandlers';
@@ -47,6 +49,7 @@ import './ComposerEmbeddedMessage.scss';
 
 type StateProps = {
   replyInfo?: ApiInputMessageReplyInfo;
+  suggestedPostInfo?: ApiInputSuggestedPostInfo;
   editingId?: number;
   message?: ApiMessage;
   sender?: ApiPeer;
@@ -63,20 +66,24 @@ type StateProps = {
   senderChat?: ApiChat;
   isSenderChannel?: boolean;
   currentUserId?: string;
+  forwardMessageIds?: number[];
+  fromChatId?: string;
+  isMediaNsfw?: boolean;
 };
 
 type OwnProps = {
-  onClear?: () => void;
   shouldForceShowEditing?: boolean;
   chatId: string;
   threadId: ThreadId;
   messageListType: MessageListType;
+  onClear?: () => void;
 };
 
 const CLOSE_DURATION = 350;
 
 const ComposerEmbeddedMessage: FC<OwnProps & StateProps> = ({
   replyInfo,
+  suggestedPostInfo,
   editingId,
   message,
   sender,
@@ -89,16 +96,20 @@ const ComposerEmbeddedMessage: FC<OwnProps & StateProps> = ({
   isCurrentUserPremium,
   isContextMenuDisabled,
   isReplyToDiscussion,
-  onClear,
   isInChangingRecipientMode,
   shouldPreventComposerAnimation,
   senderChat,
   chatId,
   currentUserId,
   isSenderChannel,
+  forwardMessageIds,
+  fromChatId,
+  isMediaNsfw,
+  onClear,
 }) => {
   const {
     resetDraftReplyInfo,
+    resetDraftSuggestedPostInfo,
     updateDraftReplyInfo,
     setEditingId,
     focusMessage,
@@ -108,22 +119,41 @@ const ComposerEmbeddedMessage: FC<OwnProps & StateProps> = ({
     setForwardNoCaptions,
     exitForwardMode,
     setShouldPreventComposerAnimation,
+    openSuggestMessageModal,
   } = getActions();
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
   const oldLang = useOldLang();
   const lang = useLang();
 
   const isReplyToTopicStart = message?.content.action?.type === 'topicCreate';
   const isShowingReply = replyInfo && !shouldForceShowEditing;
   const isReplyWithQuote = Boolean(replyInfo?.quoteText);
+  const isShowingSuggestedPost = Boolean(suggestedPostInfo) && !shouldForceShowEditing;
 
   const isForwarding = Boolean(forwardedMessagesCount);
+
+  const selectSenderFromForwardedMessage = useLastCallback((forwardedMessage: ApiMessage) => {
+    const global = getGlobal();
+    sender = selectForwardedSender(global, forwardedMessage);
+    if (!sender) {
+      sender = selectSender(global, forwardedMessage);
+    }
+    return sender;
+  });
+
+  const forwardSenders = useMemo(() => {
+    if (!isForwarding) return undefined;
+    const forwardedMessages = forwardMessageIds?.map((id) => selectChatMessage(getGlobal(), fromChatId!, id))
+      .filter(Boolean);
+    const senders = forwardedMessages?.map((m) => selectSenderFromForwardedMessage(m)).filter(Boolean);
+    return senders ? unique(senders) : undefined;
+  }, [isForwarding, forwardMessageIds, fromChatId]);
 
   const isShown = (() => {
     if (isInChangingRecipientMode) return false;
     if (message && (replyInfo || editingId)) return true;
-    if (sender && isForwarding) return true;
+    if (forwardSenders && isForwarding) return true;
+    if (isShowingSuggestedPost) return true;
     return false;
   })();
 
@@ -149,6 +179,9 @@ const ComposerEmbeddedMessage: FC<OwnProps & StateProps> = ({
       setEditingId({ messageId: undefined });
     } else if (forwardedMessagesCount) {
       exitForwardMode();
+    } else if (isShowingSuggestedPost) {
+      resetDraftSuggestedPostInfo();
+      resetDraftReplyInfo();
     } else if (replyInfo && !shouldForceShowEditing) {
       resetDraftReplyInfo();
     }
@@ -166,6 +199,10 @@ const ComposerEmbeddedMessage: FC<OwnProps & StateProps> = ({
     focusMessage({ chatId: message!.chatId, messageId: message!.id, noForumTopicPanel: true });
   };
   const handleMessageClick = useLastCallback((e: React.MouseEvent): void => {
+    if (suggestedPostInfo) {
+      openSuggestMessageModal({ chatId });
+      return;
+    }
     handleContextMenu(e);
   });
 
@@ -215,6 +252,9 @@ const ComposerEmbeddedMessage: FC<OwnProps & StateProps> = ({
     if (editingId) {
       return 'edit';
     }
+    if (isShowingSuggestedPost) {
+      return 'cash-circle';
+    }
     if (isForwarding) {
       return 'forward';
     }
@@ -223,7 +263,7 @@ const ComposerEmbeddedMessage: FC<OwnProps & StateProps> = ({
     }
 
     return undefined;
-  }, [editingId, isForwarding, isShowingReply]);
+  }, [editingId, isForwarding, isShowingReply, isShowingSuggestedPost]);
 
   const customText = forwardedMessagesCount && forwardedMessagesCount > 1
     ? oldLang('ForwardedMessageCount', forwardedMessagesCount)
@@ -263,9 +303,12 @@ const ComposerEmbeddedMessage: FC<OwnProps & StateProps> = ({
           isOpen={isShown}
           className="inside-input"
           replyInfo={replyInfo}
+          suggestedPostInfo={suggestedPostInfo}
+          isMediaNsfw={isMediaNsfw}
           isInComposer
           message={strippedMessage}
           sender={!noAuthors ? sender : undefined}
+          composerForwardSenders={forwardSenders}
           customText={customText}
           title={(editingId && !isShowingReply) ? oldLang('EditMessage')
             : noAuthors ? oldLang('HiddenSendersNameDescription') : undefined}
@@ -298,7 +341,6 @@ const ComposerEmbeddedMessage: FC<OwnProps & StateProps> = ({
                 <MenuItem
                   icon={!noAuthors ? 'message-succeeded' : undefined}
                   customIcon={noAuthors ? <Icon name="placeholder" /> : undefined}
-                  // eslint-disable-next-line react/jsx-no-bind
                   onClick={() => setForwardNoAuthors({
                     noAuthors: false,
                   })}
@@ -308,7 +350,6 @@ const ComposerEmbeddedMessage: FC<OwnProps & StateProps> = ({
                 <MenuItem
                   icon={noAuthors ? 'message-succeeded' : undefined}
                   customIcon={!noAuthors ? <Icon name="placeholder" /> : undefined}
-                  // eslint-disable-next-line react/jsx-no-bind
                   onClick={() => setForwardNoAuthors({
                     noAuthors: true,
                   })}
@@ -321,7 +362,6 @@ const ComposerEmbeddedMessage: FC<OwnProps & StateProps> = ({
                     <MenuItem
                       icon={!noCaptions ? 'message-succeeded' : undefined}
                       customIcon={noCaptions ? <Icon name="placeholder" /> : undefined}
-                      // eslint-disable-next-line react/jsx-no-bind
                       onClick={() => setForwardNoCaptions({
                         noCaptions: false,
                       })}
@@ -331,7 +371,6 @@ const ComposerEmbeddedMessage: FC<OwnProps & StateProps> = ({
                     <MenuItem
                       icon={noCaptions ? 'message-succeeded' : undefined}
                       customIcon={!noCaptions ? <Icon name="placeholder" /> : undefined}
-                      // eslint-disable-next-line react/jsx-no-bind
                       onClick={() => setForwardNoCaptions({
                         noCaptions: true,
                       })}
@@ -403,6 +442,7 @@ export default memo(withGlobal<OwnProps>(
 
     const draft = selectDraft(global, chatId, threadId);
     const replyInfo = draft?.replyInfo;
+    const suggestedPostInfo = draft?.suggestedPostInfo;
     const replyToPeerId = replyInfo?.replyToPeerId;
     const senderChat = replyToPeerId ? selectChat(global, replyToPeerId) : undefined;
 
@@ -417,18 +457,20 @@ export default memo(withGlobal<OwnProps>(
 
     let sender: ApiPeer | undefined;
 
+    const selectSenderFromForwardedMessage = (forwardedMessage: ApiMessage) => {
+      sender = selectForwardedSender(global, forwardedMessage);
+      if (!sender) {
+        sender = selectSender(global, forwardedMessage);
+      }
+      return sender;
+    };
+
     if (editingId && message) {
       sender = selectSender(global, message);
     } else if (isForwarding) {
-      if (message) {
-        sender = selectForwardedSender(global, message);
-        if (!sender) {
-          sender = selectSender(global, message);
-        }
-      }
-      if (!sender) {
-        sender = selectPeer(global, fromChatId!);
-      }
+      let forwardSenders = forwardedMessages?.map((m) => selectSenderFromForwardedMessage(m)).filter(Boolean);
+      forwardSenders = forwardSenders ? unique(forwardSenders) : undefined;
+      sender = forwardSenders?.length === 1 ? forwardSenders?.[0] : undefined;
     } else if (replyInfo && message && !shouldForceShowEditing) {
       const { forwardInfo } = message;
       const isChatWithSelf = selectIsChatWithSelf(global, chatId);
@@ -453,8 +495,11 @@ export default memo(withGlobal<OwnProps>(
 
     const isReplyToDiscussion = replyInfo?.replyToMsgId === threadId && !replyInfo.replyToPeerId;
 
+    const isMediaNsfw = message && selectIsMediaNsfw(global, message);
+
     return {
       replyInfo,
+      suggestedPostInfo,
       editingId,
       message,
       sender,
@@ -471,6 +516,9 @@ export default memo(withGlobal<OwnProps>(
       senderChat,
       currentUserId: global.currentUserId,
       isSenderChannel,
+      forwardMessageIds,
+      fromChatId,
+      isMediaNsfw,
     };
   },
 )(ComposerEmbeddedMessage));

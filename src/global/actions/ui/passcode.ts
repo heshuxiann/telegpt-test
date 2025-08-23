@@ -16,7 +16,6 @@ import { clearPasscodeSettings, updatePasscodeSettings } from '../../reducers';
 
 let noLockOnUnload = false;
 onBeforeUnload(() => {
-  // eslint-disable-next-line eslint-multitab-tt/no-immediate-global
   const global = getGlobal();
   if (!global.isInited) return;
   if (global.passcode.hasPasscode && !noLockOnUnload && Object.keys(global.byTabId).length === 1) {
@@ -66,7 +65,7 @@ addActionHandler('setPasscode', async (global, actions, payload): Promise<void> 
       message: 'Failed to set passcode',
       tabId,
     });
-    actions.requestNextSettingsScreen({ screen: SettingsScreens.PasscodeDisabled, tabId });
+    actions.openSettingsScreen({ screen: SettingsScreens.PasscodeDisabled, tabId });
   }
 });
 

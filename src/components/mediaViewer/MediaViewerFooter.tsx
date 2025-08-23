@@ -1,5 +1,6 @@
 import type { FC } from '../../lib/teact/teact';
-import React, { useEffect, useState } from '../../lib/teact/teact';
+import type React from '../../lib/teact/teact';
+import { useEffect, useState } from '../../lib/teact/teact';
 
 import type { TextPart } from '../../types';
 
@@ -38,7 +39,7 @@ const MediaViewerFooter: FC<OwnProps> = ({
   const isHidden = useDerivedState(() => (IS_TOUCH_ENV ? !getIsVisible() : false), [getIsVisible]);
 
   useEffect(() => {
-    const footerContent = document.querySelector('.MediaViewerFooter .media-text') as HTMLDivElement | null;
+    const footerContent = document.querySelector('.MediaViewerFooter .media-text');
 
     const checkIsMultiline = () => {
       const height = footerContent ? footerContent.clientHeight : 0;

@@ -1,5 +1,5 @@
 import type { FC, TeactNode } from '../../../lib/teact/teact';
-import React, { memo, useMemo } from '../../../lib/teact/teact';
+import { memo, useMemo } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type { ApiMessage } from '../../../api/types';
@@ -69,7 +69,6 @@ const BotKeyboardMenu: FC<OwnProps & StateProps> = ({
               <Button
                 ripple
                 disabled={button.type === 'unsupported'}
-                // eslint-disable-next-line react/jsx-no-bind
                 onClick={() => clickBotInlineButton({ chatId: message.chatId, messageId: message.id, button })}
               >
                 {buttonTexts?.[i][j]}

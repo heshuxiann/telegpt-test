@@ -47,6 +47,7 @@ import {
   buildInputPrivacyKey,
   buildInputPrivacyRules,
   buildInputUser,
+  DEFAULT_PRIMITIVES,
 } from '../gramjsBuilders';
 import { addPhotoToLocalDb } from '../helpers/localDb';
 import localDb from '../localDb';
@@ -64,9 +65,9 @@ export function updateProfile({
   about?: string;
 }) {
   return invokeRequest(new GramJs.account.UpdateProfile({
-    firstName: firstName || '',
-    lastName: lastName || '',
-    about: about || '',
+    firstName,
+    lastName,
+    about,
   }), {
     shouldReturnTrue: true,
   });
@@ -100,9 +101,9 @@ export function updateUsername(username: string) {
 }
 
 export async function updateProfilePhoto(photo?: ApiPhoto, isFallback?: boolean) {
-  const photoId = photo ? buildInputPhoto(photo) : new GramJs.InputPhotoEmpty();
+  const photoId = photo && buildInputPhoto(photo);
   const result = await invokeRequest(new GramJs.photos.UpdateProfilePhoto({
-    id: photoId,
+    id: photoId || new GramJs.InputPhotoEmpty(),
     ...(isFallback ? { fallback: true } : undefined),
   }));
   if (!result) return undefined;
@@ -235,6 +236,7 @@ export async function fetchBlockedUsers({
 }) {
   const result = await invokeRequest(new GramJs.contacts.GetBlocked({
     myStoriesFrom: isOnlyStories,
+    offset: DEFAULT_PRIMITIVES.INT,
     limit: BLOCKED_LIST_LIMIT,
   }));
   if (!result) {
@@ -523,6 +525,8 @@ export async function oldFetchLangPack({ sourceLangPacks, langCode }: {
 
 export async function fetchPrivacySettings(privacyKey: ApiPrivacyKey) {
   const key = buildInputPrivacyKey(privacyKey);
+  if (!key) return undefined;
+
   const result = await invokeRequest(new GramJs.account.GetPrivacy({ key }));
 
   if (!result) {
@@ -536,7 +540,7 @@ export async function fetchPrivacySettings(privacyKey: ApiPrivacyKey) {
 
 export function registerDevice(token: string) {
   const client = getClient();
-  const secret = client.session.getAuthKey().getKey();
+  const secret = client.session.getAuthKey().getKey()!;
   return invokeRequest(new GramJs.account.RegisterDevice({
     tokenType: 10,
     secret,
@@ -559,6 +563,7 @@ export async function setPrivacySettings(
 ) {
   const key = buildInputPrivacyKey(privacyKey);
   const privacyRules = buildInputPrivacyRules(rules);
+  if (!key) return undefined;
 
   const result = await invokeRequest(new GramJs.account.SetPrivacy({ key, rules: privacyRules }));
 
@@ -573,6 +578,178 @@ export async function setPrivacySettings(
 
 export async function updateIsOnline(isOnline: boolean) {
   await invokeRequest(new GramJs.account.UpdateStatus({ offline: !isOnline }));
+}
+
+export async function fetchContentSettings() {
+  const result = await invokeRequest(new GramJs.account.GetContentSettings());
+  if (!result) {
+    return undefined;
+  }
+
+  return {
+    isSensitiveEnabled: Boolean(result.sensitiveEnabled),
+    canChangeSensitive: Boolean(result.sensitiveCanChange),
+  };
+}
+
+export function updateContentSettings(isEnabled: boolean) {
+  return invokeRequest(new GramJs.account.SetContentSettings({
+    sensitiveEnabled: isEnabled || undefined,
+  }));
+}
+
+export async function fetchAppConfig(hash?: number): Promise<ApiAppConfig | undefined> {
+  const result = await invokeRequest(new GramJs.help.GetAppConfig({ hash: hash ?? DEFAULT_PRIMITIVES.INT }));
+  if (!result || result instanceof GramJs.help.AppConfigNotModified) return undefined;
+
+  const { config, hash: resultHash } = result;
+  return buildAppConfig(config, resultHash);
+}
+
+export async function fetchConfig(): Promise<ApiConfig | undefined> {
+  const result = await invokeRequest(new GramJs.help.GetConfig());
+  if (!result) return undefined;
+
+  return buildApiConfig(result);
+}
+
+export async function fetchPeerColors(hash?: number) {
+  const result = await invokeRequest(new GramJs.help.GetPeerColors({
+    hash: hash ?? DEFAULT_PRIMITIVES.INT,
+  }));
+  if (!result) return undefined;
+
+  const colors = buildApiPeerColors(result);
+  if (!colors) return undefined;
+
+  const newHash = result instanceof GramJs.help.PeerColors ? result.hash : undefined;
+
+  return {
+    colors,
+    hash: newHash,
+  };
+}
+
+export async function fetchTimezones(hash?: number) {
+  const result = await invokeRequest(new GramJs.help.GetTimezonesList({
+    hash: hash ?? DEFAULT_PRIMITIVES.INT,
+  }));
+  if (!result || result instanceof GramJs.help.TimezonesListNotModified) return undefined;
+
+  const timezones = result.timezones.map(buildApiTimezone);
+
+  return {
+    timezones,
+    hash: result.hash,
+  };
+}
+
+export async function fetchCountryList({ langCode = 'en' }: { langCode?: string }) {
+  const countryList = await invokeRequest(new GramJs.help.GetCountriesList({
+    langCode,
+    hash: DEFAULT_PRIMITIVES.INT,
+  }));
+
+  if (!(countryList instanceof GramJs.help.CountriesList)) {
+    return undefined;
+  }
+  return buildApiCountryList(countryList.countries);
+}
+
+export async function fetchGlobalPrivacySettings() {
+  const result = await invokeRequest(new GramJs.account.GetGlobalPrivacySettings());
+
+  if (!result) {
+    return undefined;
+  }
+
+  return {
+    shouldArchiveAndMuteNewNonContact: Boolean(result.archiveAndMuteNewNoncontactPeers),
+    shouldHideReadMarks: Boolean(result.hideReadMarks),
+    shouldNewNonContactPeersRequirePremium: Boolean(result.newNoncontactPeersRequirePremium),
+    nonContactPeersPaidStars: Number(result.noncontactPeersPaidStars),
+    shouldDisplayGiftsButton: Boolean(result.displayGiftsButton),
+    disallowedGifts: result.disallowedGifts && buildApiDisallowedGiftsSettings(result.disallowedGifts),
+  };
+}
+
+export async function updateGlobalPrivacySettings({
+  shouldArchiveAndMuteNewNonContact,
+  shouldHideReadMarks,
+  shouldNewNonContactPeersRequirePremium,
+  nonContactPeersPaidStars,
+  shouldDisplayGiftsButton,
+  disallowedGifts,
+}: {
+  shouldArchiveAndMuteNewNonContact?: boolean;
+  shouldHideReadMarks?: boolean;
+  shouldNewNonContactPeersRequirePremium?: boolean;
+  nonContactPeersPaidStars?: number | null;
+  shouldDisplayGiftsButton?: boolean;
+  disallowedGifts?: ApiDisallowedGiftsSettings;
+}) {
+  const result = await invokeRequest(new GramJs.account.SetGlobalPrivacySettings({
+    settings: new GramJs.GlobalPrivacySettings({
+      ...(shouldArchiveAndMuteNewNonContact && { archiveAndMuteNewNoncontactPeers: true }),
+      ...(shouldHideReadMarks && { hideReadMarks: true }),
+      ...(shouldNewNonContactPeersRequirePremium && { newNoncontactPeersRequirePremium: true }),
+      displayGiftsButton: shouldDisplayGiftsButton || undefined,
+      noncontactPeersPaidStars: BigInt(nonContactPeersPaidStars || 0),
+      disallowedGifts: disallowedGifts && buildDisallowedGiftsSettings(disallowedGifts),
+    }),
+  }));
+
+  if (!result) {
+    return undefined;
+  }
+
+  return {
+    shouldArchiveAndMuteNewNonContact: Boolean(result.archiveAndMuteNewNoncontactPeers),
+    shouldHideReadMarks: Boolean(result.hideReadMarks),
+    shouldNewNonContactPeersRequirePremium: Boolean(result.newNoncontactPeersRequirePremium),
+    nonContactPeersPaidStars: Number(result.noncontactPeersPaidStars),
+    shouldDisplayGiftsButton,
+    disallowedGifts,
+  };
+}
+
+export function toggleUsername({
+  chatId, accessHash, username, isActive,
+}: {
+  username: string;
+  isActive: boolean;
+  chatId?: string;
+  accessHash?: string;
+}) {
+  if (chatId) {
+    return invokeRequest(new GramJs.channels.ToggleUsername({
+      channel: buildInputChannel(chatId, accessHash),
+      username,
+      active: isActive,
+    }));
+  }
+
+  return invokeRequest(new GramJs.account.ToggleUsername({
+    username,
+    active: isActive,
+  }));
+}
+
+export function reorderUsernames({ chatId, accessHash, usernames }: {
+  usernames: string[];
+  chatId?: string;
+  accessHash?: string;
+}) {
+  if (chatId) {
+    return invokeRequest(new GramJs.channels.ReorderUsernames({
+      channel: buildInputChannel(chatId, accessHash),
+      order: usernames,
+    }));
+  }
+
+  return invokeRequest(new GramJs.account.ReorderUsernames({
+    order: usernames,
+  }));
 }
 
 export async function fetchContentSettings() {

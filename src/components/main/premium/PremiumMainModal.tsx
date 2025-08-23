@@ -1,23 +1,26 @@
-import type { FC } from '../../../lib/teact/teact';
-import React, {
-  memo, useEffect, useMemo, useRef, useState,
-} from '../../../lib/teact/teact';
+import type { FC } from '@teact';
+import { memo, useEffect, useMemo, useRef, useState } from '@teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type {
-  ApiPremiumPromo, ApiPremiumSection, ApiPremiumSubscriptionOption, ApiSticker, ApiStickerSet, ApiUser,
+  ApiPremiumPromo,
+  ApiPremiumSection,
+  ApiPremiumSubscriptionOption,
+  ApiStarGift,
+  ApiSticker,
+  ApiStickerSet,
+  ApiUser,
 } from '../../../api/types';
 import type { GlobalState } from '../../../global/types';
+import type { LangPair } from '../../../types/language';
 
 import { PREMIUM_FEATURE_SECTIONS, TME_LINK_PREFIX } from '../../../config';
 import { getUserFullName } from '../../../global/helpers';
-import {
-  selectIsCurrentUserPremium, selectStickerSet,
-  selectTabState, selectUser,
-} from '../../../global/selectors';
+import { selectIsCurrentUserPremium, selectStickerSet, selectTabState, selectUser } from '../../../global/selectors';
 import { selectPremiumLimit } from '../../../global/selectors/limits';
 import buildClassName from '../../../util/buildClassName';
 import { formatCurrency } from '../../../util/formatCurrency';
+import { getStickerFromGift } from '../../common/helpers/gifts';
 import { REM } from '../../common/helpers/mediaDimensions';
 import renderText from '../../common/helpers/renderText';
 import { renderTextWithEntities } from '../../common/helpers/renderTextWithEntities';
@@ -29,14 +32,12 @@ import useSyncEffect from '../../../hooks/useSyncEffect';
 
 import CustomEmoji from '../../common/CustomEmoji';
 import Icon from '../../common/icons/Icon';
+import ParticlesHeader from '../../modals/common/ParticlesHeader.tsx';
 import Button from '../../ui/Button';
 import Modal from '../../ui/Modal';
 import Transition from '../../ui/Transition';
 import PremiumFeatureItem from './PremiumFeatureItem';
-import PremiumFeatureModal, {
-  PREMIUM_FEATURE_DESCRIPTIONS,
-  PREMIUM_FEATURE_TITLES,
-} from './PremiumFeatureModal';
+import PremiumFeatureModal, { PREMIUM_FEATURE_DESCRIPTIONS, PREMIUM_FEATURE_TITLES } from './PremiumFeatureModal';
 import PremiumSubscriptionOption from './PremiumSubscriptionOption';
 
 import styles from './PremiumMainModal.module.scss';
@@ -49,7 +50,6 @@ import PremiumEmoji from '../../../assets/premium/PremiumEmoji.svg';
 import PremiumFile from '../../../assets/premium/PremiumFile.svg';
 import PremiumLastSeen from '../../../assets/premium/PremiumLastSeen.svg';
 import PremiumLimits from '../../../assets/premium/PremiumLimits.svg';
-import PremiumLogo from '../../../assets/premium/PremiumLogo.svg';
 import PremiumMessagePrivacy from '../../../assets/premium/PremiumMessagePrivacy.svg';
 import PremiumReactions from '../../../assets/premium/PremiumReactions.svg';
 import PremiumSpeed from '../../../assets/premium/PremiumSpeed.svg';
@@ -82,6 +82,7 @@ const PREMIUM_FEATURE_COLOR_ICONS: Record<ApiPremiumSection, string> = {
   last_seen: PremiumLastSeen,
   message_privacy: PremiumMessagePrivacy,
   effects: PremiumEffects,
+  todo: PremiumBadge,
 };
 
 export type OwnProps = {
@@ -100,6 +101,7 @@ type StateProps = {
   isSuccess?: boolean;
   isGift?: boolean;
   monthsAmount?: number;
+  gift?: ApiStarGift;
   limitChannels: number;
   limitPins: number;
   limitLinks: number;
@@ -131,9 +133,9 @@ const PremiumMainModal: FC<OwnProps & StateProps> = ({
   toUser,
   monthsAmount,
   premiumPromoOrder,
+  gift,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>();
   const {
     closePremiumModal, openInvoice, requestConfetti, openTelegramLink, loadStickers, openStickerSet,
   } = getActions();
@@ -148,8 +150,10 @@ const PremiumMainModal: FC<OwnProps & StateProps> = ({
     if (!isOpen) {
       setHeaderHidden(true);
       setCurrentSection(undefined);
+    } else if (initialSection) {
+      setCurrentSection(initialSection);
     }
-  }, [isOpen]);
+  }, [isOpen, initialSection]);
 
   const handleOpenSection = useLastCallback((section: ApiPremiumSection) => {
     setCurrentSection(section);
@@ -273,6 +277,10 @@ const PremiumMainModal: FC<OwnProps & StateProps> = ({
   if (!promo || (fromUserStatusEmoji && !fromUserStatusSet)) return undefined;
 
   function getHeaderText() {
+    if (gift) {
+      return lang('PremiumGiftHeader');
+    }
+
     if (isGift) {
       return renderText(
         fromUser?.id === currentUserId
@@ -291,7 +299,8 @@ const PremiumMainModal: FC<OwnProps & StateProps> = ({
       ) : undefined;
       const link = (
         <span className={styles.stickerSetLink} onClick={handleOpenStatusSet}>
-          {emoji}{renderText(fromUserStatusSet.title)}
+          {emoji}
+          {renderText(fromUserStatusSet.title)}
         </span>
       );
       return [renderText(first), link, renderText(second)];
@@ -306,6 +315,11 @@ const PremiumMainModal: FC<OwnProps & StateProps> = ({
   }
 
   function getHeaderDescription() {
+    if (gift) {
+      const perUserTotal = gift.type !== 'starGiftUnique' ? gift.perUserTotal : 0;
+      return lang('DescriptionGiftPremiumRequired', { count: perUserTotal });
+    }
+
     if (isGift) {
       return fromUser?.id === currentUserId
         ? oldLang('TelegramPremiumUserGiftedPremiumOutboundDialogSubtitle', getUserFullName(toUser))
@@ -319,6 +333,52 @@ const PremiumMainModal: FC<OwnProps & StateProps> = ({
     return fromUser
       ? oldLang('TelegramPremiumUserDialogSubtitle')
       : oldLang(isPremium ? 'TelegramPremiumSubscribedSubtitle' : 'TelegramPremiumSubtitle');
+  }
+
+  function renderHeader() {
+    if (gift) {
+      const giftSticker = getStickerFromGift(gift);
+      return (
+        <ParticlesHeader
+          model="sticker"
+          sticker={giftSticker}
+          color="purple"
+          title={getHeaderText()}
+          description={renderText(getHeaderDescription(), ['simple_markdown', 'emoji'])}
+          className={styles.giftParticlesHeader}
+        />
+      );
+    }
+
+    if (!fromUserStatusEmoji) {
+      return (
+        <ParticlesHeader
+          model="swaying-star"
+          color="purple"
+          title={getHeaderText()}
+          description={renderText(getHeaderDescription(), ['simple_markdown', 'emoji'])}
+          className={styles.starParticlesHeader}
+        />
+      );
+    }
+
+    return (
+      <>
+        <CustomEmoji
+          className={styles.statusEmoji}
+          onClick={handleOpenStatusSet}
+          documentId={fromUserStatusEmoji.id}
+          isBig
+          size={STATUS_EMOJI_SIZE}
+        />
+        <h2 className={buildClassName(styles.headerText, fromUserStatusSet && styles.stickerSetText)}>
+          {getHeaderText()}
+        </h2>
+        <div className={styles.description}>
+          {renderText(getHeaderDescription(), ['simple_markdown', 'emoji'])}
+        </div>
+      </>
+    );
   }
 
   function renderFooterText() {
@@ -369,29 +429,12 @@ const PremiumMainModal: FC<OwnProps & StateProps> = ({
               size="smaller"
               className={styles.closeButton}
               color="translucent"
-              // eslint-disable-next-line react/jsx-no-bind
               onClick={() => closePremiumModal()}
               ariaLabel={oldLang('Close')}
             >
               <Icon name="close" />
             </Button>
-            {(fromUserStatusEmoji && !isGift) ? (
-              <CustomEmoji
-                className={styles.statusEmoji}
-                onClick={handleOpenStatusSet}
-                documentId={fromUserStatusEmoji.id}
-                isBig
-                size={STATUS_EMOJI_SIZE}
-              />
-            ) : (
-              <img className={styles.logo} src={PremiumLogo} alt="" draggable={false} />
-            )}
-            <h2 className={buildClassName(styles.headerText, fromUserStatusSet && styles.stickerSetText)}>
-              {getHeaderText()}
-            </h2>
-            <div className={styles.description}>
-              {renderText(getHeaderDescription(), ['simple_markdown', 'emoji'])}
-            </div>
+            {renderHeader()}
             {!isPremium && !isGift && renderSubscriptionOptions()}
             <div className={buildClassName(styles.header, isHeaderHidden && styles.hiddenHeader)}>
               <h2 className={styles.premiumHeaderText}>
@@ -400,14 +443,19 @@ const PremiumMainModal: FC<OwnProps & StateProps> = ({
             </div>
             <div className={buildClassName(styles.list, isPremium && styles.noButton)}>
               {filteredSections.map((section, index) => {
+                const shouldUseNewLang = section === 'todo';
                 return (
                   <PremiumFeatureItem
                     key={section}
-                    title={oldLang(PREMIUM_FEATURE_TITLES[section])}
+                    title={shouldUseNewLang
+                      ? lang(PREMIUM_FEATURE_TITLES[section] as keyof LangPair)
+                      : oldLang(PREMIUM_FEATURE_TITLES[section])}
                     text={section === 'double_limits'
                       ? oldLang(PREMIUM_FEATURE_DESCRIPTIONS[section],
                         [limitChannels, limitFolders, limitPins, limitLinks, LIMIT_ACCOUNTS])
-                      : oldLang(PREMIUM_FEATURE_DESCRIPTIONS[section])}
+                      : shouldUseNewLang
+                        ? lang(PREMIUM_FEATURE_DESCRIPTIONS[section] as keyof LangPair)
+                        : oldLang(PREMIUM_FEATURE_DESCRIPTIONS[section])}
                     icon={PREMIUM_FEATURE_COLOR_ICONS[section]}
                     index={index}
                     count={filteredSections.length}
@@ -471,6 +519,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     isSuccess: premiumModal?.isSuccess,
     isGift: premiumModal?.isGift,
     monthsAmount: premiumModal?.monthsAmount,
+    gift: premiumModal?.gift,
     fromUser,
     fromUserStatusEmoji,
     fromUserStatusSet,

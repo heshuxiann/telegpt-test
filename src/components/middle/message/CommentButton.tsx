@@ -1,5 +1,5 @@
 import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useMemo } from '../../../lib/teact/teact';
+import { memo, useMemo } from '../../../lib/teact/teact';
 import { getActions, getGlobal } from '../../../global';
 
 import type { ApiCommentsInfo } from '../../../api/types';
@@ -79,7 +79,7 @@ const CommentButton: FC<OwnProps> = ({
     return (
       Boolean(recentRepliers?.length) && (
         <div className="recent-repliers" dir={oldLang.isRtl ? 'rtl' : 'ltr'}>
-          {recentRepliers!.map((peer) => (
+          {recentRepliers.map((peer) => (
             <Avatar
               key={peer.id}
               size="small"
@@ -137,7 +137,7 @@ const CommentButton: FC<OwnProps> = ({
             )}
             color={isCustomShape ? 'white' : 'blue'}
           />
-        ) }
+        )}
         <Icon
           name="next"
           className={buildClassName(

@@ -11,6 +11,7 @@ import { MAIN_THREAD_ID } from '../../../api/types';
 
 import { SERVICE_NOTIFICATIONS_USER_ID } from '../../../config';
 import { areDeepEqual } from '../../../util/areDeepEqual';
+import { isUserId } from '../../../util/entities/ids';
 import { getCurrentTabId } from '../../../util/establishMultitabRole';
 import {
   buildCollectionByKey, omit, pickTruthy, unique,
@@ -22,7 +23,7 @@ import { getServerTime } from '../../../util/serverTime';
 import {
   addPaidReaction,
   checkIfHasUnreadReactions, getIsSavedDialog, getMessageContent, getMessageText, isActionMessage,
-  isMessageLocal, isUserId,
+  isMessageLocal,
 } from '../../helpers';
 import { getMessageReplyInfo, getStoryReplyInfo } from '../../helpers/replies';
 import {
@@ -42,6 +43,7 @@ import {
   deleteTopic,
   removeChatFromChatLists,
   replaceThreadParam,
+  replaceWebPage,
   updateChat,
   updateChatLastMessageId,
   updateChatMediaLoadingState,
@@ -100,7 +102,7 @@ addActionHandler('apiUpdate', (global, actions, update): ActionReturnType => {
   switch (update['@type']) {
     case 'newMessage': {
       const {
-        chatId, id, message, shouldForceReply, wasDrafted, poll,
+        chatId, id, message, shouldForceReply, wasDrafted, poll, webPage,
       } = update;
       global = updateWithLocalMedia(global, chatId, id, message);
       global = updateListedAndViewportIds(global, actions, message as ApiMessage);
@@ -168,6 +170,10 @@ addActionHandler('apiUpdate', (global, actions, update): ActionReturnType => {
         global = updatePoll(global, poll.id, poll);
       }
 
+      if (webPage) {
+        global = replaceWebPage(global, webPage.id, webPage);
+      }
+
       if (message.reportDeliveryUntilDate && message.reportDeliveryUntilDate > getServerTime()) {
         actions.reportMessageDelivery({ chatId, messageId: id });
       }
@@ -227,7 +233,7 @@ addActionHandler('apiUpdate', (global, actions, update): ActionReturnType => {
 
     case 'newScheduledMessage': {
       const {
-        chatId, id, message, poll,
+        chatId, id, message, poll, webPage,
       } = update;
 
       global = updateWithLocalMedia(global, chatId, id, message, true);
@@ -245,6 +251,10 @@ addActionHandler('apiUpdate', (global, actions, update): ActionReturnType => {
         global = updatePoll(global, poll.id, poll);
       }
 
+      if (webPage) {
+        global = replaceWebPage(global, webPage.id, webPage);
+      }
+
       global = updatePeerFullInfo(global, chatId, {
         hasScheduledMessages: true,
       });
@@ -254,22 +264,67 @@ addActionHandler('apiUpdate', (global, actions, update): ActionReturnType => {
       break;
     }
 
+    case 'updateScheduledMessage': {
+      const {
+        chatId, id, message, poll, webPage, isFromNew,
+      } = update;
+
+      const currentMessage = selectScheduledMessage(global, chatId, id);
+      if (!currentMessage) {
+        if (isFromNew) {
+          actions.apiUpdate({
+            '@type': 'newScheduledMessage',
+            id: update.id,
+            chatId: update.chatId,
+            message: update.message as ApiMessage,
+            poll: update.poll,
+            webPage: update.webPage,
+          });
+        }
+        return;
+      }
+
+      global = updateWithLocalMedia(global, chatId, id, message, true);
+      const ids = Object.keys(selectChatScheduledMessages(global, chatId) || {}).map(Number).sort((a, b) => b - a);
+      global = replaceThreadParam(global, chatId, MAIN_THREAD_ID, 'scheduledIds', ids);
+
+      const threadId = selectThreadIdFromMessage(global, currentMessage);
+      if (threadId !== MAIN_THREAD_ID) {
+        const threadScheduledIds = selectScheduledIds(global, chatId, threadId) || [];
+        global = replaceThreadParam(global, chatId, threadId, 'scheduledIds', threadScheduledIds.sort((a, b) => b - a));
+      }
+      if (poll) {
+        global = updatePoll(global, poll.id, poll);
+      }
+
+      if (webPage) {
+        global = replaceWebPage(global, webPage.id, webPage);
+      }
+
+      setGlobal(global);
+
+      break;
+    }
+
     case 'updateMessage': {
       const {
-        chatId, id, message, poll, shouldCreateMessageIfNeeded, shouldForceReply,
+        chatId, id, message, poll, webPage, isFromNew, shouldForceReply,
       } = update;
 
       const currentMessage = selectChatMessage(global, chatId, id);
 
-      if (shouldCreateMessageIfNeeded && !currentMessage) {
-        actions.apiUpdate({
-          '@type': 'newMessage',
-          id: update.id,
-          chatId: update.chatId,
-          message: update.message,
-          poll: update.poll,
-          shouldForceReply,
-        });
+      if (!currentMessage) {
+        if (isFromNew) {
+          actions.apiUpdate({
+            '@type': 'newMessage',
+            id: update.id,
+            chatId: update.chatId,
+            message: update.message,
+            poll: update.poll,
+            webPage: update.webPage,
+            shouldForceReply,
+          });
+        }
         return;
       }
 
@@ -293,32 +348,8 @@ addActionHandler('apiUpdate', (global, actions, update): ActionReturnType => {
         global = updatePoll(global, poll.id, poll);
       }
 
-      setGlobal(global);
-
-      break;
-    }
-
-    case 'updateScheduledMessage': {
-      const {
-        chatId, id, message, poll,
-      } = update;
-
-      const currentMessage = selectScheduledMessage(global, chatId, id);
-      if (!currentMessage) {
-        return;
-      }
-
-      global = updateWithLocalMedia(global, chatId, id, message, true);
-      const ids = Object.keys(selectChatScheduledMessages(global, chatId) || {}).map(Number).sort((a, b) => b - a);
-      global = replaceThreadParam(global, chatId, MAIN_THREAD_ID, 'scheduledIds', ids);
-
-      const threadId = selectThreadIdFromMessage(global, currentMessage);
-      if (threadId !== MAIN_THREAD_ID) {
-        const threadScheduledIds = selectScheduledIds(global, chatId, threadId) || [];
-        global = replaceThreadParam(global, chatId, threadId, 'scheduledIds', threadScheduledIds.sort((a, b) => b - a));
-      }
-      if (poll) {
-        global = updatePoll(global, poll.id, poll);
+      if (webPage) {
+        global = replaceWebPage(global, webPage.id, webPage);
       }
 
       setGlobal(global);
@@ -327,12 +358,16 @@ addActionHandler('apiUpdate', (global, actions, update): ActionReturnType => {
     }
 
     case 'updateQuickReplyMessage': {
-      const { id, message, poll } = update;
+      const { id, message, poll, webPage } = update;
 
       global = updateQuickReplyMessage(global, id, message);
 
       if (poll) {
         global = updatePoll(global, poll.id, poll);
+      }
+
+      if (webPage) {
+        global = replaceWebPage(global, webPage.id, webPage);
       }
 
       setGlobal(global);
@@ -412,7 +447,7 @@ addActionHandler('apiUpdate', (global, actions, update): ActionReturnType => {
         chatId, localId, message, poll,
       } = update;
 
-      global = updateListedAndViewportIds(global, actions, message as ApiMessage);
+      global = updateListedAndViewportIds(global, actions, message);
 
       const currentMessage = selectChatMessage(global, chatId, localId);
 
@@ -854,6 +889,14 @@ addActionHandler('apiUpdate', (global, actions, update): ActionReturnType => {
       setGlobal(global);
       break;
     }
+
+    case 'failedMessageTranslations': {
+      const { chatId, messageIds, toLanguageCode } = update;
+
+      global = updateMessageTranslations(global, chatId, messageIds, toLanguageCode, []);
+
+      setGlobal(global);
+    }
   }
 });
 
@@ -928,7 +971,7 @@ function updateReactions<T extends GlobalState>(
   return global;
 }
 
-function updateWithLocalMedia(
+export function updateWithLocalMedia(
   global: RequiredGlobalState,
   chatId: string,
   id: number,
@@ -1075,6 +1118,11 @@ function updateChatLastMessage<T extends GlobalState>(
       lastMessageId: message.id,
     });
   }
+
+  const threadId = selectThreadIdFromMessage(global, message);
+  global = updateThreadInfo(global, chatId, threadId, {
+    lastMessageId: message.id,
+  });
 
   const savedDialogId = selectSavedDialogIdFromMessage(global, message);
   if (savedDialogId) {

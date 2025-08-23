@@ -1,5 +1,5 @@
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useCallback, useMemo, useRef,
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
@@ -31,7 +31,6 @@ const DEFAULT_REACTION_SIZE = 1.5 * REM;
 
 type OwnProps = {
   isActive?: boolean;
-  onScreenSelect: (screen: SettingsScreens) => void;
   onReset: () => void;
 };
 
@@ -58,16 +57,15 @@ const SettingsStickers: FC<OwnProps & StateProps> = ({
   availableReactions,
   canPlayAnimatedEmojis,
   onReset,
-  onScreenSelect,
 }) => {
   const {
     setSettingOption,
     openStickerSet,
+    openSettingsScreen,
   } = getActions();
   const lang = useOldLang();
 
-  // eslint-disable-next-line no-null/no-null
-  const stickerSettingsRef = useRef<HTMLDivElement>(null);
+  const stickerSettingsRef = useRef<HTMLDivElement>();
   const { observe: observeIntersectionForCovers } = useIntersectionObserver({ rootRef: stickerSettingsRef });
 
   const handleStickerSetClick = useCallback((sticker: ApiSticker) => {
@@ -103,8 +101,8 @@ const SettingsStickers: FC<OwnProps & StateProps> = ({
         />
         <ListItem
           narrow
-          // eslint-disable-next-line react/jsx-no-bind
-          onClick={() => onScreenSelect(SettingsScreens.CustomEmoji)}
+
+          onClick={() => openSettingsScreen({ screen: SettingsScreens.CustomEmoji })}
           icon="smile"
         >
           {lang('StickersList.EmojiItem')}
@@ -114,8 +112,8 @@ const SettingsStickers: FC<OwnProps & StateProps> = ({
           <ListItem
             className="SettingsDefaultReaction"
             narrow
-            // eslint-disable-next-line react/jsx-no-bind
-            onClick={() => onScreenSelect(SettingsScreens.QuickReaction)}
+
+            onClick={() => openSettingsScreen({ screen: SettingsScreens.QuickReaction })}
           >
             <ReactionStaticEmoji
               reaction={defaultReaction}

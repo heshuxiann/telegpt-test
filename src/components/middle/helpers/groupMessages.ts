@@ -91,6 +91,7 @@ export function groupMessages(
         nextMessage.id === firstUnreadId
         || message.senderId !== nextMessage.senderId
         || (!withUsers && message.paidMessageStars)
+        || (nextMessage.suggestedPostInfo)
         || message.isOutgoing !== nextMessage.isOutgoing
         || message.postAuthorTitle !== nextMessage.postAuthorTitle
         || (isActionMessage(message) && message.content.action?.type !== 'phoneCall')
@@ -103,8 +104,8 @@ export function groupMessages(
             || (lastMessageInSenderGroup
               && 'mainMessage' in lastMessageInSenderGroup
               && lastMessageInSenderGroup.mainMessage?.id === topMessageId))
-          && nextMessage.id !== topMessageId)
-        || (isChatWithSelf && message.forwardInfo?.fromId !== nextMessage.forwardInfo?.fromId)
+            && nextMessage.id !== topMessageId)
+          || (isChatWithSelf && message.forwardInfo?.fromId !== nextMessage.forwardInfo?.fromId)
       ) {
         currentDateGroup.senderGroups.push([]);
       }

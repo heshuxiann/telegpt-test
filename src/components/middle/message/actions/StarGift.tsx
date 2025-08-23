@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useRef } from '../../../../lib/teact/teact';
+import { memo, useMemo, useRef } from '@teact';
 import { withGlobal } from '../../../../global';
 
 import type { ApiMessage, ApiPeer } from '../../../../api/types';
@@ -12,6 +12,7 @@ import {
   selectSender,
   selectUser,
 } from '../../../../global/selectors';
+import { IS_TOUCH_ENV } from '../../../../util/browser/windowEnvironment.ts';
 import buildClassName from '../../../../util/buildClassName';
 import { formatStarsAsText } from '../../../../util/localization/format';
 import { getServerTime } from '../../../../util/serverTime';
@@ -21,6 +22,7 @@ import { renderTextWithEntities } from '../../../common/helpers/renderTextWithEn
 import { renderPeerLink, translateWithYou } from '../helpers/messageActions';
 
 import useDynamicColorListener from '../../../../hooks/stickers/useDynamicColorListener';
+import useFlag from '../../../../hooks/useFlag.ts';
 import { type ObserveFn } from '../../../../hooks/useIntersectionObserver';
 import useLang from '../../../../hooks/useLang';
 
@@ -58,11 +60,11 @@ const StarGiftAction = ({
   observeIntersectionForLoading,
   observeIntersectionForPlaying,
 }: OwnProps & StateProps) => {
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const stickerRef = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
+  const stickerRef = useRef<HTMLDivElement>();
   const lang = useLang();
+
+  const [isHover, markHover, unmarkHover] = useFlag();
 
   const { isOutgoing } = message;
 
@@ -121,10 +123,12 @@ const StarGiftAction = ({
   return (
     <div
       ref={ref}
-      className={buildClassName(styles.contentBox, styles.starGift)}
+      className={buildClassName('interactive-gift', styles.contentBox, styles.starGift)}
       tabIndex={0}
       role="button"
       onClick={onClick}
+      onMouseEnter={!IS_TOUCH_ENV ? markHover : undefined}
+      onMouseLeave={!IS_TOUCH_ENV ? unmarkHover : undefined}
     >
       <div
         ref={stickerRef}
@@ -136,13 +140,14 @@ const StarGiftAction = ({
             containerRef={stickerRef}
             sticker={sticker}
             size={STICKER_SIZE}
+            shouldLoop={isHover}
             observeIntersectionForLoading={observeIntersectionForLoading}
             observeIntersectionForPlaying={observeIntersectionForPlaying}
             noLoad={!canPlayAnimatedEmojis}
           />
         )}
       </div>
-      {action.gift.availabilityTotal && (
+      {Boolean(action.gift.availabilityTotal) && (
         <GiftRibbon
           color={backgroundColor || 'blue'}
           text={lang('ActionStarGiftLimitedRibbon', {

@@ -9,7 +9,6 @@ import type { Message } from 'ai';
 import { toBlob } from 'html-to-image';
 import { getGlobal } from '../../../global';
 
-import { isUserId } from '../../../global/helpers';
 import {
   selectChat, selectCurrentMessageList, selectUser,
 } from '../../../global/selectors';
@@ -27,6 +26,7 @@ import SerenaPath from '../assets/serena.png';
 import ShareHeaderBg from '../assets/share-header-bg.png';
 import UserIcon from '../assets/user.png';
 import WriteIcon from '../assets/write.png';
+import { isUserId } from '../../../util/entities/ids';
 
 interface IProps {
   message: Message;

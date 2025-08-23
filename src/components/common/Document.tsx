@@ -1,4 +1,4 @@
-import React, {
+import {
   memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 import { getActions } from '../../global';
@@ -6,6 +6,7 @@ import { getActions } from '../../global';
 import type { ApiDocument, ApiMessage } from '../../api/types';
 import type { ObserveFn } from '../../hooks/useIntersectionObserver';
 
+import { SVG_EXTENSIONS } from '../../config';
 import {
   getDocumentMediaHash,
   getMediaFormat,
@@ -53,7 +54,6 @@ type OwnProps = {
 });
 
 const BYTES_PER_MB = 1024 * 1024;
-const SVG_EXTENSIONS = new Set(['svg', 'svgz']);
 
 const Document = ({
   document,
@@ -78,8 +78,7 @@ const Document = ({
 }: OwnProps) => {
   const { cancelMediaDownload, downloadMedia, setSharedSettingOption } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
 
   const lang = useOldLang();
   const [isSvgDialogOpen, openSvgDialog, closeSvgDialog] = useFlag();
@@ -147,7 +146,7 @@ const Document = ({
     }
 
     if (withMediaViewer) {
-      onMediaClick!();
+      onMediaClick();
       return;
     }
 

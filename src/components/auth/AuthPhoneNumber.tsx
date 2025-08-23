@@ -1,6 +1,7 @@
 import type { ChangeEvent } from 'react';
 import type { FC } from '../../lib/teact/teact';
-import React, {
+import type React from '../../lib/teact/teact';
+import {
   memo, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
@@ -42,6 +43,7 @@ type StateProps = Pick<GlobalState, (
 )> & {
   language?: string;
   phoneCodeList: ApiCountryCode[];
+  isTestServer?: boolean;
 };
 
 const MIN_NUMBER_LENGTH = 7;
@@ -59,6 +61,7 @@ const AuthPhoneNumber: FC<StateProps> = ({
   authNearestCountry,
   phoneCodeList,
   language,
+  isTestServer,
 }) => {
   const {
     setAuthPhoneNumber,
@@ -71,8 +74,7 @@ const AuthPhoneNumber: FC<StateProps> = ({
   } = getActions();
 
   const lang = useLang();
-  // eslint-disable-next-line no-null/no-null
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>();
   const suggestedLanguage = getSuggestedLanguage();
 
   const isConnected = connectionState === 'connectionStateReady';
@@ -87,11 +89,12 @@ const AuthPhoneNumber: FC<StateProps> = ({
   const hasActiveAccount = Object.values(accountsInfo).length > 0;
   const phoneNumberSlots = useMemo(() => (
     Object.entries(accountsInfo)
+      .filter(([, info]) => info.isTest === isTestServer)
       .reduce((acc, [key, { phone }]) => {
         if (phone) acc[phone] = Number(key);
         return acc;
       }, {} as Record<string, number>)
-  ), [accountsInfo]);
+  ), [accountsInfo, isTestServer]);
 
   const fullNumber = country ? `+${country.countryCode} ${phoneNumber || ''}` : phoneNumber;
   const canSubmit = fullNumber && fullNumber.replace(/[^\d]+/g, '').length >= MIN_NUMBER_LENGTH;
@@ -129,8 +132,8 @@ const AuthPhoneNumber: FC<StateProps> = ({
 
     // Any phone numbers should be allowed, in some cases ignoring formatting
     const selectedCountry = !country
-    || (suggestedCountry && suggestedCountry.iso2 !== country.iso2)
-    || (!suggestedCountry && newFullNumber.length)
+      || (suggestedCountry && suggestedCountry.iso2 !== country.iso2)
+      || (!suggestedCountry && newFullNumber.length)
       ? suggestedCountry
       : country;
 
@@ -204,11 +207,11 @@ const AuthPhoneNumber: FC<StateProps> = ({
       IS_SAFARI && country && fullNumber !== undefined
       && value.length - fullNumber.length > 1 && !isJustPastedRef.current
     );
-    parseFullNumber(shouldFixSafariAutoComplete ? `${country!.countryCode} ${value}` : value);
+    parseFullNumber(shouldFixSafariAutoComplete ? `${country.countryCode} ${value}` : value);
   });
 
   const handleKeepSessionChange = useLastCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setAuthRememberMe(e.target.checked);
+    setAuthRememberMe({ value: e.target.checked });
   });
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -271,14 +274,37 @@ const AuthPhoneNumber: FC<StateProps> = ({
           />
           {canSubmit && (
             isAuthReady ? (
-              <Button size="smaller" type="submit" ripple isLoading={authIsLoading}>{lang('LoginNext')}</Button>
+              <Button
+                className="auth-button"
+                type="submit"
+                ripple
+                isLoading={authIsLoading}
+              >
+                {lang('LoginNext')}
+              </Button>
             ) : (
               <Loading />
             )
           )}
           {isAuthReady && (
-            <Button size="smaller" isText ripple isLoading={authIsLoadingQrCode} onClick={handleGoToAuthQrCode}>
+            <Button
+              className="auth-button"
+              isText
+              ripple
+              isLoading={authIsLoadingQrCode}
+              onClick={handleGoToAuthQrCode}
+            >
               {lang('LoginQRLogin')}
+            </Button>
+          )}
+          {suggestedLanguage && suggestedLanguage !== language && continueText && (
+            <Button
+              className="auth-button"
+              isText
+              isLoading={isLoading}
+              onClick={handleLangChange}
+            >
+              {continueText}
             </Button>
           )}
           {suggestedLanguage && suggestedLanguage !== language && continueText && (
@@ -295,6 +321,7 @@ export default memo(withGlobal(
     const {
       sharedState: { settings: { language } },
       countryList: { phoneCodes: phoneCodeList },
+      config,
     } = global;
 
     return {
@@ -310,6 +337,7 @@ export default memo(withGlobal(
       ]),
       language,
       phoneCodeList,
+      isTestServer: config?.isTestServer,
     };
   },
 )(AuthPhoneNumber));

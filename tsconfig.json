@@ -14,12 +14,19 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "allowImportingTsExtensions": true,
+    "noImplicitReturns": true,
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react"
+    "jsx": "react-jsx",
+    "jsxImportSource": "@teact",
+    "paths": {
+      "@teact": ["./src/lib/teact/teact.ts"],
+      "@teact/*": ["./src/lib/teact/*"]
+    }
   },
   "include": [
     "src",
@@ -30,5 +37,10 @@
     "webpack-electron.config.ts",
     "babel.config.js",
     "tailwind.config.js",
+    "eslint.config.mjs",
+    ".fantasticonrc.cjs",
+    "playwright.config.ts",
+    "jest.config.js",
+    ".github/workflows/*.js"
   ]
 }

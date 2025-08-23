@@ -132,7 +132,7 @@ function updateErrorOffsetsWithInvalidateInner(
 }
 
 export function useGrammarChecker(
-  inputRef: React.RefObject<HTMLElement | null>,
+  inputRef: React.RefObject<HTMLElement | undefined>,
   getHtml: Signal<string>,
   setHtml: (newValue: string) => void,
   {

@@ -1,6 +1,6 @@
 import cx from 'classnames';
 import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useState } from '../../../lib/teact/teact';
+import { memo, useState } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type { ApiMessage } from '../../../api/types';
@@ -8,13 +8,14 @@ import type { MessageListType } from '../../../types';
 
 import eventEmitter from '../lib/EventEmitter';
 import {
-  getMessageContent, hasMessageText, isOwnMessage, isUserId, isUserRightBanned,
+  getMessageContent, hasMessageText, isOwnMessage, isUserRightBanned,
 } from '../../../global/helpers';
 import {
   selectAllowedMessageActionsSlow, selectCanTranslateMessage, selectChat, selectChatFullInfo, selectCurrentMessageList,
   selectMessageTranslations,
   selectRequestedMessageTranslationLanguage,
 } from '../../../global/selectors';
+import { isUserId } from '../../../util/entities/ids';
 import {
   audioSummary, canSummarize,
   checkIsUrl, documentSummary, photoSummary, videoSummary, voiceToAudioSummary, webPageSummary,
@@ -37,20 +38,20 @@ import SerenaPath from '../assets/serena.png';
 const menuItemClass = 'w-[20px] h-[20px] text-[16px] cursor-pointer flex items-center justify-center';
 
 type StateProps = {
-  message:ApiMessage;
-  canScheduleMeeting:boolean;
-  canAISummarize:any;
-  canSmartReply:boolean | undefined;
-  canTranslate:boolean | undefined;
+  message: ApiMessage;
+  canScheduleMeeting: boolean;
+  canAISummarize: any;
+  canSmartReply: boolean | undefined;
+  canTranslate: boolean | undefined;
 };
  type OwnProps = {
    message: ApiMessage;
    messageListType: MessageListType;
    detectedLanguage?: string;
-   position:'top' | 'bottom';
+   position: 'top' | 'bottom';
  };
 
-const MessageGptMenu:FC<OwnProps & StateProps> = ({
+const MessageGptMenu: FC<OwnProps & StateProps> = ({
   message, position, canScheduleMeeting, canAISummarize, canSmartReply, canTranslate,
 }) => {
   const canSerenaAI = canScheduleMeeting || canAISummarize || canSmartReply || canTranslate;

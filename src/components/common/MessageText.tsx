@@ -1,4 +1,4 @@
-import React, {
+import {
   memo, useMemo, useRef,
 } from '../../lib/teact/teact';
 
@@ -62,10 +62,8 @@ function MessageText({
   maxTimestamp,
   threadId,
 }: OwnProps) {
-  // eslint-disable-next-line no-null/no-null
-  const sharedCanvasRef = useRef<HTMLCanvasElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const sharedCanvasHqRef = useRef<HTMLCanvasElement>(null);
+  const sharedCanvasRef = useRef<HTMLCanvasElement>();
+  const sharedCanvasHqRef = useRef<HTMLCanvasElement>();
 
   const textCacheBusterRef = useRef(0);
 
@@ -76,7 +74,8 @@ function MessageText({
   const entitiesWithFocusedQuote = useMemo(() => {
     if (!text || !focusedQuote) return entities;
 
-    const index = text.indexOf(focusedQuote, focusedQuoteOffset);
+    const offsetIndex = text.indexOf(focusedQuote, focusedQuoteOffset);
+    const index = offsetIndex >= 0 ? offsetIndex : text.indexOf(focusedQuote); // Fallback to first occurrence
     const lendth = focusedQuote.length;
     if (index >= 0) {
       return insertTextEntity(entities || [], {

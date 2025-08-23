@@ -1,11 +1,12 @@
 import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useRef } from '../../../lib/teact/teact';
+import type React from '../../../lib/teact/teact';
+import { memo, useRef } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
 
 import type { ApiSponsoredPeer } from '../../../api/types';
 import { StoryViewerOrigin } from '../../../types';
 
-import { isUserId } from '../../../global/helpers';
+import { isUserId } from '../../../util/entities/ids';
 
 import useContextMenuHandlers from '../../../hooks/useContextMenuHandlers';
 import { useFastClick } from '../../../hooks/useFastClick';
@@ -30,8 +31,7 @@ const LeftSearchResultSponsored: FC<OwnProps> = ({
   sponsoredPeer,
   observeIntersection,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
   const { clickSponsored, viewSponsored, openChat } = getActions();
   const lang = useLang();
 

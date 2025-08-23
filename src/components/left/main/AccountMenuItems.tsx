@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from '../../../lib/teact/teact';
+import { memo, useMemo } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
 
 import type { ApiUser } from '../../../api/types';
@@ -37,6 +37,10 @@ const AccountMenuItems = ({
   const currentCount = getCurrentProdAccountCount();
   const maxCount = getCurrentMaxAccountCount();
 
+  const currentAccountInfo = useMemo(() => {
+    return Object.values(accounts).find((account) => account.userId === currentUser.id);
+  }, [accounts, currentUser.id]);
+
   const shouldShowLimit = currentCount >= maxCount;
 
   const handleLimitClick = useLastCallback(() => {
@@ -69,11 +73,12 @@ const AccountMenuItems = ({
       {Object.entries(accounts || {})
         .sort(([, account]) => (account.userId === currentUser.id ? -1 : 1))
         .map(([slot, account], index, arr) => {
+          const isSameServer = account.isTest === currentAccountInfo?.isTest;
           const mockUser: CustomPeer = {
             title: [account.firstName, account.lastName].filter(Boolean).join(' '),
             isCustomPeer: true,
             peerColorId: account.color,
-            emojiStatusId: account.emojiStatusId,
+            emojiStatusId: isSameServer ? account.emojiStatusId : undefined,
             isPremium: account.isPremium,
           };
 
@@ -94,6 +99,7 @@ const AccountMenuItems = ({
                 onClick={account.userId === currentUser.id ? onSelectCurrent : undefined}
                 href={account.userId !== currentUser.id ? getAccountSlotUrl(Number(slot)) : undefined}
               >
+                {account.isTest && <span className="account-menu-item-test">T</span>}
                 <FullNameTitle peer={mockUser} withEmojiStatus emojiStatusSize={REM} />
               </MenuItem>
               {hasSeparator && <MenuSeparator />}

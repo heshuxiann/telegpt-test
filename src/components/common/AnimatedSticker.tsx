@@ -1,6 +1,5 @@
-import type { RefObject } from 'react';
-import type { FC } from '../../lib/teact/teact';
-import React, {
+import type { ElementRef, FC } from '../../lib/teact/teact';
+import {
   getIsHeavyAnimating,
   memo,
   useEffect,
@@ -33,7 +32,7 @@ import useUniqueId from '../../hooks/useUniqueId';
 import useBackgroundMode, { isBackgroundModeActive } from '../../hooks/window/useBackgroundMode';
 
 export type OwnProps = {
-  ref?: RefObject<HTMLDivElement>;
+  ref?: ElementRef<HTMLDivElement>;
   renderId?: string;
   className?: string;
   style?: string;
@@ -51,6 +50,8 @@ export type OwnProps = {
   sharedCanvas?: HTMLCanvasElement;
   sharedCanvasCoords?: { x: number; y: number };
   onClick?: NoneToVoidFunction;
+  onMouseEnter?: NoneToVoidFunction;
+  onMouseLeave?: NoneToVoidFunction;
   onLoad?: NoneToVoidFunction;
   onEnded?: NoneToVoidFunction;
   onLoop?: NoneToVoidFunction;
@@ -77,12 +78,13 @@ const AnimatedSticker: FC<OwnProps> = ({
   sharedCanvas,
   sharedCanvasCoords,
   onClick,
+  onMouseEnter,
+  onMouseLeave,
   onLoad,
   onEnded,
   onLoop,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  let containerRef = useRef<HTMLDivElement>(null);
+  let containerRef = useRef<HTMLDivElement>();
   if (ref) {
     containerRef = ref;
   }
@@ -181,10 +183,14 @@ const AnimatedSticker: FC<OwnProps> = ({
   useSharedIntersectionObserver(sharedCanvas, throttledInit);
 
   useEffect(() => {
-    if (!animation) return;
-
-    animation.setColor(rgbColor.current);
+    animation?.setColor(rgbColor.current);
   }, [color, animation]);
+
+  useEffect(() => {
+    if (typeof speed === 'number') {
+      animation?.setSpeed(speed);
+    }
+  }, [speed, animation]);
 
   useUnmountCleanup(() => {
     animationRef.current?.removeView(viewId);
@@ -275,6 +281,8 @@ const AnimatedSticker: FC<OwnProps> = ({
         style,
       )}
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     />
   );
 };

@@ -1,5 +1,5 @@
 import type { FC } from '../lib/teact/teact';
-import React, { useEffect, useLayoutEffect } from '../lib/teact/teact';
+import { useEffect, useLayoutEffect } from '../lib/teact/teact';
 import { withGlobal } from '../global';
 
 import type { GlobalState } from '../global/types';
@@ -18,7 +18,6 @@ import { hasEncryptedSession } from '../util/passcode';
 import { getInitialLocationHash, parseInitialLocationHash } from '../util/routing';
 import { checkSessionLocked, hasStoredSession } from '../util/sessions';
 import { updateSizes } from '../util/windowSize';
-import { setChataiStoreBuilderCurrentUserId } from './chatAssistant/store/stores';
 
 import useAppLayout from '../hooks/useAppLayout';
 import useFlag from '../hooks/useFlag';
@@ -31,6 +30,7 @@ import AppInactive from './main/AppInactive';
 import LockScreen from './main/LockScreen.async';
 import Main from './main/Main.async';
 import Transition from './ui/Transition';
+import { setChataiStoreBuilderCurrentUserId } from './chatAssistant/store/stores';
 
 import styles from './App.module.scss';
 
@@ -129,7 +129,7 @@ const App: FC<StateProps> = ({
 
   // return <Test />;
 
-  let activeKey: number;
+  let activeKey: AppScreens;
   let page: UiLoaderPage | undefined;
 
   if (isInactive) {
@@ -201,7 +201,6 @@ const App: FC<StateProps> = ({
 
   const prevActiveKey = usePreviousDeprecated(activeKey);
 
-  // eslint-disable-next-line consistent-return
   function renderContent() {
     switch (activeKey) {
       case AppScreens.auth:

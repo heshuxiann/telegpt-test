@@ -1,11 +1,12 @@
-import type { FC } from '../../lib/teact/teact';
-import React, {
+import type { ElementRef } from '../../lib/teact/teact';
+import {
   memo, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
-import { getActions } from '../../global';
+import { getActions, withGlobal } from '../../global';
 
 import type {
   ApiAudio, ApiMessage, ApiVideo, ApiVoice,
+  ApiWebPage,
 } from '../../api/types';
 import type { BufferedRange } from '../../hooks/useBuffering';
 import type { OldLangFn } from '../../hooks/useOldLang';
@@ -14,15 +15,16 @@ import { ApiMediaFormat } from '../../api/types';
 import { AudioOrigin } from '../../types';
 
 import {
-  getMediaDuration,
   getMediaFormat,
   getMediaHash,
   getMediaTransferState,
-  getMessageWebPageAudio,
+  getWebPageAudio,
   hasMessageTtl,
   isMessageLocal,
   isOwnMessage,
 } from '../../global/helpers';
+import { selectWebPageFromMessage } from '../../global/selectors';
+import { selectMessageMediaDuration } from '../../global/selectors/media';
 import { makeTrackId } from '../../util/audioPlayer';
 import buildClassName from '../../util/buildClassName';
 import { captureEvents } from '../../util/captureEvents';
@@ -77,13 +79,18 @@ type OwnProps = {
   onDateClick?: (arg: ApiMessage) => void;
 };
 
+type StateProps = {
+  mediaDuration?: number;
+  webPage?: ApiWebPage;
+};
+
 export const TINY_SCREEN_WIDTH_MQL = window.matchMedia('(max-width: 375px)');
 export const WITH_AVATAR_TINY_SCREEN_WIDTH_MQL = window.matchMedia('(max-width: 410px)');
 const AVG_VOICE_DURATION = 10;
 // This is needed for browsers requiring user interaction before playing.
 const PRELOAD = true;
 
-const Audio: FC<OwnProps> = ({
+const Audio = ({
   theme,
   message,
   senderTitle,
@@ -102,15 +109,17 @@ const Audio: FC<OwnProps> = ({
   canDownload,
   canTranscribe,
   autoPlay,
+  webPage,
+  mediaDuration,
   onHideTranscription,
   onPlay,
   onPause,
   onReadMedia,
   onCancelUpload,
   onDateClick,
-}) => {
+}: OwnProps & StateProps) => {
   const {
-    cancelMediaDownload, downloadMedia, transcribeAudioByOpenai, openOneTimeMediaModal,
+    cancelMediaDownload, downloadMedia, transcribeAudio, openOneTimeMediaModal,
   } = getActions();
 
   const {
@@ -118,13 +127,12 @@ const Audio: FC<OwnProps> = ({
       audio: contentAudio, voice, video,
     }, isMediaUnread,
   } = message;
-  const audio = contentAudio || getMessageWebPageAudio(message);
+  const audio = contentAudio || getWebPageAudio(webPage);
   const media = (voice || video || audio)!;
   const mediaSource = (voice || video);
   const isVoice = Boolean(voice || video);
   const isSeeking = useRef<boolean>(false);
-  // eslint-disable-next-line no-null/no-null
-  const seekerRef = useRef<HTMLDivElement>(null);
+  const seekerRef = useRef<HTMLDivElement>();
   const lang = useOldLang();
   const { isRtl } = lang;
 
@@ -167,7 +175,7 @@ const Audio: FC<OwnProps> = ({
     isPlaying, playProgress, playPause, setCurrentTime, duration,
   } = useAudioPlayer(
     makeTrackId(message),
-    getMediaDuration(message)!,
+    mediaDuration!,
     trackType,
     mediaData,
     bufferingHandlers,
@@ -280,7 +288,7 @@ const Audio: FC<OwnProps> = ({
   });
 
   const handleTranscribe = useLastCallback(() => {
-    transcribeAudioByOpenai({ chatId: message.chatId, messageId: message.id });
+    transcribeAudio({ chatId: message.chatId, messageId: message.id });
   });
 
   useEffect(() => {
@@ -365,7 +373,7 @@ const Audio: FC<OwnProps> = ({
         {withSeekline && (
           <div className="meta search-result" dir={isRtl ? 'rtl' : undefined}>
             <span className="duration with-seekline" dir="auto">
-              {playProgress < 1 && `${formatMediaDuration(duration * playProgress, duration)}`}
+              {playProgress < 1 && formatMediaDuration(duration * playProgress, duration)}
             </span>
             {renderSeekline(playProgress, bufferedRanges, seekerRef)}
           </div>
@@ -504,7 +512,7 @@ function renderAudio(
   isPlaying: boolean,
   playProgress: number,
   bufferedRanges: BufferedRange[],
-  seekerRef: React.Ref<HTMLElement>,
+  seekerRef: ElementRef<HTMLDivElement>,
   showProgress?: boolean,
   date?: number,
   progress?: number,
@@ -529,7 +537,8 @@ function renderAudio(
       )}
       {!showSeekline && showProgress && (
         <div className="meta" dir={isRtl ? 'rtl' : undefined}>
-          {progress ? `${getFileSizeString(audio!.size * progress)} / ` : undefined}{getFileSizeString(audio!.size)}
+          {progress ? `${getFileSizeString(audio.size * progress)} / ` : undefined}
+          {getFileSizeString(audio.size)}
         </div>
       )}
       {!showSeekline && !showProgress && (
@@ -557,8 +566,8 @@ function renderAudio(
 
 function renderVoice(
   media: ApiVoice | ApiVideo,
-  seekerRef: React.Ref<HTMLDivElement>,
-  waveformCanvasRef: React.Ref<HTMLCanvasElement>,
+  seekerRef: ElementRef<HTMLDivElement>,
+  waveformCanvasRef: ElementRef<HTMLCanvasElement>,
   playProgress: number,
   isMediaUnread?: boolean,
   isTranscribing?: boolean,
@@ -580,7 +589,6 @@ function renderVoice(
           <canvas ref={waveformCanvasRef} />
         </div>
         {onClickTranscribe && (
-          // eslint-disable-next-line react/jsx-no-bind
           <Button onClick={() => {
             if ((isTranscribed || isTranscriptionError) && onHideTranscription) {
               onHideTranscription(!isTranscriptionHidden);
@@ -621,13 +629,13 @@ function renderVoice(
         dir="auto"
       >
         {playProgress === 0 || playProgress === 1
-          ? formatMediaDuration(media!.duration) : formatMediaDuration(media!.duration * playProgress)}
+          ? formatMediaDuration(media.duration) : formatMediaDuration(media.duration * playProgress)}
       </p>
     </div>
   );
 }
 
-export function useWaveformCanvas(
+function useWaveformCanvas(
   theme: ThemeKey,
   media?: ApiVoice | ApiVideo,
   playProgress = 0,
@@ -636,8 +644,7 @@ export function useWaveformCanvas(
   isMobile = false,
   isReverse = false,
 ) {
-  // eslint-disable-next-line no-null/no-null
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>();
 
   const { data: spikes, peak } = useMemo(() => {
     if (!media) {
@@ -688,12 +695,12 @@ export function useWaveformCanvas(
 function renderSeekline(
   playProgress: number,
   bufferedRanges: BufferedRange[],
-  seekerRef: React.Ref<HTMLElement>,
+  seekerRef: ElementRef<HTMLDivElement>,
 ) {
   return (
     <div
       className="seekline"
-      ref={seekerRef as React.Ref<HTMLDivElement>}
+      ref={seekerRef}
     >
       {bufferedRanges.map(({ start, end }) => (
         <div
@@ -717,4 +724,16 @@ function renderSeekline(
   );
 }
 
-export default memo(Audio);
+export default memo(withGlobal<OwnProps>(
+  (global, {
+    message,
+  }): StateProps => {
+    const webPage = selectWebPageFromMessage(global, message);
+    const mediaDuration = selectMessageMediaDuration(global, message);
+
+    return {
+      webPage,
+      mediaDuration,
+    };
+  },
+)(Audio));

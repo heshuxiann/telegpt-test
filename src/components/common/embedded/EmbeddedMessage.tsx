@@ -1,37 +1,42 @@
 import type { FC } from '../../../lib/teact/teact';
-import React, { useMemo, useRef } from '../../../lib/teact/teact';
+import type React from '../../../lib/teact/teact';
+import { useMemo, useRef } from '../../../lib/teact/teact';
 
 import type {
   ApiChat,
+  ApiInputSuggestedPostInfo,
   ApiMessage, ApiPeer, ApiReplyInfo, MediaContainer,
 } from '../../../api/types';
 import type { ObserveFn } from '../../../hooks/useIntersectionObserver';
 import type { ChatTranslatedMessages } from '../../../types';
 import type { IconName } from '../../../types/icons';
 
-import { CONTENT_NOT_SUPPORTED } from '../../../config';
+import { CONTENT_NOT_SUPPORTED, TON_CURRENCY_CODE } from '../../../config';
 import {
   getMessageIsSpoiler,
-  getMessageMediaHash,
   getMessageRoundVideo,
   isChatChannel,
   isChatGroup,
   isMessageTranslatable,
-  isUserId,
 } from '../../../global/helpers';
 import { getMediaContentTypeDescription } from '../../../global/helpers/messageSummary';
 import { getPeerTitle } from '../../../global/helpers/peers';
 import buildClassName from '../../../util/buildClassName';
+import { formatScheduledDateTime } from '../../../util/dates/dateFormat';
+import { isUserId } from '../../../util/entities/ids';
 import freezeWhenClosed from '../../../util/hoc/freezeWhenClosed';
+import { formatStarsAsIcon, formatTonAsIcon } from '../../../util/localization/format';
 import { getPictogramDimensions } from '../helpers/mediaDimensions';
 import renderText from '../helpers/renderText';
 import { renderTextWithEntities } from '../helpers/renderTextWithEntities';
 
+import useMessageMediaHash from '../../../hooks/media/useMessageMediaHash';
+import useThumbnail from '../../../hooks/media/useThumbnail';
 import { useFastClick } from '../../../hooks/useFastClick';
 import { useIsIntersecting } from '../../../hooks/useIntersectionObserver';
+import useLang from '../../../hooks/useLang';
 import useMedia from '../../../hooks/useMedia';
 import useOldLang from '../../../hooks/useOldLang';
-import useThumbnail from '../../../hooks/useThumbnail';
 import useMessageTranslation from '../../middle/message/hooks/useMessageTranslation';
 
 import RippleEffect from '../../ui/RippleEffect';
@@ -45,10 +50,12 @@ import './EmbeddedMessage.scss';
 type OwnProps = {
   className?: string;
   replyInfo?: ApiReplyInfo;
+  suggestedPostInfo?: ApiInputSuggestedPostInfo;
   message?: ApiMessage;
   sender?: ApiPeer;
   senderChat?: ApiChat;
   forwardSender?: ApiPeer;
+  composerForwardSenders?: ApiPeer[];
   title?: string;
   customText?: string;
   noUserColors?: boolean;
@@ -57,6 +64,7 @@ type OwnProps = {
   chatTranslations?: ChatTranslatedMessages;
   requestedChatTranslationLanguage?: string;
   isOpen?: boolean;
+  isMediaNsfw?: boolean;
   observeIntersectionForLoading?: ObserveFn;
   observeIntersectionForPlaying?: ObserveFn;
   onClick: ((e: React.MouseEvent) => void);
@@ -69,9 +77,11 @@ const EmbeddedMessage: FC<OwnProps> = ({
   className,
   message,
   replyInfo,
+  suggestedPostInfo,
   sender,
   senderChat,
   forwardSender,
+  composerForwardSenders,
   title,
   customText,
   isProtected,
@@ -79,12 +89,12 @@ const EmbeddedMessage: FC<OwnProps> = ({
   noUserColors,
   chatTranslations,
   requestedChatTranslationLanguage,
+  isMediaNsfw,
   observeIntersectionForLoading,
   observeIntersectionForPlaying,
   onClick,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
   const isIntersecting = useIsIntersecting(ref, observeIntersectionForLoading);
 
   const containedMedia: MediaContainer | undefined = useMemo(() => {
@@ -101,12 +111,12 @@ const EmbeddedMessage: FC<OwnProps> = ({
   const gif = containedMedia?.content?.video?.isGif ? containedMedia.content.video : undefined;
   const isVideoThumbnail = Boolean(gif && !gif.previewPhotoSizes?.length);
 
-  const mediaHash = containedMedia && getMessageMediaHash(containedMedia, isVideoThumbnail ? 'full' : 'pictogram');
+  const mediaHash = useMessageMediaHash(containedMedia, isVideoThumbnail ? 'full' : 'pictogram');
   const mediaBlobUrl = useMedia(mediaHash, !isIntersecting);
   const mediaThumbnail = useThumbnail(containedMedia);
 
   const isRoundVideo = Boolean(containedMedia && getMessageRoundVideo(containedMedia));
-  const isSpoiler = Boolean(containedMedia && getMessageIsSpoiler(containedMedia));
+  const isSpoiler = Boolean(containedMedia && getMessageIsSpoiler(containedMedia)) || isMediaNsfw;
   const isQuote = Boolean(replyInfo?.type === 'message' && replyInfo.isQuote);
   const replyForwardInfo = replyInfo?.type === 'message' ? replyInfo.replyFrom : undefined;
 
@@ -115,18 +125,67 @@ const EmbeddedMessage: FC<OwnProps> = ({
     chatTranslations, message?.chatId, shouldTranslate ? message?.id : undefined, requestedChatTranslationLanguage,
   );
 
-  const lang = useOldLang();
+  const oldLang = useOldLang();
+  const lang = useLang();
 
-  const senderTitle = sender ? getPeerTitle(lang, sender)
+  const senderTitle = sender ? getPeerTitle(oldLang, sender)
     : (replyForwardInfo?.hiddenUserName || message?.forwardInfo?.hiddenUserName);
-  const senderChatTitle = senderChat ? getPeerTitle(lang, senderChat) : undefined;
-  const forwardSenderTitle = forwardSender ? getPeerTitle(lang, forwardSender)
+
+  const forwardSendersTitle = useMemo(() => {
+    if (!composerForwardSenders) return undefined;
+
+    const peerTitles = composerForwardSenders.map((peer) => getPeerTitle(lang, peer)).filter(Boolean);
+    return lang.conjunction(peerTitles);
+  }, [composerForwardSenders, lang]);
+
+  const senderChatTitle = senderChat ? getPeerTitle(oldLang, senderChat) : undefined;
+  const forwardSenderTitle = forwardSender ? getPeerTitle(oldLang, forwardSender)
     : message?.forwardInfo?.hiddenUserName;
   const areSendersSame = sender && sender.id === forwardSender?.id;
 
   const { handleClick, handleMouseDown } = useFastClick(onClick);
 
   function renderTextContent() {
+    const isFree = !(suggestedPostInfo?.price?.amount);
+    if (suggestedPostInfo) {
+      if (isFree && !suggestedPostInfo.scheduleDate) {
+        return lang('ComposerEmbeddedMessageSuggestedPostDescription');
+      }
+      const priceText = suggestedPostInfo.price
+        ? (suggestedPostInfo.price.currency === TON_CURRENCY_CODE
+          ? formatTonAsIcon(lang, suggestedPostInfo.price.amount, {
+            className: 'suggested-price-ton-icon',
+            shouldConvertFromNanos: true,
+          })
+          : formatStarsAsIcon(lang, suggestedPostInfo.price.amount, {
+            className: 'suggested-price-star-icon',
+          }))
+        : '';
+      const scheduleText = suggestedPostInfo.scheduleDate
+        ? formatScheduledDateTime(suggestedPostInfo.scheduleDate, lang, oldLang)
+        : '';
+      if (priceText && !scheduleText) {
+        return (
+          <span className="suggested-post-price-wrapper">
+            {
+              lang('TitleSuggestedPostAmountForAnyTime',
+                { amount: priceText },
+                {
+                  withNodes: true,
+                  withMarkdown: true,
+                })
+            }
+          </span>
+        );
+      }
+      return (
+        <span className="suggested-post-price-wrapper">
+          {priceText}
+          {scheduleText ? ` • ${scheduleText}` : ''}
+        </span>
+      );
+    }
+
     if (replyInfo?.type === 'message' && replyInfo.quoteText) {
       return renderTextWithEntities({
         text: replyInfo.quoteText.text,
@@ -154,7 +213,7 @@ const EmbeddedMessage: FC<OwnProps> = ({
 
   function renderMediaContentType(media?: MediaContainer) {
     if (!media || media.content.text) return NBSP;
-    const description = getMediaContentTypeDescription(lang, media.content, {});
+    const description = getMediaContentTypeDescription(oldLang, media.content, {});
     if (!description || description === CONTENT_NOT_SUPPORTED) return NBSP;
     return (
       <span>
@@ -174,7 +233,15 @@ const EmbeddedMessage: FC<OwnProps> = ({
       return renderText(title);
     }
 
-    if (!senderTitle) {
+    if (suggestedPostInfo && replyInfo) {
+      return lang('TitleSuggestedChanges');
+    }
+
+    if (suggestedPostInfo) {
+      return lang('ComposerEmbeddedMessageSuggestedPostTitle');
+    }
+
+    if (!senderTitle && !forwardSendersTitle) {
       return NBSP;
     }
 
@@ -195,7 +262,14 @@ const EmbeddedMessage: FC<OwnProps> = ({
       <span className="embedded-sender-wrapper">
         {checkShouldRenderSenderTitle() && (
           <span className="embedded-sender">
-            {renderText(isReplyToQuote ? lang('ReplyToQuote', senderTitle) : senderTitle)}
+            {!composerForwardSenders && senderTitle
+              && renderText(isReplyToQuote ? oldLang('ReplyToQuote', senderTitle) : senderTitle)}
+            {forwardSendersTitle && renderText(lang('ComposerTitleForwardFrom', {
+              users: forwardSendersTitle,
+            }, {
+              withNodes: true,
+              withMarkdown: true,
+            }))}
           </span>
         )}
         {icon && <Icon name={icon} className="embedded-chat-icon" />}
@@ -232,6 +306,8 @@ const EmbeddedMessage: FC<OwnProps> = ({
         isQuote && 'is-quote',
         mediaThumbnail && 'with-thumb',
         'no-selection',
+        composerForwardSenders && 'is-input-forward',
+        suggestedPostInfo && 'is-suggested-post',
       )}
       dir={lang.isRtl ? 'rtl' : undefined}
       onClick={handleClick}

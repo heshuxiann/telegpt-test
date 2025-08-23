@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import BigInt from 'big-integer';
 import { Api as GramJs } from '../../../lib/gramjs';
 
@@ -10,6 +9,13 @@ import {
   SERVICE_NOTIFICATIONS_USER_ID,
   STORY_EXPIRE_PERIOD,
   STORY_VIEWERS_EXPIRE_PERIOD,
+  TODO_ITEM_LENGTH_LIMIT,
+  TODO_ITEMS_LIMIT,
+  TODO_TITLE_LENGTH_LIMIT,
+  TON_SUGGESTED_POST_AMOUNT_MAX,
+  TON_SUGGESTED_POST_AMOUNT_MIN,
+  TON_TOPUP_URL_DEFAULT,
+  TON_USD_RATE_DEFAULT,
 } from '../../../config';
 import localDb from '../localDb';
 import { buildJson } from './misc';
@@ -95,6 +101,33 @@ export interface GramJsAppConfig extends LimitsConfig {
   freeze_since_date?: number;
   freeze_until_date?: number;
   freeze_appeal_url?: string;
+  channel_autotranslation_level_min?: number;
+  stars_stargift_resale_amount_max?: number;
+  stars_stargift_resale_amount_min?: number;
+  stars_stargift_resale_commission_permille?: number;
+  ton_stargift_resale_amount_min?: number;
+  ton_stargift_resale_amount_max?: number;
+  ton_stargift_resale_commission_permille?: number;
+  stars_suggested_post_amount_max?: number;
+  stars_suggested_post_amount_min?: number;
+  stars_suggested_post_commission_permille?: number;
+  stars_suggested_post_age_min?: number;
+  stars_suggested_post_future_max?: number;
+  stars_suggested_post_future_min?: number;
+  ton_suggested_post_commission_permille?: number;
+  ton_suggested_post_amount_max?: number;
+  ton_suggested_post_amount_min?: number;
+  ton_usd_rate?: number;
+  ton_topup_url?: string;
+  poll_answers_max?: number;
+  todo_items_max?: number;
+  todo_title_length_max?: number;
+  todo_item_length_max?: number;
+  ignore_restriction_reasons?: string[];
+  need_age_video_verification?: boolean;
+  verify_age_bot_username?: string;
+  verify_age_country?: string;
+  verify_age_min?: number;
 }
 
 function buildEmojiSounds(appConfig: GramJsAppConfig) {
@@ -180,6 +213,7 @@ export function buildAppConfig(json: GramJs.TypeJSONValue, hash: number): ApiApp
     bandwidthPremiumUploadSpeedup: appConfig.upload_premium_speedup_upload,
     bandwidthPremiumDownloadSpeedup: appConfig.upload_premium_speedup_download,
     channelRestrictAdsLevelMin: appConfig.channel_restrict_sponsored_level_min,
+    channelAutoTranslationLevelMin: appConfig.channel_autotranslation_level_min,
     paidReactionMaxAmount: appConfig.stars_paid_reaction_amount_max,
     isChannelRevenueWithdrawalEnabled: appConfig.channel_revenue_withdrawal_enabled,
     isStarsGiftEnabled: appConfig.stars_gifts_enabled,
@@ -191,5 +225,31 @@ export function buildAppConfig(json: GramJs.TypeJSONValue, hash: number): ApiApp
     freezeSinceDate: appConfig.freeze_since_date,
     freezeUntilDate: appConfig.freeze_until_date,
     freezeAppealUrl: appConfig.freeze_appeal_url,
+    starsStargiftResaleAmountMin: appConfig.stars_stargift_resale_amount_min,
+    starsStargiftResaleAmountMax: appConfig.stars_stargift_resale_amount_max,
+    starsStargiftResaleCommissionPermille: appConfig.stars_stargift_resale_commission_permille,
+    tonStargiftResaleAmountMin: appConfig.ton_stargift_resale_amount_min,
+    tonStargiftResaleAmountMax: appConfig.ton_stargift_resale_amount_max,
+    tonStargiftResaleCommissionPermille: appConfig.ton_stargift_resale_commission_permille,
+    starsSuggestedPostAmountMax: appConfig.stars_suggested_post_amount_max,
+    starsSuggestedPostAmountMin: appConfig.stars_suggested_post_amount_min,
+    starsSuggestedPostCommissionPermille: appConfig.stars_suggested_post_commission_permille,
+    starsSuggestedPostAgeMin: appConfig.stars_suggested_post_age_min,
+    starsSuggestedPostFutureMax: appConfig.stars_suggested_post_future_max,
+    starsSuggestedPostFutureMin: appConfig.stars_suggested_post_future_min,
+    tonSuggestedPostCommissionPermille: appConfig.ton_suggested_post_commission_permille,
+    tonSuggestedPostAmountMax: appConfig.ton_suggested_post_amount_max ?? TON_SUGGESTED_POST_AMOUNT_MAX,
+    tonSuggestedPostAmountMin: appConfig.ton_suggested_post_amount_min ?? TON_SUGGESTED_POST_AMOUNT_MIN,
+    tonUsdRate: appConfig.ton_usd_rate ?? TON_USD_RATE_DEFAULT,
+    tonTopupUrl: appConfig.ton_topup_url ?? TON_TOPUP_URL_DEFAULT,
+    pollMaxAnswers: appConfig.poll_answers_max,
+    todoItemsMax: appConfig.todo_items_max ?? TODO_ITEMS_LIMIT,
+    todoTitleLengthMax: appConfig.todo_title_length_max ?? TODO_TITLE_LENGTH_LIMIT,
+    todoItemLengthMax: appConfig.todo_item_length_max ?? TODO_ITEM_LENGTH_LIMIT,
+    ignoreRestrictionReasons: appConfig.ignore_restriction_reasons,
+    needAgeVideoVerification: appConfig.need_age_video_verification,
+    verifyAgeBotUsername: appConfig.verify_age_bot_username,
+    verifyAgeCountry: appConfig.verify_age_country,
+    verifyAgeMin: appConfig.verify_age_min,
   };
 }

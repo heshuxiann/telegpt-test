@@ -1,4 +1,5 @@
-import React, { memo, useEffect } from '../../../lib/teact/teact';
+import type React from '../../../lib/teact/teact';
+import { memo, useEffect } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type { ApiChat, ApiMessage, ApiPeer } from '../../../api/types';
@@ -9,7 +10,6 @@ import { MAIN_THREAD_ID } from '../../../api/types';
 import {
   getIsSavedDialog,
   getMessageIsSpoiler,
-  getMessageMediaHash,
   getMessageSingleInlineButton,
   getMessageVideo,
 } from '../../../global/helpers';
@@ -29,6 +29,8 @@ import { getPictogramDimensions, REM } from '../../common/helpers/mediaDimension
 import renderText from '../../common/helpers/renderText';
 import renderKeyboardButtonText from '../composer/helpers/renderKeyboardButtonText';
 
+import useMessageMediaHash from '../../../hooks/media/useMessageMediaHash';
+import useThumbnail from '../../../hooks/media/useThumbnail';
 import useCurrentOrPrev from '../../../hooks/useCurrentOrPrev';
 import useDerivedState from '../../../hooks/useDerivedState';
 import useEnsureMessage from '../../../hooks/useEnsureMessage';
@@ -38,7 +40,6 @@ import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 import useMedia from '../../../hooks/useMedia';
 import useShowTransition from '../../../hooks/useShowTransition';
-import useThumbnail from '../../../hooks/useThumbnail';
 import useAsyncRendering from '../../right/hooks/useAsyncRendering';
 import useHeaderPane, { type PaneState } from '../hooks/useHeaderPane';
 
@@ -62,7 +63,6 @@ const EMOJI_SIZE = 1.125 * REM;
 type OwnProps = {
   chatId: string;
   threadId: ThreadId;
-  // eslint-disable-next-line react/no-unused-prop-types
   messageListType: MessageListType;
   className?: string;
   isFullWidth?: boolean;
@@ -118,7 +118,7 @@ const HeaderPinnedMessage = ({
   const isVideoThumbnail = Boolean(gif && !gif.previewPhotoSizes?.length);
 
   const mediaThumbnail = useThumbnail(pinnedMessage);
-  const mediaHash = pinnedMessage && getMessageMediaHash(pinnedMessage, isVideoThumbnail ? 'full' : 'pictogram');
+  const mediaHash = useMessageMediaHash(pinnedMessage, isVideoThumbnail ? 'full' : 'pictogram');
   const mediaBlobUrl = useMedia(mediaHash);
   const isSpoiler = pinnedMessage && getMessageIsSpoiler(pinnedMessage);
 

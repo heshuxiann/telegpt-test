@@ -1,4 +1,5 @@
-import React, {
+import type React from '../../lib/teact/teact';
+import {
   memo, useEffect, useLayoutEffect, useMemo, useRef, useSignal, useState,
 } from '../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../global';
@@ -85,8 +86,7 @@ function StorySlides({
   onReport,
 }: OwnProps & StateProps) {
   const { stopActiveReaction } = getActions();
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
   const [renderingPeerId, setRenderingPeerId] = useState(currentPeerId);
   const [renderingStoryId, setRenderingStoryId] = useState(currentStoryId);
   const prevPeerId = usePreviousDeprecated(currentPeerId);
@@ -100,7 +100,7 @@ function StorySlides({
   const isReleasedRef = useRef(false);
   const { isMobile } = useAppLayout();
 
-  const rendersRef = useRef<Record<string, { current: HTMLDivElement | null }>>({});
+  const rendersRef = useRef<Record<string, { current: HTMLDivElement }>>({});
   const [getIsAnimating, setIsAnimating] = useSignal(false);
 
   useHistoryBack({
@@ -109,7 +109,7 @@ function StorySlides({
     shouldBeReplaced: true,
   });
 
-  function setRef(ref: HTMLDivElement | null, peerId: string) {
+  function setRef(ref: HTMLDivElement | undefined, peerId: string) {
     if (!ref) {
       return;
     }

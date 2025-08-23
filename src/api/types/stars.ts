@@ -1,6 +1,8 @@
+import type { STARS_CURRENCY_CODE, TON_CURRENCY_CODE } from '../../config';
 import type { ApiWebDocument } from './bots';
 import type { ApiChat } from './chats';
 import type { ApiFormattedText, ApiSticker, BoughtPaidMedia } from './messages';
+import type { ApiUser } from './users';
 
 export interface ApiStarGiftRegular {
   type: 'starGift';
@@ -10,12 +12,20 @@ export interface ApiStarGiftRegular {
   stars: number;
   availabilityRemains?: number;
   availabilityTotal?: number;
+  availabilityResale?: number;
   starsToConvert: number;
   isSoldOut?: true;
   firstSaleDate?: number;
   lastSaleDate?: number;
   isBirthday?: true;
   upgradeStars?: number;
+  resellMinStars?: number;
+  releasedByPeerId?: string;
+  title?: string;
+  requirePremium?: true;
+  limitedPerUser?: true;
+  perUserTotal?: number;
+  perUserRemains?: number;
 }
 
 export interface ApiStarGiftUnique {
@@ -31,6 +41,10 @@ export interface ApiStarGiftUnique {
   attributes: ApiStarGiftAttribute[];
   slug: string;
   giftAddress?: string;
+  resellPrice?: ApiTypeCurrencyAmount[];
+  releasedByPeerId?: string;
+  requirePremium?: true;
+  resaleTonOnly?: true;
 }
 
 export type ApiStarGift = ApiStarGiftRegular | ApiStarGiftUnique;
@@ -51,6 +65,7 @@ export interface ApiStarGiftAttributePattern {
 
 export interface ApiStarGiftAttributeBackdrop {
   type: 'backdrop';
+  backdropId: number;
   name: string;
   centerColor: string;
   edgeColor: string;
@@ -68,7 +83,7 @@ export interface ApiStarGiftAttributeOriginalDetails {
 }
 
 export type ApiStarGiftAttribute = ApiStarGiftAttributeModel | ApiStarGiftAttributePattern
-| ApiStarGiftAttributeBackdrop | ApiStarGiftAttributeOriginalDetails;
+  | ApiStarGiftAttributeBackdrop | ApiStarGiftAttributeOriginalDetails;
 
 export interface ApiSavedStarGift {
   isNameHidden?: boolean;
@@ -85,9 +100,43 @@ export interface ApiSavedStarGift {
   alreadyPaidUpgradeStars?: number;
   transferStars?: number;
   canExportAt?: number;
+  canTransferAt?: number;
+  canResellAt?: number;
   isPinned?: boolean;
   isConverted?: boolean; // Local field, used for Action Message
   upgradeMsgId?: number; // Local field, used for Action Message
+  localTag?: number; // Local field, used for key in list
+}
+
+export type StarGiftAttributeIdModel = {
+  type: 'model';
+  documentId: string;
+};
+export type ApiStarGiftAttributeIdPattern = {
+  type: 'pattern';
+  documentId: string;
+};
+export type ApiStarGiftAttributeIdBackdrop = {
+  type: 'backdrop';
+  backdropId: number;
+};
+export type ApiStarGiftAttributeId = StarGiftAttributeIdModel |
+  ApiStarGiftAttributeIdPattern | ApiStarGiftAttributeIdBackdrop;
+
+export interface ApiStarGiftAttributeCounter<T extends ApiStarGiftAttributeId = ApiStarGiftAttributeId> {
+  attribute: T;
+  count: number;
+}
+
+export interface ApiTypeResaleStarGifts {
+  count: number;
+  gifts: ApiStarGift[];
+  nextOffset?: string;
+  attributes?: ApiStarGiftAttribute[];
+  attributesHash?: string;
+  chats: ApiChat[];
+  counters?: ApiStarGiftAttributeCounter[];
+  users: ApiUser[];
 }
 
 export interface ApiInputSavedStarGiftUser {
@@ -111,9 +160,17 @@ export type ApiRequestInputSavedStarGiftChat = {
 };
 export type ApiRequestInputSavedStarGift = ApiRequestInputSavedStarGiftUser | ApiRequestInputSavedStarGiftChat;
 
+export type ApiTypeCurrencyAmount = ApiStarsAmount | ApiTonAmount;
+
 export interface ApiStarsAmount {
+  currency: typeof STARS_CURRENCY_CODE;
   amount: number;
   nanos: number;
+}
+
+export interface ApiTonAmount {
+  currency: typeof TON_CURRENCY_CODE;
+  amount: number;
 }
 
 export interface ApiStarsTransactionPeerUnsupported {
@@ -150,20 +207,20 @@ export interface ApiStarsTransactionPeerPeer {
 }
 
 export type ApiStarsTransactionPeer =
-| ApiStarsTransactionPeerUnsupported
-| ApiStarsTransactionPeerAppStore
-| ApiStarsTransactionPeerPlayMarket
-| ApiStarsTransactionPeerPremiumBot
-| ApiStarsTransactionPeerFragment
-| ApiStarsTransactionPeerAds
-| ApiStarsTransactionApi
-| ApiStarsTransactionPeerPeer;
+  | ApiStarsTransactionPeerUnsupported
+  | ApiStarsTransactionPeerAppStore
+  | ApiStarsTransactionPeerPlayMarket
+  | ApiStarsTransactionPeerPremiumBot
+  | ApiStarsTransactionPeerFragment
+  | ApiStarsTransactionPeerAds
+  | ApiStarsTransactionApi
+  | ApiStarsTransactionPeerPeer;
 
 export interface ApiStarsTransaction {
   id?: string;
   peer: ApiStarsTransactionPeer;
   messageId?: number;
-  stars: ApiStarsAmount;
+  amount: ApiTypeCurrencyAmount;
   isRefund?: true;
   isGift?: true;
   starGift?: ApiStarGift;
@@ -180,7 +237,9 @@ export interface ApiStarsTransaction {
   subscriptionPeriod?: number;
   starRefCommision?: number;
   isGiftUpgrade?: true;
+  isGiftResale?: true;
   paidMessages?: number;
+  isPostsSearch?: true;
 }
 
 export interface ApiStarsSubscription {

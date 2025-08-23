@@ -1,6 +1,7 @@
-import type { RefObject } from 'react';
-import type { FC } from '../../lib/teact/teact';
-import React, {
+import type { MouseEvent as ReactMouseEvent } from 'react';
+import type { ElementRef, FC } from '../../lib/teact/teact';
+import type React from '../../lib/teact/teact';
+import {
   memo, useEffect, useRef,
 } from '../../lib/teact/teact';
 
@@ -20,7 +21,7 @@ import Transition from './Transition';
 import './SearchInput.scss';
 
 type OwnProps = {
-  ref?: RefObject<HTMLInputElement>;
+  ref?: ElementRef<HTMLInputElement>;
   children?: React.ReactNode;
   resultsItemSelector?: string;
   className?: string;
@@ -44,10 +45,11 @@ type OwnProps = {
   onReset?: NoneToVoidFunction;
   onFocus?: NoneToVoidFunction;
   onBlur?: NoneToVoidFunction;
-  onClick?: NoneToVoidFunction;
+  onClick?: (e: ReactMouseEvent<HTMLDivElement, MouseEvent>) => void;
   onUpClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   onDownClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   onSpinnerClick?: NoneToVoidFunction;
+  onEnter?: NoneToVoidFunction;
 };
 
 const SearchInput: FC<OwnProps> = ({
@@ -79,9 +81,9 @@ const SearchInput: FC<OwnProps> = ({
   onUpClick,
   onDownClick,
   onSpinnerClick,
+  onEnter,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  let inputRef = useRef<HTMLInputElement>(null);
+  let inputRef = useRef<HTMLInputElement>();
   if (ref) {
     inputRef = ref;
   }
@@ -125,8 +127,22 @@ const SearchInput: FC<OwnProps> = ({
   }
 
   const handleKeyDown = useLastCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!resultsItemSelector) return;
-    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+    if (e.key === 'Enter') {
+      if (onEnter) {
+        e.preventDefault();
+        onEnter();
+        return;
+      }
+
+      if (resultsItemSelector) {
+        const element = document.querySelector(resultsItemSelector) as HTMLElement;
+        if (element) {
+          element.focus();
+        }
+      }
+    }
+
+    if (resultsItemSelector && e.key === 'ArrowDown') {
       const element = document.querySelector(resultsItemSelector) as HTMLElement;
       if (element) {
         element.focus();
@@ -151,7 +167,7 @@ const SearchInput: FC<OwnProps> = ({
         className="icon-container-left"
         slideClassName="icon-container-slide"
       >
-        { isLoading && !withBackIcon ? (
+        {isLoading && !withBackIcon ? (
           <Loading color={spinnerColor} backgroundColor={spinnerBackgroundColor} onClick={onSpinnerClick} />
         ) : withBackIcon ? (
           <Icon name="arrow-left" className="back-icon" onClick={onReset} />

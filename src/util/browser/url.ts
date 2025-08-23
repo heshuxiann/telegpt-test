@@ -7,7 +7,6 @@ const FALLBACK_PREFIX = 'https://';
 export function ensureProtocol(url: string) {
   try {
     const parsedUrl = new URL(url);
-    // eslint-disable-next-line no-script-url
     if (!PROTOCOL_WHITELIST.has(parsedUrl.protocol)) {
       return `${FALLBACK_PREFIX}${url}`;
     }
@@ -43,7 +42,7 @@ export function getUnicodeUrl(url: string) {
 export function isMixedScriptUrl(url: string): boolean {
   let domain;
   try {
-    domain = convertPunycode(new URL(ensureProtocol(url)!).hostname);
+    domain = convertPunycode(new URL(ensureProtocol(url)).hostname);
   } catch (e) {
     return true; // If URL is invalid, treat it as mixed script
   }

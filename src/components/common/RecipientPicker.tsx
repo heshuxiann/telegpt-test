@@ -1,5 +1,5 @@
 import type { FC } from '../../lib/teact/teact';
-import React, { memo, useMemo, useState } from '../../lib/teact/teact';
+import { memo, useMemo, useState } from '../../lib/teact/teact';
 import { getGlobal, withGlobal } from '../../global';
 
 import type { ApiChatType } from '../../api/types';
@@ -8,11 +8,13 @@ import type { ThreadId } from '../../types';
 import { API_CHAT_TYPES } from '../../config';
 import {
   getCanPostInChat,
+  getHasAdminRight,
+  isChatChannel,
   isDeletedUser,
 } from '../../global/helpers';
 import { filterPeersByQuery } from '../../global/helpers/peers';
 import {
-  filterChatIdsByType, selectChat, selectChatFullInfo, selectUser,
+  filterChatIdsByType, selectChat, selectChatFullInfo, selectIsMonoforumAdmin, selectUser,
 } from '../../global/selectors';
 import { unique } from '../../util/iteratees';
 import sortChatIds from './helpers/sortChatIds';
@@ -31,6 +33,7 @@ export type OwnProps = {
   onClose: NoneToVoidFunction;
   onCloseAnimationEnd?: NoneToVoidFunction;
   isLowStackPriority?: boolean;
+  isForwarding?: boolean;
 };
 
 type StateProps = {
@@ -56,6 +59,7 @@ const RecipientPicker: FC<OwnProps & StateProps> = ({
   onClose,
   onCloseAnimationEnd,
   isLowStackPriority,
+  isForwarding,
 }) => {
   const [search, setSearch] = useState('');
   const ids = useMemo(() => {
@@ -75,11 +79,20 @@ const RecipientPicker: FC<OwnProps & StateProps> = ({
     ].filter((id) => {
       const chat = selectChat(global, id);
       const user = selectUser(global, id);
+      const hasAdminRights = chat && getHasAdminRight(chat, 'postMessages');
+      const isChannel = chat && isChatChannel(chat);
+      if (isForwarding && isChannel && !hasAdminRights) return false;
       if (user && !isDeletedUser(user)) return true;
 
-      const chatFullInfo = selectChatFullInfo(global, id);
+      if (!chat) return false;
 
-      return chat && (!chatFullInfo || getCanPostInChat(chat, undefined, undefined, chatFullInfo));
+      if (chat.isMonoforum && selectIsMonoforumAdmin(global, id)) {
+        return false;
+      }
+
+      const chatFullInfo = selectChatFullInfo(global, id);
+      // TODO: Handle bulk check with API call
+      return !chatFullInfo || getCanPostInChat(chat, undefined, undefined, chatFullInfo);
     });
 
     const sorted = sortChatIds(
@@ -97,7 +110,17 @@ const RecipientPicker: FC<OwnProps & StateProps> = ({
     );
 
     return filterChatIdsByType(global, sorted, filter);
-  }, [pinnedIds, currentUserId, activeListIds, search, archivedListIds, contactIds, filter, isOpen]);
+  }, [
+    isOpen,
+    pinnedIds,
+    currentUserId,
+    activeListIds,
+    search,
+    archivedListIds,
+    contactIds,
+    filter,
+    isForwarding,
+  ]);
 
   const renderingIds = useCurrentOrPrev(ids, true)!;
 

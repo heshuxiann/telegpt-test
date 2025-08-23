@@ -96,11 +96,6 @@ declare module '*.strings' {
   export default url;
 }
 
-declare module '*.json' {
-  const value: any;
-  export default value;
-}
-
 declare module 'pako/dist/pako_inflate' {
   function inflate(...args: any[]): string;
 }
@@ -110,7 +105,7 @@ declare module 'opus-recorder' {
     // eslint-disable-next-line @typescript-eslint/no-misused-new
     new(options: AnyLiteral): IOpusRecorder;
 
-    start(stream?: MediaStreamAudioSourceNode): void;
+    start(stream?: MediaStreamAudioSourceNode): Promise<void>;
 
     sourceNode: MediaStreamAudioSourceNode;
 

@@ -1,6 +1,7 @@
 import type { ChangeEvent } from 'react';
 import type { FC } from '../../lib/teact/teact';
-import React, {
+import type React from '../../lib/teact/teact';
+import {
   memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
@@ -52,8 +53,7 @@ const PasswordForm: FC<OwnProps> = ({
   onInputChange,
   onSubmit,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>();
   const lang = useOldLang();
 
   const { isMobile } = useAppLayout();

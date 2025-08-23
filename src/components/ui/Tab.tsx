@@ -1,5 +1,6 @@
 import type { FC, TeactNode } from '../../lib/teact/teact';
-import React, { useEffect, useLayoutEffect, useRef } from '../../lib/teact/teact';
+import type React from '../../lib/teact/teact';
+import { useEffect, useLayoutEffect, useRef } from '../../lib/teact/teact';
 
 import type { MenuItemContextAction } from './ListItem';
 
@@ -7,7 +8,6 @@ import { requestForcedReflow, requestMutation } from '../../lib/fasterdom/faster
 import { MouseButton } from '../../util/browser/windowEnvironment';
 import buildClassName from '../../util/buildClassName';
 import forceReflow from '../../util/forceReflow';
-import AISearchTab from '../chatAssistant/assets/ai-search-tab.png';
 import renderText from '../common/helpers/renderText';
 
 import useContextMenuHandlers from '../../hooks/useContextMenuHandlers';
@@ -53,13 +53,12 @@ const Tab: FC<OwnProps> = ({
   contextActions,
   contextRootElementSelector,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  const tabRef = useRef<HTMLDivElement>(null);
+  const tabRef = useRef<HTMLDivElement>();
 
   useLayoutEffect(() => {
     // Set initial active state
     if (isActive && previousActiveTab === undefined && tabRef.current) {
-      tabRef.current!.classList.add(classNames.active);
+      tabRef.current.classList.add(classNames.active);
     }
   }, [isActive, previousActiveTab]);
 
@@ -141,11 +140,7 @@ const Tab: FC<OwnProps> = ({
       ref={tabRef}
     >
       <span className="Tab_inner">
-        {typeof title === 'string' ? title === 'AI' ? (
-          <div className="flex items-center justify-center w-[30px] h-[24px]">
-            <img className="w-[30px] h-[16px]" src={AISearchTab} alt="ai" />
-          </div>
-        ) : renderText(title) : title}
+        {typeof title === 'string' ? renderText(title) : title}
         {Boolean(badgeCount) && (
           <span className={buildClassName('badge', isBadgeActive && classNames.badgeActive)}>{badgeCount}</span>
         )}

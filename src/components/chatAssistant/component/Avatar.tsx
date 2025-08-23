@@ -19,7 +19,6 @@ import {
   isAnonymousForwardsChat,
   isChatWithRepliesBot,
   isDeletedUser,
-  isUserId,
 } from '../../../global/helpers';
 import { isApiPeerChat, isApiPeerUser } from '../../../global/helpers/peers';
 import buildClassName, { createClassNameBuilder } from '../../../util/buildClassName';
@@ -33,6 +32,7 @@ import useOldLang from '../hook/useOldLang';
 import Icon from './Icon';
 
 import '../../common/Avatar.scss';
+import { isUserId } from '../../../util/entities/ids';
 
 // const LOOP_COUNT = 3;
 

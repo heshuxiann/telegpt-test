@@ -1,4 +1,4 @@
-import React, { memo, type TeactNode } from '../../../lib/teact/teact';
+import { memo, type TeactNode } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
 
 import type { ApiPeer } from '../../../api/types';
@@ -32,6 +32,9 @@ type OwnProps = {
   hasBackdrop?: boolean;
   onClose: NoneToVoidFunction;
   onButtonClick?: NoneToVoidFunction;
+  withBalanceBar?: boolean;
+  currencyInBalanceBar?: 'TON' | 'XTR';
+  isLowStackPriority?: true;
 };
 
 const TableInfoModal = ({
@@ -47,6 +50,9 @@ const TableInfoModal = ({
   hasBackdrop,
   onClose,
   onButtonClick,
+  withBalanceBar,
+  isLowStackPriority,
+  currencyInBalanceBar,
 }: OwnProps) => {
   const { openChat } = getActions();
   const handleOpenChat = useLastCallback((peerId: string) => {
@@ -66,6 +72,9 @@ const TableInfoModal = ({
       className={className}
       contentClassName={styles.content}
       onClose={onClose}
+      withBalanceBar={withBalanceBar}
+      currencyInBalanceBar={currencyInBalanceBar}
+      isLowStackPriority={isLowStackPriority}
     >
       {headerAvatarPeer && (
         <Avatar peer={headerAvatarPeer} size="jumbo" className={styles.avatar} />
@@ -74,7 +83,7 @@ const TableInfoModal = ({
       <div className={styles.table}>
         {tableData?.map(([label, value]) => (
           <>
-            {label && <div className={buildClassName(styles.cell, styles.title)}>{label}</div>}
+            {Boolean(label) && <div className={buildClassName(styles.cell, styles.title)}>{label}</div>}
             <div className={buildClassName(styles.cell, styles.value, !label && styles.fullWidth)}>
               {typeof value === 'object' && 'chatId' in value ? (
                 <PeerChip
@@ -96,7 +105,8 @@ const TableInfoModal = ({
           className={!footer ? styles.noFooter : undefined}
           size="smaller"
           onClick={onButtonClick || onClose}
-        >{buttonText}
+        >
+          {buttonText}
         </Button>
       )}
     </Modal>

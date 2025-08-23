@@ -1,6 +1,13 @@
 import type { ApiSavedStarGift, ApiStarGiftUnique } from '../../../api/types';
 import type { StarGiftCategory } from '../../../types';
+import type { ActionReturnType } from '../../types';
 
+import {
+  DEFAULT_RESALE_GIFTS_FILTER_OPTIONS,
+  RESALE_GIFTS_LIMIT,
+  STARS_CURRENCY_CODE,
+  TON_CURRENCY_CODE,
+} from '../../../config';
 import { getCurrentTabId } from '../../../util/establishMultitabRole';
 import { buildCollectionByKey } from '../../../util/iteratees';
 import { callApi } from '../../../api/gramjs';
@@ -10,8 +17,10 @@ import {
   appendStarsSubscriptions,
   appendStarsTransactions,
   replacePeerSavedGifts,
+  updateChats,
   updateStarsBalance,
   updateStarsSubscriptionLoading,
+  updateUsers,
 } from '../../reducers';
 import { updateTabState } from '../../reducers/tabs';
 import {
@@ -22,57 +31,82 @@ import {
 } from '../../selectors';
 
 addActionHandler('loadStarStatus', async (global): Promise<void> => {
-  const currentStatus = global.stars;
-  const needsTopupOptions = !currentStatus?.topupOptions;
+  const currentStarsStatus = global.stars;
+  const needsTopupOptions = !currentStarsStatus?.topupOptions;
 
-  const [status, topupOptions] = await Promise.all([
+  const [starsStatus, tonStatus, topupOptions] = await Promise.all([
     callApi('fetchStarsStatus'),
+    callApi('fetchStarsStatus', { isTon: true }),
     needsTopupOptions ? callApi('fetchStarsTopupOptions') : undefined,
   ]);
 
-  if (!status || (needsTopupOptions && !topupOptions)) {
+  if (!(starsStatus || tonStatus) || (needsTopupOptions && !topupOptions)) {
     return;
   }
 
   global = getGlobal();
 
-  global = {
-    ...global,
-    stars: {
-      ...currentStatus,
-      balance: status.balance,
-      topupOptions: topupOptions || currentStatus!.topupOptions,
-      history: {
-        all: undefined,
-        inbound: undefined,
-        outbound: undefined,
+  if (starsStatus && starsStatus.balance.currency === STARS_CURRENCY_CODE) {
+    global = {
+      ...global,
+      stars: {
+        ...currentStarsStatus,
+        balance: starsStatus.balance,
+        topupOptions: topupOptions || currentStarsStatus!.topupOptions,
+        history: {
+          all: undefined,
+          inbound: undefined,
+          outbound: undefined,
+        },
+        subscriptions: undefined,
       },
-      subscriptions: undefined,
-    },
-  };
+    };
 
-  if (status.history) {
-    global = appendStarsTransactions(global, 'all', status.history, status.nextHistoryOffset);
+    if (starsStatus.history) {
+      global = appendStarsTransactions(global, 'all', starsStatus.history, starsStatus.nextHistoryOffset);
+    }
+
+    if (starsStatus.subscriptions) {
+      global = appendStarsSubscriptions(global, starsStatus.subscriptions, starsStatus.nextSubscriptionOffset);
+    }
   }
 
-  if (status.subscriptions) {
-    global = appendStarsSubscriptions(global, status.subscriptions, status.nextSubscriptionOffset);
+  if (tonStatus?.balance.currency === TON_CURRENCY_CODE) {
+    global = {
+      ...global,
+      ton: {
+        ...tonStatus,
+        balance: tonStatus.balance,
+        history: {
+          all: undefined,
+          inbound: undefined,
+          outbound: undefined,
+        },
+      },
+    };
+
+    global = updateStarsBalance(global, tonStatus.balance);
+
+    if (tonStatus.history) {
+      global = appendStarsTransactions(global, 'all', tonStatus.history, tonStatus.nextHistoryOffset, true);
+    }
   }
 
   setGlobal(global);
 });
 
 addActionHandler('loadStarsTransactions', async (global, actions, payload): Promise<void> => {
-  const { type } = payload;
+  const { type, isTon } = payload;
 
-  const history = global.stars?.history[type];
+  const history = isTon ? global.ton?.history[type] : global.stars?.history[type];
   const offset = history?.nextOffset;
   if (history && !offset) return; // Already loaded all
 
   const result = await callApi('fetchStarsTransactions', {
-    isInbound: type === 'inbound' || undefined,
-    isOutbound: type === 'outbound' || undefined,
+    isInbound: type === 'inbound',
+    isOutbound: type === 'outbound',
     offset: offset || '',
+    isTon,
   });
 
   if (!result) {
@@ -83,7 +117,7 @@ addActionHandler('loadStarsTransactions', async (global, actions, payload): Prom
 
   global = updateStarsBalance(global, result.balance);
   if (result.history) {
-    global = appendStarsTransactions(global, type, result.history, result.nextOffset);
+    global = appendStarsTransactions(global, type, result.history, result.nextOffset, isTon);
   }
   setGlobal(global);
 });
@@ -95,27 +129,34 @@ addActionHandler('loadStarGifts', async (global): Promise<void> => {
     return;
   }
 
-  const byId = buildCollectionByKey(result, 'id');
+  global = getGlobal();
+
+  const byId = buildCollectionByKey(result.gifts, 'id');
 
   const idsByCategoryName: Record<StarGiftCategory, string[]> = {
     all: [],
     stock: [],
     limited: [],
+    resale: [],
   };
 
   const allStarGiftIds = Object.keys(byId);
   const allStarGifts = Object.values(byId);
 
   const limitedStarGiftIds = allStarGifts.map((gift) => (gift.isLimited ? gift.id : undefined))
-    .filter(Boolean) as string[];
+    .filter(Boolean);
 
   const stockedStarGiftIds = allStarGifts.map((gift) => (
     gift.availabilityRemains || !gift.availabilityTotal ? gift.id : undefined
-  )).filter(Boolean) as string[];
+  )).filter(Boolean);
+
+  const resaleStarGiftIds = allStarGifts.map((gift) => (gift.availabilityResale ? gift.id : undefined))
+    .filter(Boolean);
 
   idsByCategoryName.all = allStarGiftIds;
   idsByCategoryName.limited = limitedStarGiftIds;
   idsByCategoryName.stock = stockedStarGiftIds;
+  idsByCategoryName.resale = resaleStarGiftIds;
 
   allStarGifts.forEach((gift) => {
     const starsCategory = gift.stars;
@@ -125,7 +166,6 @@ addActionHandler('loadStarGifts', async (global): Promise<void> => {
     idsByCategoryName[starsCategory].push(gift.id);
   });
 
-  global = getGlobal();
   global = {
     ...global,
     starGifts: {
@@ -136,6 +176,115 @@ addActionHandler('loadStarGifts', async (global): Promise<void> => {
   setGlobal(global);
 });
 
+addActionHandler('updateResaleGiftsFilter', (global, actions, payload): ActionReturnType => {
+  const {
+    filter, tabId = getCurrentTabId(),
+  } = payload;
+
+  const tabState = selectTabState(global, tabId);
+  global = updateTabState(global, {
+    resaleGifts: {
+      ...tabState.resaleGifts,
+      filter,
+    },
+  }, tabId);
+  if (tabState.resaleGifts.giftId) {
+    actions.loadResaleGifts({ giftId: tabState.resaleGifts.giftId, shouldRefresh: true, tabId });
+  }
+
+  setGlobal(global);
+});
+
+addActionHandler('loadResaleGifts', async (global, actions, payload): Promise<void> => {
+  const {
+    giftId, shouldRefresh, tabId = getCurrentTabId(),
+  } = payload;
+
+  let tabState = selectTabState(global, tabId);
+  if (tabState.resaleGifts.isLoading || (tabState.resaleGifts.isAllLoaded && !shouldRefresh)) return;
+
+  global = updateTabState(global, {
+    resaleGifts: {
+      ...tabState.resaleGifts,
+      isLoading: true,
+      ...(shouldRefresh && {
+        count: 0,
+        nextOffset: undefined,
+        isAllLoaded: false,
+      }),
+    },
+  }, tabId);
+  setGlobal(global);
+
+  global = getGlobal();
+  tabState = selectTabState(global, tabId);
+  const nextOffset = tabState.resaleGifts.nextOffset;
+  const attributesHash = tabState.resaleGifts.attributesHash;
+  const filter = tabState.resaleGifts.filter;
+
+  const result = await callApi('fetchResaleGifts', {
+    giftId,
+    offset: nextOffset,
+    limit: RESALE_GIFTS_LIMIT,
+    attributesHash,
+    filter,
+  });
+
+  if (!result) {
+    return;
+  };
+
+  const {
+    chats,
+    users,
+  } = result;
+
+  global = getGlobal();
+  tabState = selectTabState(global, tabId);
+
+  const currentGifts = tabState.resaleGifts.gifts;
+  const newGifts = !shouldRefresh ? currentGifts.concat(result.gifts) : result.gifts;
+  const currentUpdateIteration = tabState.resaleGifts.updateIteration;
+  const shouldUpdateIteration = tabState.resaleGifts.giftId !== giftId || shouldRefresh;
+  const updateIteration = shouldUpdateIteration ? currentUpdateIteration + 1 : currentUpdateIteration;
+  global = updateTabState(global, {
+    resaleGifts: {
+      ...tabState.resaleGifts,
+      giftId,
+      count: result.count || tabState.resaleGifts.count,
+      gifts: newGifts,
+      attributes: result.attributes || tabState.resaleGifts.attributes,
+      counters: result.counters || tabState.resaleGifts.counters,
+      attributesHash: result.attributesHash,
+      nextOffset: result.nextOffset,
+      isLoading: false,
+      isAllLoaded: !result.nextOffset,
+      updateIteration,
+    },
+  }, tabId);
+
+  global = updateUsers(global, buildCollectionByKey(users, 'id'));
+  global = updateChats(global, buildCollectionByKey(chats, 'id'));
+
+  setGlobal(global);
+});
+
+addActionHandler('resetResaleGifts', (global, actions, payload): ActionReturnType => {
+  const {
+    tabId = getCurrentTabId(),
+  } = payload || {};
+
+  const tabState = selectTabState(global, tabId);
+  return updateTabState(global, {
+    resaleGifts: {
+      updateIteration: tabState.resaleGifts.updateIteration + 1,
+      filter: DEFAULT_RESALE_GIFTS_FILTER_OPTIONS,
+      count: 0,
+      gifts: [],
+    },
+  }, tabId);
+});
+
 addActionHandler('loadPeerSavedGifts', async (global, actions, payload): Promise<void> => {
   const {
     peerId, shouldRefresh, tabId = getCurrentTabId(),
@@ -144,12 +293,13 @@ addActionHandler('loadPeerSavedGifts', async (global, actions, payload): Promise
   const peer = selectPeer(global, peerId);
   if (!peer) return;
 
+  global = getGlobal();
+
   const currentGifts = selectPeerSavedGifts(global, peerId, tabId);
   const localNextOffset = currentGifts?.nextOffset;
 
   if (!shouldRefresh && currentGifts && !localNextOffset) return; // Already loaded all
 
-  global = getGlobal();
   const fetchingFilter = selectGiftProfileFilter(global, peerId, tabId);
 
   const result = await callApi('fetchSavedStarGifts', {
@@ -171,6 +321,18 @@ addActionHandler('loadPeerSavedGifts', async (global, actions, payload): Promise
   setGlobal(global);
 });
 
+addActionHandler('reloadPeerSavedGifts', (global, actions, payload): ActionReturnType => {
+  const {
+    peerId,
+  } = payload;
+
+  Object.values(global.byTabId).forEach((tabState) => {
+    if (selectPeerSavedGifts(global, peerId, tabState.id)) {
+      actions.loadPeerSavedGifts({ peerId, shouldRefresh: true, tabId: tabState.id });
+    }
+  });
+});
+
 addActionHandler('loadStarsSubscriptions', async (global): Promise<void> => {
   const subscriptions = global.stars?.subscriptions;
   const offset = subscriptions?.nextOffset;
@@ -183,7 +345,7 @@ addActionHandler('loadStarsSubscriptions', async (global): Promise<void> => {
     offset: offset || '',
   });
 
-  if (!result) {
+  if (!result || result.balance.currency !== STARS_CURRENCY_CODE) {
     return;
   }
 
@@ -346,4 +508,25 @@ addActionHandler('toggleSavedGiftPinned', async (global, actions, payload): Prom
       actions.loadPeerSavedGifts({ peerId, shouldRefresh: true, tabId: tabState.id });
     }
   });
+});
+
+addActionHandler('updateStarGiftPrice', async (global, actions, payload): Promise<void> => {
+  const {
+    gift, price,
+  } = payload;
+
+  const requestSavedGift = getRequestInputSavedStarGift(global, gift);
+
+  if (!requestSavedGift) {
+    return;
+  }
+
+  const result = await callApi('updateStarGiftPrice', {
+    inputSavedGift: requestSavedGift,
+    price,
+  });
+
+  if (!result) return;
+
+  actions.reloadPeerSavedGifts({ peerId: global.currentUserId! });
 });

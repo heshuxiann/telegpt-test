@@ -1,5 +1,5 @@
 import type { FC, TeactNode } from '../../lib/teact/teact';
-import React, {
+import {
   memo, useEffect, useMemo, useRef, useSignal, useState,
 } from '../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../global';
@@ -20,7 +20,9 @@ import type {
   ApiFormattedText,
   ApiMessage,
   ApiMessageEntity,
+  ApiNewMediaTodo,
   ApiNewPoll,
+  ApiPeer,
   ApiQuickReply,
   ApiReaction,
   ApiStealthMode,
@@ -53,6 +55,7 @@ import {
   SCHEDULED_WHEN_ONLINE,
   SEND_MESSAGE_ACTION_INTERVAL,
   SERVICE_NOTIFICATIONS_USER_ID,
+  STARS_CURRENCY_CODE,
 } from '../../config';
 import { requestMeasure, requestNextMutation } from '../../lib/fasterdom/fasterdom';
 import {
@@ -63,10 +66,10 @@ import {
   getUserFullName,
   isChatAdmin,
   isChatChannel,
+  isChatPublic,
   isChatSuperGroup,
   isSameReaction,
   isSystemBot,
-  isUserId,
 } from '../../global/helpers';
 import { getChatNotifySettings } from '../../global/helpers/notifications';
 import { getPeerTitle } from '../../global/helpers/peers';
@@ -94,6 +97,7 @@ import {
   selectNotifyDefaults,
   selectNotifyException,
   selectNoWebPage,
+  selectPeer,
   selectPeerPaidMessagesStars,
   selectPeerStory,
   selectPerformanceSettingsValue,
@@ -104,6 +108,7 @@ import {
   selectTopicFromMessage,
   selectUser,
   selectUserFullInfo,
+  selectWebPage,
 } from '../../global/selectors';
 import { selectCurrentLimit } from '../../global/selectors/limits';
 import { selectSharedSettings } from '../../global/selectors/sharedState';
@@ -114,6 +119,7 @@ import { processDeepLink } from '../../util/deeplink';
 import { tryParseDeepLink } from '../../util/deepLinkParser';
 import deleteLastCharacterOutsideSelection from '../../util/deleteLastCharacterOutsideSelection';
 import { processMessageInputForCustomEmoji } from '../../util/emoji/customEmojiManager';
+import { isUserId } from '../../util/entities/ids';
 import focusEditableElement from '../../util/focusEditableElement';
 import { formatStarsAsIcon } from '../../util/localization/format';
 import { MEMO_EMPTY_ARRAY } from '../../util/memo';
@@ -144,6 +150,7 @@ import useGetSelectionRange from '../../hooks/useGetSelectionRange';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useOldLang from '../../hooks/useOldLang';
+import usePrevious from '../../hooks/usePrevious';
 import usePreviousDeprecated from '../../hooks/usePreviousDeprecated';
 import useSchedule from '../../hooks/useSchedule';
 import useSendMessageAction from '../../hooks/useSendMessageAction';
@@ -158,6 +165,7 @@ import useDraft from '../middle/composer/hooks/useDraft';
 import useEditing from '../middle/composer/hooks/useEditing';
 import useEmojiTooltip from '../middle/composer/hooks/useEmojiTooltip';
 import useInlineBotTooltip from '../middle/composer/hooks/useInlineBotTooltip';
+import useLoadLinkPreview from '../middle/composer/hooks/useLoadLinkPreview';
 import useMentionTooltip from '../middle/composer/hooks/useMentionTooltip';
 import usePaidMessageConfirmation from '../middle/composer/hooks/usePaidMessageConfirmation';
 import useStickerTooltip from '../middle/composer/hooks/useStickerTooltip';
@@ -183,6 +191,7 @@ import PollModal from '../middle/composer/PollModal.async';
 import SendAsMenu from '../middle/composer/SendAsMenu.async';
 import StickerTooltip from '../middle/composer/StickerTooltip.async';
 import SymbolMenuButton from '../middle/composer/SymbolMenuButton';
+import ToDoListModal from '../middle/composer/ToDoListModal.async';
 import WebPagePreview from '../middle/composer/WebPagePreview';
 import MessageEffect from '../middle/message/MessageEffect';
 import ReactionSelector from '../middle/message/reactions/ReactionSelector';
@@ -238,8 +247,11 @@ type StateProps =
     isReactionPickerOpen?: boolean;
     shouldDisplayGiftsButton?: boolean;
     isForwarding?: boolean;
+    isReplying?: boolean;
+    hasSuggestedPost?: boolean;
     forwardedMessagesCount?: number;
     pollModal: TabState['pollModal'];
+    todoListModal: TabState['todoListModal'];
     botKeyboardMessageId?: number;
     botKeyboardPlaceholder?: string;
     withScheduledButton?: boolean;
@@ -260,8 +272,7 @@ type StateProps =
     inlineBots?: Record<string, false | InlineBotSettings>;
     botCommands?: ApiBotCommand[] | false;
     botMenuButton?: ApiBotMenuButton;
-    sendAsUser?: ApiUser;
-    sendAsChat?: ApiChat;
+    sendAsPeer?: ApiPeer;
     sendAsId?: string;
     editingDraft?: ApiFormattedText;
     requestedDraft?: ApiFormattedText;
@@ -305,6 +316,8 @@ type StateProps =
     disallowedGifts?: ApiDisallowedGifts;
     isAccountFrozen?: boolean;
     isAppConfigLoaded?: boolean;
+    insertingPeerIdMention?: string;
+    pollMaxAnswers?: number;
   };
 
 enum MainButtonState {
@@ -359,8 +372,11 @@ const Composer: FC<OwnProps & StateProps> = ({
   isReactionPickerOpen,
   shouldDisplayGiftsButton,
   isForwarding,
+  isReplying,
+  hasSuggestedPost,
   forwardedMessagesCount,
   pollModal,
+  todoListModal,
   botKeyboardMessageId,
   botKeyboardPlaceholder,
   inputPlaceholder,
@@ -380,8 +396,7 @@ const Composer: FC<OwnProps & StateProps> = ({
   inlineBots,
   isInlineBotLoading,
   botCommands,
-  sendAsUser,
-  sendAsChat,
+  sendAsPeer,
   sendAsId,
   editingDraft,
   requestedDraft,
@@ -419,16 +434,18 @@ const Composer: FC<OwnProps & StateProps> = ({
   shouldPlayEffect,
   maxMessageLength,
   isSilentPosting,
-  onDropHide,
-  onFocus,
-  onBlur,
-  onForward,
   isPaymentMessageConfirmDialogOpen,
   starsBalance,
   isStarsBalanceModalOpen,
   disallowedGifts,
   isAccountFrozen,
   isAppConfigLoaded,
+  insertingPeerIdMention,
+  pollMaxAnswers,
+  onDropHide,
+  onFocus,
+  onBlur,
+  onForward,
 }) => {
   const {
     sendMessage,
@@ -436,6 +453,8 @@ const Composer: FC<OwnProps & StateProps> = ({
     showDialog,
     openPollModal,
     closePollModal,
+    openTodoListModal,
+    closeTodoListModal,
     loadScheduledHistory,
     openThread,
     addRecentEmoji,
@@ -456,18 +475,17 @@ const Composer: FC<OwnProps & StateProps> = ({
     setReactionEffect,
     hideEffectInComposer,
     updateChatSilentPosting,
+    updateInsertingPeerIdMention,
+    updateDraftSuggestedPostInfo,
   } = getActions();
 
   const oldLang = useOldLang();
   const lang = useLang();
 
-  // eslint-disable-next-line no-null/no-null
-  const inputRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const counterRef = useRef<HTMLSpanElement>(null);
+  const inputRef = useRef<HTMLDivElement>();
+  const counterRef = useRef<HTMLSpanElement>();
 
-  // eslint-disable-next-line no-null/no-null
-  const storyReactionRef = useRef<HTMLButtonElement>(null);
+  const storyReactionRef = useRef<HTMLButtonElement>();
 
   const [getHtml, setHtml] = useSignal('');
   const [isMounted, setIsMounted] = useState(false);
@@ -479,8 +497,7 @@ const Composer: FC<OwnProps & StateProps> = ({
   const isInMessageList = type === 'messageList';
   const isInStoryViewer = type === 'story';
   const sendAsPeerIds = isInMessageList ? chat?.sendAsPeerIds : undefined;
-  const canShowSendAs = sendAsPeerIds
-    && (sendAsPeerIds.length > 1 || !sendAsPeerIds.some((peer) => peer.id === currentUserId!));
+  const canShowSendAs = Boolean(sendAsPeerIds?.length);
   // Prevent Symbol Menu from closing when calendar is open
   const [isSymbolMenuForced, forceShowSymbolMenu, cancelForceShowSymbolMenu] = useFlag();
   const sendMessageAction = useSendMessageAction(chatId, threadId);
@@ -490,8 +507,11 @@ const Composer: FC<OwnProps & StateProps> = ({
 
   const canMediaBeReplaced = editingMessage && canEditMedia(editingMessage);
 
+  const isMonoforum = chat?.isMonoforum;
   const { emojiSet, members: groupChatMembers, botCommands: chatBotCommands } = chatFullInfo || {};
   const chatEmojiSetId = emojiSet?.id;
+
+  const canSchedule = !paidMessagesStars && !isMonoforum;
 
   const isSentStoryReactionHeart = sentStoryReaction && isSameReaction(sentStoryReaction, HEART_REACTION);
 
@@ -519,14 +539,16 @@ const Composer: FC<OwnProps & StateProps> = ({
   }, [chatId]);
 
   useEffect(() => {
-    if (isAppConfigLoaded && chatId && isReady && !isInStoryViewer) {
+    if (isAppConfigLoaded && chatId && isReady && !isInStoryViewer && !isMonoforum) {
       loadScheduledHistory({ chatId });
     }
-  }, [isReady, chatId, threadId, isInStoryViewer, isAppConfigLoaded]);
+  }, [isReady, chatId, threadId, isInStoryViewer, isAppConfigLoaded, isMonoforum]);
 
   useEffect(() => {
     const isChannelWithProfiles = isChannel && chat?.areProfilesShown;
-    if (chatId && chat && !sendAsPeerIds && isReady && (isChatSuperGroup(chat) || isChannelWithProfiles)) {
+    const isChatWithSendAs = chat && isChatSuperGroup(chat)
+      && Boolean(isChatPublic(chat) || chat.isLinkedInDiscussion || chat.hasGeo);
+    if (!sendAsPeerIds && isReady && (isChatWithSendAs || isChannelWithProfiles)) {
       loadSendAs({ chatId });
     }
   }, [chat, chatId, isChannel, isReady, loadSendAs, sendAsPeerIds]);
@@ -542,16 +564,17 @@ const Composer: FC<OwnProps & StateProps> = ({
   const [nextText, setNextText] = useState<ApiFormattedText | undefined>(undefined);
 
   const {
-    canSendStickers, canSendGifs, canAttachMedia, canAttachPolls, canAttachEmbedLinks,
+    canSendStickers, canSendGifs, canAttachMedia, canAttachPolls, canAttachEmbedLinks, canAttachToDoLists,
     canSendVoices, canSendPlainText, canSendAudios, canSendVideos, canSendPhotos, canSendDocuments,
   } = useMemo(
     () => getAllowedAttachmentOptions(chat,
       chatFullInfo,
       isChatWithBot,
+      isChatWithSelf,
       isInStoryViewer,
       paidMessagesStars,
       isInScheduledList),
-    [chat, chatFullInfo, isChatWithBot, isInStoryViewer, paidMessagesStars, isInScheduledList],
+    [chat, chatFullInfo, isChatWithBot, isChatWithSelf, isInStoryViewer, paidMessagesStars, isInScheduledList],
   );
 
   const isNeedPremium = isContactRequirePremium && isInStoryViewer;
@@ -612,7 +635,7 @@ const Composer: FC<OwnProps & StateProps> = ({
   const insertTextAndUpdateCursor = useLastCallback((
     text: string, inInputId: string = editableInputId,
   ) => {
-    const newHtml = renderText(text, ['escape_html', 'emoji_html', 'br_html'])
+    const newHtml = (renderText(text, ['escape_html', 'emoji_html', 'br_html']) as string[])
       .join('')
       .replace(/\u200b+/g, '\u200b');
     insertHtmlAndUpdateCursor(newHtml, inInputId);
@@ -636,7 +659,6 @@ const Composer: FC<OwnProps & StateProps> = ({
   });
 
   const {
-    shouldSuggestCompression,
     shouldForceCompression,
     shouldForceAsFile,
     handleAppendFiles,
@@ -656,6 +678,7 @@ const Composer: FC<OwnProps & StateProps> = ({
     canSendDocuments,
     insertNextText,
     editedMessage: editingMessage,
+    shouldSendInHighQuality: attachmentSettings.shouldSendInHighQuality,
   });
 
   useEffect(() => {
@@ -669,6 +692,7 @@ const Composer: FC<OwnProps & StateProps> = ({
       delete globalThis.p__handleFileSelect;
     };
   }, [handleFileSelect]);
+
 
   const [isBotKeyboardOpen, openBotKeyboard, closeBotKeyboard] = useFlag();
   const [isBotCommandMenuOpen, openBotCommandMenu, closeBotCommandMenu] = useFlag();
@@ -790,6 +814,15 @@ const Composer: FC<OwnProps & StateProps> = ({
     currentUserId,
   );
 
+  useEffect(() => {
+    if (!insertingPeerIdMention) return;
+    const peer = selectPeer(getGlobal(), insertingPeerIdMention);
+    if (peer) {
+      insertMention(peer, true, true);
+    }
+    updateInsertingPeerIdMention({ peerId: undefined });
+  }, [insertingPeerIdMention, insertMention]);
+
   const {
     isOpen: isInlineBotTooltipOpen,
     botId: inlineBotId,
@@ -832,7 +865,13 @@ const Composer: FC<OwnProps & StateProps> = ({
     getHtml,
     setHtml,
     editedMessage: editingMessage,
-    isDisabled: isInStoryViewer || Boolean(requestedDraft),
+    isDisabled: isInStoryViewer || Boolean(requestedDraft) || (!hasSuggestedPost && isMonoforum),
+  });
+
+  useLoadLinkPreview({
+    chatId,
+    threadId,
+    getHtml,
   });
 
   const resetComposer = useLastCallback((shouldPreserveInput = false) => {
@@ -888,6 +927,8 @@ const Composer: FC<OwnProps & StateProps> = ({
   }, [disallowedGifts]);
 
   const shouldShowGiftButton = Boolean(!isChatWithSelf && shouldDisplayGiftsButton && !areAllGiftsDisallowed);
+  const shouldShowSuggestedPostButton = isMonoforum && !editingMessage
+    && !isForwarding && !isReplying && !draft?.suggestedPostInfo;
 
   const showCustomEmojiPremiumNotification = useLastCallback(() => {
     const notificationNumber = customEmojiNotificationNumber.current;
@@ -1188,7 +1229,7 @@ const Composer: FC<OwnProps & StateProps> = ({
           isInvertedMedia,
           effectId,
           webPageMediaSize: attachmentSettings.webPageMediaSize,
-          webPageUrl: hasWebPagePreview ? webPagePreview!.url : undefined,
+          webPageUrl: hasWebPagePreview ? webPagePreview.url : undefined,
           isForwarding,
         });
       }
@@ -1256,10 +1297,28 @@ const Composer: FC<OwnProps & StateProps> = ({
     handleSendCore(currentAttachments, isSilent, scheduledAt);
     // TODO: collect information from send message
     userInformationCollection.collectInformation(text);
+
+    handleSendCore(currentAttachments, isSilent, scheduledAt);
   });
 
   const handleSendWithConfirmation = useLastCallback((isSilent = false, scheduledAt?: number) => {
     handleActionWithPaymentConfirmation(handleSend, isSilent, scheduledAt);
+  });
+
+  const handleTodoListCreate = useLastCallback(() => {
+    if (!isCurrentUserPremium) {
+      showNotification({
+        message: lang('SubscribeToTelegramPremiumForCreateToDo'),
+        action: {
+          action: 'openPremiumModal',
+          payload: { initialSection: 'todo' },
+        },
+        actionText: lang('PremiumMore'),
+      });
+      return;
+    }
+
+    openTodoListModal({ chatId });
   });
 
   const handleClickBotMenu = useLastCallback(() => {
@@ -1501,6 +1560,28 @@ const Composer: FC<OwnProps & StateProps> = ({
     }
   });
 
+  const handleToDoListSend = useLastCallback((todo: ApiNewMediaTodo) => {
+    if (!currentMessageList) {
+      return;
+    }
+
+    if (isInScheduledList) {
+      requestCalendar((scheduledAt) => {
+        handleActionWithPaymentConfirmation(
+          handleMessageSchedule,
+          { todo },
+          scheduledAt,
+          currentMessageList,
+        );
+      });
+    } else {
+      handleActionWithPaymentConfirmation(
+        sendMessage,
+        { messageList: currentMessageList, todo, isSilent: isSilentPosting },
+      );
+    }
+  });
+
   const sendSilent = useLastCallback((additionalArgs?: ScheduledMessageArgs) => {
     if (isInScheduledList) {
       requestCalendar((scheduledAt) => {
@@ -1569,6 +1650,11 @@ const Composer: FC<OwnProps & StateProps> = ({
   const handleGiftClick = useLastCallback(() => {
     openGiftModal({ forUserId: chatId });
   });
+  const handleSuggestPostClick = useLastCallback(() => {
+    updateDraftSuggestedPostInfo({
+      price: { currency: STARS_CURRENCY_CODE, amount: 0, nanos: 0 },
+    });
+  });
 
   const handleToggleSilentPosting = useLastCallback(() => {
     const newValue = !isSilentPosting;
@@ -1620,7 +1706,7 @@ const Composer: FC<OwnProps & StateProps> = ({
   const isComposerHasFocus = isBotKeyboardOpen || isSymbolMenuOpen || isEmojiTooltipOpen || isSendAsMenuOpen
     || isMentionTooltipOpen || isInlineBotTooltipOpen || isBotCommandMenuOpen || isAttachMenuOpen
     || isStickerTooltipOpen || isChatCommandTooltipOpen || isCustomEmojiTooltipOpen || isBotMenuButtonOpen
-  || isCustomSendMenuOpen || Boolean(activeVoiceRecording) || attachments.length > 0 || isInputHasFocus;
+    || isCustomSendMenuOpen || Boolean(activeVoiceRecording) || attachments.length > 0 || isInputHasFocus;
   const isReactionSelectorOpen = isComposerHasFocus && !isReactionPickerOpen && isInStoryViewer && !isAttachMenuOpen
     && !isSymbolMenuOpen;
 
@@ -1639,6 +1725,15 @@ const Composer: FC<OwnProps & StateProps> = ({
           withNodes: true,
         });
       }
+
+      if (isReplying && hasSuggestedPost) {
+        return lang('ComposerPlaceholderCaption');
+      }
+
+      if (chat?.adminRights?.anonymous) {
+        return lang('ComposerPlaceholderAnonymous');
+      }
+
       if (chat?.isForum && chat?.isForumAsMessages && threadId === MAIN_THREAD_ID) {
         return replyToTopic
           ? lang('ComposerPlaceholderTopic', { topic: replyToTopic.title })
@@ -1655,7 +1750,8 @@ const Composer: FC<OwnProps & StateProps> = ({
     return lang('ComposerPlaceholderNoText');
   }, [
     activeVoiceRecording, botKeyboardPlaceholder, chat, inputPlaceholder, isChannel, isComposerBlocked,
-    isInStoryViewer, isSilentPosting, lang, replyToTopic, threadId, windowWidth, paidMessagesStars,
+    isInStoryViewer, isSilentPosting, lang, replyToTopic, isReplying, threadId, windowWidth, paidMessagesStars,
+    hasSuggestedPost,
   ]);
 
   useEffect(() => {
@@ -1829,9 +1925,13 @@ const Composer: FC<OwnProps & StateProps> = ({
     },
   );
 
-  const handleRemoveEffect = useLastCallback(() => { saveEffectInDraft({ chatId, threadId, effectId: undefined }); });
+  const handleRemoveEffect = useLastCallback(() => {
+    saveEffectInDraft({ chatId, threadId, effectId: undefined });
+  });
 
-  const handleStopEffect = useLastCallback(() => { hideEffectInComposer({ }); });
+  const handleStopEffect = useLastCallback(() => {
+    hideEffectInComposer({ });
+  });
 
   const onSend = useMemo(() => {
     switch (mainButtonState) {
@@ -1850,6 +1950,7 @@ const Composer: FC<OwnProps & StateProps> = ({
   const effectEmoji = areEffectsSupported && effect?.emoticon;
 
   const shouldRenderPaidBadge = Boolean(paidMessagesStars && mainButtonState === MainButtonState.Send);
+  const prevShouldRenderPaidBadge = usePrevious(shouldRenderPaidBadge);
 
   return (
     <div className={fullClassName}>
@@ -1885,13 +1986,12 @@ const Composer: FC<OwnProps & StateProps> = ({
         attachments={attachments}
         getHtml={getHtml}
         isReady={isReady}
-        shouldSuggestCompression={shouldSuggestCompression}
         shouldForceCompression={shouldForceCompression}
         shouldForceAsFile={shouldForceAsFile}
         isForCurrentMessageList={isForCurrentMessageList}
         isForMessage={isInMessageList}
-        shouldSchedule={!paidMessagesStars && isInScheduledList}
-        canSchedule={!paidMessagesStars}
+        shouldSchedule={canSchedule && isInScheduledList}
+        canSchedule={canSchedule}
         forceDarkTheme={isInStoryViewer}
         onCaptionUpdate={onCaptionUpdate}
         onSendSilent={handleSendSilentAttachments}
@@ -1912,8 +2012,14 @@ const Composer: FC<OwnProps & StateProps> = ({
         isOpen={pollModal.isOpen}
         isQuiz={pollModal.isQuiz}
         shouldBeAnonymous={isChannel}
+        maxOptionsCount={pollMaxAnswers}
         onClear={closePollModal}
         onSend={handlePollSend}
+      />
+      <ToDoListModal
+        modal={todoListModal}
+        onClear={closeTodoListModal}
+        onSend={handleToDoListSend}
       />
       <SendAsMenu
         isOpen={isSendAsMenuOpen}
@@ -1996,8 +2102,7 @@ const Composer: FC<OwnProps & StateProps> = ({
             <WebPagePreview
               chatId={chatId}
               threadId={threadId}
-              getHtml={getHtml}
-              isDisabled={!canAttachEmbedLinks || hasAttachments}
+              isDisabled={!canAttachEmbedLinks || hasAttachments || !hasText}
               isEditing={Boolean(editingMessage)}
             />
           </>
@@ -2027,7 +2132,7 @@ const Composer: FC<OwnProps & StateProps> = ({
                   <Icon name="bot-commands-filled" />
                 </ResponsiveHoverButton>
               )}
-              {canShowSendAs && (sendAsUser || sendAsChat) && (
+              {canShowSendAs && sendAsPeer && (
                 <Button
                   round
                   color="translucent"
@@ -2040,7 +2145,7 @@ const Composer: FC<OwnProps & StateProps> = ({
                   )}
                 >
                   <Avatar
-                    peer={sendAsUser || sendAsChat}
+                    peer={sendAsPeer}
                     size="tiny"
                   />
                 </Button>
@@ -2154,6 +2259,17 @@ const Composer: FC<OwnProps & StateProps> = ({
                         <Icon name="gift" />
                       </Button>
                     )}
+                    {shouldShowSuggestedPostButton && (
+                      <Button
+                        round
+                        faded
+                        className="composer-action-button"
+                        color="translucent"
+                        onClick={handleSuggestPostClick}
+                      >
+                        <Icon name="cash-circle" />
+                      </Button>
+                    )}
                     {Boolean(botKeyboardMessageId) && !activeVoiceRecording && !editingMessage && (
                       <ResponsiveHoverButton
                         className={buildClassName('composer-action-button', isBotKeyboardOpen && 'activated')}
@@ -2186,12 +2302,14 @@ const Composer: FC<OwnProps & StateProps> = ({
               isButtonVisible={!activeVoiceRecording}
               canAttachMedia={canAttachMedia}
               canAttachPolls={canAttachPolls}
+              canAttachToDoLists={canAttachToDoLists}
               canSendPhotos={canSendPhotos}
               canSendVideos={canSendVideos}
               canSendDocuments={canSendDocuments}
               canSendAudios={canSendAudios}
               onFileSelect={handleFileSelect}
               onPollCreate={openPollModal}
+              onTodoListCreate={handleTodoListCreate}
               isScheduled={isInScheduledList}
               attachBots={isInMessageList ? attachBots : undefined}
               peerType={attachMenuPeerType}
@@ -2318,7 +2436,12 @@ const Composer: FC<OwnProps & StateProps> = ({
         {isInMessageList && <Icon name="schedule" />}
         {isInMessageList && <Icon name="check" />}
         <Button
-          className={buildClassName('paidStarsBadge', shouldRenderPaidBadge && 'visible')}
+          className={buildClassName(
+            'paidStarsBadge',
+            shouldRenderPaidBadge && 'visible',
+            prevShouldRenderPaidBadge && !shouldRenderPaidBadge && 'hiding',
+            !prevShouldRenderPaidBadge && !shouldRenderPaidBadge && 'hidden',
+          )}
           nonInteractive
           size="tiny"
           color="stars"
@@ -2349,7 +2472,7 @@ const Composer: FC<OwnProps & StateProps> = ({
       {canShowCustomSendMenu && (
         <CustomSendMenu
           isOpen={isCustomSendMenuOpen}
-          canSchedule={!paidMessagesStars && isInMessageList && !isViewOnceEnabled}
+          canSchedule={canSchedule && isInMessageList && !isViewOnceEnabled}
           canScheduleUntilOnline={canScheduleUntilOnline && !isViewOnceEnabled}
           onSendSilent={!isChatWithSelf ? handleSendSilent : undefined}
           onSendSchedule={!isInScheduledList ? handleSendScheduled : undefined}
@@ -2389,6 +2512,7 @@ export default memo(withGlobal<OwnProps>(
   (global, {
     chatId, threadId, storyId, messageListType, isMobile, type,
   }): StateProps => {
+    const appConfig = global.appConfig;
     const chat = selectChat(global, chatId);
     const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
     const isChatWithBot = Boolean(chatBot);
@@ -2414,13 +2538,8 @@ export default memo(withGlobal<OwnProps>(
     const { currentUserId } = global;
     const currentUser = selectUser(global, currentUserId!)!;
     const defaultSendAsId = chatFullInfo ? chatFullInfo?.sendAsId || currentUserId : undefined;
-    const sendAsId = chat?.sendAsPeerIds && defaultSendAsId && (
-      chat.sendAsPeerIds.some((peer) => peer.id === defaultSendAsId)
-        ? defaultSendAsId
-        : (chat?.adminRights?.anonymous ? chat?.id : undefined)
-    );
-    const sendAsUser = sendAsId ? selectUser(global, sendAsId) : undefined;
-    const sendAsChat = !sendAsUser && sendAsId ? selectChat(global, sendAsId) : undefined;
+    const sendAsId = defaultSendAsId;
+    const sendAsPeer = sendAsId ? selectPeer(global, sendAsId) : undefined;
     const requestedDraft = selectRequestedDraft(global, chatId);
     const requestedDraftFiles = selectRequestedDraftFiles(global, chatId);
 
@@ -2462,7 +2581,7 @@ export default memo(withGlobal<OwnProps>(
     )?.isSilentPosting;
 
     const areEffectsSupported = isChatWithUser && !isChatWithBot
-    && !isInScheduledList && !isChatWithSelf && type !== 'story' && chatId !== SERVICE_NOTIFICATIONS_USER_ID;
+      && !isInScheduledList && !isChatWithSelf && type !== 'story' && chatId !== SERVICE_NOTIFICATIONS_USER_ID;
     const canPlayEffect = selectPerformanceSettingsValue(global, 'stickerEffects');
     const shouldPlayEffect = tabState.shouldPlayEffectInComposer;
     const effectId = areEffectsSupported && draft?.effectId;
@@ -2471,10 +2590,15 @@ export default memo(withGlobal<OwnProps>(
 
     const maxMessageLength = global.config?.maxMessageLength || DEFAULT_MAX_MESSAGE_LENGTH;
     const isForwarding = chatId === tabState.forwardMessages.toChatId;
+    const isReplying = Boolean(draft?.replyInfo);
+    const hasSuggestedPost = Boolean(draft?.suggestedPostInfo);
     const starsBalance = global.stars?.balance.amount || 0;
     const isStarsBalanceModalOpen = Boolean(tabState.starsBalanceModal);
     const isAccountFrozen = selectIsCurrentUserFrozen(global);
     const isAppConfigLoaded = global.isAppConfigLoaded;
+    const insertingPeerIdMention = tabState.insertingPeerIdMention;
+
+    const webPagePreview = tabState.webPagePreviewId ? selectWebPage(global, tabState.webPagePreviewId) : undefined;
 
     return {
       availableReactions: global.reactions.availableReactions,
@@ -2498,8 +2622,11 @@ export default memo(withGlobal<OwnProps>(
       botKeyboardMessageId,
       botKeyboardPlaceholder: keyboardMessage?.keyboardPlaceholder,
       isForwarding,
+      isReplying,
+      hasSuggestedPost,
       forwardedMessagesCount: isForwarding ? forwardMessageIds!.length : undefined,
       pollModal: tabState.pollModal,
+      todoListModal: tabState.todoListModal,
       stickersForEmoji: global.stickers.forEmoji.stickers,
       customEmojiForEmoji: global.customEmojis.forEmoji.stickers,
       chatFullInfo,
@@ -2517,8 +2644,7 @@ export default memo(withGlobal<OwnProps>(
       isInlineBotLoading: tabState.inlineBots.isLoading,
       botCommands: userFullInfo ? (userFullInfo.botInfo?.commands || false) : undefined,
       botMenuButton: userFullInfo?.botInfo?.menuButton,
-      sendAsUser,
-      sendAsChat,
+      sendAsPeer,
       sendAsId,
       editingDraft,
       requestedDraft,
@@ -2545,7 +2671,7 @@ export default memo(withGlobal<OwnProps>(
       quickReplies: global.quickReplies.byId,
       canSendQuickReplies,
       noWebPage,
-      webPagePreview: selectTabState(global).webPagePreview,
+      webPagePreview,
       isContactRequirePremium: userFullInfo?.isContactRequirePremium,
       effect,
       effectReactions,
@@ -2563,6 +2689,8 @@ export default memo(withGlobal<OwnProps>(
       disallowedGifts: userFullInfo?.disallowedGifts,
       isAccountFrozen,
       isAppConfigLoaded,
+      insertingPeerIdMention,
+      pollMaxAnswers: appConfig?.pollMaxAnswers,
     };
   },
 )(Composer));

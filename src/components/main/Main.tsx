@@ -1,6 +1,6 @@
 import '../../global/actions/all';
 
-import React, {
+import {
   beginHeavyAnimation,
   memo, useEffect, useLayoutEffect,
   useRef, useState,
@@ -219,6 +219,7 @@ const Main = ({
     loadAvailableReactions,
     loadStickerSets,
     loadPremiumGifts,
+    loadTonGifts,
     loadStarGifts,
     loadDefaultTopicIcons,
     loadAddedStickers,
@@ -262,6 +263,7 @@ const Main = ({
     loadAllStories,
     loadAllHiddenStories,
     closeRoomAttachmentsModal,
+    loadContentSettings,
   } = getActions();
 
   if (DEBUG && !DEBUG_isLogged) {
@@ -277,10 +279,8 @@ const Main = ({
     void loadBundle(Bundles.Calls);
   }, CALL_BUNDLE_LOADING_DELAY_MS);
 
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const leftColumnRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
+  const leftColumnRef = useRef<HTMLDivElement>();
 
   const { isDesktop } = useAppLayout();
   useEffect(() => {
@@ -301,11 +301,11 @@ const Main = ({
     }
 
     const removeUpdateAvailableListener = window.electron!.on(ElectronEvent.UPDATE_AVAILABLE, () => {
-      setIsElectronUpdateAvailable(true);
+      setIsElectronUpdateAvailable({ isAvailable: true });
     });
 
     const removeUpdateErrorListener = window.electron!.on(ElectronEvent.UPDATE_ERROR, () => {
-      setIsElectronUpdateAvailable(false);
+      setIsElectronUpdateAvailable({ isAvailable: false });
       removeUpdateAvailableListener?.();
     });
 
@@ -318,7 +318,7 @@ const Main = ({
   // Initial API calls
   useEffect(() => {
     if (isMasterTab && isSynced) {
-      updateIsOnline(true);
+      updateIsOnline({ isOnline: true });
       loadConfig();
       loadAppConfig();
       loadPeerColors();
@@ -336,6 +336,7 @@ const Main = ({
       loadAllChats({ listType: 'saved' });
       loadAllStories();
       loadAllHiddenStories();
+      loadContentSettings();
       loadRecentReactions();
       loadDefaultTagReactions();
       loadAttachBots();
@@ -355,6 +356,7 @@ const Main = ({
       loadUserCollectibleStatuses();
       loadGenericEmojiEffects();
       loadPremiumGifts();
+      loadTonGifts();
       loadStarGifts();
       loadAvailableEffects();
       loadBirthdayNumbersStickers();
@@ -562,7 +564,7 @@ const Main = ({
   });
 
   // Online status and browser tab indicators
-  useBackgroundMode(handleBlur, handleFocus, !!IS_ELECTRON);
+  useBackgroundMode(handleBlur, handleFocus, Boolean(IS_ELECTRON));
   useBeforeUnload(handleBlur);
   usePreventPinchZoomGesture(isMediaViewerOpen || isStoryViewerOpen);
 
@@ -666,7 +668,7 @@ export default memo(withGlobal<OwnProps>(
     const gameTitle = gameMessage?.content.game?.title;
     const { chatId } = selectCurrentMessageList(global) || {};
     const noRightColumnAnimation = !selectPerformanceSettingsValue(global, 'rightColumnAnimations')
-        || !selectCanAnimateInterface(global);
+      || !selectCanAnimateInterface(global);
 
     const deleteFolderDialog = deleteFolderDialogModal ? selectChatFolder(global, deleteFolderDialogModal) : undefined;
     const isAccountFrozen = selectIsCurrentUserFrozen(global);

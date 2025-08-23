@@ -295,7 +295,7 @@ function getNodes(origin: MediaViewerOrigin, message?: ApiMessage, index?: numbe
   switch (origin) {
     case MediaViewerOrigin.Album:
     case MediaViewerOrigin.ScheduledAlbum:
-      // eslint-disable-next-line max-len
+      // eslint-disable-next-line @stylistic/max-len
       containerSelector = `.Transition_slide-active > .MessageList #album-media-${getMessageHtmlId(message!.id, index)}`;
       mediaSelector = '.full-media';
       break;
@@ -371,7 +371,6 @@ function applyShape(ghost: HTMLDivElement, origin: MediaViewerOrigin) {
     case MediaViewerOrigin.ScheduledInline:
     case MediaViewerOrigin.StarsTransaction:
     case MediaViewerOrigin.PreviewMedia:
-    case MediaViewerOrigin.ChannelAvatar:
       ghost.classList.add('rounded-corners');
       break;
 
@@ -384,6 +383,7 @@ function applyShape(ghost: HTMLDivElement, origin: MediaViewerOrigin) {
 
     case MediaViewerOrigin.MiddleHeaderAvatar:
     case MediaViewerOrigin.SuggestedAvatar:
+    case MediaViewerOrigin.ChannelAvatar:
       ghost.classList.add('circle');
       if (origin === MediaViewerOrigin.SuggestedAvatar) {
         ghost.classList.add('transition-circle');

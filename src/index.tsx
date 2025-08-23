@@ -2,7 +2,6 @@ import './util/handleError';
 import './util/setupServiceWorker';
 import './global/init';
 
-import React from './lib/teact/teact';
 import TeactDOM from './lib/teact/teact-dom';
 import {
   getActions, getGlobal,
@@ -28,6 +27,8 @@ import { initChatAI } from './components/chatAssistant/utils/init';
 import App from './components/App';
 
 import './styles/index.css';
+
+
 import './assets/fonts/roboto.css';
 import './styles/index.scss';
 import './styles/antd.scss';

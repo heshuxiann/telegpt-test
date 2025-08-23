@@ -5,13 +5,14 @@ import type { ApiMessage, StatefulMediaContent } from '../../../../api/types';
 import type { IconName } from '../../../../types/icons';
 import { ApiMediaFormat } from '../../../../api/types';
 
+
 import {
   getMessageContact,
   getMessageHtmlId,
   getMessagePhoto,
   getMessageText,
-  getMessageWebPagePhoto,
-  getMessageWebPageVideo,
+  getWebPagePhoto,
+  getWebPageVideo,
   getPhotoMediaHash,
   hasMediaLocalBlobUrl,
 } from '../../../../global/helpers';
@@ -44,10 +45,11 @@ export function getMessageCopyOptions(
   onCopyMessages?: (messageIds: number[]) => void,
   onCopyNumber?: () => void,
 ): ICopyOptions {
+  const { webPage } = statefulContent || {};
   const options: ICopyOptions = [];
   const text = getMessageText(message);
   const photo = getMessagePhoto(message)
-    || (!getMessageWebPageVideo(message) ? getMessageWebPagePhoto(message) : undefined);
+    || (!getWebPageVideo(webPage) ? getWebPagePhoto(webPage) : undefined);
   const contact = getMessageContact(message);
   const mediaHash = photo ? getPhotoMediaHash(photo, 'full') : undefined;
   const canImageBeCopied = canCopy && photo && (mediaHash || hasMediaLocalBlobUrl(photo))
@@ -59,7 +61,7 @@ export function getMessageCopyOptions(
       label: 'lng_context_copy_image',
       icon: 'copy-media',
       handler: () => {
-        Promise.resolve(mediaHash ? mediaLoader.fetch(mediaHash, ApiMediaFormat.BlobUrl) : photo!.blobUrl)
+        Promise.resolve(mediaHash ? mediaLoader.fetch(mediaHash, ApiMediaFormat.BlobUrl) : photo.blobUrl)
           .then(copyImageToClipboard);
 
         afterEffect?.();
@@ -73,6 +75,39 @@ export function getMessageCopyOptions(
       icon: 'copy',
       handler: () => {
         copyTextToClipboard(href);
+
+        afterEffect?.();
+      },
+    });
+  } else if (canCopy && text) {
+    // Detect if the user has selection in the current message
+    const hasSelection = Boolean((
+      selection?.anchorNode?.parentNode
+      && (selection.anchorNode.parentNode as HTMLElement).closest('.Message .content-inner')
+      && selection.toString().replace(/(?:\r\n|\r|\n)/g, '') !== ''
+      && checkMessageHasSelection(message)
+    ));
+
+    options.push({
+      label: getCopyLabel(hasSelection),
+      icon: 'copy',
+      handler: () => {
+        const messageIds = getMessageIdsForSelectedText();
+        if (messageIds?.length && onCopyMessages) {
+          onCopyMessages(messageIds);
+        } else if (hasSelection) {
+          document.execCommand('copy');
+        } else {
+          const clipboardText = renderMessageText(
+            { message, shouldRenderAsHtml: true },
+          ) as string[];
+          if (clipboardText) {
+            copyHtmlToClipboard(
+              clipboardText.join(''),
+              getMessageTextWithSpoilers(message, statefulContent)!,
+            );
+          }
+        }
 
         afterEffect?.();
       },
@@ -157,7 +192,7 @@ export function getMessageCopyOptions(
 }
 function checkMessageHasSelection(message: ApiMessage): boolean {
   const selection = window.getSelection();
-  const selectionParentNode = (selection?.anchorNode?.parentNode as HTMLElement);
+  const selectionParentNode = selection?.anchorNode?.parentNode as HTMLElement;
   const selectedMessageElement = selectionParentNode?.closest<HTMLDivElement>('.Message.message-list-item');
   return getMessageHtmlId(message.id) === selectedMessageElement?.id;
 }

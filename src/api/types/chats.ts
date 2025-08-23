@@ -1,8 +1,8 @@
 import type { ApiBotCommand } from './bots';
 import type {
-  ApiChatReactions, ApiFormattedText, ApiInputMessageReplyInfo, ApiPhoto, ApiStickerSet,
+  ApiChatReactions, ApiFormattedText, ApiInputMessageReplyInfo, ApiInputSuggestedPostInfo, ApiPhoto, ApiStickerSet,
 } from './messages';
-import type { ApiBotVerification, ApiChatInviteImporter, ApiPeerNotifySettings } from './misc';
+import type { ApiBotVerification, ApiChatInviteImporter, ApiPeerNotifySettings, ApiRestrictionReason } from './misc';
 import type {
   ApiEmojiStatusType, ApiFakeType, ApiUser, ApiUsername,
 } from './users';
@@ -29,12 +29,14 @@ export interface ApiChat {
   isVerified?: true;
   areSignaturesShown?: boolean;
   areProfilesShown?: boolean;
-  hasPrivateLink?: boolean;
+  isLinkedInDiscussion?: boolean;
+  hasGeo?: boolean;
   accessHash?: string;
   isMin?: boolean;
   hasVideoAvatar?: boolean;
   avatarPhotoId?: string;
   usernames?: ApiUsername[];
+  hasUsername?: boolean;
   membersCount?: number;
   creationDate?: number;
   isSupport?: true;
@@ -45,8 +47,14 @@ export interface ApiChat {
   emojiStatus?: ApiEmojiStatusType;
   isForum?: boolean;
   isForumAsMessages?: true;
+  isMonoforum?: boolean;
+  withForumTabs?: boolean;
+  linkedMonoforumId?: string;
+  areChannelMessagesAllowed?: boolean;
   boostLevel?: number;
   botVerificationIconId?: string;
+  hasAutoTranslation?: true;
+  level?: number;
 
   // Calls
   isCallActive?: boolean;
@@ -58,7 +66,7 @@ export interface ApiChat {
   isCreator?: boolean;
   isForbidden?: boolean; // Forbidden - can't send messages (user was kicked, for example)
   isRestricted?: boolean; // Restricted - can't access the chat (user was banned or chat is violating rules)
-  restrictionReason?: ApiRestrictionReason;
+  restrictionReasons?: ApiRestrictionReason[];
   adminRights?: ApiChatAdminRights;
   currentUserBannedRights?: ApiChatBannedRights;
   defaultBannedRights?: ApiChatBannedRights;
@@ -206,11 +214,6 @@ export interface ApiChatBannedRights {
   untilDate?: number;
 }
 
-export interface ApiRestrictionReason {
-  reason: string;
-  text: string;
-}
-
 export interface ApiChatFolder {
   id: number;
   title: ApiFormattedText;
@@ -255,7 +258,6 @@ export interface ApiTopic {
   isPinned?: boolean;
   isHidden?: boolean;
   isOwner?: boolean;
-  // eslint-disable-next-line max-len
   // TODO[forums] https://github.com/telegramdesktop/tdesktop/blob/1aece79a471d99a8b63d826b1bce1f36a04d7293/Telegram/SourceFiles/data/data_forum_topic.cpp#L318
   isMin?: boolean;
   date: number;
@@ -312,6 +314,7 @@ export interface ApiChatLink {
 export type ApiDraft = {
   text?: ApiFormattedText;
   replyInfo?: ApiInputMessageReplyInfo;
+  suggestedPostInfo?: ApiInputSuggestedPostInfo;
   date?: number;
   effectId?: string;
   isLocal?: boolean;

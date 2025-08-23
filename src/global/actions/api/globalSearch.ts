@@ -1,5 +1,7 @@
+import { getActions } from '../../../global';
+
 import type {
-  ApiChat, ApiGlobalMessageSearchType, ApiMessage, ApiMessageSearchContext, ApiPeer, ApiTopic,
+  ApiChat, ApiGlobalMessageSearchType, ApiMessage, ApiMessageSearchContext, ApiPeer, ApiSearchPostsFlood, ApiTopic,
   ApiUserStatus,
 } from '../../../api/types';
 import type { ActionReturnType, GlobalState, TabArgs } from '../../types';
@@ -7,10 +9,13 @@ import type { ActionReturnType, GlobalState, TabArgs } from '../../types';
 import { GLOBAL_SEARCH_SLICE, GLOBAL_TOPIC_SEARCH_SLICE } from '../../../config';
 import { timestampPlusDay } from '../../../util/dates/dateFormat';
 import { isDeepLink, tryParseDeepLink } from '../../../util/deepLinkParser';
+import { toChannelId } from '../../../util/entities/ids';
 import { getCurrentTabId } from '../../../util/establishMultitabRole';
+import { getTranslationFn } from '../../../util/localization';
+import { formatStarsAsText } from '../../../util/localization/format';
 import { throttle } from '../../../util/schedulers';
 import { callApi } from '../../../api/gramjs';
-import { isChatChannel, isChatGroup, toChannelId } from '../../helpers/chats';
+import { isChatChannel, isChatGroup } from '../../helpers/chats';
 import { isApiPeerChat } from '../../helpers/peers';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
@@ -28,7 +33,7 @@ import {
 const searchThrottled = throttle((cb) => cb(), 500, false);
 
 addActionHandler('setGlobalSearchQuery', (global, actions, payload): ActionReturnType => {
-  const { query, tabId = getCurrentTabId() } = payload!;
+  const { query, tabId = getCurrentTabId() } = payload;
   const { chatId } = selectTabState(global, tabId).globalSearch;
 
   if (query && !chatId) {
@@ -68,7 +73,7 @@ addActionHandler('setGlobalSearchQuery', (global, actions, payload): ActionRetur
 });
 
 addActionHandler('setGlobalSearchDate', (global, actions, payload): ActionReturnType => {
-  const { date, tabId = getCurrentTabId() } = payload!;
+  const { date, tabId = getCurrentTabId() } = payload;
   const maxDate = date ? timestampPlusDay(date) : date;
 
   global = updateGlobalSearch(global, {
@@ -153,6 +158,23 @@ addActionHandler('searchPopularBotApps', async (global, actions, payload): Promi
     },
   }, tabId);
   global = updateGlobalSearchFetchingStatus(global, { botApps: false }, tabId);
+
+  setGlobal(global);
+});
+
+addActionHandler('checkSearchPostsFlood', async (global, actions, payload): Promise<void> => {
+  const { query, tabId = getCurrentTabId() } = payload;
+
+  const result = await callApi('checkSearchPostsFlood', query);
+
+  global = getGlobal();
+  if (!result) {
+    return;
+  }
+
+  global = updateGlobalSearch(global, {
+    searchFlood: result,
+  }, tabId);
 
   setGlobal(global);
 });

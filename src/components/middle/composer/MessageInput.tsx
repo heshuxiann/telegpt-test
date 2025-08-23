@@ -1,9 +1,7 @@
-/* eslint-disable max-len */
-// eslint-disable-next-line simple-import-sort/imports
-import type { ChangeEvent, RefObject } from 'react';
-// import { Sapling } from '@saplingai/sapling-js/observer';
-import type { FC, TeactNode } from '../../../lib/teact/teact';
-import React, {
+import type { ChangeEvent } from 'react';
+import type { ElementRef, FC, TeactNode } from '../../../lib/teact/teact';
+import type React from '../../../lib/teact/teact';
+import {
   getIsHeavyAnimating,
   memo, useEffect, useLayoutEffect,
   useRef, useState,
@@ -11,13 +9,14 @@ import React, {
 import { getActions, withGlobal } from '../../../global';
 
 import type { ApiInputMessageReplyInfo } from '../../../api/types';
+import type { SharedSettings } from '../../../global/types';
 import type {
-  IAnchorPosition, MessageListType, SharedSettings, ThreadId,
+  IAnchorPosition, MessageListType, ThreadId,
 } from '../../../types';
 import type { Signal } from '../../../util/signals';
 
 import { EDITABLE_INPUT_ID } from '../../../config';
-import { requestForcedReflow, requestMutation, setHandler } from '../../../lib/fasterdom/fasterdom';
+import { requestForcedReflow, requestMutation } from '../../../lib/fasterdom/fasterdom';
 import { selectCanPlayAnimatedEmojis, selectDraft, selectIsInSelectMode } from '../../../global/selectors';
 import { selectSharedSettings } from '../../../global/selectors/sharedState';
 import {
@@ -56,7 +55,7 @@ const SCROLLER_CLASS = 'input-scroller';
 const INPUT_WRAPPER_CLASS = 'message-input-wrapper';
 
 type OwnProps = {
-  ref?: RefObject<HTMLDivElement>;
+  ref?: ElementRef<HTMLDivElement>;
   id: string;
   chatId: string;
   threadId: ThreadId;
@@ -160,24 +159,17 @@ const MessageInput: FC<OwnProps & StateProps> = ({
     openPremiumModal,
   } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  let inputRef = useRef<HTMLDivElement>(null);
+  let inputRef = useRef<HTMLDivElement>();
   if (ref) {
     inputRef = ref;
   }
 
-  // eslint-disable-next-line no-null/no-null
-  const selectionTimeoutRef = useRef<number>(null);
-  // eslint-disable-next-line no-null/no-null
-  const cloneRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const scrollerCloneRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const sharedCanvasRef = useRef<HTMLCanvasElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const sharedCanvasHqRef = useRef<HTMLCanvasElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const absoluteContainerRef = useRef<HTMLDivElement>(null);
+  const selectionTimeoutRef = useRef<number>();
+  const cloneRef = useRef<HTMLDivElement>();
+  const scrollerCloneRef = useRef<HTMLDivElement>();
+  const sharedCanvasRef = useRef<HTMLCanvasElement>();
+  const sharedCanvasHqRef = useRef<HTMLCanvasElement>();
+  const absoluteContainerRef = useRef<HTMLDivElement>();
 
   const oldLang = useOldLang();
   const isContextMenuOpenRef = useRef(false);
@@ -193,21 +185,6 @@ const MessageInput: FC<OwnProps & StateProps> = ({
   useEffect(() => {
     setShouldDisplayTimer(Boolean(timedPlaceholderLangKey && timedPlaceholderDate));
   }, [timedPlaceholderDate, timedPlaceholderLangKey]);
-
-  // useEffect(() => {
-  //   Sapling.init({
-  //     key: 'WCFKUN3GJEEC1FSEPFH6Q7T9R5C67QTE',
-  //     endpointHostname: 'https://api.sapling.ai',
-  //     editPathname: '/api/v1/edits',
-  //     statusBadge: true,
-  //     mode: 'dev',
-  //   });
-
-  //   const editor = inputRef.current;
-  //   if (editor) {
-  //     Sapling.observe(editor);
-  //   }
-  // });
 
   const handleTimerEnd = useLastCallback(() => {
     setShouldDisplayTimer(false);
@@ -301,7 +278,7 @@ const MessageInput: FC<OwnProps & StateProps> = ({
       return;
     }
 
-    focusEditableElement(inputRef.current!);
+    focusEditableElement(inputRef.current);
   });
 
   const handleCloseTextFormatter = useLastCallback(() => {
@@ -667,7 +644,7 @@ const MessageInput: FC<OwnProps & StateProps> = ({
         setSelectedRange={setSelectedRange}
         onClose={handleCloseTextFormatter}
       />
-      {forcedPlaceholder && <span className="forced-placeholder">{renderText(forcedPlaceholder!)}</span>}
+      {forcedPlaceholder && <span className="forced-placeholder">{renderText(forcedPlaceholder)}</span>}
     </div>
   );
 };

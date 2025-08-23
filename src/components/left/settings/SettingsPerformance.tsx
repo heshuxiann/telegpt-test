@@ -1,4 +1,5 @@
-import React, {
+import type React from '../../../lib/teact/teact';
+import {
   memo, useCallback, useMemo, useState,
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
@@ -11,7 +12,7 @@ import {
 } from '../../../config';
 import {
   INITIAL_PERFORMANCE_STATE_MAX,
-  INITIAL_PERFORMANCE_STATE_MID,
+  INITIAL_PERFORMANCE_STATE_MED,
   INITIAL_PERFORMANCE_STATE_MIN,
 } from '../../../global/initialState';
 import { selectPerformanceSettings } from '../../../global/selectors';
@@ -108,7 +109,7 @@ function SettingsPerformance({
     if (areDeepEqual(performanceSettings, INITIAL_PERFORMANCE_STATE_MIN)) {
       return ANIMATION_LEVEL_MIN;
     }
-    if (areDeepEqual(performanceSettings, INITIAL_PERFORMANCE_STATE_MID)) {
+    if (areDeepEqual(performanceSettings, INITIAL_PERFORMANCE_STATE_MED)) {
       return ANIMATION_LEVEL_MED;
     }
 
@@ -136,9 +137,9 @@ function SettingsPerformance({
   const handleAnimationLevelChange = useCallback((newLevel: number) => {
     const performance = newLevel === ANIMATION_LEVEL_MIN
       ? INITIAL_PERFORMANCE_STATE_MIN
-      : (newLevel === ANIMATION_LEVEL_MED ? INITIAL_PERFORMANCE_STATE_MID : INITIAL_PERFORMANCE_STATE_MAX);
+      : (newLevel === ANIMATION_LEVEL_MED ? INITIAL_PERFORMANCE_STATE_MED : INITIAL_PERFORMANCE_STATE_MAX);
 
-    setSharedSettingOption({ animationLevel: newLevel as AnimationLevel });
+    setSharedSettingOption({ animationLevel: newLevel as AnimationLevel, wasAnimationLevelSetManually: true });
     updatePerformanceSettings(performance);
   }, []);
 

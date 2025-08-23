@@ -37,6 +37,7 @@ import type {
   ApiSticker,
   ApiStickerSet,
   ApiTimezone,
+  ApiTonAmount,
   ApiTranscription,
   ApiUpdateAuthorizationStateType,
   ApiUpdateConnectionStateType,
@@ -46,9 +47,9 @@ import type {
   ApiUserStatus,
   ApiVideo,
   ApiWallpaper,
+  ApiWebPage,
   ApiWebSession,
 } from '../../api/types';
-import type { AIChatFolder } from '../../components/chatAssistant/ai-chatfolders/util';
 import type {
   AccountSettings,
   BotAppPermissions,
@@ -67,6 +68,7 @@ import type {
   TopicsInfo,
   WebPageMediaSize,
 } from '../../types';
+import type { AIChatFolder } from '../../components/chatAssistant/ai-chatfolders/util';
 import type { RegularLangFnParameters } from '../../util/localization';
 import type { SharedState } from './sharedState';
 import type { TabState } from './tabState';
@@ -121,6 +123,7 @@ export type GlobalState = {
     shouldSendGrouped: boolean;
     isInvertedMedia?: true;
     webPageMediaSize?: WebPageMediaSize;
+    shouldSendInHighQuality?: boolean;
   };
 
   attachMenu: {
@@ -237,6 +240,7 @@ export type GlobalState = {
     }>;
     sponsoredByChatId: Record<string, ApiSponsoredMessage>;
     pollById: Record<string, ApiPoll>;
+    webPageById: Record<string, ApiWebPage>;
   };
 
   stories: {
@@ -373,6 +377,7 @@ export type GlobalState = {
   defaultTopicIconsId?: string;
   defaultStatusIconsId?: string;
   premiumGifts?: ApiStickerSet;
+  tonGifts?: ApiStickerSet;
   emojiKeywords: Record<string, EmojiKeywords | undefined>;
 
   collectibleEmojiStatuses?: {
@@ -422,6 +427,7 @@ export type GlobalState = {
     paidReactionPrivacy?: ApiPaidReactionPrivacyType;
     botVerificationShownPeerIds: string[];
     themes: Partial<Record<ThemeKey, IThemeSettings>>;
+    accountDaysTtl: number;
   };
 
   push?: {
@@ -456,6 +462,10 @@ export type GlobalState = {
     balance: ApiStarsAmount;
     history: StarsTransactionHistory;
     subscriptions?: StarsSubscriptions;
+  };
+  ton?: {
+    balance: ApiTonAmount;
+    history: StarsTransactionHistory;
   };
 };
 

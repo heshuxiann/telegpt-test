@@ -1,5 +1,6 @@
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import type React from '../../../lib/teact/teact';
+import {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
@@ -10,8 +11,15 @@ import type { FolderEditDispatch } from '../../../hooks/reducers/useFoldersReduc
 import type { SettingsScreens } from '../../../types';
 import { LeftColumnContent } from '../../../types';
 
+import { IS_APP, IS_MAC_OS } from '../../../util/browser/windowEnvironment';
+import buildClassName from '../../../util/buildClassName';
+import { getOrderKey, getPinnedChatsCount } from '../../../util/folderManager';
+import { getServerTime } from '../../../util/serverTime';
+import ChatSerena from '../../chatAssistant/global-summary/chat-serana';
+import { GLOBAL_SUMMARY_CHATID } from '../../chatAssistant/variables';
+
 import {
-  AI_FOLDER_ID,
+   AI_FOLDER_ID,
   ALL_FOLDER_ID,
   ARCHIVE_MINIMIZED_HEIGHT,
   ARCHIVED_FOLDER_ID,
@@ -22,12 +30,6 @@ import {
   SAVED_FOLDER_ID,
   UNREAD_FOLDER_ID,
 } from '../../../config';
-import { IS_APP, IS_MAC_OS } from '../../../util/browser/windowEnvironment';
-import buildClassName from '../../../util/buildClassName';
-import { getOrderKey, getPinnedChatsCount } from '../../../util/folderManager';
-import { getServerTime } from '../../../util/serverTime';
-import ChatSerena from '../../chatAssistant/global-summary/chat-serana';
-import { GLOBAL_SUMMARY_CHATID } from '../../chatAssistant/variables';
 
 import usePeerStoriesPolling from '../../../hooks/polling/usePeerStoriesPolling';
 import useTopOverscroll from '../../../hooks/scroll/useTopOverscroll';
@@ -43,7 +45,6 @@ import InfiniteScroll from '../../ui/InfiniteScroll';
 import Loading from '../../ui/Loading';
 import Archive from './Archive';
 import Chat from './Chat';
-// eslint-disable-next-line import/no-cycle
 import EmptyFolder from './EmptyFolder';
 import FrozenAccountNotification from './FrozenAccountNotification';
 import UnconfirmedSession from './UnconfirmedSession';
@@ -64,6 +65,7 @@ type OwnProps = {
   onLeftColumnContentChange?: (content: LeftColumnContent) => void;
   isAccountFrozen?: boolean;
   activeTag?: string[];
+  isMainList?: boolean;
 };
 
 const INTERSECTION_THROTTLE = 200;
@@ -83,6 +85,7 @@ const ChatList: FC<OwnProps> = ({
   onSettingsScreenSelect,
   onLeftColumnContentChange,
   isAccountFrozen,
+  isMainList,
 }) => {
   const {
     openChat,
@@ -90,9 +93,9 @@ const ChatList: FC<OwnProps> = ({
     closeForumPanel,
     toggleStoryRibbon,
     openFrozenAccountModal,
+    openLeftColumnContent,
   } = getActions();
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
   const shouldIgnoreDragRef = useRef(false);
   const [unconfirmedSessionHeight, setUnconfirmedSessionHeight] = useState(0);
 
@@ -117,7 +120,6 @@ const ChatList: FC<OwnProps> = ({
   const chatsHeight = (orderedIds?.length || 0) * CHAT_HEIGHT_PX;
   const archiveHeight = shouldDisplayArchive
     ? archiveSettings?.isMinimized ? ARCHIVE_MINIMIZED_HEIGHT : CHAT_HEIGHT_PX : 0;
-  // const serenaHeight = resolvedFolderId === ALL_FOLDER_ID ? CHAT_HEIGHT_PX : 0;
   const frozenNotificationHeight = shouldShowFrozenAccountNotification ? 68 : 0;
 
   const { orderDiffById, getAnimationType } = useOrderDiff(orderedIds);
@@ -165,7 +167,7 @@ const ChatList: FC<OwnProps> = ({
         const position = Number(digit) + shift - 1;
 
         if (isArchiveInList && position === -1) {
-          onLeftColumnContentChange?.(LeftColumnContent.Archived);
+          if (isMainList) openLeftColumnContent({ contentKey: LeftColumnContent.Archived });
           return;
         }
 
@@ -181,8 +183,7 @@ const ChatList: FC<OwnProps> = ({
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [
-    archiveSettings, isSaved, isActive, onLeftColumnContentChange, openChat, openNextChat, orderedIds,
-    shouldDisplayArchive,
+    archiveSettings, isSaved, isActive, openChat, openNextChat, orderedIds, shouldDisplayArchive, isMainList,
   ]);
 
   const { observe } = useIntersectionObserver({
@@ -191,7 +192,7 @@ const ChatList: FC<OwnProps> = ({
   });
 
   const handleArchivedClick = useLastCallback(() => {
-    onLeftColumnContentChange!(LeftColumnContent.Archived);
+    openLeftColumnContent({ contentKey: LeftColumnContent.Archived });
     closeForumPanel();
   });
 
@@ -241,9 +242,10 @@ const ChatList: FC<OwnProps> = ({
     return viewportIds!.map((id, i) => {
       const isPinned = viewportOffset + i < pinnedCount;
       const offsetTop = unconfirmedSessionHeight + archiveHeight + frozenNotificationHeight
-      + (viewportOffset + i) * CHAT_HEIGHT_PX;
+        + (viewportOffset + i) * CHAT_HEIGHT_PX;
+
       return (
-        id === GLOBAL_SUMMARY_CHATID ? (
+         id === GLOBAL_SUMMARY_CHATID ? (
           <ChatSerena
             key="serena"
             // frozenNotificationHeight={frozenNotificationHeight}
@@ -251,20 +253,20 @@ const ChatList: FC<OwnProps> = ({
             // unconfirmedSessionHeight={unconfirmedSessionHeight}
             offsetTop={offsetTop}
           />
-        ) : (
-          <Chat
-            key={id}
-            teactOrderKey={isPinned ? i : getOrderKey(id, isSaved)}
-            chatId={id}
-            isPinned={isPinned}
-            folderId={folderId}
-            isSavedDialog={isSaved}
-            animationType={getAnimationType(id)}
-            orderDiff={orderDiffById[id]}
-            offsetTop={offsetTop}
-            observeIntersection={observe}
-            onDragEnter={handleDragEnter}
-          />
+        ):(
+           <Chat
+          key={id}
+          teactOrderKey={isPinned ? i : getOrderKey(id, isSaved)}
+          chatId={id}
+          isPinned={isPinned}
+          folderId={folderId}
+          isSavedDialog={isSaved}
+          animationType={getAnimationType(id)}
+          orderDiff={orderDiffById[id]}
+          offsetTop={offsetTop}
+          observeIntersection={observe}
+          onDragEnter={handleDragEnter}
+        />
         )
       );
     });
@@ -304,15 +306,6 @@ const ChatList: FC<OwnProps> = ({
           onDragEnter={handleArchivedDragEnter}
         />
       )}
-      {/* {resolvedFolderId === ALL_FOLDER_ID && (
-        <ChatSerena
-          key="serena"
-          frozenNotificationHeight={frozenNotificationHeight}
-          archiveHeight={archiveHeight}
-          unconfirmedSessionHeight={unconfirmedSessionHeight}
-        />
-      )} */}
-
       {viewportIds?.length ? (
         renderChats()
       ) : viewportIds && !viewportIds.length && !isSaved ? (
@@ -321,7 +314,6 @@ const ChatList: FC<OwnProps> = ({
             folderId={folderId}
             folderType={folderType}
             foldersDispatch={foldersDispatch!}
-            onSettingsScreenSelect={onSettingsScreenSelect!}
           />
         )
       ) : (

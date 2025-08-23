@@ -19,28 +19,18 @@ import { MAIN_THREAD_ID } from '../../api/types';
 
 import {
   ANONYMOUS_USER_ID,
-  ARCHIVED_FOLDER_ID, CHANNEL_ID_LENGTH, GENERAL_TOPIC_ID, REPLIES_USER_ID, TME_LINK_PREFIX,
+  ARCHIVED_FOLDER_ID, GENERAL_TOPIC_ID, REPLIES_USER_ID, TME_LINK_PREFIX,
   VERIFICATION_CODES_USER_ID,
 } from '../../config';
 import { formatDateToString, formatTime } from '../../util/dates/dateFormat';
+import { getPeerIdDividend, isUserId } from '../../util/entities/ids';
 import { getServerTime } from '../../util/serverTime';
+import { selectIsChatRestricted } from '../selectors';
 import { getGlobal } from '..';
 import { isSystemBot } from './bots';
 import { getMainUsername } from './users';
 
 const FOREVER_BANNED_DATE = Date.now() / 1000 + 31622400; // 366 days
-
-export function isUserId(entityId: string) {
-  return !entityId.startsWith('-');
-}
-
-export function isChannelId(entityId: string) {
-  return entityId.length === CHANNEL_ID_LENGTH && entityId.startsWith('-1');
-}
-
-export function toChannelId(mtpId: string) {
-  return `-1${mtpId.padStart(CHANNEL_ID_LENGTH - 2, '0')}`;
-}
 
 export function isChatGroup(chat: ApiChat) {
   return isChatBasicGroup(chat) || isChatSuperGroup(chat);
@@ -56,6 +46,10 @@ export function isChatSuperGroup(chat: ApiChat) {
 
 export function isChatChannel(chat: ApiChat) {
   return chat.type === 'chatTypeChannel';
+}
+
+export function isChatMonoforum(chat: ApiChat) {
+  return chat.isMonoforum;
 }
 
 export function isCommonBoxChat(chat: ApiChat) {
@@ -162,8 +156,11 @@ export function getCanPostInChat(
     }
   }
 
-  if (chat.isRestricted || chat.isForbidden || chat.migratedTo
-    || (!isMessageThread && chat.isNotJoined) || isSystemBot(chat.id) || isAnonymousForwardsChat(chat.id)) {
+  const global = getGlobal();
+  const isRestricted = selectIsChatRestricted(global, chat.id);
+  if (isRestricted || chat.isForbidden || chat.migratedTo
+    || (chat.isNotJoined && !isChatMonoforum(chat) && !isMessageThread)
+    || isSystemBot(chat.id) || isAnonymousForwardsChat(chat.id)) {
     return false;
   }
 
@@ -195,12 +192,14 @@ export interface IAllowedAttachmentOptions {
   canSendVoices: boolean;
   canSendPlainText: boolean;
   canSendDocuments: boolean;
+  canAttachToDoLists: boolean;
 }
 
 export function getAllowedAttachmentOptions(
   chat?: ApiChat,
   chatFullInfo?: ApiChatFullInfo,
   isChatWithBot = false,
+  isSavedMessages = false,
   isStoryReply = false,
   paidMessagesStars?: number,
   isInScheduledList = false,
@@ -219,6 +218,7 @@ export function getAllowedAttachmentOptions(
       canSendVoices: false,
       canSendPlainText: false,
       canSendDocuments: false,
+      canAttachToDoLists: false,
     };
   }
 
@@ -226,9 +226,10 @@ export function getAllowedAttachmentOptions(
 
   return {
     canAttachMedia: isAdmin || isStoryReply || !isUserRightBanned(chat, 'sendMedia', chatFullInfo),
-    canAttachPolls: !isStoryReply
+    canAttachPolls: !isStoryReply && !chat.isMonoforum
       && (isAdmin || !isUserRightBanned(chat, 'sendPolls', chatFullInfo))
-      && (!isUserId(chat.id) || isChatWithBot),
+      && (!isUserId(chat.id) || isChatWithBot || isSavedMessages),
+    canAttachToDoLists: !isStoryReply && !chat.isMonoforum && !isChatChannel(chat),
     canSendStickers: isAdmin || isStoryReply || !isUserRightBanned(chat, 'sendStickers', chatFullInfo),
     canSendGifs: isAdmin || isStoryReply || !isUserRightBanned(chat, 'sendGifs', chatFullInfo),
     canAttachEmbedLinks: !isStoryReply && (isAdmin || !isUserRightBanned(chat, 'embedLinks', chatFullInfo)),
@@ -339,7 +340,7 @@ export function getFolderDescriptionText(lang: OldLangFn, folder: ApiChatFolder,
 }
 
 export function isChatPublic(chat: ApiChat) {
-  return chat.usernames?.some(({ isActive }) => isActive);
+  return chat.hasUsername;
 }
 
 export function getOrderedTopics(
@@ -362,17 +363,6 @@ export function getOrderedTopics(
   }
 }
 
-export function getCleanPeerId(peerId: string) {
-  return isChannelId(peerId)
-    // Remove -1 and leading zeros
-    ? peerId.replace(/^-10+/, '')
-    : peerId.replace('-', '');
-}
-
-export function getPeerIdDividend(peerId: string) {
-  return Math.abs(Number(getCleanPeerId(peerId)));
-}
-
 export function getPeerColorKey(peer: ApiPeer | undefined) {
   if (peer?.color?.color) return peer.color.color;
 
@@ -381,8 +371,8 @@ export function getPeerColorKey(peer: ApiPeer | undefined) {
 
 export function getPeerColorCount(peer: ApiPeer) {
   const key = getPeerColorKey(peer);
-  // eslint-disable-next-line eslint-multitab-tt/no-immediate-global
-  return getGlobal().peerColors?.general[key].colors?.length || 1;
+  const global = getGlobal();
+  return global.peerColors?.general[key].colors?.length || 1;
 }
 
 export function getIsSavedDialog(chatId: string, threadId: ThreadId | undefined, currentUserId: string | undefined) {
@@ -393,7 +383,9 @@ export function getGroupStatus(lang: OldLangFn, chat: ApiChat) {
   const chatTypeString = lang(getChatTypeString(chat));
   const { membersCount } = chat;
 
-  if (chat.isRestricted) {
+  const global = getGlobal();
+  const isRestricted = selectIsChatRestricted(global, chat.id);
+  if (isRestricted) {
     return chatTypeString === 'Channel' ? 'channel is inaccessible' : 'group is inaccessible';
   }
 

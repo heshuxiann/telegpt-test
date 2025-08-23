@@ -16,6 +16,7 @@ import {
 import { getIsChatMuted } from '../global/helpers/notifications';
 import {
   selectChatLastMessage,
+  selectIsChatRestricted,
   selectNotifyDefaults,
   selectTabState,
   selectTopics,
@@ -175,7 +176,7 @@ export function getAllNotificationsCount() {
 
 export function getOrderKey(chatId: string, isForSaved?: boolean) {
   const summary = prepared.chatSummariesById.get(chatId)!;
-  return isForSaved ? summary?.orderInSaved : summary?.orderInAll;
+  return isForSaved ? summary.orderInSaved : summary.orderInAll;
 }
 
 /* Callback managers */
@@ -205,7 +206,6 @@ export function addUnreadCountersCallback(callback: (unreadCounters: typeof resu
 /* Global update handlers */
 
 function updateFolderManager(global: GlobalState) {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   let DEBUG_startedAt: number;
   if (DEBUG) {
     DEBUG_startedAt = performance.now();
@@ -542,10 +542,11 @@ function buildChatSummary<T extends GlobalState>(
   isRemovedFromSaved?: boolean,
 ): ChatSummary {
   const {
-    id, type, isRestricted, isNotJoined, migratedTo, folderId,
+    id, type, isNotJoined, migratedTo, folderId,
     unreadCount: chatUnreadCount, unreadMentionsCount: chatUnreadMentionsCount, hasUnreadMark,
     isForum,
   } = chat;
+  const isRestricted = selectIsChatRestricted(global, id);
   const topics = selectTopics(global, chat.id);
 
   const { unreadCount, unreadMentionsCount } = isForum
@@ -563,7 +564,7 @@ function buildChatSummary<T extends GlobalState>(
     !lastMessage || lastMessage.content.action?.type === 'historyClear'
   );
 
-  const orderInAll = Math.max(chat?.creationDate || 0, chat?.draftDate || 0, lastMessage?.date || 0);
+  const orderInAll = Math.max(chat.creationDate || 0, chat.draftDate || 0, lastMessage?.date || 0);
 
   const lastMessageInSaved = selectChatLastMessage(global, chat.id, 'saved');
   const orderInSaved = lastMessageInSaved?.date || 0;
@@ -686,7 +687,7 @@ function updateListsForChat(chatId: string, currentFolderIds: number[], newFolde
         prepared.chatIdsByFolderId[folderId] = new Set();
       }
 
-      prepared.chatIdsByFolderId[folderId]!.add(chatId);
+      prepared.chatIdsByFolderId[folderId].add(chatId);
 
       if (currentFolderOrderedIds) {
         currentFolderOrderedIds.push(chatId);

@@ -1,16 +1,17 @@
-import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useRef, useState } from '../../../lib/teact/teact';
+import type { FC } from '@teact';
+import { memo, useRef, useState } from '@teact';
 import { getActions, getGlobal } from '../../../global';
 
 import type { FolderEditDispatch, FoldersState } from '../../../hooks/reducers/useFoldersReducer';
+import type { AnimationLevel } from '../../../types';
 import { SettingsScreens } from '../../../types';
 
 import { selectTabState } from '../../../global/selectors';
-import { LAYERS_ANIMATION_NAME } from '../../../util/browser/windowEnvironment';
+import { resolveTransitionName } from '../../../util/resolveTransitionName.ts';
 
 import useTwoFaReducer from '../../../hooks/reducers/useTwoFaReducer';
 import useLastCallback from '../../../hooks/useLastCallback';
-import useMarkScrolled from '../../../hooks/useMarkScrolled/useMarkScrolled';
+import useScrollNotch from '../../../hooks/useScrollNotch.ts';
 
 import Transition from '../../ui/Transition';
 import SettingsFolders from './folders/SettingsFolders';
@@ -150,7 +151,7 @@ export type OwnProps = {
   currentScreen: SettingsScreens;
   foldersState: FoldersState;
   foldersDispatch: FolderEditDispatch;
-  onScreenSelect: (screen: SettingsScreens) => void;
+  animationLevel: AnimationLevel;
   shouldSkipTransition?: boolean;
   onReset: (forceReturnToChatList?: true | Event) => void;
 };
@@ -160,19 +161,18 @@ const Settings: FC<OwnProps> = ({
   currentScreen,
   foldersState,
   foldersDispatch,
-  onScreenSelect,
   onReset,
+  animationLevel,
   shouldSkipTransition,
 }) => {
-  const { closeShareChatFolderModal } = getActions();
+  const { closeShareChatFolderModal, openSettingsScreen } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
 
   const [twoFaState, twoFaDispatch] = useTwoFaReducer();
   const [privacyPasscode, setPrivacyPasscode] = useState<string>('');
 
-  useMarkScrolled({
+  useScrollNotch({
     containerRef,
     selector: '.settings-content',
   }, [currentScreen]);
@@ -205,9 +205,9 @@ const Settings: FC<OwnProps> = ({
       || currentScreen === SettingsScreens.FoldersExcludedChats
     ) {
       if (foldersState.mode === 'create') {
-        onScreenSelect(SettingsScreens.FoldersCreateFolder);
+        openSettingsScreen({ screen: SettingsScreens.FoldersCreateFolder });
       } else {
-        onScreenSelect(SettingsScreens.FoldersEditFolder);
+        openSettingsScreen({ screen: SettingsScreens.FoldersEditFolder });
       }
       return;
     }
@@ -243,7 +243,7 @@ const Settings: FC<OwnProps> = ({
     switch (currentScreen) {
       case SettingsScreens.Main:
         return (
-          <SettingsMain onScreenSelect={onScreenSelect} isActive={isActive} onReset={handleReset} />
+          <SettingsMain isActive={isActive} onReset={handleReset} />
         );
       case SettingsScreens.EditProfile:
         return (
@@ -255,7 +255,6 @@ const Settings: FC<OwnProps> = ({
       case SettingsScreens.General:
         return (
           <SettingsGeneral
-            onScreenSelect={onScreenSelect}
             isActive={isScreenActive
               || activeScreen === SettingsScreens.GeneralChatBackgroundColor
               || activeScreen === SettingsScreens.GeneralChatBackground
@@ -284,7 +283,6 @@ const Settings: FC<OwnProps> = ({
       case SettingsScreens.Privacy:
         return (
           <SettingsPrivacy
-            onScreenSelect={onScreenSelect}
             isActive={isScreenActive || isPrivacyScreen}
             onReset={handleReset}
           />
@@ -294,7 +292,6 @@ const Settings: FC<OwnProps> = ({
           <SettingsLanguage
             isActive={isScreenActive || activeScreen === SettingsScreens.DoNotTranslate}
             onReset={handleReset}
-            onScreenSelect={onScreenSelect}
           />
         );
       case SettingsScreens.DoNotTranslate:
@@ -303,7 +300,7 @@ const Settings: FC<OwnProps> = ({
         );
       case SettingsScreens.Stickers:
         return (
-          <SettingsStickers isActive={isScreenActive} onReset={handleReset} onScreenSelect={onScreenSelect} />
+          <SettingsStickers isActive={isScreenActive} onReset={handleReset} />
         );
       case SettingsScreens.Experimental:
         return (
@@ -312,7 +309,6 @@ const Settings: FC<OwnProps> = ({
       case SettingsScreens.GeneralChatBackground:
         return (
           <SettingsGeneralBackground
-            onScreenSelect={onScreenSelect}
             isActive={isScreenActive || activeScreen === SettingsScreens.GeneralChatBackgroundColor}
             onReset={handleReset}
           />
@@ -358,7 +354,6 @@ const Settings: FC<OwnProps> = ({
         return (
           <SettingsPrivacyVisibility
             screen={currentScreen}
-            onScreenSelect={onScreenSelect}
             isActive={isScreenActive || privacyAllowScreens[currentScreen]}
             onReset={handleReset}
           />
@@ -412,7 +407,6 @@ const Settings: FC<OwnProps> = ({
           <PrivacyMessages
             isActive={isScreenActive}
             onReset={handleReset}
-            onScreenSelect={onScreenSelect}
           />
         );
 
@@ -433,7 +427,6 @@ const Settings: FC<OwnProps> = ({
             state={foldersState}
             dispatch={foldersDispatch}
             isActive={isScreenActive}
-            onScreenSelect={onScreenSelect}
             onReset={handleReset}
           />
         );
@@ -461,7 +454,6 @@ const Settings: FC<OwnProps> = ({
             dispatch={twoFaDispatch}
             shownScreen={activeScreen}
             isActive={isScreenActive}
-            onScreenSelect={onScreenSelect}
             onReset={handleReset}
           />
         );
@@ -482,7 +474,6 @@ const Settings: FC<OwnProps> = ({
             onSetPasscode={setPrivacyPasscode}
             shownScreen={activeScreen}
             isActive={isScreenActive}
-            onScreenSelect={onScreenSelect}
             onReset={handleReset}
           />
         );
@@ -511,7 +502,6 @@ const Settings: FC<OwnProps> = ({
         <SettingsHeader
           currentScreen={currentScreen}
           onReset={handleReset}
-          onScreenSelect={onScreenSelect}
           editedFolderId={foldersState.folderId}
         />
         {renderCurrentSectionContent(isScreenActive, activeKey)}
@@ -523,7 +513,7 @@ const Settings: FC<OwnProps> = ({
     <Transition
       ref={containerRef}
       id="Settings"
-      name={shouldSkipTransition ? 'none' : LAYERS_ANIMATION_NAME}
+      name={resolveTransitionName('layers', animationLevel, shouldSkipTransition)}
       activeKey={currentScreen}
       renderCount={TRANSITION_RENDER_COUNT}
       shouldWrap

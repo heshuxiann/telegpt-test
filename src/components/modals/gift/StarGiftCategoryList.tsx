@@ -1,4 +1,4 @@
-import React, {
+import {
   memo, useMemo, useRef, useState,
 } from '../../../lib/teact/teact';
 import { withGlobal } from '../../../global';
@@ -28,8 +28,7 @@ const StarGiftCategoryList = ({
   onCategoryChanged,
   areLimitedStarGiftsDisallowed,
 }: StateProps & OwnProps) => {
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
 
   const lang = useLang();
   const starCategories: number[] | undefined = useMemo(() => idsByCategory && Object.keys(idsByCategory)
@@ -37,6 +36,8 @@ const StarGiftCategoryList = ({
     .map(Number)
     .sort((a, b) => a - b),
   [idsByCategory]);
+
+  const hasResale = idsByCategory && idsByCategory['resale'].length > 0;
 
   const [selectedCategory, setSelectedCategory] = useState<StarGiftCategory>('all');
 
@@ -51,6 +52,7 @@ const StarGiftCategoryList = ({
     if (category === 'all') return lang('AllGiftsCategory');
     if (category === 'stock') return lang('StockGiftsCategory');
     if (category === 'limited') return lang('LimitedGiftsCategory');
+    if (category === 'resale') return lang('GiftCategoryResale');
     return category;
   }
 
@@ -81,6 +83,7 @@ const StarGiftCategoryList = ({
     <div ref={ref} className={buildClassName(styles.list, 'no-scrollbar')}>
       {renderCategoryItem('all')}
       {!areLimitedStarGiftsDisallowed && renderCategoryItem('limited')}
+      {!areLimitedStarGiftsDisallowed && hasResale && renderCategoryItem('resale')}
       {renderCategoryItem('stock')}
       {starCategories?.map(renderCategoryItem)}
     </div>

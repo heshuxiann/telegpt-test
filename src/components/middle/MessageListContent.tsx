@@ -1,6 +1,5 @@
-import type { RefObject } from 'react';
-import type { FC } from '../../lib/teact/teact';
-import React, { getIsHeavyAnimating, memo } from '../../lib/teact/teact';
+import type { ElementRef, FC } from '../../lib/teact/teact';
+import { getIsHeavyAnimating, memo } from '../../lib/teact/teact';
 import { getActions, getGlobal } from '../../global';
 
 import type { ApiMessage } from '../../api/types';
@@ -14,18 +13,22 @@ import { SCHEDULED_WHEN_ONLINE } from '../../config';
 import {
   getMessageHtmlId,
   getMessageOriginalId,
+  getSuggestedChangesActionText,
+  getSuggestedChangesInfo,
   isActionMessage,
   isOwnMessage,
   isServiceNotificationMessage,
 } from '../../global/helpers';
 import { getPeerTitle } from '../../global/helpers/peers';
-import { selectSender } from '../../global/selectors';
+import { selectChatMessage, selectSender } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { formatHumanDate } from '../../util/dates/dateFormat';
+import { formatHumanDate, formatScheduledDateTime } from '../../util/dates/dateFormat';
+import { convertTonFromNanos } from '../../util/formatCurrency';
 import { compact } from '../../util/iteratees';
-import { formatStarsAsText } from '../../util/localization/format';
+import { formatStarsAsText, formatTonAsText } from '../../util/localization/format';
 import { isAlbum } from './helpers/groupMessages';
 import { preventMessageInputBlur } from './helpers/preventMessageInputBlur';
+import { renderPeerLink } from './message/helpers/messageActions';
 
 import useDerivedSignal from '../../hooks/useDerivedSignal';
 import useLang from '../../hooks/useLang';
@@ -34,11 +37,14 @@ import usePreviousDeprecated from '../../hooks/usePreviousDeprecated';
 import useMessageObservers from './hooks/useMessageObservers';
 import useScrollHooks from './hooks/useScrollHooks';
 
+import MiniTable, { type TableEntry } from '../common/MiniTable';
 import ActionMessage from './message/ActionMessage';
 import Message from './message/Message';
 import SenderGroupContainer from './message/SenderGroupContainer';
 import SponsoredMessage from './message/SponsoredMessage';
 import MessageListAccountInfo from './MessageListAccountInfo';
+
+import actionMessageStyles from './message/ActionMessage.module.scss';
 
 interface OwnProps {
   canShowAds?: boolean;
@@ -51,10 +57,11 @@ interface OwnProps {
   isUnread: boolean;
   withUsers: boolean;
   isChannelChat: boolean | undefined;
+  isChatMonoforum?: boolean;
   isEmptyThread?: boolean;
   isComments?: boolean;
   noAvatars: boolean;
-  containerRef: RefObject<HTMLDivElement>;
+  containerRef: ElementRef<HTMLDivElement>;
   anchorIdRef: { current: string | undefined };
   memoUnreadDividerBeforeIdRef: { current: number | undefined };
   memoFirstUnreadIdRef: { current: number | undefined };
@@ -70,6 +77,7 @@ interface OwnProps {
   onScrollDownToggle: BooleanToVoidFunction;
   onNotchToggle: AnyToVoidFunction;
   onIntersectPinnedMessage: OnIntersectPinnedMessage;
+  canPost?: boolean;
 }
 
 const UNREAD_DIVIDER_CLASS = 'unread-divider';
@@ -87,6 +95,7 @@ const MessageListContent: FC<OwnProps> = ({
   isEmptyThread,
   withUsers,
   isChannelChat,
+  isChatMonoforum,
   noAvatars,
   containerRef,
   anchorIdRef,
@@ -104,6 +113,7 @@ const MessageListContent: FC<OwnProps> = ({
   onScrollDownToggle,
   onNotchToggle,
   onIntersectPinnedMessage,
+  canPost,
 }) => {
   const { openHistoryCalendar } = getActions();
 
@@ -152,26 +162,81 @@ const MessageListContent: FC<OwnProps> = ({
           className={buildClassName('local-action-message')}
           key={`paid-messages-action-${message.id}`}
         >
-          <span>{
-            message.isOutgoing
-              ? lang('ActionPaidOneMessageOutgoing', {
-                amount: formatStarsAsText(lang, amount),
-              })
-              : (() => {
-                const sender = selectSender(getGlobal(), message);
-                const userTitle = sender ? getPeerTitle(lang, sender) : '';
-                return lang('ActionPaidOneMessageIncoming', {
-                  user: userTitle,
+          <span>
+            {
+              message.isOutgoing
+                ? lang('ActionPaidOneMessageOutgoing', {
                   amount: formatStarsAsText(lang, amount),
-                });
-              })()
-          }
+                })
+                : (() => {
+                  const sender = selectSender(getGlobal(), message);
+                  const userTitle = sender ? getPeerTitle(lang, sender) : '';
+                  return lang('ActionPaidOneMessageIncoming', {
+                    user: userTitle,
+                    amount: formatStarsAsText(lang, amount),
+                  });
+                })()
+            }
           </span>
         </div>
       );
     }
     return undefined;
   };
+
+  const renderSuggestedPostInfoAction = (message: ApiMessage) => {
+    if (message.suggestedPostInfo) {
+      const { price, scheduleDate } = message.suggestedPostInfo;
+      const sender = selectSender(getGlobal(), message);
+      const userTitle = sender ? getPeerTitle(lang, sender) : '';
+      const userLink = renderPeerLink(sender?.id, userTitle || lang('ActionFallbackUser'));
+
+      const originalMessage = message.replyInfo?.type === 'message' && message.replyInfo.replyToMsgId
+        ? selectChatMessage(getGlobal(), message.chatId, message.replyInfo.replyToMsgId)
+        : undefined;
+      const changesInfo = getSuggestedChangesInfo(message, originalMessage);
+
+      const titleText = changesInfo
+        ? getSuggestedChangesActionText(lang, message, originalMessage, message.isOutgoing, userLink)
+        : message.isOutgoing
+          ? lang('ActionSuggestedPostOutgoing', undefined, { withNodes: true, withMarkdown: true })
+          : lang('ActionSuggestedPostIncoming', { user: userLink }, { withNodes: true, withMarkdown: true });
+
+      const tableData: TableEntry[] = compact([
+        [lang('TitlePrice'), price ? (price.currency === 'TON'
+          ? formatTonAsText(lang, convertTonFromNanos(price.amount))
+          : formatStarsAsText(lang, price.amount)) : lang('SuggestMessageNoPrice')],
+        [lang('TitleTime'),
+          scheduleDate
+            ? formatScheduledDateTime(scheduleDate, lang, oldLang)
+            : lang('SuggestMessageAnytime'),
+        ],
+      ]);
+
+      return (
+        <div
+          className={buildClassName('local-action-message')}
+          key={`suggested-post-action-${message.id}`}
+        >
+          <span className={actionMessageStyles.suggestedPostContainer}>
+            <div
+              className={actionMessageStyles.suggestedPostTitle}
+            >
+              {titleText}
+            </div>
+            {Boolean(tableData.length) && (
+              <MiniTable
+                className={actionMessageStyles.suggestedPostInfo}
+                data={tableData}
+              />
+            )}
+          </span>
+        </div>
+      );
+    }
+    return undefined;
+  };
+
   const messageCountToAnimate = noAppearanceAnimation ? 0 : messageGroups.reduce((acc, messageGroup) => {
     return acc + messageGroup.senderGroups.flat().length;
   }, 0);
@@ -196,7 +261,7 @@ const MessageListContent: FC<OwnProps> = ({
         && isActionMessage(senderGroup[0])
         && senderGroup[0].content.action?.type !== 'phoneCall'
       ) {
-        const message = senderGroup[0]!;
+        const message = senderGroup[0];
         const isLastInList = (
           senderGroupIndex === senderGroupsArray.length - 1
           && dateGroupIndex === dateGroupsArray.length - 1
@@ -259,11 +324,12 @@ const MessageListContent: FC<OwnProps> = ({
         // Service notifications saved in cache in previous versions may share the same `previousLocalId`
         const key = isServiceNotificationMessage(message) ? `${message.date}_${originalId}` : originalId;
 
-        const noComments = hasLinkedChat === false || !isChannelChat;
+        const noComments = hasLinkedChat === false || !isChannelChat || Boolean(isChatMonoforum);
 
         return compact([
           message.id === memoUnreadDividerBeforeIdRef.current && unreadDivider,
           message.paidMessageStars && !withUsers && renderPaidMessageAction(message, album),
+          message.suggestedPostInfo && renderSuggestedPostInfoAction(message),
           <Message
             key={key}
             message={message}
@@ -290,9 +356,11 @@ const MessageListContent: FC<OwnProps> = ({
             getIsMessageListReady={getIsReady}
           />,
           message.id === threadId && (
+            // eslint-disable-next-line react-x/no-duplicate-key
             <div className="local-action-message" key="discussion-started">
-              <span>{oldLang(isEmptyThread
-                ? (isComments ? 'NoComments' : 'NoReplies') : 'DiscussionStarted')}
+              <span>
+                {oldLang(isEmptyThread
+                  ? (isComments ? 'NoComments' : 'NoReplies') : 'DiscussionStarted')}
               </span>
             </div>
           ),
@@ -325,6 +393,7 @@ const MessageListContent: FC<OwnProps> = ({
           message={lastMessage}
           withAvatar={withAvatar}
           appearanceOrder={lastAppearanceOrder}
+          canPost={canPost}
         >
           {senderGroupElements}
         </SenderGroupContainer>
@@ -342,7 +411,7 @@ const MessageListContent: FC<OwnProps> = ({
     return (
       <div
         className={buildClassName('message-date-group', !(nameChangeDate || photoChangeDate)
-            && dateGroupIndex === 0 && 'first-message-date-group')}
+        && dateGroupIndex === 0 && 'first-message-date-group')}
         key={dateGroup.datetime}
         onMouseDown={preventMessageInputBlur}
         teactFastList
@@ -372,7 +441,7 @@ const MessageListContent: FC<OwnProps> = ({
     <div className="messages-container" teactFastList>
       {withHistoryTriggers && <div ref={backwardsTriggerRef} key="backwards-trigger" className="backwards-trigger" />}
       {shouldRenderAccountInfo
-        && <MessageListAccountInfo key={`account_info_${chatId}`} chatId={chatId} />}
+        && <MessageListAccountInfo key={`account_info_${chatId}`} chatId={chatId} hasMessages />}
       {dateGroups.flat()}
       {withHistoryTriggers && (
         <div

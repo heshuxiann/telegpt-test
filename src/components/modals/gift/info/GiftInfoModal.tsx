@@ -1,20 +1,25 @@
 import type { FC, TeactNode } from '../../../../lib/teact/teact';
-import React, { memo, useMemo } from '../../../../lib/teact/teact';
+import { memo, useMemo, useState } from '../../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../../global';
 
 import type {
   ApiEmojiStatusType,
   ApiPeer,
+  ApiUser,
 } from '../../../../api/types';
 import type { TabState } from '../../../../global/types';
 
+import { STARS_CURRENCY_CODE, TON_CURRENCY_CODE } from '../../../../config';
 import { getHasAdminRight } from '../../../../global/helpers';
-import { getPeerTitle, isApiPeerChat } from '../../../../global/helpers/peers';
+import { getPeerTitle, isApiPeerChat, isApiPeerUser } from '../../../../global/helpers/peers';
+import { getMainUsername } from '../../../../global/helpers/users';
 import { selectPeer, selectUser } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { copyTextToClipboard } from '../../../../util/clipboard';
 import { formatDateTimeToString } from '../../../../util/dates/dateFormat';
-import { formatStarsAsIcon, formatStarsAsText } from '../../../../util/localization/format';
+import {
+  formatStarsAsIcon, formatStarsAsText, formatTonAsIcon, formatTonAsText,
+} from '../../../../util/localization/format';
 import { CUSTOM_PEER_HIDDEN } from '../../../../util/objects/customPeer';
 import { getServerTime } from '../../../../util/serverTime';
 import { formatPercent } from '../../../../util/textFormat';
@@ -31,9 +36,11 @@ import AnimatedIconFromSticker from '../../../common/AnimatedIconFromSticker';
 import Avatar from '../../../common/Avatar';
 import BadgeButton from '../../../common/BadgeButton';
 import GiftMenuItems from '../../../common/gift/GiftMenuItems';
+import GiftTransferPreview from '../../../common/gift/GiftTransferPreview';
 import Icon from '../../../common/icons/Icon';
 import SafeLink from '../../../common/SafeLink';
 import Button from '../../../ui/Button';
+import Checkbox from '../../../ui/Checkbox';
 import ConfirmDialog from '../../../ui/ConfirmDialog';
 import DropdownMenu from '../../../ui/DropdownMenu';
 import Link from '../../../ui/Link';
@@ -49,12 +56,15 @@ export type OwnProps = {
 type StateProps = {
   fromPeer?: ApiPeer;
   targetPeer?: ApiPeer;
+  releasedByPeer?: ApiPeer;
   currentUserId?: string;
   starGiftMaxConvertPeriod?: number;
   hasAdminRights?: boolean;
   currentUserEmojiStatus?: ApiEmojiStatusType;
   collectibleEmojiStatuses?: ApiEmojiStatusType[];
   tonExplorerUrl?: string;
+  currentUser?: ApiUser;
+  recipientPeer?: ApiPeer;
 };
 
 const STICKER_SIZE = 120;
@@ -63,12 +73,15 @@ const GiftInfoModal = ({
   modal,
   fromPeer,
   targetPeer,
+  releasedByPeer,
   currentUserId,
   starGiftMaxConvertPeriod,
   hasAdminRights,
   currentUserEmojiStatus,
   collectibleEmojiStatuses,
   tonExplorerUrl,
+  currentUser,
+  recipientPeer,
 }: OwnProps & StateProps) => {
   const {
     closeGiftInfoModal,
@@ -78,12 +91,16 @@ const GiftInfoModal = ({
     focusMessage,
     openGiftUpgradeModal,
     showNotification,
+    buyStarGift,
+    closeGiftModal,
   } = getActions();
 
   const [isConvertConfirmOpen, openConvertConfirm, closeConvertConfirm] = useFlag();
 
   const lang = useLang();
   const oldLang = useOldLang();
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState<boolean>(false);
+  const [shouldPayInTon, setShouldPayInTon] = useState<boolean>(false);
 
   const isOpen = Boolean(modal);
   const renderingModal = useCurrentOrPrev(modal);
@@ -106,11 +123,56 @@ const GiftInfoModal = ({
   const hasConvertOption = canConvertDifference > 0 && Boolean(savedGift?.starsToConvert);
 
   const isGiftUnique = gift && gift.type === 'starGiftUnique';
+  const uniqueGift = isGiftUnique ? gift : undefined;
+
+  const giftSubtitle = useMemo(() => {
+    if (!gift || gift.type !== 'starGiftUnique') return undefined;
+
+    if (releasedByPeer) {
+      const releasedByUsername = `@${getMainUsername(releasedByPeer)}`;
+      const ownerTitle = releasedByUsername || getPeerTitle(lang, releasedByPeer);
+      const fallbackText = isApiPeerUser(releasedByPeer)
+        ? lang('ActionFallbackUser')
+        : lang('ActionFallbackChannel');
+
+      return lang('GiftInfoCollectibleBy', {
+        number: gift.number, owner: ownerTitle || fallbackText }, {
+        withNodes: true,
+        withMarkdown: true,
+      });
+    }
+
+    return lang('GiftInfoCollectible', { number: gift.number });
+  }, [gift, releasedByPeer, lang]);
 
   const canFocusUpgrade = Boolean(savedGift?.upgradeMsgId);
   const canManage = !canFocusUpgrade && savedGift?.inputGift && (
     isTargetChat ? hasAdminRights : renderingTargetPeer?.id === currentUserId
   );
+
+  function getResalePrice(shouldPayInTon?: boolean) {
+    if (!isGiftUnique) return undefined;
+    const amounts = gift.resellPrice;
+    if (!amounts) return undefined;
+
+    if (gift?.resaleTonOnly || shouldPayInTon) {
+      return amounts.find((amount) => amount.currency === TON_CURRENCY_CODE);
+    }
+
+    return amounts.find((amount) => amount.currency === STARS_CURRENCY_CODE);
+  }
+
+  const resellPrice = getResalePrice();
+  const confirmPrice = getResalePrice(shouldPayInTon);
+  const canBuyGift = gift?.type === 'starGiftUnique' && gift.ownerId !== currentUserId && Boolean(resellPrice);
+
+  const giftOwnerTitle = (() => {
+    if (!isGiftUnique) return undefined;
+    const { ownerName, ownerId } = gift;
+    const global = getGlobal(); // Peer titles do not need to be reactive
+    const owner = ownerId ? selectPeer(global, ownerId) : undefined;
+    return owner ? getPeerTitle(lang, owner) : ownerName;
+  })();
 
   const handleClose = useLastCallback(() => {
     closeGiftInfoModal();
@@ -120,7 +182,7 @@ const GiftInfoModal = ({
     const giftChat = isSender ? renderingTargetPeer : renderingFromPeer;
     if (!savedGift?.upgradeMsgId || !giftChat) return;
     const { upgradeMsgId } = savedGift;
-    focusMessage({ chatId: giftChat.id, messageId: upgradeMsgId! });
+    focusMessage({ chatId: giftChat.id, messageId: upgradeMsgId });
     handleClose();
   });
 
@@ -142,26 +204,62 @@ const GiftInfoModal = ({
     openGiftUpgradeModal({ giftId: savedGift.gift.id, gift: savedGift });
   });
 
+  const handleBuyGift = useLastCallback(() => {
+    if (gift?.type !== 'starGiftUnique' || !getResalePrice()) return;
+    setIsConfirmModalOpen(true);
+  });
+
+  const closeConfirmModal = useLastCallback(() => {
+    setIsConfirmModalOpen(false);
+  });
+
+  const handleConfirmBuyGift = useLastCallback(() => {
+    const peer = recipientPeer || currentUser;
+    const price = getResalePrice(shouldPayInTon);
+    if (!peer || !price || gift?.type !== 'starGiftUnique') return;
+    closeConfirmModal();
+    closeGiftModal();
+    buyStarGift({ peerId: peer.id, slug: gift.slug, price });
+  });
+
   const giftAttributes = useMemo(() => {
     return gift && getGiftAttributes(gift);
   }, [gift]);
 
   const SettingsMenuButton: FC<{ onTrigger: () => void; isMenuOpen?: boolean }> = useMemo(() => {
-    return ({ onTrigger, isMenuOpen }) => (
-      <Button
-        round
-        size="smaller"
-        color="translucent-white"
-        className={isMenuOpen ? 'active' : ''}
+    return ({ onTrigger }) => (
+      <div
+        className={buildClassName(
+          styles.headerButton,
+          styles.left,
+        )}
+        tabIndex={0}
+        role="button"
+        aria-haspopup="menu"
+        aria-label={lang('AriaMoreButton')}
         onClick={onTrigger}
-        ariaLabel={lang('AriaMoreButton')}
       >
-        <Icon name="more" />
-      </Button>
+        <Icon
+          name="more"
+          className={styles.icon}
+        />
+      </div>
     );
   }, [lang]);
 
   const renderFooterButton = useLastCallback(() => {
+    if (canBuyGift) {
+      return (
+        <Button noForcedUpperCase size="smaller" onClick={handleBuyGift}>
+          {lang('ButtonBuyGift', {
+            stars: resellPrice?.currency === TON_CURRENCY_CODE
+              ? formatTonAsIcon(lang, resellPrice.amount, { shouldConvertFromNanos: true })
+              : formatStarsAsIcon(lang, resellPrice?.amount, { asFont: true }),
+          }, { withNodes: true })}
+        </Button>
+      );
+    }
+
     if (canFocusUpgrade) {
       return (
         <Button size="smaller" onClick={handleFocusUpgraded}>
@@ -174,6 +272,16 @@ const GiftInfoModal = ({
       return (
         <Button size="smaller" isShiny onClick={handleOpenUpgradeModal}>
           {lang('GiftInfoUpgradeForFree')}
+          <Icon name="arrow-down-circle" className={styles.upgradeIcon} />
+        </Button>
+      );
+    }
+
+    if (canManage && savedGift.canUpgrade && !savedGift.upgradeMsgId) {
+      return (
+        <Button size="smaller" isShiny onClick={handleOpenUpgradeModal}>
+          {lang('GiftInfoUpgrade')}
+          <Icon name="arrow-down-circle" className={styles.upgradeIcon} />
         </Button>
       );
     }
@@ -218,7 +326,10 @@ const GiftInfoModal = ({
       if (isTargetChat) return undefined;
 
       if (savedGift.upgradeMsgId) return lang('GiftInfoDescriptionUpgraded');
-      if (savedGift.canUpgrade && savedGift.alreadyPaidUpgradeStars) {
+      if (canManage && savedGift.canUpgrade && savedGift.alreadyPaidUpgradeStars && !savedGift.upgradeMsgId) {
+        return lang('GiftInfoDescriptionUpgrade');
+      }
+      if (savedGift.canUpgrade && canManage) {
         return canManage
           ? lang('GiftInfoDescriptionFreeUpgrade')
           : lang('GiftInfoPeerDescriptionFreeUpgradeOut', { peer: getPeerTitle(lang, renderingTargetPeer!)! });
@@ -312,17 +423,41 @@ const GiftInfoModal = ({
       <div
         className={styles.modalHeader}
       >
-        <Button
-          className={styles.modalCloseButton}
-          round
-          color="translucent-white"
-          size="smaller"
-          ariaLabel={lang('Close')}
-          onClick={handleClose}
-        >
-          <Icon name="close" />
-        </Button>
-        {isOpen && uniqueGiftContextMenu}
+        {Boolean(resellPrice?.amount) && (
+          <div className={styles.giftResalePriceContainer}>
+            {resellPrice.currency === TON_CURRENCY_CODE
+              ? formatTonAsIcon(lang, resellPrice.amount, {
+                className: styles.giftResalePriceStar,
+                shouldConvertFromNanos: true,
+              })
+              : formatStarsAsIcon(lang, resellPrice.amount, {
+                asFont: true,
+                className: styles.giftResalePriceStar,
+              })}
+          </div>
+        )}
+        <div className={styles.headerSplitButton}>
+          {isOpen && uniqueGiftContextMenu}
+          <div
+            className={buildClassName(
+              styles.headerButton,
+              styles.right,
+            )}
+            tabIndex={0}
+            role="button"
+            aria-haspopup="menu"
+            aria-label={lang('Close')}
+            onClick={handleClose}
+          >
+            <Icon
+              name="close"
+              className={buildClassName(
+                styles.icon,
+                styles.moreIcon,
+              )}
+            />
+          </div>
+        </div>
       </div>
     );
 
@@ -333,7 +468,8 @@ const GiftInfoModal = ({
           patternAttribute={giftAttributes!.pattern!}
           modelAttribute={giftAttributes!.model!}
           title={gift.title}
-          subtitle={lang('GiftInfoCollectible', { number: gift.number })}
+          subtitle={giftSubtitle}
+          subtitlePeer={releasedByPeer}
         />
       </div>
     );
@@ -348,7 +484,7 @@ const GiftInfoModal = ({
         <h1 className={styles.title}>
           {getTitle()}
         </h1>
-        {description && (
+        {Boolean(description) && (
           <p className={buildClassName(styles.description, !savedGift && gift?.type === 'starGift' && styles.soldOut)}>
             {description}
           </p>
@@ -424,7 +560,6 @@ const GiftInfoModal = ({
           lang('GiftInfoStatus'),
           <div className={styles.giftValue}>
             {lang('GiftInfoStatusNonUnique')}
-            {canManage && <BadgeButton onClick={handleOpenUpgradeModal}>{lang('GiftInfoUpgradeBadge')}</BadgeButton>}
           </div>,
         ]);
       }
@@ -439,6 +574,7 @@ const GiftInfoModal = ({
 
     if (isGiftUnique) {
       const { ownerName, ownerAddress, ownerId } = gift;
+      const ownerPeer = ownerId ? selectPeer(getGlobal(), ownerId) : undefined;
       const {
         model, backdrop, pattern, originalDetails,
       } = giftAttributes || {};
@@ -460,7 +596,7 @@ const GiftInfoModal = ({
             <Icon className={styles.copyIcon} name="copy" />
           </span>,
         ]);
-      } else {
+      } else if (ownerPeer || ownerName) {
         tableData.push([
           lang('GiftInfoOwner'),
           ownerId ? { chatId: ownerId, withEmojiStatus: true } : ownerName || '',
@@ -471,7 +607,8 @@ const GiftInfoModal = ({
         tableData.push([
           lang('GiftAttributeModel'),
           <span className={styles.uniqueAttribute}>
-            {model.name}<BadgeButton>{formatPercent(model.rarityPercent)}</BadgeButton>
+            {model.name}
+            <BadgeButton>{formatPercent(model.rarityPercent)}</BadgeButton>
           </span>,
         ]);
       }
@@ -480,7 +617,8 @@ const GiftInfoModal = ({
         tableData.push([
           lang('GiftAttributeBackdrop'),
           <span className={styles.uniqueAttribute}>
-            {backdrop.name}<BadgeButton>{formatPercent(backdrop.rarityPercent)}</BadgeButton>
+            {backdrop.name}
+            <BadgeButton>{formatPercent(backdrop.rarityPercent)}</BadgeButton>
           </span>,
         ]);
       }
@@ -489,7 +627,8 @@ const GiftInfoModal = ({
         tableData.push([
           lang('GiftAttributeSymbol'),
           <span className={styles.uniqueAttribute}>
-            {pattern.name}<BadgeButton>{formatPercent(pattern.rarityPercent)}</BadgeButton>
+            {pattern.name}
+            <BadgeButton>{formatPercent(pattern.rarityPercent)}</BadgeButton>
           </span>,
         ]);
       }
@@ -518,7 +657,6 @@ const GiftInfoModal = ({
 
         const formattedDate = formatDateTimeToString(date * 1000, lang.code, true);
         const recipientLink = (
-          // eslint-disable-next-line react/jsx-no-bind
           <Link onClick={() => openChat(recipientId)} isPrimary>
             {getPeerTitle(lang, recipient)}
           </Link>
@@ -540,7 +678,6 @@ const GiftInfoModal = ({
           });
         } else {
           const senderLink = (
-            // eslint-disable-next-line react/jsx-no-bind
             <Link onClick={() => openChat(sender.id)} isPrimary>
               {getPeerTitle(lang, sender)}
             </Link>
@@ -574,7 +711,7 @@ const GiftInfoModal = ({
 
     const footer = (
       <div className={styles.footer}>
-        {(canManage || tonLink) && (
+        {(canManage || tonLink || canBuyGift) && (
           <div className={styles.footerDescription}>
             {tonLink && (
               <div>
@@ -596,9 +733,16 @@ const GiftInfoModal = ({
                 })}
               </div>
             )}
-            {isVisibleForMe && (
+            {!canBuyGift && isVisibleForMe && (
               <div>
                 {lang('GiftInfoSenderHidden')}
+              </div>
+            )}
+            {canBuyGift && giftOwnerTitle && (
+              <div>
+                {lang('GiftInfoBuyGift', {
+                  user: giftOwnerTitle,
+                }, { withNodes: true })}
               </div>
             )}
           </div>
@@ -617,8 +761,10 @@ const GiftInfoModal = ({
     typeGift, savedGift, renderingTargetPeer, giftSticker, lang,
     canManage, hasConvertOption, isSender, oldLang, tonExplorerUrl,
     gift, giftAttributes, renderFooterButton, isTargetChat,
-    SettingsMenuButton, isOpen, isGiftUnique, renderingModal,
+    SettingsMenuButton, isGiftUnique, renderingModal,
     collectibleEmojiStatuses, currentUserEmojiStatus, saleDateInfo,
+    canBuyGift, giftOwnerTitle, isOpen, resellPrice, giftSubtitle,
+    releasedByPeer,
   ]);
 
   return (
@@ -632,7 +778,72 @@ const GiftInfoModal = ({
         footer={modalData?.footer}
         className={styles.modal}
         onClose={handleClose}
+        withBalanceBar={Boolean(canBuyGift)}
+        currencyInBalanceBar={confirmPrice?.currency}
+        isLowStackPriority
       />
+      {uniqueGift && currentUser && Boolean(confirmPrice) && (
+        <ConfirmDialog
+          isOpen={isConfirmModalOpen}
+          noDefaultTitle
+          onClose={closeConfirmModal}
+          confirmLabel={lang('ButtonBuyGift', {
+            stars: confirmPrice?.currency === TON_CURRENCY_CODE
+              ? formatTonAsIcon(lang, confirmPrice.amount, { shouldConvertFromNanos: true })
+              : formatStarsAsIcon(lang, confirmPrice.amount, { asFont: true }),
+          }, { withNodes: true })}
+          confirmHandler={handleConfirmBuyGift}
+        >
+
+          <GiftTransferPreview
+            peer={recipientPeer || currentUser}
+            gift={uniqueGift}
+          />
+          {!recipientPeer
+            && (
+              <p>
+                {lang('GiftBuyConfirmDescription', {
+                  gift: lang('GiftUnique', { title: uniqueGift.title, number: uniqueGift.number }),
+                  stars: confirmPrice?.currency === TON_CURRENCY_CODE
+                    ? formatTonAsText(lang, confirmPrice.amount, true)
+                    : formatStarsAsText(lang, confirmPrice.amount),
+                }, {
+                  withNodes: true,
+                  withMarkdown: true,
+                })}
+              </p>
+            )}
+          {recipientPeer
+            && (
+              <p>
+                {lang('GiftBuyForPeerConfirmDescription', {
+                  gift: lang('GiftUnique', { title: uniqueGift.title, number: uniqueGift.number }),
+                  stars: confirmPrice?.currency === TON_CURRENCY_CODE
+                    ? formatTonAsText(lang, confirmPrice.amount, true)
+                    : formatStarsAsText(lang, confirmPrice.amount),
+                  peer: getPeerTitle(lang, recipientPeer),
+                }, {
+                  withNodes: true,
+                  withMarkdown: true,
+                })}
+              </p>
+            )}
+          {!uniqueGift.resaleTonOnly && (
+            <>
+              <Checkbox
+                className={styles.checkBox}
+                label={lang('LabelPayInTON')}
+                checked={shouldPayInTon}
+                onCheck={setShouldPayInTon}
+              />
+
+              <div className={styles.checkBoxDescription}>
+                {lang('DescriptionPayInTON')}
+              </div>
+            </>
+          )}
+        </ConfirmDialog>
+      )}
       {savedGift && (
         <ConfirmDialog
           isOpen={isConvertConfirmOpen}
@@ -679,18 +890,27 @@ export default memo(withGlobal<OwnProps>(
     const chat = targetPeer && isApiPeerChat(targetPeer) ? targetPeer : undefined;
     const hasAdminRights = chat && getHasAdminRight(chat, 'postMessages');
     const currentUser = selectUser(global, currentUserId!);
+    const recipientPeer = modal?.recipientId && currentUserId !== modal.recipientId
+      ? selectPeer(global, modal.recipientId) : undefined;
     const currentUserEmojiStatus = currentUser?.emojiStatus;
     const collectibleEmojiStatuses = global.collectibleEmojiStatuses?.statuses;
+
+    const gift = isSavedGift ? typeGift.gift : typeGift;
+    const releasedByPeerId = gift?.type === 'starGiftUnique' && gift.releasedByPeerId;
+    const releasedByPeer = releasedByPeerId ? selectPeer(global, releasedByPeerId) : undefined;
 
     return {
       fromPeer,
       targetPeer,
+      releasedByPeer,
       currentUserId,
       starGiftMaxConvertPeriod: global.appConfig?.starGiftMaxConvertPeriod,
       tonExplorerUrl: global.appConfig?.tonExplorerUrl,
       hasAdminRights,
       currentUserEmojiStatus,
       collectibleEmojiStatuses,
+      currentUser,
+      recipientPeer,
     };
   },
 )(GiftInfoModal));

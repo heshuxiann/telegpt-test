@@ -16,16 +16,19 @@ import type {
   ApiFakeType,
   ApiFormattedText,
   ApiInputReplyInfo,
+  ApiInputSuggestedPostInfo,
   ApiLabeledPrice,
-  ApiLanguage,
   ApiMediaFormat,
   ApiMessage,
   ApiMessageEntity,
+  ApiNewMediaTodo,
   ApiNewPoll,
   ApiPeer,
   ApiPhoto,
   ApiReaction,
   ApiReactionWithPaid,
+  ApiStarGiftAttributeIdBackdrop,
+  ApiStarGiftAttributeIdPattern,
   ApiStarGiftRegular,
   ApiStarsSubscription,
   ApiStarsTransaction,
@@ -37,6 +40,8 @@ import type {
   ApiTopic,
   ApiTypingStatus,
   ApiVideo,
+  MediaContent,
+  StarGiftAttributeIdModel,
 } from '../api/types';
 import type { DC_IDS } from '../config';
 import type { SearchResultKey } from '../util/keys/searchResultKey';
@@ -61,9 +66,7 @@ export type SharedSessionData = {
   date?: number;
   dcId: number;
   isTest?: true;
-} & {
-  [K in `dc${DcId}_${'auth_key' | 'server_salt'}`]?: string;
-} & SessionUserInfo;
+} & Partial<Record<`dc${DcId}_${'auth_key' | 'server_salt'}`, string>> & SessionUserInfo;
 
 export type AccountInfo = {
   isTest?: true;
@@ -103,9 +106,7 @@ export type PerformanceTypeKey = (
   | 'animatedEmoji' | 'loopAnimatedStickers' | 'reactionEffects' | 'stickerEffects' | 'autoplayGifs' | 'autoplayVideos'
   | 'storyRibbonAnimations' | 'snapEffect'
 );
-export type PerformanceType = {
-  [key in PerformanceTypeKey]: boolean;
-};
+export type PerformanceType = Record<PerformanceTypeKey, boolean>;
 
 export interface IThemeSettings {
   background?: string;
@@ -315,6 +316,7 @@ export enum GlobalSearchContent {
   ChatList,
   ChannelList,
   BotApps,
+  PublicPosts,
   Media,
   Links,
   Files,
@@ -339,6 +341,7 @@ export enum RightColumnContent {
   MonetizationStatistics,
   ChatAI,
   UserPortrait,
+  NewGroup,
 }
 
 export type MediaViewerMedia = ApiPhoto | ApiVideo | ApiDocument;
@@ -510,6 +513,7 @@ export enum ManagementScreens {
   Reactions,
   InviteInfo,
   JoinRequests,
+  NewDiscussionGroup,
 }
 
 export type ManagementType = 'user' | 'group' | 'channel' | 'bot';
@@ -534,7 +538,7 @@ export type InlineBotSettings = {
 };
 
 export type CustomPeerType = 'premium' | 'toBeDistributed' | 'contacts' | 'nonContacts'
-| 'groups' | 'channels' | 'bots' | 'excludeMuted' | 'excludeArchived' | 'excludeRead' | 'stars';
+  | 'groups' | 'channels' | 'bots' | 'excludeMuted' | 'excludeArchived' | 'excludeRead' | 'stars';
 
 export type CustomPeer = {
   isCustomPeer: true;
@@ -680,11 +684,11 @@ export type ConfettiParams = OptionalCombine<{
   style?: ConfettiStyle;
   withStars?: boolean;
 }, {
-  top?: number;
-  left?: number;
-  width?: number;
-  height?: number;
-}>;
+    top?: number;
+    left?: number;
+    width?: number;
+    height?: number;
+  }>;
 
 export interface Size {
   width: number;
@@ -698,7 +702,7 @@ export interface Point {
 
 export type WebPageMediaSize = 'large' | 'small';
 
-export type StarGiftCategory = number | 'all' | 'limited' | 'stock';
+export type StarGiftCategory = number | 'all' | 'limited' | 'stock' | 'resale';
 
 export type CallSound = (
   'join' | 'allowTalk' | 'leave' | 'connecting' | 'incoming' | 'end' | 'connect' | 'busy' | 'ringing'
@@ -716,6 +720,13 @@ export type GiftProfileFilterOptions = {
   shouldIncludeDisplayed: boolean;
   shouldIncludeHidden: boolean;
 };
+export type ResaleGiftsSortType = 'byDate' | 'byPrice' | 'byNumber';
+export type ResaleGiftsFilterOptions = {
+  sortType: ResaleGiftsSortType;
+  modelAttributes?: StarGiftAttributeIdModel[];
+  patternAttributes?: ApiStarGiftAttributeIdPattern[];
+  backdropAttributes?: ApiStarGiftAttributeIdBackdrop[];
+};
 
 export type SendMessageParams = {
   chat?: ApiChat;
@@ -724,11 +735,13 @@ export type SendMessageParams = {
   text?: string;
   entities?: ApiMessageEntity[];
   replyInfo?: ApiInputReplyInfo;
+  suggestedPostInfo?: ApiInputSuggestedPostInfo;
   attachment?: ApiAttachment;
   sticker?: ApiSticker;
   story?: ApiStory | ApiStorySkipped;
   gif?: ApiVideo;
   poll?: ApiNewPoll;
+  todo?: ApiNewMediaTodo;
   contact?: ApiContact;
   isSilent?: boolean;
   scheduledAt?: number;
@@ -752,6 +765,7 @@ export type SendMessageParams = {
   isForwarding?: boolean;
   forwardParams?: ForwardMessagesParams;
   isStoryReply?: boolean;
+  suggestedMedia?: MediaContent;
 };
 
 export type ForwardedLocalMessagesSlice = {

@@ -6,6 +6,8 @@ import type { ApiMessageAction } from '../../types/messageActions';
 import { buildApiBotApp } from './bots';
 import { buildApiFormattedText, buildApiPhoto } from './common';
 import { buildApiStarGift } from './gifts';
+import { buildTodoItem } from './messageContent';
+import { buildApiCurrencyAmount } from './payments';
 import { buildApiPeerId, getApiChatIdFromMtpPeer } from './peers';
 
 const UNSUPPORTED_ACTION: ApiMessageAction = {
@@ -187,6 +189,9 @@ export function buildApiMessageAction(action: GramJs.TypeMessageAction): ApiMess
   }
   if (action instanceof GramJs.MessageActionGroupCall) {
     const { call, duration } = action;
+    if (!(call instanceof GramJs.InputGroupCall)) {
+      return UNSUPPORTED_ACTION;
+    }
     return {
       mediaType: 'action',
       type: 'groupCall',
@@ -199,6 +204,9 @@ export function buildApiMessageAction(action: GramJs.TypeMessageAction): ApiMess
   }
   if (action instanceof GramJs.MessageActionInviteToGroupCall) {
     const { call, users } = action;
+    if (!(call instanceof GramJs.InputGroupCall)) {
+      return UNSUPPORTED_ACTION;
+    }
     return {
       mediaType: 'action',
       type: 'inviteToGroupCall',
@@ -211,6 +219,9 @@ export function buildApiMessageAction(action: GramJs.TypeMessageAction): ApiMess
   }
   if (action instanceof GramJs.MessageActionGroupCallScheduled) {
     const { call, scheduleDate } = action;
+    if (!(call instanceof GramJs.InputGroupCall)) {
+      return UNSUPPORTED_ACTION;
+    }
     return {
       mediaType: 'action',
       type: 'groupCallScheduled',
@@ -348,6 +359,20 @@ export function buildApiMessageAction(action: GramJs.TypeMessageAction): ApiMess
       transactionId,
     };
   }
+  if (action instanceof GramJs.MessageActionGiftTon) {
+    const {
+      currency, amount, cryptoCurrency, cryptoAmount, transactionId,
+    } = action;
+    return {
+      mediaType: 'action',
+      type: 'giftTon',
+      currency,
+      amount: amount.toJSNumber(),
+      cryptoCurrency,
+      cryptoAmount: cryptoAmount.toJSNumber(),
+      transactionId,
+    };
+  }
   if (action instanceof GramJs.MessageActionPrizeStars) {
     const {
       unclaimed, stars, transactionId, boostPeer, giveawayMsgId,
@@ -393,6 +418,7 @@ export function buildApiMessageAction(action: GramJs.TypeMessageAction): ApiMess
   if (action instanceof GramJs.MessageActionStarGiftUnique) {
     const {
       upgrade, transferred, saved, refunded, gift, canExportAt, transferStars, fromId, peer, savedId,
+      resaleAmount,
     } = action;
 
     const starGift = buildApiStarGift(gift);
@@ -411,15 +437,17 @@ export function buildApiMessageAction(action: GramJs.TypeMessageAction): ApiMess
       fromId: fromId && getApiChatIdFromMtpPeer(fromId),
       peerId: peer && getApiChatIdFromMtpPeer(peer),
       savedId: savedId && buildApiPeerId(savedId, 'user'),
+      resaleAmount: resaleAmount ? buildApiCurrencyAmount(resaleAmount) : undefined,
     };
   }
   if (action instanceof GramJs.MessageActionPaidMessagesPrice) {
     const {
-      stars,
+      stars, broadcastMessagesAllowed,
     } = action;
     return {
       mediaType: 'action',
       type: 'paidMessagesPrice',
+      isAllowedInChannel: broadcastMessagesAllowed,
       stars: stars.toJSNumber(),
     };
   }
@@ -432,6 +460,55 @@ export function buildApiMessageAction(action: GramJs.TypeMessageAction): ApiMess
       type: 'paidMessagesRefunded',
       stars: stars.toJSNumber(),
       count,
+    };
+  }
+  if (action instanceof GramJs.MessageActionSuggestedPostApproval) {
+    const {
+      rejected, balanceTooLow, rejectComment, scheduleDate, price,
+    } = action;
+    return {
+      mediaType: 'action',
+      type: 'suggestedPostApproval',
+      isRejected: Boolean(rejected),
+      isBalanceTooLow: Boolean(balanceTooLow),
+      rejectComment,
+      scheduleDate,
+      amount: price ? buildApiCurrencyAmount(price) : undefined,
+    };
+  }
+  if (action instanceof GramJs.MessageActionSuggestedPostSuccess) {
+    const { price } = action;
+    return {
+      mediaType: 'action',
+      type: 'suggestedPostSuccess',
+      amount: buildApiCurrencyAmount(price),
+    };
+  }
+  if (action instanceof GramJs.MessageActionSuggestedPostRefund) {
+    const { payerInitiated } = action;
+    return {
+      mediaType: 'action',
+      type: 'suggestedPostRefund',
+      payerInitiated: Boolean(payerInitiated),
+    };
+  }
+  if (action instanceof GramJs.MessageActionTodoCompletions) {
+    const {
+      completed, incompleted,
+    } = action;
+    return {
+      mediaType: 'action',
+      type: 'todoCompletions',
+      completedIds: completed,
+      incompletedIds: incompleted,
+    };
+  }
+  if (action instanceof GramJs.MessageActionTodoAppendTasks) {
+    const { list } = action;
+    return {
+      mediaType: 'action',
+      type: 'todoAppendTasks',
+      items: list.map(buildTodoItem),
     };
   }
 

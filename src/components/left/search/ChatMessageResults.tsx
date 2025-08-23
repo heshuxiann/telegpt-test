@@ -1,5 +1,5 @@
 import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useCallback, useMemo } from '../../../lib/teact/teact';
+import { memo, useCallback, useMemo } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type { ApiChat, ApiMessage } from '../../../api/types';
@@ -132,6 +132,7 @@ const ChatMessageResults: FC<OwnProps & StateProps> = ({
         )}
         {nothingFound && (
           <NothingFound
+            withSticker
             text={lang('ChatList.Search.NoResults')}
             description={lang('ChatList.Search.NoResultsDescription')}
           />
@@ -141,7 +142,7 @@ const ChatMessageResults: FC<OwnProps & StateProps> = ({
             <h3 className="section-heading topic-search-heading" dir={lang.isRtl ? 'auto' : undefined}>
               {lang('Topics')}
             </h3>
-            {foundTopicIds!.map((id) => {
+            {foundTopicIds.map((id) => {
               return (
                 <LeftSearchResultTopic
                   chatId={searchChatId!}

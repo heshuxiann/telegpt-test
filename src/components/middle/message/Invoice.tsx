@@ -1,5 +1,5 @@
 import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useRef } from '../../../lib/teact/teact';
+import { memo, useRef } from '../../../lib/teact/teact';
 
 import type { ApiMessage } from '../../../api/types';
 import type { ThemeKey } from '../../../types';
@@ -39,8 +39,7 @@ const Invoice: FC<OwnProps> = ({
   theme,
   forcedWidth,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
 
   const oldLang = useOldLang();
   const lang = useLang();

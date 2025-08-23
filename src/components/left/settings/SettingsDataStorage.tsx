@@ -1,5 +1,5 @@
 import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useCallback } from '../../../lib/teact/teact';
+import { memo, useCallback } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type { AccountSettings } from '../../../types';
@@ -103,25 +103,21 @@ const SettingsDataStorage: FC<OwnProps & StateProps> = ({
           label={lang('AutoDownloadSettingsContacts')}
           checked={canAutoLoadFromContacts}
           // TODO rewrite to support `useCallback`
-          // eslint-disable-next-line react/jsx-no-bind
           onCheck={(isChecked) => setSettingOption({ [`canAutoLoad${key}FromContacts`]: isChecked })}
         />
         <Checkbox
           label={lang('AutoDownloadSettingsPrivateChats')}
           checked={canAutoLoadInPrivateChats}
-          // eslint-disable-next-line react/jsx-no-bind
           onCheck={(isChecked) => setSettingOption({ [`canAutoLoad${key}InPrivateChats`]: isChecked })}
         />
         <Checkbox
           label={lang('AutoDownloadSettingsGroupChats')}
           checked={canAutoLoadInGroups}
-          // eslint-disable-next-line react/jsx-no-bind
           onCheck={(isChecked) => setSettingOption({ [`canAutoLoad${key}InGroups`]: isChecked })}
         />
         <Checkbox
           label={lang('AutoDownloadSettingsChannels')}
           checked={canAutoLoadInChannels}
-          // eslint-disable-next-line react/jsx-no-bind
           onCheck={(isChecked) => setSettingOption({ [`canAutoLoad${key}InChannels`]: isChecked })}
         />
 

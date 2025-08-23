@@ -33,6 +33,7 @@ import type {
   ApiReactions,
   ApiStickerSet,
   ApiThreadInfo,
+  ApiWebPage,
   BoughtPaidMedia,
 } from './messages';
 import type {
@@ -43,7 +44,7 @@ import type {
   ApiSessionData,
 } from './misc';
 import type { ApiPrivacyKey, LangPackStringValue, PrivacyVisibility } from './settings';
-import type { ApiStarsAmount } from './stars';
+import type { ApiTypeCurrencyAmount } from './stars';
 import type { ApiStealthMode, ApiStory, ApiStorySkipped } from './stories';
 import type {
   ApiEmojiStatusType, ApiUser, ApiUserFullInfo, ApiUserStatus,
@@ -165,7 +166,7 @@ export type ApiUpdateChatMembers = {
 
 export type ApiUpdatePinnedChatIds = {
   '@type': 'updatePinnedChatIds';
-  ids: string[];
+  ids?: string[];
   folderId?: number;
 };
 
@@ -215,6 +216,7 @@ export type ApiUpdateNewScheduledMessage = {
   message: ApiMessage;
   wasDrafted?: boolean;
   poll?: ApiPoll;
+  webPage?: ApiWebPage;
 };
 
 export type ApiUpdateNewMessage = {
@@ -225,6 +227,7 @@ export type ApiUpdateNewMessage = {
   shouldForceReply?: boolean;
   wasDrafted?: boolean;
   poll?: ApiPoll;
+  webPage?: ApiWebPage;
 };
 
 export type ApiUpdateMessage = {
@@ -233,8 +236,9 @@ export type ApiUpdateMessage = {
   id: number;
   message: Partial<ApiMessage>;
   poll?: ApiPoll;
+  webPage?: ApiWebPage;
   shouldForceReply?: boolean;
-  shouldCreateMessageIfNeeded?: true;
+  isFromNew?: true;
 };
 
 export type ApiUpdateScheduledMessage = {
@@ -243,6 +247,8 @@ export type ApiUpdateScheduledMessage = {
   id: number;
   message: Partial<ApiMessage>;
   poll?: ApiPoll;
+  webPage?: ApiWebPage;
+  isFromNew?: true;
 };
 
 export type ApiUpdateQuickReplyMessage = {
@@ -250,6 +256,7 @@ export type ApiUpdateQuickReplyMessage = {
   id: number;
   message: Partial<ApiMessage>;
   poll?: ApiPoll;
+  webPage?: ApiWebPage;
 };
 
 export type ApiUpdateDeleteQuickReplyMessages = {
@@ -286,6 +293,7 @@ export type ApiUpdateScheduledMessageSendSucceeded = {
   localId: number;
   message: ApiMessage;
   poll?: ApiPoll;
+  webPage?: ApiWebPage;
 };
 
 export type ApiUpdateMessageSendSucceeded = {
@@ -294,6 +302,7 @@ export type ApiUpdateMessageSendSucceeded = {
   localId: number;
   message: ApiMessage;
   poll?: ApiPoll;
+  webPage?: ApiWebPage;
 };
 
 export type ApiUpdateVideoProcessingPending = {
@@ -714,6 +723,13 @@ export type ApiUpdateMessageTranslations = {
   toLanguageCode: string;
 };
 
+export type ApiUpdateFailedMessageTranslations = {
+  '@type': 'failedMessageTranslations';
+  chatId: string;
+  messageIds: number[];
+  toLanguageCode: string;
+};
+
 export type ApiUpdateFetchingDifference = {
   '@type': 'updateFetchingDifference';
   isFetching: boolean;
@@ -786,7 +802,7 @@ export type ApiUpdatePremiumFloodWait = {
 
 export type ApiUpdateStarsBalance = {
   '@type': 'updateStarsBalance';
-  balance: ApiStarsAmount;
+  balance: ApiTypeCurrencyAmount;
 };
 
 export type ApiUpdateDeleteProfilePhoto = {
@@ -807,6 +823,7 @@ export type ApiUpdateEntities = {
   chats?: Record<string, ApiChat>;
   threadInfos?: ApiThreadInfo[];
   polls?: ApiPoll[];
+  webPages?: ApiWebPage[];
 };
 
 export type ApiUpdatePaidReactionPrivacy = {
@@ -832,6 +849,11 @@ export type ApiUpdateBotCommands = {
   commands?: ApiBotCommand[];
 };
 
+export type ApiUpdateWebPage = {
+  '@type': 'updateWebPage';
+  webPage: ApiWebPage;
+};
+
 export type ApiUpdate = (
   ApiUpdateReady | ApiUpdateSession | ApiUpdateWebAuthTokenFailed | ApiUpdateRequestUserUpdate |
   ApiUpdateAuthorizationState | ApiUpdateAuthorizationError | ApiUpdateConnectionState | ApiUpdateCurrentUser |
@@ -849,6 +871,7 @@ export type ApiUpdate = (
   ApiUpdateRecentStickers | ApiUpdateSavedGifs | ApiUpdateNewScheduledMessage | ApiUpdateMoveStickerSetToTop |
   ApiUpdateScheduledMessageSendSucceeded | ApiUpdateScheduledMessage | ApiUpdateStarPaymentStateCompleted |
   ApiUpdateDeleteScheduledMessages | ApiUpdateResetMessages | ApiUpdateMessageTranslations |
+  ApiUpdateFailedMessageTranslations | ApiUpdateWebPage |
   ApiUpdateTwoFaError | ApiUpdateTwoFaStateWaitCode | ApiUpdateWebViewResultSent |
   ApiUpdateDefaultNotifySettings | ApiUpdatePeerNotifySettings | ApiUpdatePeerBlocked | ApiUpdatePrivacy |
   ApiUpdateServerTimeOffset | ApiUpdateMessageReactions | ApiUpdateSavedReactionTags |

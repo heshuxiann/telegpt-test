@@ -1,5 +1,5 @@
 import type { FC } from '../../../lib/teact/teact';
-import React, { useMemo } from '../../../lib/teact/teact';
+import { useMemo } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type { ApiMessage } from '../../../api/types';
@@ -104,7 +104,6 @@ const Album: FC<OwnProps & StateProps> = ({
 
     if (photo) {
       const shouldAffectAppendix = hasCustomAppendix && (
-        // eslint-disable-next-line no-bitwise
         (isOwn ? index === mediaCount - 1 : Boolean(sides & AlbumRectPart.Left && sides & AlbumRectPart.Bottom))
       );
 

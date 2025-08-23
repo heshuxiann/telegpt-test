@@ -1,16 +1,16 @@
 import type { ThreadId } from '../types';
 
 import { RE_TG_LINK, RE_TME_LINK } from '../config';
-import { toChannelId } from '../global/helpers';
 import { IS_BAD_URL_PARSER } from './browser/globalEnvironment';
 import { ensureProtocol } from './browser/url';
 import { parseTimestampDuration } from './dates/timestamp';
-import { isUsernameValid } from './username';
+import { toChannelId } from './entities/ids';
+import { isUsernameValid } from './entities/username';
 
 export type DeepLinkMethod = 'resolve' | 'login' | 'passport' | 'settings' | 'join' | 'addstickers' | 'addemoji' |
-'setlanguage' | 'addtheme' | 'confirmphone' | 'socks' | 'proxy' | 'privatepost' | 'bg' | 'share' | 'msg' | 'msg_url' |
-'invoice' | 'addlist' | 'boost' | 'giftcode' | 'message' | 'premium_offer' | 'premium_multigift' | 'stars_topup'
-| 'nft';
+  'setlanguage' | 'addtheme' | 'confirmphone' | 'socks' | 'proxy' | 'privatepost' | 'bg' | 'share' | 'msg' | 'msg_url' |
+  'invoice' | 'addlist' | 'boost' | 'giftcode' | 'message' | 'premium_offer' | 'premium_multigift' | 'stars_topup'
+  | 'nft' | 'stars' | 'ton';
 
 interface PublicMessageLink {
   type: 'publicMessageLink';
@@ -103,6 +103,19 @@ interface GiftUniqueLink {
   slug: string;
 }
 
+interface StarsModalLink {
+  type: 'stars';
+}
+
+interface TonModalLink {
+  type: 'ton';
+}
+
+interface SettingsScreenLink {
+  type: 'settings';
+  screen?: 'devices' | 'folders' | 'language' | 'privacy' | 'editProfile' | 'theme';
+}
+
 type DeepLink =
   TelegramPassportLink |
   LoginCodeLink |
@@ -116,7 +129,10 @@ type DeepLink =
   PremiumReferrerLink |
   PremiumMultigiftLink |
   ChatBoostLink |
-  GiftUniqueLink;
+  GiftUniqueLink |
+  StarsModalLink |
+  TonModalLink |
+  SettingsScreenLink;
 
 type BuilderParams<T extends DeepLink> = Record<keyof Omit<T, 'type'>, string | undefined>;
 type BuilderReturnType<T extends DeepLink> = T | undefined;
@@ -247,6 +263,12 @@ function parseTgLink(url: URL) {
       return buildChatBoostLink({ username: queryParams.domain, id: queryParams.channel });
     case 'giftUniqueLink':
       return buildGiftUniqueLink({ slug: queryParams.slug });
+    case 'stars':
+      return { type: 'stars' } satisfies StarsModalLink;
+    case 'ton':
+      return { type: 'ton' } satisfies TonModalLink;
+    case 'settings':
+      return buildSettingsScreenLink({ screen: pathParams.length === 1 ? pathParams[0] : undefined });
     default:
       break;
   }
@@ -412,7 +434,6 @@ function getTgDeepLinkType(
   switch (method) {
     case 'resolve': {
       const {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         domain, post, bot_id, scope, public_key, nonce,
       } = queryParams;
       if (domain === 'telegrampassport' && bot_id && scope && public_key && nonce) {
@@ -452,6 +473,13 @@ function getTgDeepLinkType(
       return 'chatBoostLink';
     case 'nft':
       return 'giftUniqueLink';
+    case 'stars':
+      return 'stars';
+    case 'ton':
+      return 'ton';
+    case 'settings': {
+      return 'settings';
+    }
     default:
       break;
   }
@@ -669,6 +697,37 @@ function buildGiftUniqueLink(params: BuilderParams<GiftUniqueLink>): BuilderRetu
   return {
     type: 'giftUniqueLink',
     slug,
+  };
+}
+
+function buildSettingsScreen(screenParam: string) {
+  switch (screenParam) {
+    case 'devices':
+      return 'devices';
+    case 'folders':
+      return 'folders';
+    case 'language':
+      return 'language';
+    case 'privacy':
+      return 'privacy';
+    case 'edit_profile':
+      return 'editProfile';
+    case 'theme':
+      return 'theme';
+    default:
+      break;
+  }
+  return undefined;
+}
+
+function buildSettingsScreenLink(params: BuilderParams<SettingsScreenLink>): BuilderReturnType<SettingsScreenLink> {
+  const {
+    screen,
+  } = params;
+
+  return {
+    type: 'settings',
+    screen: screen ? buildSettingsScreen(screen) : undefined,
   };
 }
 

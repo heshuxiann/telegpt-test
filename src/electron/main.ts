@@ -14,6 +14,12 @@ import { createWindow, setupCloseHandlers, setupElectronActionHandlers } from '.
 initProxy();
 
 initDeeplink();
+import electronDragClick from 'electron-drag-click';
+
+initDeeplink();
+if (IS_MAC_OS) {
+  electronDragClick();
+}
 
 contextMenu({
   showLearnSpelling: false,
@@ -26,7 +32,7 @@ contextMenu({
 
 app.on('ready', () => {
   if (IS_MAC_OS) {
-    app.dock.setIcon(nativeImage.createFromPath(path.resolve(__dirname, '../public/icon-electron-macos.png')));
+    app.dock!.setIcon(nativeImage.createFromPath(path.resolve(__dirname, '../public/icon-electron-macos.png')));
   }
 
   if (IS_WINDOWS) {

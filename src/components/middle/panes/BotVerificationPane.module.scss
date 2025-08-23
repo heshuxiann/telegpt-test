@@ -4,12 +4,13 @@
   @include mixins.header-pane;
 
   display: flex;
-  height: auto;
   justify-content: center;
 
+  height: auto;
   padding-inline: 1rem;
-  color: var(--color-text-secondary);
+
   font-size: 0.875rem;
+  color: var(--color-text-secondary);
 }
 
 .icon {

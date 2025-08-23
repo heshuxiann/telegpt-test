@@ -1,8 +1,7 @@
 import BigInt from 'big-integer';
 import { Api as GramJs } from '../../../lib/gramjs';
 
-import type {
-  ApiChat, ApiEmojiStatusType, ApiPeer, ApiUser,
+import type { ApiEmojiStatusType, ApiPeer, ApiUser,
 } from '../../types';
 
 import { buildApiChatFromPreview } from '../apiBuilders/chats';
@@ -15,6 +14,7 @@ import {
   buildInputPeer,
   buildInputUser,
   buildMtpPeerId,
+  DEFAULT_PRIMITIVES,
   getEntityTypeById,
 } from '../gramjsBuilders';
 import { addPhotoToLocalDb, addUserToLocalDb } from '../helpers/localDb';
@@ -89,7 +89,9 @@ export async function fetchFullUser({
 export async function fetchCommonChats(user: ApiUser, maxId?: string) {
   const result = await invokeRequest(new GramJs.messages.GetCommonChats({
     userId: buildInputUser(user.id, user.accessHash),
-    maxId: maxId ? buildMtpPeerId(maxId, getEntityTypeById(maxId)) : undefined,
+    maxId: maxId
+      ? buildMtpPeerId(maxId, getEntityTypeById(maxId)) : DEFAULT_PRIMITIVES.BIGINT,
+    limit: DEFAULT_PRIMITIVES.INT,
   }));
 
   if (!result) {
@@ -128,6 +130,9 @@ export async function fetchNearestCountry() {
 export async function fetchTopUsers() {
   const topPeers = await invokeRequest(new GramJs.contacts.GetTopPeers({
     correspondents: true,
+    offset: DEFAULT_PRIMITIVES.INT,
+    limit: DEFAULT_PRIMITIVES.INT,
+    hash: DEFAULT_PRIMITIVES.BIGINT,
   }));
   if (!(topPeers instanceof GramJs.contacts.TopPeers)) {
     return undefined;
@@ -147,7 +152,7 @@ export async function fetchContactList() {
     return undefined;
   }
 
-  const users = result.users.map(buildApiUser).filter(Boolean) as ApiUser[];
+  const users = result.users.map(buildApiUser).filter(Boolean);
   const userStatusesById = buildApiUserStatuses(result.users);
 
   return {
@@ -164,7 +169,7 @@ export async function fetchUsers({ users }: { users: ApiUser[] }) {
     return undefined;
   }
 
-  const apiUsers = result.map(buildApiUser).filter(Boolean) as ApiUser[];
+  const apiUsers = result.map(buildApiUser).filter(Boolean);
   const userStatusesById = buildApiUserStatuses(result);
 
   return {
@@ -174,9 +179,9 @@ export async function fetchUsers({ users }: { users: ApiUser[] }) {
 }
 
 export async function importContact({
-  phone,
-  firstName,
-  lastName,
+  phone = DEFAULT_PRIMITIVES.STRING,
+  firstName = DEFAULT_PRIMITIVES.STRING,
+  lastName = DEFAULT_PRIMITIVES.STRING,
 }: {
   phone?: string;
   firstName?: string;
@@ -184,9 +189,9 @@ export async function importContact({
 }) {
   const result = await invokeRequest(new GramJs.contacts.ImportContacts({
     contacts: [buildInputContact({
-      phone: phone || '',
-      firstName: firstName || '',
-      lastName: lastName || '',
+      phone,
+      firstName,
+      lastName,
     })],
   }));
 
@@ -200,9 +205,9 @@ export async function importContact({
 export function updateContact({
   id,
   accessHash,
-  phoneNumber = '',
-  firstName = '',
-  lastName = '',
+  phoneNumber = DEFAULT_PRIMITIVES.STRING,
+  firstName = DEFAULT_PRIMITIVES.STRING,
+  lastName = DEFAULT_PRIMITIVES.STRING,
   shouldSharePhoneNumber = false,
 }: {
   id: string;
@@ -247,11 +252,11 @@ export async function deleteContact({
   });
 }
 
-export async function addNoPaidMessagesException({ user, shouldRefundCharged }: {
+export async function toggleNoPaidMessagesException({ user, shouldRefundCharged }: {
   user: ApiUser;
   shouldRefundCharged?: boolean;
 }) {
-  const result = await invokeRequest(new GramJs.account.AddNoPaidMessagesException({
+  const result = await invokeRequest(new GramJs.account.ToggleNoPaidMessagesException ({
     refundCharged: shouldRefundCharged ? true : undefined,
     userId: buildInputUser(user.id, user.accessHash),
   }));
@@ -278,7 +283,7 @@ export async function fetchProfilePhotos({
   offset?: number;
   limit?: number;
 }) {
-  const chat = 'title' in peer ? peer as ApiChat : undefined;
+  const chat = 'title' in peer ? peer : undefined;
   const user = !chat ? peer as ApiUser : undefined;
   if (user) {
     const { id, accessHash } = user;
@@ -308,8 +313,6 @@ export async function fetchProfilePhotos({
       nextOffsetId,
     };
   }
-
-  if (chat?.isRestricted) return undefined;
 
   const result = await searchMessagesInChat({
     peer,

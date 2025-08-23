@@ -1,5 +1,5 @@
 import type { FC } from '../../lib/teact/teact';
-import React, {
+import {
   memo, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
@@ -17,10 +17,10 @@ import {
   getCanManageTopic,
   getHasAdminRight,
   getIsSavedDialog,
+  isChatAdmin,
   isChatChannel,
   isChatGroup,
   isSystemBot,
-  isUserId,
   isUserRightBanned,
 } from '../../global/helpers';
 import { getIsChatMuted } from '../../global/helpers/notifications';
@@ -32,6 +32,7 @@ import {
   selectChat,
   selectChatFullInfo,
   selectCurrentMessageList,
+  selectIsChatRestricted,
   selectIsChatWithSelf,
   selectIsCurrentUserFrozen,
   selectIsRightColumnShown,
@@ -42,6 +43,7 @@ import {
   selectUser,
   selectUserFullInfo,
 } from '../../global/selectors';
+import { isUserId } from '../../util/entities/ids';
 import { disableScrolling } from '../../util/scrollLock';
 
 import useAppLayout from '../../hooks/useAppLayout';
@@ -94,6 +96,7 @@ export type OwnProps = {
   canCreateVoiceChat?: boolean;
   pendingJoinRequests?: number;
   canTranslate?: boolean;
+  channelMonoforumId?: string;
   onSubscribeChannel: () => void;
   onSearchClick: () => void;
   onAsMessagesClick: () => void;
@@ -176,14 +179,15 @@ const HeaderMenuContainer: FC<OwnProps & StateProps> = ({
   isChatWithSelf,
   savedDialog,
   canShowBoostModal,
+  disallowedGifts,
+  isAccountFrozen,
+  channelMonoforumId,
   onJoinRequestsClick,
   onSubscribeChannel,
   onSearchClick,
   onAsMessagesClick,
   onClose,
   onCloseAnimationEnd,
-  disallowedGifts,
-  isAccountFrozen,
 }) => {
   const {
     updateChatMutedState,
@@ -488,6 +492,11 @@ const HeaderMenuContainer: FC<OwnProps & StateProps> = ({
     closeMenu();
   });
 
+  const handleSendChannelMessage = useLastCallback(() => {
+    openChat({ id: channelMonoforumId });
+    closeMenu();
+  });
+
   useEffect(disableScrolling, []);
 
   const botButtons = useMemo(() => {
@@ -504,7 +513,6 @@ const HeaderMenuContainer: FC<OwnProps & StateProps> = ({
         <MenuItem
           key={command}
           icon={cmd.icon}
-          // eslint-disable-next-line react/jsx-no-bind
           onClick={handleClick}
         >
           {oldLang(cmd.label)}
@@ -517,7 +525,6 @@ const HeaderMenuContainer: FC<OwnProps & StateProps> = ({
     const privacyButton = isBot && (
       <MenuItem
         icon="privacy-policy"
-        // eslint-disable-next-line react/jsx-no-bind
         onClick={() => {
           if (hasPrivacyCommand && !botPrivacyPolicyUrl) {
             sendBotCommand({ command: '/privacy' });
@@ -584,6 +591,14 @@ const HeaderMenuContainer: FC<OwnProps & StateProps> = ({
               </MenuItem>
               <MenuSeparator />
             </>
+          )}
+          {channelMonoforumId && (
+            <MenuItem
+              icon="message"
+              onClick={handleSendChannelMessage}
+            >
+              {lang('ChannelSendMessage')}
+            </MenuItem>
           )}
           {isViewGroupInfoShown && (
             <MenuItem
@@ -695,7 +710,8 @@ const HeaderMenuContainer: FC<OwnProps & StateProps> = ({
                 icon="mute"
                 onClick={handleMuteClick}
               >
-                {oldLang('ChatsMute')}...
+                {oldLang('ChatsMute')}
+                ...
               </MenuItem>
             )
           )}
@@ -825,7 +841,8 @@ const HeaderMenuContainer: FC<OwnProps & StateProps> = ({
 export default memo(withGlobal<OwnProps>(
   (global, { chatId, threadId }): StateProps => {
     const chat = selectChat(global, chatId);
-    if (!chat || chat.isRestricted) {
+    const isRestricted = selectIsChatRestricted(global, chatId);
+    if (!chat || isRestricted) {
       return {};
     }
     const isPrivate = isUserId(chat.id);
@@ -834,7 +851,7 @@ export default memo(withGlobal<OwnProps>(
     const isMainThread = threadId === MAIN_THREAD_ID;
     const isChatWithSelf = selectIsChatWithSelf(global, chatId);
     const { chatId: currentChatId, threadId: currentThreadId } = selectCurrentMessageList(global) || {};
-    const canReportChat = isMainThread && !user && (isChatChannel(chat) || isChatGroup(chat));
+    const canReportChat = isMainThread && !user && (isChatChannel(chat) || isChatGroup(chat)) && !isChatAdmin(chat);
 
     const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
     const userFullInfo = isPrivate ? selectUserFullInfo(global, chatId) : undefined;

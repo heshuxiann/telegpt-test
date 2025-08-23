@@ -1,6 +1,5 @@
-/* eslint-disable max-len */
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useEffect, useMemo, useRef,
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
@@ -74,12 +73,12 @@ type StateProps =
     searchQuery?: string;
     isLoading: boolean;
     globalSearchChatId?: string;
-    currentContent:GlobalSearchContent | undefined;
+    currentContent: GlobalSearchContent | undefined;
     searchDate?: number;
     theme: ThemeKey;
     isMessageListOpen: boolean;
     isCurrentUserPremium?: boolean;
-    isConnectionStatusMinimized?:boolean;
+    isConnectionStatusMinimized?: boolean;
     areChatsLoaded?: boolean;
     hasPasscode?: boolean;
     canSetPasscode?: boolean;
@@ -119,11 +118,12 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
   onSelectAITranslate,
 }) => {
   const {
-    setSharedSettingOption,
     setGlobalSearchDate,
+    setSharedSettingOption,
     setGlobalSearchChatId,
     lockScreen,
-    requestNextSettingsScreen,
+    openSettingsScreen,
+    searchMessagesGlobal,
   } = getActions();
 
   const oldLang = useOldLang();
@@ -156,7 +156,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
     if (hasPasscode) {
       lockScreen();
     } else {
-      requestNextSettingsScreen({ screen: SettingsScreens.PasscodeDisabled });
+      openSettingsScreen({ screen: SettingsScreens.PasscodeDisabled });
     }
   });
 
@@ -175,20 +175,16 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
         size="smaller"
         color="translucent"
         className={isOpen ? 'active' : ''}
-        // eslint-disable-next-line react/jsx-no-bind
+
         onClick={hasMenu ? onTrigger : () => onReset()}
         ariaLabel={hasMenu ? oldLang('AccDescrOpenMenu2') : 'Return to chat list'}
       >
-        {hasMenu ? (
-          <img src={AIMenuIcon} alt="ai-menu" style={buildStyle('width: 24px;height: 24px;')} />
-        ) : (
-          <div className={buildClassName(
-            'animated-menu-icon',
-            !hasMenu && 'state-back',
-            shouldSkipTransition && 'no-animation',
-          )}
-          />
+        <div className={buildClassName(
+          'animated-menu-icon',
+          !hasMenu && 'state-back',
+          shouldSkipTransition && 'no-animation',
         )}
+        />
       </Button>
     );
   }, [hasMenu, isMobile, oldLang, onReset, shouldSkipTransition]);
@@ -205,6 +201,15 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
 
   const handleLockScreen = useLastCallback(() => {
     lockScreen();
+  });
+
+  const handleSearchEnter = useLastCallback(() => {
+    if (searchQuery && content === LeftColumnContent.GlobalSearch) {
+      searchMessagesGlobal({
+        type: 'publicPosts',
+        shouldResetResultsByType: true,
+      });
+    }
   });
 
   const isSearchRelevant = Boolean(globalSearchChatId)
@@ -229,8 +234,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
     handleDropdownMenuTransitionEnd,
   } = useLeftHeaderButtonRtlForumTransition(shouldHideSearch);
 
-  // eslint-disable-next-line no-null/no-null
-  const headerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>();
   useElectronDrag(headerRef);
 
   const withStoryToggler = !isSearchFocused
@@ -318,6 +322,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
             onReset={onReset}
             onFocus={handleSearchFocus}
             onSpinnerClick={connectionStatusPosition === 'minimized' ? toggleConnectionStatus : undefined}
+            onEnter={handleSearchEnter}
           >
             {searchContent}
             <StoryToggler
