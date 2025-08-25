@@ -3,7 +3,7 @@
 /* eslint-disable react/jsx-uses-react */
 
 // @ts-nocheck
-import React, { type ComponentType } from 'react';
+import { type ComponentType } from 'react';
 import { createRoot } from 'react-dom/client';
 
 export function injectComponent<T extends object>(Component: ComponentType<T>) {

@@ -1,5 +1,5 @@
 /* eslint-disable no-null/no-null */
-import React, {
+import {
   forwardRef,
   memo,
   useCallback, useEffect, useState,
@@ -43,7 +43,7 @@ const GlobalSummary = forwardRef(() => {
   const { userId, userName } = getCurrentUserInfo();
   const [notificationMessage, setNotificationMessage] = useState<Message | null>(null);
   const [summaryMessages, setSummaryMessages] = useState<Message[]>([]);
-  const [viewMessages, setViewMessages] = useState<Message[] >([]);
+  const [viewMessages, setViewMessages] = useState<Message[]>([]);
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({
     lastTime: undefined,
     hasMore: true,
@@ -62,7 +62,7 @@ const GlobalSummary = forwardRef(() => {
   useEffect(() => {
     const sorted = orderBy(
       [...messages, ...summaryMessages],
-      [(item:Message) => new Date(item.createdAt as Date).getTime()],
+      [(item: Message) => new Date(item.createdAt as Date).getTime()],
       ['asc'],
     );
     setViewMessages(sorted);
@@ -152,7 +152,7 @@ const GlobalSummary = forwardRef(() => {
     });
   }, [scrollLocked]);
 
-  const handleInputSubmit = useCallback((value:string) => {
+  const handleInputSubmit = useCallback((value: string) => {
     scrollToBottom();
     append({
       role: 'user',
