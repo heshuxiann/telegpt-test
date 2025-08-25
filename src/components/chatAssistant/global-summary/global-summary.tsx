@@ -1,6 +1,6 @@
+/** @jsxImportSource react */
 /* eslint-disable no-null/no-null */
 import {
-  forwardRef,
   memo,
   useCallback, useEffect, useState,
 } from 'react';
@@ -38,7 +38,7 @@ import styles from './global-summary.module.scss';
 
 import SerenaPath from '../assets/serena.png';
 
-const GlobalSummary = forwardRef(() => {
+const GlobalSummary = () => {
   const { isOpen } = useDrawerStore();
   const { userId, userName } = getCurrentUserInfo();
   const [notificationMessage, setNotificationMessage] = useState<Message | null>(null);
@@ -212,6 +212,6 @@ const GlobalSummary = forwardRef(() => {
     </ErrorBoundary>
 
   );
-});
+};
 
 export default memo(GlobalSummary);

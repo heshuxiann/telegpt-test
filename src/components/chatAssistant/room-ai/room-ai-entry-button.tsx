@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable max-len */
 import React, {

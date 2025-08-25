@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 // @ts-nocheck
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';

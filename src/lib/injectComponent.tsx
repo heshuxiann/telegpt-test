@@ -1,31 +1,40 @@
-/* eslint-disable no-null/no-null */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react/jsx-uses-react */
+import type { ComponentType } from 'react';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 
-// @ts-nocheck
-import { type ComponentType } from 'react';
-import { createRoot } from 'react-dom/client';
+interface InjectComponentOptions<P = any> {
+  component: ComponentType<P>; // ✅ 用 ComponentType 表示组件类型
+  props?: P;
+}
 
-export function injectComponent<T extends object>(Component: ComponentType<T>) {
-  return (domRoot: HTMLElement, props?: T): { ref: { current: any }; unmount: () => void } | null => {
-    if (!domRoot) return null;
+export function injectComponent<P = any>({
+  component: Component,
+  props,
+}: InjectComponentOptions<P>) {
+  let root: ReactDOM.Root | undefined;
 
-    if (!domRoot.$aiRoot) {
-      const root = createRoot(domRoot);
-      domRoot.$aiRoot = root;
+  // 这个 refCallback 会被 Teact 调用
+  const refCallback = (el: HTMLElement | undefined) => {
+    if (!el) {
+      if (root) {
+        root.unmount();
+        root = undefined;
+      }
+      return;
     }
 
-    // Create a simple ref object without using React.createRef
-    const ref = { current: null };
-
-    domRoot.$aiRoot.render(<Component {...(props as T)} />);
-
-    return {
-      ref,
-      unmount: () => {
-        domRoot.$aiRoot?.unmount();
-        domRoot.$aiRoot = null;
-      },
-    };
+    try {
+      if (!root) {
+        root = ReactDOM.createRoot(el);
+      }
+      const element = React.createElement(Component as any, props as any);
+      root.render(element);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to load React component:', err);
+    }
   };
+
+  return refCallback;
 }
+

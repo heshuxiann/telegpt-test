@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 /* eslint-disable @stylistic/max-len */
 
 // @ts-nocheck

@@ -1,7 +1,6 @@
 /* eslint-disable @stylistic/max-len */
 /* eslint-disable no-null/no-null */
 
-import type React from '../../../lib/teact/teact';
 import {
   memo, useCallback, useEffect, useRef, useState,
 } from '../../../lib/teact/teact';
@@ -17,11 +16,11 @@ interface StateProps {
   chatId: string;
 }
 
-const injectMessageAI = injectComponent(RoomAIEntryButton);
+// const injectMessageAI = injectComponent(RoomAIEntryButton);
 
 const RoomAIEntryWrapper = (props: StateProps) => {
   const { chatId } = props;
-  const containerRef = useRef<HTMLDivElement>();
+  // const containerRef = useRef<HTMLDivElement>();
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({
     x: 0,
@@ -162,11 +161,14 @@ const RoomAIEntryWrapper = (props: StateProps) => {
     loadPosition();
   }, [loadPosition]);
 
-  useEffect(() => {
-    if (containerRef.current && chatId) {
-      injectMessageAI(containerRef.current, { chatId });
-    }
-  }, [chatId]);
+  // useEffect(() => {
+  //   if (containerRef.current && chatId) {
+  //     injectMessageAI(containerRef.current, { chatId });
+  //   }
+  // }, [chatId]);
+  const containerRef = injectComponent({
+    component: RoomAIEntryButton,
+  });
 
   return (
     <div

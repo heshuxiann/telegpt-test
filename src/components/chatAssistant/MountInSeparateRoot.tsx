@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 /* eslint-disable no-null/no-null */
 import type { ComponentType } from 'react';
 import React, { useEffect } from 'react';

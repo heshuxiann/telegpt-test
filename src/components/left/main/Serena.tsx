@@ -15,7 +15,7 @@ interface IProps {
 }
 const Serena = (props:IProps) => {
   const { offsetTop, onClick } = props;
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
   return (
     <ListItem
       ref={ref}

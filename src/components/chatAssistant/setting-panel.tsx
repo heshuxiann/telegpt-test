@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 /* eslint-disable react/no-unused-prop-types */
 /* eslint-disable teactn/no-unused-prop-types */
 /* eslint-disable max-len */
