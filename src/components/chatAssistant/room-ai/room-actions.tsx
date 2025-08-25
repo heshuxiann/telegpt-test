@@ -86,27 +86,27 @@ const RoomActions = ({ chatId, insertMessage, setIsLoading }:OwnProps) => {
   }, [chatId]);
 
   const popoverContent = (
-    <div className="py-1">
+    <div>
       <div
-        className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] cursor-pointer flex items-center gap-2 text-[14px]"
+        className="px-3 py-2 rounded-[8px] hover:bg-gray-100 dark:hover:bg-[#2a2a2a] cursor-pointer flex items-center gap-2 text-[14px]"
         onClick={handleSummarize}
       >
         🧠 Chat Summary
       </div>
       <div
-        className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] cursor-pointer flex items-center gap-2 text-[14px]"
+        className="px-3 py-2 rounded-[8px] hover:bg-gray-100 dark:hover:bg-[#2a2a2a] cursor-pointer flex items-center gap-2 text-[14px]"
         onClick={handleMediaSummarize}
       >
-        🧠 Media/File Summary
+        📁 Media/File Summary
       </div>
       <div
-        className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] cursor-pointer flex items-center gap-2 text-[14px]"
+        className="px-3 py-2 rounded-[8px] hover:bg-gray-100 dark:hover:bg-[#2a2a2a] cursor-pointer flex items-center gap-2 text-[14px]"
         onClick={handleScheduleMeeting}
       >
         📅 Schedule meeting
       </div>
       <div
-        className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] cursor-pointer flex items-center gap-2 text-[14px]"
+        className="px-3 py-2 rounded-[8px] hover:bg-gray-100 dark:hover:bg-[#2a2a2a] cursor-pointer flex items-center gap-2 text-[14px]"
         onClick={handleActionItems}
       >
         ✅ Action Items

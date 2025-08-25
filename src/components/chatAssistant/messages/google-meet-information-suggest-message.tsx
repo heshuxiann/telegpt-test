@@ -10,7 +10,7 @@ import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage } from '../store/messages-store';
 import { userInformationCollection } from '../utils/user-information-collection';
 
-const GoogleMeetInformationSuggestMessage = ({ message }:{ message:Message }) => {
+const GoogleMeetInformationSuggestMessage = ({ message }: { message: Message }) => {
   const {
     chatId, messageId, emailConfirmed, calendlyConfirmed, suggestType,
   } = JSON.parse(message.content) || {};
@@ -23,7 +23,7 @@ const GoogleMeetInformationSuggestMessage = ({ message }:{ message:Message }) =>
     const fullName = user ? getUserFullName(user) : '';
     return fullName;
   };
-  const handleCalendlyUrlClick = (url:string) => {
+  const handleCalendlyUrlClick = (url: string) => {
     if (mergeCalendlyConfirmed) {
       return;
     }
@@ -46,7 +46,7 @@ const GoogleMeetInformationSuggestMessage = ({ message }:{ message:Message }) =>
     ChataiStores?.message?.storeMessage(parseMessage2StoreMessage(chatId, [message])[0]);
   };
 
-  const handleEmailClick = (email:string) => {
+  const handleEmailClick = (email: string) => {
     if (mergeEmailConfirmed) {
       return;
     }
@@ -88,13 +88,14 @@ const GoogleMeetInformationSuggestMessage = ({ message }:{ message:Message }) =>
         <ul className="list-disc pl-[18px] mb-[4px]">
           {(suggestType === 'both' || suggestType === 'time') && calendlyUrls.length > 0 && (
             <>
+              <b className='ml-[-18px]'>Calendars:</b>
               {calendlyUrls.map((url: any) => {
                 return (
                   <li className="word-break break-all">
-                    <b>Calendar:</b>{url}
+                    <span><span className='text-[12px] mr-[4px]'>📅</span>{url}</span>
                     {!mergeCalendlyConfirmed && (
                       <span
-                        className="mx-[2px] outline-none border-none focus:outline-none focus:ring-0 underline decoration-2"
+                        className="mx-[2px] font-semibold cursor-pointer ml-[4px] outline-none border-none focus:outline-none focus:ring-0 underline decoration-2"
                         onClick={() => handleCalendlyUrlClick(url)}
                       >
                         Send👉
@@ -107,13 +108,14 @@ const GoogleMeetInformationSuggestMessage = ({ message }:{ message:Message }) =>
           )}
           {(suggestType === 'both' || suggestType === 'email') && emails.length > 0 && (
             <>
+              <b className='ml-[-18px]'>Emails:</b>
               {emails.map((email: any) => {
                 return (
                   <li className="word-break break-all">
-                    <b>Email:</b>{email}
+                    <span><span className='text-[12px] mr-[4px]'>✉️</span>{email}</span>
                     {!mergeEmailConfirmed && (
                       <span
-                        className="mx-[2px] outline-none border-none focus:outline-none focus:ring-0 underline decoration-2"
+                        className="mx-[2px] font-semibold cursor-pointer ml-[4px] outline-none border-none focus:outline-none focus:ring-0 underline decoration-2"
                         onClick={() => handleEmailClick(email)}
                       >
                         Send👉

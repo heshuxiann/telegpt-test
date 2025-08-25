@@ -185,7 +185,7 @@ const RoomAttachmentsModal: FC<OwnProps & StateProps> = ({
       const isUrl = checkIsUrl(text?.text);
       if (photo) {
         photoSummary(message);
-      } else if ((webPage && !text?.text) || isUrl) {
+      } else if (webPage || isUrl) {
         webPageSummary(message);
       } else if (document) {
         documentSummary(message);
@@ -292,6 +292,7 @@ const RoomAttachmentsModal: FC<OwnProps & StateProps> = ({
               key={id}
               message={messagesById[id]}
               isProtected={isChatProtected || messagesById[id].isProtected}
+              onlyWebPage
               observeIntersection={observeIntersectionForMedia}
               // eslint-disable-next-line react/jsx-no-bind
               onMessageClick={() => handleSelectMedia(id)}

@@ -50,10 +50,10 @@
 .room-actions-popover {
   .ant-popover-content {
     .ant-popover-inner {
-      background-color: var(--color-background);
-      border: 1px solid var(--color-borders);
+      background-color: var(--color-background)!important;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      padding: 4px!important;
       
       .ant-popover-inner-content {
         padding: 0;
