@@ -1,11 +1,11 @@
 /* eslint-disable no-template-curly-in-string */
 const config = {
-  productName: 'Telegram A',
+  productName: 'TeleGPT',
   artifactName: '${productName}-${arch}.${ext}',
-  appId: 'org.telegram.TelegramA',
+  appId: 'org.telegpt.telegpt',
   extraMetadata: {
     main: './dist/electron.cjs',
-    productName: 'Telegram A',
+    productName: 'TeleGPT',
   },
   asarUnpack: [
     'build/Release/electron_drag_click.node',
@@ -34,8 +34,8 @@ const config = {
   ],
   publish: {
     provider: 'github',
-    owner: 'Ajaxy',
-    repo: 'telegram-tt',
+    owner: 'Aquaverse',
+    repo: 'ai-tg-web',
     releaseType: 'draft',
   },
   win: {
@@ -57,6 +57,7 @@ const config = {
     },
     entitlements: 'public/electron-entitlements.mac.plist',
     icon: 'public/icon-electron-macos.icns',
+    notarize:true
   },
   dmg: {
     background: 'public/background-electron-dmg.tiff',
