@@ -1,6 +1,6 @@
 import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   useCallback,
   useRef,
   useState,
@@ -40,12 +40,9 @@ const SenderGroupAvatar: FC<OwnProps> = ({
   const hiddenName = (!avatarPeer && forwardInfo) ? forwardInfo.hiddenUserName : undefined;
   const [isSymbolMenuOpen, openSymbolMenu, closeSymbolMenu] = useFlag();
   const [contextMenuAnchor, setContextMenuAnchor] = useState<IAnchorPosition | undefined>(undefined);
-  // eslint-disable-next-line no-null/no-null
-  const triggerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const menuRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>();
+  const menuRef = useRef<HTMLDivElement>();
+  const ref = useRef<HTMLDivElement>();
   const getTriggerElement = useCallback(() => ref.current, []);
   const getMenuElement = useCallback(() => menuRef.current!, []);
   const getRootElement = useCallback(

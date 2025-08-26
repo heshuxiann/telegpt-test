@@ -59,6 +59,10 @@
     }
   }
 
+  >.message-content-wrapper:hover { 
+    z-index: 2;
+  }
+
   > .Avatar {
     position: absolute;
     bottom: 0;

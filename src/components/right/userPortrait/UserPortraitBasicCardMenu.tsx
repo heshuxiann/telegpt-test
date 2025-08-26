@@ -1,6 +1,6 @@
 import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, { useEffect } from '../../../lib/teact/teact';
+import { useEffect } from '../../../lib/teact/teact';
 
 import type { MenuPositionOptions } from '../../ui/Menu';
 
@@ -10,7 +10,7 @@ import Menu from '../../ui/Menu';
 import UserPortraitBasicCard from './UserPortraitBasicCard';
 
 type OwnProps = {
-  menuRef?: React.RefObject<HTMLDivElement>;
+  menuRef?: React.RefObject<HTMLDivElement|undefined>;
   isOpen: boolean;
   userId: string;
   onClose: () => void;

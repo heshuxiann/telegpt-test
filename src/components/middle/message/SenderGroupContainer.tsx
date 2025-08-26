@@ -40,6 +40,7 @@ import Menu from '../../ui/Menu';
 import MenuItem from '../../ui/MenuItem';
 
 import styles from './SenderGroupContainer.module.scss';
+import SenderGroupAvatar from './SenderGroupAvatar';
 
 type OwnProps =
   {
@@ -205,7 +206,8 @@ const SenderGroupContainer: FC<OwnProps & StateProps> = ({
     <div id={id} className={className}>
       {shouldRender && (
         <div ref={avatarRef} className={styles.avatarContainer}>
-          {renderAvatar()}
+          {/* {renderAvatar()} */}
+           <SenderGroupAvatar handleAvatarClick={handleAvatarClick} avatarPeer={avatarPeer} forwardInfo={forwardInfo} />
           {shouldRenderContextMenu && renderContextMenu()}
         </div>
       )}
