@@ -11,7 +11,7 @@ import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage } from '../store/messages-store';
 import { createAuthConfirmModal, createGoogleMeet } from '../utils/google-api';
 import { getAuthState, isTokenValid } from '../utils/google-auth';
-import ScheduleMeeting, { formatMeetingTimeRange } from '../utils/schedule-meeting';
+import ScheduleMeeting, { formatMeetingTimeRange, generateEventScreenshot, MEETING_INVITATION_TIP } from '../utils/schedule-meeting';
 
 const GoogleMeetTimeConfirmMessage = ({ message }: { message: Message }) => {
   const { content } = message;
@@ -30,6 +30,14 @@ const GoogleMeetTimeConfirmMessage = ({ message }: { message: Message }) => {
     end: string;
     email: string[];
   }) => {
+    getActions().sendMessage({
+      messageList: {
+        chatId,
+        threadId: '-1',
+        type: 'thread',
+      },
+      text: MEETING_INVITATION_TIP,
+    });
     createGoogleMeet({
       startDate: new Date(start),
       endDate: new Date(end),
@@ -39,16 +47,10 @@ const GoogleMeetTimeConfirmMessage = ({ message }: { message: Message }) => {
     }).then((createMeetResponse: ICreateMeetResponse) => {
       // console.log('createMeetResponse', createMeetResponse);
       if (createMeetResponse) {
-        const eventMessage = `Event details \n📝 Title\n${createMeetResponse.summary}\n👥 Guests\n${createMeetResponse.attendees.map((attendee) => attendee.email).join('\\n')}\n📅 Time\n${formatMeetingTimeRange(createMeetResponse.start.dateTime, createMeetResponse.end.dateTime)}\n${createMeetResponse.start.timeZone}\n🔗 Meeting link\n${createMeetResponse.hangoutLink}
-            `;
-        getActions().sendMessage({
-          messageList: {
-            chatId,
-            threadId: '-1',
-            type: 'thread',
-          },
-          text: eventMessage,
-        });
+        generateEventScreenshot(createMeetResponse, chatId);
+        // const eventMessage = `Event details \n📝 Title\n${createMeetResponse.summary}\n👥 Guests\n${createMeetResponse.attendees.map((attendee) => attendee.email).join('\\n')}\n📅 Time\n${formatMeetingTimeRange(createMeetResponse.start.dateTime, createMeetResponse.end.dateTime)}\n${createMeetResponse.start.timeZone}\n🔗 Meeting link\n${createMeetResponse.hangoutLink}
+        //     `;
+
       }
     });
   };
