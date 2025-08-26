@@ -1,3 +1,4 @@
+import React from '@teact';
 import { useRef, useState } from '../../lib/teact/teact';
 
 export function App() {

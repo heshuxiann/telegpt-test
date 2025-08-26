@@ -1,12 +1,7 @@
-/* eslint-disable no-null/no-null */
-/* eslint-disable max-len */
-import React, {
-  useEffect, useRef,
-} from '../../../lib/teact/teact';
-
+import React from '@teact';
 import type { AiKnowledge } from '../../chatAssistant/store/knowledge-store';
 
-import { injectComponent } from '../../../lib/injectComponent';
+import { injectComponent } from '../../chatAssistant/injectComponent';
 
 import Modal from '../../ui/Modal';
 import AIKnowledgeEditor from './AIKnowledgeEditor';
@@ -20,25 +15,18 @@ type OwnProps = {
   onClose: () => void;
   onUpdate:()=>void;
 };
-const injectEditor = injectComponent(AIKnowledgeEditor);
 const AddKnowledgeModal = ({
   type, knowledge, isOpen, onClose, onUpdate,
 }: OwnProps) => {
-  const editorRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    let injected: { unmount: () => void } | undefined;
-    if (editorRef.current) {
-      injected = injectEditor(editorRef.current, {
-        onClose,
-        onUpdate,
-        knowledge,
-        type,
-      });
-    }
-    return () => {
-      injected?.unmount();
-    };
-  }, [knowledge, onClose, onUpdate, type]);
+  const editorRef = injectComponent({
+    component: AIKnowledgeEditor,
+    props: {
+      knowledge,
+      type,
+      onClose,
+      onUpdate,
+    },
+  })
   return (
     <Modal
       title="Notes"

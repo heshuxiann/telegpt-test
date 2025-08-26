@@ -1,3 +1,4 @@
+import React from '@teact';
 import type { FC } from '@teact';
 import { memo, useEffect, useRef, useState } from '@teact';
 import { getActions, withGlobal } from '../../global';

@@ -1,4 +1,5 @@
-import { memo, useEffect, useRef } from '../../../lib/teact/teact';
+import React from '@teact';
+import { memo, useEffect, useRef } from '@teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type {

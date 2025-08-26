@@ -1,3 +1,4 @@
+import React from '@teact';
 import type { ElementRef } from '@teact';
 import { beginHeavyAnimation, useEffect, useLayoutEffect, useRef } from '@teact';
 import { addExtraClass, removeExtraClass, setExtraStyles, toggleExtraClass } from '@teact/teact-dom';

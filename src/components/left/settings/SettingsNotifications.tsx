@@ -1,3 +1,4 @@
+import React from '@teact';
 import type { ChangeEvent } from 'react';
 import type { FC } from '../../../lib/teact/teact';
 import { memo, useCallback, useEffect } from '../../../lib/teact/teact';

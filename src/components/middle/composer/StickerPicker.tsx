@@ -1,5 +1,6 @@
-import type { FC } from '../../../lib/teact/teact';
-import { memo, useEffect, useMemo, useRef } from '../../../lib/teact/teact';
+import React from '@teact';
+import type { FC } from '@teact';
+import { memo, useEffect, useMemo, useRef } from '@teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type { ApiChat, ApiSticker, ApiStickerSet } from '../../../api/types';

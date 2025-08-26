@@ -290,6 +290,10 @@
         color: var(--color-list-icon);
       }
 
+      .media-preview{
+        display: flex;
+      }
+
       .media-preview-spoiler {
         filter: blur(1px);
       }

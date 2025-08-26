@@ -1,3 +1,4 @@
+import React from '@teact';
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable max-len */
 /* eslint-disable no-null/no-null */

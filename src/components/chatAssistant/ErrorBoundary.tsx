@@ -1,4 +1,4 @@
-/** @jsxImportSource react */
+
 /* eslint-disable no-null/no-null */
 import type { ReactNode } from 'react';
 import { Component } from 'react';

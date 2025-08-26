@@ -1,3 +1,4 @@
+import React from '@teact';
 import '../../global/actions/all';
 
 import {

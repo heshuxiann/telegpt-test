@@ -1,3 +1,4 @@
+import React from '@teact';
 import { getActions, getGlobal, setGlobal } from '../global';
 
 import type {

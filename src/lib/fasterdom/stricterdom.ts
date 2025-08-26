@@ -30,7 +30,7 @@ export function enableStrict() {
 
   isStrict = true;
   setupLayoutDetectors();
-  setupMutationObserver();
+  // setupMutationObserver();
 }
 
 export function disableStrict() {

@@ -1,3 +1,4 @@
+import React from '@teact';
 import type { ChangeEvent } from 'react';
 import type { ElementRef } from '../../../lib/teact/teact';
 import {

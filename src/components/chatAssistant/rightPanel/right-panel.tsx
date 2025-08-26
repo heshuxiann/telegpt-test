@@ -1,4 +1,4 @@
-/** @jsxImportSource react */
+
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-null/no-null */
 /* eslint-disable max-len */

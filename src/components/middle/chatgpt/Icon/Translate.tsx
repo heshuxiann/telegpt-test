@@ -1,4 +1,4 @@
-import React from '../../../../lib/teact/teact';
+import React from '@teact';
 
 const Translate = ({ size = 24, fill = 'black' }) => {
   return (

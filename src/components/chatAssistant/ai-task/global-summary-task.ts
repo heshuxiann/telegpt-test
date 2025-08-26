@@ -11,7 +11,8 @@ import { LoadMoreDirection } from '../../../types';
 import { ALL_FOLDER_ID } from '../../../config';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { loadChats } from '../../../global/actions/api/chats';
-import { isSystemBot, isUserId } from '../../../global/helpers';
+import { isSystemBot } from '../../../global/helpers';
+import { isUserId } from '../../../util/entities/ids';
 import {
   selectBot, selectChat, selectChatLastMessageId, selectUser,
 } from '../../../global/selectors';

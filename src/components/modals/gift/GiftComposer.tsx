@@ -1,3 +1,4 @@
+import React from '@teact';
 import type { ChangeEvent } from 'react';
 import {
   memo, useEffect, useMemo, useState,

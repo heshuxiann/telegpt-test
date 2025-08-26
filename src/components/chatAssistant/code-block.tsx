@@ -1,4 +1,3 @@
-/** @jsxImportSource react */
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable max-len */
 /* eslint-disable react/react-in-jsx-scope */

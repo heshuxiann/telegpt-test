@@ -1,3 +1,4 @@
+import React from '@teact';
 import type { ElementRef } from '../../lib/teact/teact';
 import {
   memo, useEffect, useLayoutEffect, useMemo, useRef, useState,
@@ -635,7 +636,7 @@ function renderVoice(
   );
 }
 
-function useWaveformCanvas(
+export function useWaveformCanvas(
   theme: ThemeKey,
   media?: ApiVoice | ApiVideo,
   playProgress = 0,

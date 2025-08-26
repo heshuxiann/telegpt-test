@@ -1,3 +1,4 @@
+import React from '@teact';
 import { memo, type TeactNode } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 

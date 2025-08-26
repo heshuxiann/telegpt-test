@@ -1,3 +1,4 @@
+import React from '@teact';
 import { useState } from '../lib/teact/teact';
 
 import { SCHEDULED_WHEN_ONLINE } from '../config';

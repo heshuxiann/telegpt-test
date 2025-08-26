@@ -1,3 +1,4 @@
+import React from '@teact';
 import { memo, useState } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 

@@ -1,3 +1,5 @@
+import React from '@teact';
+
 interface OwnProps {
   isOwn?: boolean;
 }

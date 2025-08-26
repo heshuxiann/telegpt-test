@@ -20,7 +20,7 @@ const TagsModal = (props: Iprops) => {
   const { userId, tagsModalVisable, close } = props;
 
   const [form] = Form.useForm();
-  const [userInfo, setUserInfo] = useState<UserInfo>({});
+  const [userInfo, setUserInfo] = useState<UserInfo>({id:''});
   useEffect(() => {
     if (userId) {
       ChataiStores.user?.getUser(userId).then((user) => {

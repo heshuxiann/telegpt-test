@@ -1,8 +1,8 @@
-/** @jsxImportSource react */
+
 /* eslint-disable @stylistic/max-len */
 
 // @ts-nocheck
-
+import React from 'react';
 import { memo, useMemo } from 'react';
 import type { Message } from 'ai';
 import cx from 'classnames';

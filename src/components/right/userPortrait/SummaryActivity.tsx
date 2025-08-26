@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import React from '../../../lib/teact/teact';
+import React from '@teact';
 import { getActions } from '../../../global';
 
 import type { ApiUser } from '../../../api/types';

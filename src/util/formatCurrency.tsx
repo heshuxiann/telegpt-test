@@ -1,3 +1,4 @@
+import React from '@teact';
 import { type TeactNode } from '../lib/teact/teact';
 
 import type { LangFn } from './localization';

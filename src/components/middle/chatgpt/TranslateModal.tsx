@@ -1,3 +1,4 @@
+import React from '@teact';
 /* eslint-disable react-hooks-static-deps/exhaustive-deps */
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-shadow */

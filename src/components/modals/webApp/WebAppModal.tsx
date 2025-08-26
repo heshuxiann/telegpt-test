@@ -1,3 +1,4 @@
+import React from '@teact';
 import { type MouseEvent as ReactMouseEvent } from 'react';
 import type { FC } from '../../../lib/teact/teact';
 import {

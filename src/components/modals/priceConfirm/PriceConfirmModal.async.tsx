@@ -1,3 +1,4 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
 
 import type { TabState } from '../../../global/types';

@@ -1,3 +1,4 @@
+import React from '@teact';
 import { useEffect } from '@teact';
 
 import { createSignal } from '../../util/signals';

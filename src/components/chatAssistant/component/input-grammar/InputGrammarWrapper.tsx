@@ -10,19 +10,27 @@ import React, {
 
 import type { InputGrammerProps } from './InputGrammar';
 
-import { injectComponent } from '../../../../lib/injectComponent';
+import { injectComponent } from '../../injectComponent';
 
 import InputGrammar from './InputGrammar';
 
-const injectMessageAI = injectComponent(InputGrammar);
+// const injectMessageAI = injectComponent(InputGrammar);
 const InputGrammarWrapper = (props: InputGrammerProps) => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  // const containerRef = useRef<HTMLDivElement | null>(null);
   const { inputRef, getHtml, setHtml } = props;
-  useEffect(() => {
-    if (containerRef.current) {
-      injectMessageAI(containerRef.current, { inputRef, getHtml, setHtml });
-    }
-  }, [getHtml, inputRef, setHtml]);
+  const containerRef = injectComponent({
+    component: InputGrammar,
+    props: {
+      inputRef,
+      getHtml,
+      setHtml,
+    },
+  });
+  // useEffect(() => {
+  //   if (containerRef.current) {
+  //     injectMessageAI(containerRef.current, { inputRef, getHtml, setHtml });
+  //   }
+  // }, [getHtml, inputRef, setHtml]);
   return (
     <div className="absolute left-0 top-0 w-full h-full pointer-events-none" ref={containerRef} />
   );

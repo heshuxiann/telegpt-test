@@ -1,7 +1,7 @@
 /* eslint-disable @stylistic/max-len */
 /* eslint-disable no-null/no-null */
 /* eslint-disable no-console */
-
+import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import type { Message } from 'ai';
 import { getGlobal } from '../../../global';

@@ -1,3 +1,4 @@
+import React from '@teact';
 import {
   createContext, memo, useState,
 } from '../../lib/teact/teact';

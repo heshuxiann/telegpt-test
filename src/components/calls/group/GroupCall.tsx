@@ -1,3 +1,4 @@
+import React from '@teact';
 import '../../../global/actions/calls';
 
 import type { FC } from '../../../lib/teact/teact';

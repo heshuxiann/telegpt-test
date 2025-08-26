@@ -1,3 +1,4 @@
+import React from '@teact';
 import { memo, useRef } from '@teact';
 
 import type { ApiStarGiftUnique } from '../../../api/types';

@@ -1,5 +1,6 @@
-import type { FC } from '../../../lib/teact/teact';
-import { memo, useEffect, useMemo, useRef, useState } from '../../../lib/teact/teact';
+import React from '@teact';
+import type { FC } from '@teact';
+import { memo, useEffect, useMemo, useRef, useState } from '@teact';
 import { withGlobal } from '../../../global';
 
 import type { GlobalState } from '../../../global/types';

@@ -1,3 +1,4 @@
+import React from '@teact';
 import type { ChangeEvent } from 'react';
 import { useRef, useState } from '../../lib/teact/teact';
 

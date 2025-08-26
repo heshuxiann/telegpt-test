@@ -1,4 +1,4 @@
-/** @jsxImportSource react */
+
 import React from 'react';
 import type { Attachment } from 'ai';
 

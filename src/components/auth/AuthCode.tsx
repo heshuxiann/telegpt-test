@@ -1,3 +1,4 @@
+import React from '@teact';
 import type { FormEvent } from 'react';
 import type { FC } from '../../lib/teact/teact';
 import {

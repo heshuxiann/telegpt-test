@@ -1,3 +1,4 @@
+import React from '@teact';
 import { useEffect, useRef, useState } from '../../lib/teact/teact';
 
 function TestUpdateRef() {

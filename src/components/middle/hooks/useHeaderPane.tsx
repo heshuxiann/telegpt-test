@@ -1,3 +1,4 @@
+import React from '@teact';
 import type {
   ElementRef } from '../../../lib/teact/teact';
 import {

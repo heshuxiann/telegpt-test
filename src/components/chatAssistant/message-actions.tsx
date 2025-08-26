@@ -1,4 +1,4 @@
-/** @jsxImportSource react */
+
 import React from 'react';
 import type { Message } from 'ai';
 import copy from 'copy-to-clipboard';

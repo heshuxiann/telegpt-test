@@ -1,4 +1,4 @@
-import React from '../../../lib/teact/teact';
+import React from '@teact';
 
 import type { ApiUser } from '../../../api/types';
 import type {

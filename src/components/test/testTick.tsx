@@ -1,3 +1,4 @@
+import React from '@teact';
 import TeactDOM from '../../lib/teact/teact-dom';
 
 function tick() {

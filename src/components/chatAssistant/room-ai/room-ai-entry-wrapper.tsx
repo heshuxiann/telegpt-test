@@ -1,12 +1,12 @@
 /* eslint-disable @stylistic/max-len */
 /* eslint-disable no-null/no-null */
-
+import React from '@teact'
 import {
   memo, useCallback, useEffect, useRef, useState,
 } from '../../../lib/teact/teact';
 import { withGlobal } from '../../../global';
 
-import { injectComponent } from '../../../lib/injectComponent';
+import { injectComponent } from '../injectComponent';
 import buildStyle from '../../../util/buildStyle';
 import RoomAIEntryButton from './room-ai-entry-button';
 

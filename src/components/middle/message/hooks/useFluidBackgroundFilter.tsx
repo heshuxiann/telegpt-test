@@ -1,3 +1,4 @@
+import React from '@teact';
 import { useEffect } from '../../../../lib/teact/teact';
 
 import { SVG_NAMESPACE } from '../../../../config';

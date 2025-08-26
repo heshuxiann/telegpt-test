@@ -1,4 +1,5 @@
-import type { LangFn } from './types';
+import React from '@teact';
+import type { LangFn } from './index';
 
 import { STARS_ICON_PLACEHOLDER } from '../../config';
 import { convertTonFromNanos } from '../../util/formatCurrency';

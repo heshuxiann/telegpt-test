@@ -16,7 +16,7 @@ import Avatar from '../component/Avatar';
 import SerenaPath from '../assets/serena.png';
 import ShareHeaderBg from '../assets/share-header-bg.png';
 
-const GoogleEventDetailMessage = ({ message }:{ message:Message }) => {
+const GoogleEventDetailMessage = ({ message }: { message: Message }) => {
   const [messageContent, setMessageContent] = useState<any>(null);
   const [capturing, setCapturing] = useState(false);
 
@@ -94,13 +94,13 @@ const GoogleEventDetailMessage = ({ message }:{ message:Message }) => {
 function ShareCard({
   capturing = false,
   children,
-  captureCallback = () => {},
+  captureCallback = () => { },
 }: {
   capturing: boolean;
   children?: any;
   captureCallback?: () => void;
 }) {
-  const domRef = useRef<HTMLDivElement>();
+  const domRef = useRef<HTMLDivElement | undefined>(undefined);
   const global = getGlobal();
   const { currentUserId } = global;
   const currentUser = selectUser(global, currentUserId!);

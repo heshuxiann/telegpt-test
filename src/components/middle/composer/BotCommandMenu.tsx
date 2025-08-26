@@ -1,5 +1,6 @@
-import type { FC } from '../../../lib/teact/teact';
-import { memo } from '../../../lib/teact/teact';
+import React from '@teact';
+import type { FC } from '@teact';
+import { memo } from '@teact';
 import { getActions } from '../../../global';
 
 import type { ApiBotCommand } from '../../../api/types';

@@ -1,3 +1,4 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
 import { useCallback } from '../../lib/teact/teact';
 

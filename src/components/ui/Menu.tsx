@@ -1,6 +1,6 @@
+import React from '@teact';
 import type {
   ElementRef } from '../../lib/teact/teact';
-import type React from '../../lib/teact/teact';
 import {
   beginHeavyAnimation,
   type FC, memo, useEffect, useRef,

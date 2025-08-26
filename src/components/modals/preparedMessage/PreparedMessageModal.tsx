@@ -1,3 +1,4 @@
+import React from '@teact';
 import {
   type FC,
   memo, useMemo, useRef,

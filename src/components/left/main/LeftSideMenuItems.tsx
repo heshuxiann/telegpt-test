@@ -1,4 +1,4 @@
-import type React from '../../../lib/teact/teact';
+import React from '@teact';
 import { Modal } from 'antd';
 import { memo, useMemo ,useCallback ,useState ,useEffect } from '../../../lib/teact/teact';
 import { getActions, withGlobal, getGlobal } from '../../../global';

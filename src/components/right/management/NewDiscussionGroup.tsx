@@ -1,5 +1,5 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact.ts';
-import type React from '../../../lib/teact/teact.ts';
 import { useState } from '../../../lib/teact/teact.ts';
 import { memo } from '../../../lib/teact/teact.ts';
 

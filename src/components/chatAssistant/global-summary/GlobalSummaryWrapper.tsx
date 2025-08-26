@@ -1,6 +1,6 @@
-import { injectComponent } from '../../../lib/injectComponent';
+import React from '@teact';
+import { injectComponent } from '../injectComponent';
 import GlobalSummary from './global-summary';
-// import ReactDemo from './ReactDemo';
 const GlobalSummaryWrapper = () => {
   const containerRef = injectComponent({
     component: GlobalSummary,

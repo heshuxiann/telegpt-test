@@ -1,3 +1,4 @@
+import React from 'react';
 import { getGlobal } from '../../../global';
 
 import { selectChat, selectUser } from '../../../global/selectors';

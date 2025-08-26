@@ -1,5 +1,5 @@
-/** @jsxImportSource react */
 /* eslint-disable no-null/no-null */
+import React from 'react';
 import {
   memo,
   useCallback, useEffect, useState,

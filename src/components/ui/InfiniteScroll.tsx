@@ -1,6 +1,6 @@
+import React from '@teact';
 import type { UIEvent } from 'react';
 import type { ElementRef, FC } from '../../lib/teact/teact';
-import type React from '../../lib/teact/teact';
 import {
   useEffect, useLayoutEffect, useMemo, useRef,
 } from '../../lib/teact/teact';

@@ -1,3 +1,4 @@
+import React from '@teact';
 import { memo, useEffect, useState } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';

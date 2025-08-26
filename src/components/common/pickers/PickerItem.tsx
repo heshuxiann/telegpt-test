@@ -1,3 +1,4 @@
+import React from '@teact';
 import { type TeactNode } from '../../../lib/teact/teact';
 
 import { IS_IOS } from '../../../util/browser/windowEnvironment';

@@ -1,3 +1,4 @@
+import React from '@teact';
 import { memo } from '../../../lib/teact/teact';
 
 import type { ApiChat, ApiMessage, ApiPeer } from '../../../api/types';

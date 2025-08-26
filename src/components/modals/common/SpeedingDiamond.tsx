@@ -1,3 +1,4 @@
+import React from '@teact';
 import { memo, useState } from '@teact';
 
 import { requestMutation } from '../../../lib/fasterdom/fasterdom.ts';

@@ -1,3 +1,4 @@
+import React from '@teact';
 import type { FC } from '@teact';
 import { beginHeavyAnimation, memo, useEffect, useMemo, useRef } from '@teact';
 import { addExtraClass, removeExtraClass } from '@teact/teact-dom.ts';

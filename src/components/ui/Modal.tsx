@@ -1,5 +1,5 @@
+import React from '@teact';
 import type { ElementRef, FC, TeactNode } from '../../lib/teact/teact';
-import type React from '../../lib/teact/teact';
 import { beginHeavyAnimation, useEffect } from '../../lib/teact/teact';
 
 import type { TextPart } from '../../types';

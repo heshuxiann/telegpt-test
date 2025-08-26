@@ -1,5 +1,5 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import type React from '../../../lib/teact/teact';
 import {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../../lib/teact/teact';
@@ -15,11 +15,11 @@ import { IS_APP, IS_MAC_OS } from '../../../util/browser/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
 import { getOrderKey, getPinnedChatsCount } from '../../../util/folderManager';
 import { getServerTime } from '../../../util/serverTime';
-import ChatSerena from '../../chatAssistant/global-summary/chat-serana';
+import ChatSerena from '../../chatAssistant/global-summary/chat-serana.teact';
 import { GLOBAL_SUMMARY_CHATID } from '../../chatAssistant/variables';
 
 import {
-   AI_FOLDER_ID,
+  AI_FOLDER_ID,
   ALL_FOLDER_ID,
   ARCHIVE_MINIMIZED_HEIGHT,
   ARCHIVED_FOLDER_ID,
@@ -245,7 +245,7 @@ const ChatList: FC<OwnProps> = ({
         + (viewportOffset + i) * CHAT_HEIGHT_PX;
 
       return (
-         id === GLOBAL_SUMMARY_CHATID ? (
+        id === GLOBAL_SUMMARY_CHATID ? (
           <ChatSerena
             key="serena"
             // frozenNotificationHeight={frozenNotificationHeight}
@@ -253,20 +253,20 @@ const ChatList: FC<OwnProps> = ({
             // unconfirmedSessionHeight={unconfirmedSessionHeight}
             offsetTop={offsetTop}
           />
-        ):(
-           <Chat
-          key={id}
-          teactOrderKey={isPinned ? i : getOrderKey(id, isSaved)}
-          chatId={id}
-          isPinned={isPinned}
-          folderId={folderId}
-          isSavedDialog={isSaved}
-          animationType={getAnimationType(id)}
-          orderDiff={orderDiffById[id]}
-          offsetTop={offsetTop}
-          observeIntersection={observe}
-          onDragEnter={handleDragEnter}
-        />
+        ) : (
+          <Chat
+            key={id}
+            teactOrderKey={isPinned ? i : getOrderKey(id, isSaved)}
+            chatId={id}
+            isPinned={isPinned}
+            folderId={folderId}
+            isSavedDialog={isSaved}
+            animationType={getAnimationType(id)}
+            orderDiff={orderDiffById[id]}
+            offsetTop={offsetTop}
+            observeIntersection={observe}
+            onDragEnter={handleDragEnter}
+          />
         )
       );
     });

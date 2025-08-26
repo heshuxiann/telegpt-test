@@ -1,3 +1,4 @@
+import React from '@teact';
 import { memo, useRef, useSignal } from '@teact';
 import { setExtraStyles } from '@teact/teact-dom';
 import { withGlobal } from '../../global';

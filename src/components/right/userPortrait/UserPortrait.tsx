@@ -1,8 +1,9 @@
+import React from '@teact';
 /* eslint-disable max-len */
 import dayjs from 'dayjs';
 import { uniq } from 'lodash';
 import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useEffect, useRef } from '../../../lib/teact/teact';
+import { memo, useEffect, useRef } from '../../../lib/teact/teact';
 import { withGlobal } from '../../../global';
 
 import type { ApiUser } from '../../../api/types';
@@ -53,7 +54,7 @@ const UserPortrait: FC<StateProps & OwnProps> = ({ theme, userId, user }) => {
     userId,
   });
   // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
   const lang = useOldLang();
 
   function renderBasicInfo() {

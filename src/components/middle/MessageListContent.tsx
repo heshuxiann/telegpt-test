@@ -1,3 +1,4 @@
+import React from '@teact';
 import type { ElementRef, FC } from '../../lib/teact/teact';
 import { getIsHeavyAnimating, memo } from '../../lib/teact/teact';
 import { getActions, getGlobal } from '../../global';

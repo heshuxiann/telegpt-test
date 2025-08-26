@@ -2,7 +2,6 @@
   "name": "TeleGPT",
   "version": "0.0.11",
   "description": "",
-  "type": "module",
   "main": "index.js",
   "scripts": {
     "publish:develop": "rm -rf dist/build-stats.json && gh-pages -d dist -b main --nojekyll -r https://github.com/JsonSuCoder/ai-tg-web.git",
@@ -48,6 +47,7 @@
   "author": "Alexander Zinchuk (alexander@zinchuk.com)",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
+    "@babel/cli": "^7.28.3",
     "@babel/core": "^7.27.4",
     "@babel/plugin-syntax-nullish-coalescing-operator": "^7.8.3",
     "@babel/plugin-transform-class-properties": "^7.24.1",

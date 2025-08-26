@@ -1,5 +1,5 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import type React from '../../lib/teact/teact';
 
 import type { OwnProps as ButtonProps } from './Button';
 

@@ -1,3 +1,4 @@
+import React from '@teact';
 import {
   beginHeavyAnimation,
   memo, useCallback, useEffect, useState,

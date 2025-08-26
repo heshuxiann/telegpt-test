@@ -1,5 +1,5 @@
 import type { FC } from '../../../lib/teact/teact';
-import React from '../../../lib/teact/teact';
+import React from '@teact';
 
 import type { OwnProps } from './SponsoredMessageContextMenuContainer';
 

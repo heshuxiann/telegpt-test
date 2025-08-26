@@ -1,3 +1,4 @@
+import React from '@teact';
 import {
   memo, useEffect, useLayoutEffect, useRef, useState,
 } from '../../lib/teact/teact';

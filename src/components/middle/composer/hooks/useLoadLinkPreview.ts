@@ -1,3 +1,4 @@
+import React from '@teact';
 import { useEffect, useRef } from '@teact';
 import { getActions } from '../../../../global';
 

@@ -1,3 +1,4 @@
+import React from './lib/teact/teactn';
 import './util/handleError';
 import './util/setupServiceWorker';
 import './global/init';

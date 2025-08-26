@@ -1,3 +1,4 @@
+import React from '@teact';
 import type { ElementRef } from '@teact';
 import { useEffect, useLayoutEffect } from '@teact';
 import { addExtraClass, removeExtraClass, toggleExtraClass } from '@teact/teact-dom.ts';

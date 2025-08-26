@@ -1,4 +1,3 @@
-/* eslint-disable @stylistic/max-len */
 import 'webpack-dev-server';
 import 'dotenv/config';
 
@@ -112,33 +111,6 @@ export default function createConfig(
           test: /\.(ts|tsx|js|mjs|cjs)$/,
           loader: 'babel-loader',
           exclude: /node_modules/,
-          oneOf: [
-            // chatAssistant 文件夹强制 React JSX runtime
-            {
-              include: path.resolve(__dirname, 'src/components/chatAssistant'),
-              use: {
-                loader: 'babel-loader',
-                options: {
-                  presets: [
-                    ['@babel/preset-react', { runtime: 'automatic', importSource: 'react' }],
-                    '@babel/preset-typescript',
-                  ],
-                },
-              },
-            },
-            // 其他文件使用 Teact JSX runtime
-            {
-              use: {
-                loader: 'babel-loader',
-                options: {
-                  presets: [
-                    ['@babel/preset-react', { runtime: 'automatic', importSource: '@teact' }],
-                    '@babel/preset-typescript',
-                  ],
-                },
-              },
-            },
-          ],
         },
         {
           test: /\.css$/,
@@ -188,19 +160,6 @@ export default function createConfig(
           test: /\.(txt|tl|strings)$/i,
           type: 'asset/source',
         },
-        // {
-        //   test: /\.tsx?$/,
-        //   include: path.resolve(__dirname, 'src/components/chatAssistant'),
-        //   use: {
-        //     loader: 'babel-loader',
-        //     options: {
-        //       presets: [
-        //         ['@babel/preset-react', { runtime: 'automatic', importSource: 'react' }],
-        //         '@babel/preset-typescript'
-        //       ]
-        //     }
-        //   }
-        // }
       ],
     },
 
@@ -254,9 +213,6 @@ export default function createConfig(
         RELEASE_DATETIME: Date.now(),
         TELEGRAM_API_ID: undefined,
         TELEGRAM_API_HASH: undefined,
-        GOOGLE_API_KEY: undefined,
-        GOOGLE_APP_CLIENT_ID: undefined,
-
         // eslint-disable-next-line no-null/no-null
         TEST_SESSION: null,
         IS_PACKAGED_ELECTRON: false,

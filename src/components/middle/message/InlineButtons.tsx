@@ -1,3 +1,4 @@
+import React from '@teact';
 import type { FC, TeactNode } from '../../../lib/teact/teact';
 import { memo, useMemo } from '../../../lib/teact/teact';
 

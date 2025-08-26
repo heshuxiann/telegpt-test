@@ -1,3 +1,4 @@
+import React from '@teact';
 import type { FC, TeactNode } from '@teact';
 import { memo } from '@teact';
 

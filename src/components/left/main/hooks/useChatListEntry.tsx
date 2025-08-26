@@ -1,3 +1,4 @@
+import React from '@teact';
 import {
   useCallback, useLayoutEffect, useRef,
 } from '../../../../lib/teact/teact';
