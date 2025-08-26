@@ -57,7 +57,7 @@ const config = {
     },
     entitlements: 'public/electron-entitlements.mac.plist',
     icon: 'public/icon-electron-macos.icns',
-    notarize:true
+    notarize:false
   },
   dmg: {
     background: 'public/background-electron-dmg.tiff',

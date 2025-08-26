@@ -1298,8 +1298,6 @@ const Composer: FC<OwnProps & StateProps> = ({
     handleSendCore(currentAttachments, isSilent, scheduledAt);
     // TODO: collect information from send message
     userInformationCollection.collectInformation(text);
-
-    handleSendCore(currentAttachments, isSilent, scheduledAt);
   });
 
   const handleSendWithConfirmation = useLastCallback((isSilent = false, scheduledAt?: number) => {
