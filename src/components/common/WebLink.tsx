@@ -45,13 +45,13 @@ type StateProps = {
 };
 
 const WebLink = ({
-  message, webPage, senderTitle, isProtected, onlyWebPage, observeIntersection, onMessageClick,
+  message, webPage, senderTitle, isProtected, observeIntersection, onMessageClick,
 }: OwnProps & StateProps) => {
   const lang = useOldLang();
 
   let linkData: ApiWebPageWithFormatted | undefined = webPage;
 
-  if (!linkData && !onlyWebPage) {
+  if (!linkData) {
     const link = getFirstLinkInMessage(message);
     if (link) {
       const { url, domain } = link;

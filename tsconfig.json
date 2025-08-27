@@ -8,6 +8,7 @@
       "webworker",
       "es2021"
     ],
+    "types": ["node"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,

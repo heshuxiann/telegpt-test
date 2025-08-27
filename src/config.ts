@@ -11,16 +11,15 @@ export const APP_NAME = process.env.APP_NAME || `Telegram Web ${APP_CODE_NAME}`;
 export const RELEASE_DATETIME = process.env.RELEASE_DATETIME;
 
 export const PRODUCTION_HOSTNAME = 'web.telegram.org';
-// export const PRODUCTION_URL = 'https://web.telegram.org/a';
-// export const PRODUCTION_URL = 'https://app.telegpt.org';
+// Telegpt相关配置
 export const PRODUCTION_URL = 'https://aquaverse.github.io/telegpt-web-app/';
 export const WEB_VERSION_BASE = 'https://web.telegram.org/'; // Used to redirect to other versions
-// export const SERVER_API_URL = 'https://api.telegpt.org';
 // export const SERVER_API_URL = 'http://localhost:3000';
-// export const SERVER_API_URL = 'https://telegpt-three.vercel.app';
 export const SERVER_API_URL = 'https://telegpt-phi.vercel.app';
 export const BASE_URL = process.env.BASE_URL;
 export const ACCOUNT_QUERY = 'account';
+export const GOOGLE_APP_CLIENT_ID = process.env.GOOGLE_APP_CLIENT_ID;
+export const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
 export const IS_MOCKED_CLIENT = process.env.APP_MOCKED_CLIENT === '1';
 export const IS_TEST = process.env.APP_ENV === 'test';

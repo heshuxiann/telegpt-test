@@ -7,7 +7,7 @@ import buildClassName from "../../../util/buildClassName";
 import { ApiMediaFormat, ApiMessage } from "../../../api/types";
 import { getPhotoMediaHash, isOwnMessage } from "../../../global/helpers";
 import { getActions, getGlobal } from "../../../global";
-import { selectTheme } from "../../../global/selectors";
+import { selectTheme, selectWebPageFromMessage } from "../../../global/selectors";
 import { useWaveformCanvas } from "../../common/Audio";
 import useMedia from "../hook/useMedia";
 import { MediaViewerOrigin } from "../../../types";
@@ -94,14 +94,16 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
   function renderMessageContent() {
     if (!message) return "";
 
-    const { webPage, photo, document, audio, voice, video } = message?.content;
+    const { photo, document, audio, voice, video } = message?.content;
+    const global = getGlobal();
+    const webPage = selectWebPageFromMessage(global, message);
     const isUrl = checkIsUrl(message?.content?.text?.text);
     if (webPage || isUrl) {
       return (
         <div className={buildClassName("flex", !isAuto ? "justify-end" : "")}>
           <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)] break-all">
             {webPage
-              ? message?.content?.webPage?.url
+              ? webPage?.url
               : message?.content?.text?.text}
           </div>
         </div>

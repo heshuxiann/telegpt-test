@@ -6,6 +6,7 @@ import type { AuthState } from './google-auth';
 
 import { IS_ELECTRON } from '../../../util/browser/windowEnvironment';
 import { getAuthState, setAuthState } from './google-auth';
+import { GOOGLE_API_KEY, GOOGLE_APP_CLIENT_ID } from '../../../config';
 
 export const GOOGLE_SCOPES = [
   'openid',
@@ -37,7 +38,7 @@ export async function loginWithGoogle():Promise<AuthState> {
   }
   return new Promise((resolve, reject) => {
     const client = window.google.accounts.oauth2.initTokenClient({
-      client_id: process.env.GOOGLE_APP_CLIENT_ID!,
+      client_id: GOOGLE_APP_CLIENT_ID!,
       scope: GOOGLE_SCOPES.join(' '),
       prompt: 'consent',
       ux_mode: 'popup',
@@ -156,7 +157,7 @@ export const createGoogleMeet = ({
       },
     };
     fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&alt=json&key=${process.env.GOOGLE_API_KEY}`,
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&alt=json&key=${GOOGLE_API_KEY}`,
       {
         method: 'POST',
         headers: {
@@ -183,7 +184,7 @@ export const getGoogleCalendarFreeBusy = ():Promise<{ start:string; end:string }
       timeMax: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 未来3天
       items: [{ id: 'primary' }], // 查询主日历
     };
-    fetch(`https://www.googleapis.com/calendar/v3/freeBusy?key=${process.env.GOOGLE_API_KEY}`, {
+    fetch(`https://www.googleapis.com/calendar/v3/freeBusy?key=${GOOGLE_API_KEY}`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${auth?.accessToken}`,

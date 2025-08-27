@@ -301,8 +301,8 @@ export function cancelApiProgressMaster(messageId: string) {
 }
 
 function sendToAIAgent(data: ApiUpdate) {
-  if (data['@type'] === 'newMessage') {
-    const hasTextContent = data.message && hasMessageText(data.message as ApiMessage);
+  if (data['@type'] === 'updateMessage') {
+    const hasTextContent = data.message && data.message.content && hasMessageText(data.message as ApiMessage);
     if (hasTextContent) {
       eventEmitter.emit(Actions.NewTextMessage, {
         message: data.message,
@@ -364,7 +364,7 @@ async function sendToCurrentChatAI(data: ApiUpdate) {
   if (!realTimeAssistantById) return;
 
   let message;
-  if (data['@type'] === 'newMessage') {
+  if (data['@type'] === 'updateMessage') {
     message = data.message;
     if ((message?.content?.video && !message?.content?.video?.id)
       || (message?.content?.document && !message?.content?.document?.id)
