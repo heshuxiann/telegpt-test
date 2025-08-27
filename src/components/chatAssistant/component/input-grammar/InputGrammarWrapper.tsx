@@ -14,9 +14,7 @@ import { injectComponent } from '../../injectComponent';
 
 import InputGrammar from './InputGrammar';
 
-// const injectMessageAI = injectComponent(InputGrammar);
 const InputGrammarWrapper = (props: InputGrammerProps) => {
-  // const containerRef = useRef<HTMLDivElement | null>(null);
   const { inputRef, getHtml, setHtml } = props;
   const containerRef = injectComponent({
     component: InputGrammar,
@@ -26,11 +24,6 @@ const InputGrammarWrapper = (props: InputGrammerProps) => {
       setHtml,
     },
   });
-  // useEffect(() => {
-  //   if (containerRef.current) {
-  //     injectMessageAI(containerRef.current, { inputRef, getHtml, setHtml });
-  //   }
-  // }, [getHtml, inputRef, setHtml]);
   return (
     <div className="absolute left-0 top-0 w-full h-full pointer-events-none" ref={containerRef} />
   );

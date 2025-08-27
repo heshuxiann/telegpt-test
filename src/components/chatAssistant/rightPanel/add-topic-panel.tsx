@@ -18,11 +18,12 @@ import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 const AddTopicPanel = () => {
   const { phone } = telegptSettings.telegptSettings;
+  const filterPhone = phone.replace(/^\+\d+\s*/, "").replace(/\s/g, "");
   const { openDrawer, drawerParams } = useDrawerStore();
   const [topicError, setTopicError] = useState(false);
   const [descriptionError, setDescriptionError] = useState(false);
   const [phoneNumberError, setPhoneNumberError] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState(phone);
+  const [phoneNumber, setPhoneNumber] = useState(filterPhone);
   const [isLoading, setIsLoading] = useState(false);
   const initialValues:IUrgentTopic = drawerParams || {
     topic: '',

@@ -16,8 +16,6 @@ interface StateProps {
   chatId: string;
 }
 
-// const injectMessageAI = injectComponent(RoomAIEntryButton);
-
 const RoomAIEntryWrapper = (props: StateProps) => {
   const { chatId } = props;
   // const containerRef = useRef<HTMLDivElement>();
@@ -160,14 +158,11 @@ const RoomAIEntryWrapper = (props: StateProps) => {
   useEffect(() => {
     loadPosition();
   }, [loadPosition]);
-
-  // useEffect(() => {
-  //   if (containerRef.current && chatId) {
-  //     injectMessageAI(containerRef.current, { chatId });
-  //   }
-  // }, [chatId]);
   const containerRef = injectComponent({
     component: RoomAIEntryButton,
+    props: {
+      chatId,
+    },
   });
 
   return (
