@@ -2,7 +2,7 @@ import React from '@teact';
 /* eslint-disable react-hooks-static-deps/exhaustive-deps */
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-shadow */
-import React, { useCallback, useEffect, useState } from '../../../lib/teact/teact';
+import { useCallback, useEffect, useState } from '../../../lib/teact/teact';
 
 import { chatAIGenerate } from '../../chatAssistant/utils/chat-api';
 

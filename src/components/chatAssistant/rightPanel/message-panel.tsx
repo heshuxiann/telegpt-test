@@ -40,7 +40,7 @@ const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) =
   const [showSmartReply, setShowSmartReply] = useState(false);
   const [replyResponse, setReplyResponse] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(undefined);
   const { messages, append } = useChat({
     api: `${SERVER_API_URL}/chat?userId=${userId}&userName=${userName}&platform=web`,
     sendExtraMessageFields: true,

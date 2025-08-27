@@ -1108,12 +1108,6 @@ export async function fetchPinnedDialogs({
 
   const { dialogs, messages, chats, users } = result;
 
-  const defaultFolderPosition = filters.findIndex((folder) => folder instanceof GramJs.DialogFilterDefault);
-  const dialogFilters = filters.filter(isChatFolder);
-  const orderedIds = dialogFilters.map(({ id }) => id);
-  if (defaultFolderPosition !== -1) {
-    orderedIds.splice(defaultFolderPosition, 0, ALL_FOLDER_ID);
-  }
   return {
     dialogIds: dialogs.map((dialog) => getApiChatIdFromMtpPeer(dialog.peer)),
     messages: messages.map((message) => buildApiMessage(message)).filter(Boolean),

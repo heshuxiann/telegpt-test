@@ -97,8 +97,7 @@ const Avatar: FC<OwnProps> = ({
 }) => {
   const { openChat, openChatAIWithInfo } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>(undefined);
   // const videoLoopCountRef = useRef(0);
   const isCustomPeer = peer && 'isCustomPeer' in peer;
   const realPeer = peer && !isCustomPeer ? peer : undefined;

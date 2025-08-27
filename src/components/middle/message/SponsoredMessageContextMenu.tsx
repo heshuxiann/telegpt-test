@@ -1,6 +1,6 @@
 import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useRef,
 } from '../../../lib/teact/teact';
 
@@ -45,8 +45,7 @@ const SponsoredMessageContextMenu: FC<OwnProps> = ({
   onSponsorInfo,
   onSponsoredReport,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  const menuRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>();
   const lang = useOldLang();
 
   const getTriggerElement = useLastCallback(() => triggerRef.current);

@@ -77,6 +77,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
     } else if (video) {
       return "video";
     }
+    return "";
   }
 
   function onPreviewClick() {
@@ -173,6 +174,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
         </div>
       );
     }
+    return undefined;
   }
 
   function renderSummary() {

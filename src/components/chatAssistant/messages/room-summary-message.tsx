@@ -327,7 +327,7 @@ function ShareCard({
   children?: any;
   captureCallback?: () => void;
 }) {
-  const domRef = useRef<HTMLDivElement>();
+  const domRef = useRef<HTMLDivElement>(undefined);
   const global = getGlobal();
   const { currentUserId } = global;
   const currentUser = selectUser(global, currentUserId!);

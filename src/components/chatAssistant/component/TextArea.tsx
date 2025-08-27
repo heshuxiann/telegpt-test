@@ -55,8 +55,7 @@ const TextArea: FC<OwnProps> = ({
   onPaste,
   noReplaceNewlines,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  let textareaRef = useRef<HTMLTextAreaElement>(null);
+  let textareaRef = useRef<HTMLTextAreaElement>(undefined);
   if (ref) {
     textareaRef = ref;
   }

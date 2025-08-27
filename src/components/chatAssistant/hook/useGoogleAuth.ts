@@ -1,8 +1,6 @@
 /* eslint-disable no-null/no-null */
 import { useCallback, useEffect, useState } from 'react';
 
-import type { google } from '../../../@types/global';
-
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
 
 interface UseGoogleAuthOptions {

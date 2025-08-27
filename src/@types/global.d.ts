@@ -195,14 +195,11 @@ type FilesystemReadWriteOptions = {
   at: number;
 };
 
-declare global {
-  interface Window {
+declare namespace google {
+   interface Window {
     google: typeof google;
   }
-}
-
-declare namespace google {
-  namespace accounts.oauth2 {
+    namespace accounts.oauth2 {
     interface TokenResponse {
       access_token: string;
       expires_in: number;

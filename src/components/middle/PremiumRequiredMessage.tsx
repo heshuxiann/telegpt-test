@@ -1,5 +1,5 @@
 import React from '@teact';
-import React, { memo } from '../../lib/teact/teact';
+import { memo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import { getUserFirstOrLastName } from '../../global/helpers';

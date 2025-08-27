@@ -25,8 +25,8 @@ export const InfiniteScroll = forwardRef<InfiniteScrollRef, InfiniteScrollProps>
   const {
     loadMore, hasMore, children, className,
   } = props;
-  const containerRef = useRef<HTMLDivElement>(null);
-  const endRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(undefined);
+  const endRef = useRef<HTMLDivElement>(undefined);
   const isLoading = useRef(false);
   // const scrollBuffer = useRef(10); // 动态缓冲区
   const anchorRef = useRef<HTMLDivElement | null>(null);
@@ -125,6 +125,7 @@ export const InfiniteScroll = forwardRef<InfiniteScrollRef, InfiniteScrollProps>
         observer.disconnect();
       };
     }
+    return undefined;
   }, [autoScrollToBottom]);
 
   return (

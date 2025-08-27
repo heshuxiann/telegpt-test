@@ -161,34 +161,6 @@ export interface AccountSettings {
   autoTranslateLanguage?: string;
 }
 
-export interface SharedSettings {
-  shouldUseSystemTheme: boolean;
-  theme: ThemeKey;
-  themes: Partial<Record<ThemeKey, IThemeSettings>>;
-  language: string;
-  languages?: ApiLanguage[];
-  performance: PerformanceType;
-  messageTextSize: number;
-  animationLevel: AnimationLevel;
-  messageSendKeyCombo: 'enter' | 'ctrl-enter';
-  miniAppsCachedPosition?: Point;
-  miniAppsCachedSize?: Size;
-  timeFormat: TimeFormat;
-  wasTimeFormatSetManually: boolean;
-  isConnectionStatusMinimized: boolean;
-  canDisplayChatInTitle: boolean;
-  shouldForceHttpTransport?: boolean;
-  shouldAllowHttpTransport?: boolean;
-  shouldCollectDebugLogs?: boolean;
-  shouldDebugExportedSenders?: boolean;
-  shouldWarnAboutSvg?: boolean;
-  shouldSkipWebAppCloseConfirmation: boolean;
-  hasContactJoinedNotifications?: boolean;
-  hasWebNotifications: boolean;
-  hasPushNotifications: boolean;
-  notificationSoundVolume: number;
-}
-
 export type IAnchorPosition = {
   x: number;
   y: number;

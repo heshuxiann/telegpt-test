@@ -64,8 +64,7 @@ const AuthCode = ({
 
   const suggestedLanguage = getSuggestedLanguage();
   const lang = useLang();
-  // eslint-disable-next-line no-null/no-null
-  const qrCodeRef = useRef<HTMLDivElement>(null);
+  const qrCodeRef = useRef<HTMLDivElement>();
 
   const isConnected = connectionState === 'connectionStateReady';
   const continueText = useLangString('AuthContinueOnThisLanguage', suggestedLanguage);

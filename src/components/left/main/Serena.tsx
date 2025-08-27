@@ -1,7 +1,7 @@
 import React from '@teact';
 /* eslint-disable no-null/no-null */
 /* eslint-disable max-len */
-import React, { useRef } from '../../../lib/teact/teact';
+import { useRef } from '../../../lib/teact/teact';
 
 import buildStyle from '../../../util/buildStyle';
 
