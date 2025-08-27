@@ -1,6 +1,6 @@
 {
   "name": "TeleGPT",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -182,7 +182,6 @@
     "mammoth": "^1.9.1",
     "mp4box": "^0.5.4",
     "music-metadata": "^11.2.3",
-    "nlprule-wasm": "file:./src/components/chatAssistant/nlprule-wasm",
     "opus-recorder": "github:Ajaxy/opus-recorder",
     "os-browserify": "^0.3.0",
     "pako": "^2.1.0",
