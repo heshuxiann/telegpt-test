@@ -24,6 +24,7 @@ import { checkAndAssignPermanentWebVersion } from './util/permanentWebVersion';
 import { onBeforeUnload } from './util/schedulers';
 import updateWebmanifest from './util/updateWebmanifest';
 import { initChatAI } from './components/chatAssistant/utils/init';
+import { initializeGoogleAuth } from './components/chatAssistant/utils/google-auth';
 
 import App from './components/App';
 
@@ -73,6 +74,7 @@ async function init() {
   initLocalization(selectSharedSettings(global).language, true);
 
   initChatAI();
+  // initializeGoogleAuth();
 
   subscribeToMasterChange((isMasterTab) => {
     getActions()

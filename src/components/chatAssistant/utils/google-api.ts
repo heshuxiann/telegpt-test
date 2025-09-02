@@ -5,8 +5,8 @@ import { message as showMessage, Modal } from 'antd';
 import type { AuthState } from './google-auth';
 
 import { IS_ELECTRON } from '../../../util/browser/windowEnvironment';
-import { getAuthState, setAuthState } from './google-auth';
-import { GOOGLE_API_KEY, GOOGLE_APP_CLIENT_ID } from '../../../config';
+import { getAuthState, onLoginSuccess, setAuthState } from './google-auth';
+import { GOOGLE_API_KEY, GOOGLE_APP_CLIENT_ID, GOOGLE_APP_CLIENT_SECRET } from '../../../config';
 
 export const GOOGLE_SCOPES = [
   'openid',
@@ -33,32 +33,101 @@ export function loadGoogleSdk(): Promise<void> {
 }
 
 export async function loginWithGoogle():Promise<AuthState> {
-  if (!window.google?.accounts?.oauth2) {
-    await loadGoogleSdk();
-  }
   return new Promise((resolve, reject) => {
-    const client = window.google.accounts.oauth2.initTokenClient({
-      client_id: GOOGLE_APP_CLIENT_ID!,
-      scope: GOOGLE_SCOPES.join(' '),
-      prompt: 'consent',
-      ux_mode: 'popup',
-      callback: (resp) => {
-        if (resp?.error) {
-          reject(resp.error);
-        }
-        const authState = {
-          isLoggedIn: true,
-          accessToken: resp.access_token,
-          idToken: resp.id_token,
-          grantedScopes: resp.scope,
-          expiresAt: Date.now() + resp.expires_in * 1000,
-        };
-        setAuthState(authState);
-        resolve(authState);
-      },
-    });
+    // 构建OAuth2授权URL
+    const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    authUrl.searchParams.set('client_id', GOOGLE_APP_CLIENT_ID!);
+    authUrl.searchParams.set('redirect_uri', `${window.location.origin}${window.location.pathname}google-auth-callback.html`);
+    authUrl.searchParams.set('response_type', 'code');
+    authUrl.searchParams.set('scope', GOOGLE_SCOPES.join(' '));
+    authUrl.searchParams.set('access_type', 'offline');
+    authUrl.searchParams.set('prompt', 'consent');
+    authUrl.searchParams.set('state', Math.random().toString(36).substring(2));
 
-    client.requestAccessToken();
+    // 打开授权窗口
+    const authWindow = window.open(
+      authUrl.toString(),
+      'google-auth',
+      'width=500,height=600,scrollbars=yes,resizable=yes'
+    );
+
+    if (!authWindow) {
+      reject(new Error('Failed to open authorization window'));
+      return;
+    }
+
+    // 监听授权窗口消息
+    let authCompleted = false;
+    
+    const messageHandler = async (event: MessageEvent) => {
+      console.log('Received message:', event.data);
+      console.log('Message origin:', event.origin);
+      
+      if (event.origin !== window.location.origin) {
+        return;
+      }
+
+      if (event.data.type === 'google-oauth-code') {
+        console.log('Authorization code received:', event.data.code);
+        window.removeEventListener('message', messageHandler);
+        authCompleted = true;
+        
+        try {
+          const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+              client_id: GOOGLE_APP_CLIENT_ID!,
+              client_secret: GOOGLE_APP_CLIENT_SECRET!,
+              code: event.data.code,
+              grant_type: 'authorization_code',
+              redirect_uri: `${window.location.origin}${window.location.pathname}google-auth-callback.html`,
+            }),
+          });
+
+          if (!tokenResponse.ok) {
+            throw new Error('Failed to exchange code for token');
+          }
+
+          const tokenData = await tokenResponse.json();
+          
+          const authState = {
+            isLoggedIn: true,
+            accessToken: tokenData.access_token,
+            refreshToken: tokenData.refresh_token,
+            idToken: tokenData.id_token,
+            grantedScopes: tokenData.scope,
+            expiresAt: Date.now() + tokenData.expires_in * 1000,
+          };
+          
+          setAuthState(authState);
+          onLoginSuccess();
+          resolve(authState);
+        } catch (error) {
+          reject(error);
+        }
+      } else if (event.data.type === 'google-oauth-error') {
+        window.removeEventListener('message', messageHandler);
+        authCompleted = true;
+        reject(new Error(event.data.error || 'Authorization failed'));
+      }
+    };
+
+    window.addEventListener('message', messageHandler);
+
+    // 检查窗口是否被关闭
+    const checkClosed = setInterval(() => {
+      if (authWindow.closed) {
+        clearInterval(checkClosed);
+        window.removeEventListener('message', messageHandler);
+        // 只有在认证未完成的情况下才触发错误
+        if (!authCompleted) {
+          reject(new Error('Authorization window was closed'));
+        }
+      }
+    }, 1000);
   });
 }
 

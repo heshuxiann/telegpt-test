@@ -19,6 +19,7 @@ export const SERVER_API_URL = 'https://telegpt-phi.vercel.app';
 export const BASE_URL = process.env.BASE_URL;
 export const ACCOUNT_QUERY = 'account';
 export const GOOGLE_APP_CLIENT_ID = process.env.GOOGLE_APP_CLIENT_ID;
+export const GOOGLE_APP_CLIENT_SECRET = process.env.GOOGLE_APP_CLIENT_SECRET;
 export const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
 export const IS_MOCKED_CLIENT = process.env.APP_MOCKED_CLIENT === '1';
