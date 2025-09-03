@@ -17,7 +17,7 @@ export const initChatAI = () => {
   // init urgent alert task
   urgentCheckTask.initTask();
   // check tools embedding
-  toolsEmbeddingStore.getText(TOOLS_SCHEDULE_MEETING_ID).then((res:any) => {
+  toolsEmbeddingStore.getText(TOOLS_SCHEDULE_MEETING_ID).then((res: any) => {
     if (!res) {
       const meetingSentences = [
         '安排会议',
@@ -46,12 +46,12 @@ export const initChatAI = () => {
       toolsEmbeddingStore.addText(meetingSentences.join(', '), TOOLS_SCHEDULE_MEETING_ID, {});
     }
   });
-  toolsEmbeddingStore.getText(TOOLS_SEARCH_GROUP_ID).then((res:any) => {
+  toolsEmbeddingStore.getText(TOOLS_SEARCH_GROUP_ID).then((res: any) => {
     if (!res) {
       toolsEmbeddingStore.addText('searching for group/chanel/team/channel', TOOLS_SEARCH_GROUP_ID, {});
     }
   });
-  toolsEmbeddingStore.getText(TOOLS_SEARCH_USER_ID).then((res:any) => {
+  toolsEmbeddingStore.getText(TOOLS_SEARCH_USER_ID).then((res: any) => {
     if (!res) {
       toolsEmbeddingStore.addText('searching for a user/person/peer', TOOLS_SEARCH_USER_ID, {});
     }

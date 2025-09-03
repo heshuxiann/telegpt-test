@@ -1,6 +1,6 @@
-/* eslint-disable max-len */
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
+// eslint-disable-next-line @stylistic/max-len
 export type StoreName = 'message' | 'contact' | 'user' | 'general' | 'knowledge' | 'summaryTemplate' | 'urgentTopic' | 'summary' | 'folder' | 'aIChatFolders' | 'userPortrait' | 'userPortraitMessage';
 
 type IndexConfig = [indexName: string, keyPath: string | string[]];
@@ -20,7 +20,7 @@ class ChataiStoreManager {
 
   public db: IDBDatabase | null = null;
 
-  private STORE_CONFIG:StoreConfigMap = {
+  private STORE_CONFIG: StoreConfigMap = {
     summary: { keyPath: 'id', indexes: [['id', 'id'], ['timestamp', 'timestamp']] },
     message: { keyPath: 'id', indexes: [['id', 'id'], ['chatId_timestamp', ['chatId', 'timestamp']]] },
     contact: { keyPath: 'id', autoIncrement: true },
@@ -41,8 +41,6 @@ class ChataiStoreManager {
   }
 
   initDB(): Promise<IDBDatabase> {
-    // eslint-disable-next-line @typescript-eslint/quotes, no-console
-    console.log("初始化indexdb", this.VERSION);
     return new Promise<IDBDatabase>((resolve, reject) => {
       const request = indexedDB.open(this.DB_NAME, this.VERSION);
 
@@ -78,7 +76,6 @@ class ChataiStoreManager {
         resolve(request.result);
       };
 
-      // eslint-disable-next-line no-console
       request.onerror = (err) => {
         console.error(err);
         reject(new Error('Failed to open database'));
@@ -90,7 +87,7 @@ class ChataiStoreManager {
     if (!this.db) {
       this.db = await this.initDB();
     }
-    return this.db!;
+    return this.db;
   }
 }
 

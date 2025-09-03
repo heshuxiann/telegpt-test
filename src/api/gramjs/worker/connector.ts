@@ -1,6 +1,5 @@
 import { getGlobal } from '../../../global';
 
-import type { IVSDocument } from '../../../components/chatAssistant/vector-storage/types/IVSDocument';
 import type { Api } from '../../../lib/gramjs';
 import type { TypedBroadcastChannel } from '../../../util/browser/multitab';
 import type {
@@ -33,7 +32,7 @@ import {
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
 import { deleteStoryFromUserPortraitMessage, handleStoryToUserPortraitMessage } from '../../../util/userPortrait';
 import ChatAIMessageQuene from '../../../components/chatAssistant/ai-task/chatai-task';
-import { messageEmbeddingStore, toolsEmbeddingStore } from '../../../components/chatAssistant/vector-store';
+import hasMeetingIntent from '../../../components/chatAssistant/utils/meeting-match';
 
 import eventEmitter, {
   Actions,
@@ -313,19 +312,20 @@ function sendToAIAgent(data: ApiUpdate) {
       } = data.message;
       const messageContent = data.message?.content?.text?.text;
       if (chatId && messageContent) {
-        const chatType = isUserId(chatId) ? 'private' : 'group';
-        messageEmbeddingStore.addText(messageContent, `${chatId}-${id}`, {
-          chatId,
-          senderId,
-          messageId: id,
-          timestamp: date,
-          chatType,
-          date: date ? new Date(date * 1000).toISOString().split('T')[0] : '0',
-        }).then((res: IVSDocument<any>) => {
-          if (chatType === 'private') {
-            isIntentionToScheduleMeeting(res.vector, data.message as ApiMessage);
-          }
-        });
+        isIntentionToScheduleMeeting(data.message as ApiMessage);
+        // const chatType = isUserId(chatId) ? 'private' : 'group';
+        // messageEmbeddingStore.addText(messageContent, `${chatId}-${id}`, {
+        //   chatId,
+        //   senderId,
+        //   messageId: id,
+        //   timestamp: date,
+        //   chatType,
+        //   date: date ? new Date(date * 1000).toISOString().split('T')[0] : '0',
+        // }).then((res: IVSDocument<any>) => {
+        //   if (chatType === 'private') {
+        //     isIntentionToScheduleMeeting(res.vector, data.message as ApiMessage);
+        //   }
+        // });
       }
     }
   } else if (data['@type'] === 'updateStory') {
@@ -335,16 +335,23 @@ function sendToAIAgent(data: ApiUpdate) {
   }
 }
 
-async function isIntentionToScheduleMeeting(embedding: number[] | undefined, message: ApiMessage) {
-  const vectorSearchResults = await toolsEmbeddingStore.similaritySearch({
-    queryEmbedding: embedding,
-    k: 10,
-  });
-  const matchs = vectorSearchResults.similarItems.filter((item: any) => item.score > 0.72);
-  if (matchs.length > 0 && matchs.find((item: any) => item.id === 'schedule-meeting')) {
+async function isIntentionToScheduleMeeting(message: ApiMessage) {
+  const messageContent = message?.content?.text?.text;
+  const flag = await hasMeetingIntent(messageContent!);
+  if (flag) {
     eventEmitter.emit(Actions.IntentionToScheduleMeeting, { message });
   }
 }
+// async function isIntentionToScheduleMeeting(embedding: number[] | undefined, message: ApiMessage) {
+//   const vectorSearchResults = await toolsEmbeddingStore.similaritySearch({
+//     queryEmbedding: embedding,
+//     k: 10,
+//   });
+//   const matchs = vectorSearchResults.similarItems.filter((item: any) => item.score > 0.72);
+//   if (matchs.length > 0 && matchs.find((item: any) => item.id === 'schedule-meeting')) {
+//     eventEmitter.emit(Actions.IntentionToScheduleMeeting, { message });
+//   }
+// }
 
 async function sendToCurrentChatAI(data: ApiUpdate) {
   const global = getGlobal();

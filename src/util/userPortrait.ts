@@ -29,8 +29,8 @@ export function groupMessagesByHalfHour(messages: TextMessage[]) {
   }[] = [];
 
   const groupMap: Record<
-  string, // day+groupKey
-  TextMessage[]
+    string, // day+groupKey
+    TextMessage[]
   > = {};
 
   messages.forEach((msg: TextMessage) => {
