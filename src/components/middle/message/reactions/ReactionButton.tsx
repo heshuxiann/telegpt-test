@@ -1,4 +1,5 @@
-import React, { memo, useEffect, useRef } from '../../../../lib/teact/teact';
+import React from '@teact';
+import { memo, useEffect, useRef } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
 import type {
@@ -71,10 +72,8 @@ const ReactionButton = ({
     openPaidReactionModal,
     requestWave,
   } = getActions();
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLButtonElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const counterRef = useRef<HTMLSpanElement>(null);
+  const ref = useRef<HTMLButtonElement>();
+  const counterRef = useRef<HTMLSpanElement>();
   const animationRef = useRef<Animation>();
 
   const lang = useLang();

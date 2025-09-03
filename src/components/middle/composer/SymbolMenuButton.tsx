@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useRef, useState } from '../../../lib/teact/teact';
+import { memo, useRef, useState } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
 
 import type { ApiSticker, ApiVideo } from '../../../api/types';
@@ -85,8 +86,7 @@ const SymbolMenuButton: FC<OwnProps> = ({
     addRecentCustomEmoji,
   } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const triggerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>();
 
   const [isSymbolMenuLoaded, onSymbolMenuLoadingComplete] = useFlag();
   const [contextMenuAnchor, setContextMenuAnchor] = useState<IAnchorPosition | undefined>(undefined);

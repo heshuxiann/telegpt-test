@@ -1,6 +1,7 @@
+import React from '@teact';
 /* eslint-disable max-len */
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo,
   useState,
 } from '../../../lib/teact/teact';

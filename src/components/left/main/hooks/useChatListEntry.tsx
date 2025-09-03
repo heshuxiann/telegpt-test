@@ -1,4 +1,5 @@
-import React, {
+import React from '@teact';
+import {
   useCallback, useLayoutEffect, useRef,
 } from '../../../../lib/teact/teact';
 
@@ -12,8 +13,6 @@ import { ANIMATION_END_DELAY, CHAT_HEIGHT_PX } from '../../../../config';
 import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
 import {
   getMessageIsSpoiler,
-  getMessageMediaHash,
-  getMessageMediaThumbDataUri,
   getMessageRoundVideo,
   getMessageSticker,
   getMessageVideo,
@@ -24,6 +23,8 @@ import renderText from '../../../common/helpers/renderText';
 import { renderTextWithEntities } from '../../../common/helpers/renderTextWithEntities';
 import { ChatAnimationTypes } from './useChatAnimationType';
 
+import useMessageMediaHash from '../../../../hooks/media/useMessageMediaHash';
+import useThumbnail from '../../../../hooks/media/useThumbnail';
 import useEnsureStory from '../../../../hooks/useEnsureStory';
 import useMedia from '../../../../hooks/useMedia';
 import useOldLang from '../../../../hooks/useOldLang';
@@ -72,8 +73,7 @@ export default function useChatListEntry({
   withInterfaceAnimations?: boolean;
 }) {
   const oldLang = useOldLang();
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
 
   const storyData = lastMessage?.content.storyData;
   const shouldTryLoadingStory = statefulMediaContent && !statefulMediaContent.story;
@@ -83,13 +83,16 @@ export default function useChatListEntry({
   const mediaContent = statefulMediaContent?.story || lastMessage;
   const mediaHasPreview = mediaContent && !getMessageSticker(mediaContent);
 
-  const mediaThumbnail = mediaHasPreview ? getMessageMediaThumbDataUri(mediaContent) : undefined;
-  const mediaBlobUrl = useMedia(mediaHasPreview ? getMessageMediaHash(mediaContent, 'micro') : undefined);
+  const thumbDataUri = useThumbnail(mediaContent);
+
+  const mediaThumbnail = mediaHasPreview ? thumbDataUri : undefined;
+  const mediaHash = useMessageMediaHash(mediaContent, 'micro');
+  const mediaBlobUrl = useMedia(mediaHasPreview ? mediaHash : undefined);
   const isRoundVideo = Boolean(lastMessage && getMessageRoundVideo(lastMessage));
 
   const renderLastMessageOrTyping = useCallback(() => {
     if (!isSavedDialog && !isPreview
-        && typingStatus && lastMessage && typingStatus.timestamp > lastMessage.date * 1000) {
+      && typingStatus && lastMessage && typingStatus.timestamp > lastMessage.date * 1000) {
       return <TypingStatus typingStatus={typingStatus} />;
     }
 
@@ -103,12 +106,14 @@ export default function useChatListEntry({
       return (
         <p className="last-message" dir={oldLang.isRtl ? 'auto' : 'ltr'}>
           <span className="draft">{oldLang('Draft')}</span>
-          {renderTextWithEntities({
-            text: draft.text?.text || '',
-            entities: draft.text?.entities,
-            asPreview: true,
-            withTranslucentThumbs: true,
-          })}
+          <span className="last-message-summary" dir="auto">
+            {renderTextWithEntities({
+              text: draft.text?.text || '',
+              entities: draft.text?.entities,
+              asPreview: true,
+              withTranslucentThumbs: true,
+            })}
+          </span>
         </p>
       );
     }
@@ -117,7 +122,9 @@ export default function useChatListEntry({
       return undefined;
     }
 
-    const senderName = getMessageSenderName(oldLang, chatId, lastMessageSender);
+    const senderName = lastMessageSender
+      ? getMessageSenderName(oldLang, chatId, lastMessageSender)
+      : undefined;
 
     return (
       <p className="last-message shared-canvas-container" dir={oldLang.isRtl ? 'auto' : 'ltr'}>
@@ -129,7 +136,9 @@ export default function useChatListEntry({
         )}
         {!isSavedDialog && lastMessage.forwardInfo && (<Icon name="share-filled" className="chat-prefix-icon" />)}
         {lastMessage.replyInfo?.type === 'story' && (<Icon name="story-reply" className="chat-prefix-icon" />)}
-        {renderSummary(lastMessage, observeIntersection, mediaBlobUrl || mediaThumbnail, isRoundVideo)}
+        <span className="last-message-summary" dir="auto">
+          {renderSummary(lastMessage, observeIntersection, mediaBlobUrl || mediaThumbnail, isRoundVideo)}
+        </span>
       </p>
     );
   }, [

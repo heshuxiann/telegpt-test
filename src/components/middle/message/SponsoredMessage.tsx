@@ -1,6 +1,6 @@
-import type { RefObject } from 'react';
-import type { FC } from '../../../lib/teact/teact';
-import React, {
+import React from '@teact';
+import type { ElementRef, FC } from '../../../lib/teact/teact';
+import {
   memo, useEffect, useMemo, useRef,
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
@@ -12,13 +12,13 @@ import { MediaViewerOrigin } from '../../../types';
 import {
   getIsDownloading,
   getMessageContent,
-  getMessageDownloadableMedia,
 } from '../../../global/helpers';
 import {
   selectActiveDownloads, selectCanAutoLoadMedia, selectCanAutoPlayMedia,
   selectSponsoredMessage,
   selectTheme,
 } from '../../../global/selectors';
+import { selectMessageDownloadableMedia } from '../../../global/selectors/media';
 import { IS_ANDROID } from '../../../util/browser/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
 import { renderTextWithEntities } from '../../common/helpers/renderTextWithEntities';
@@ -45,7 +45,7 @@ import './SponsoredMessage.scss';
 
 type OwnProps = {
   chatId: string;
-  containerRef: RefObject<HTMLDivElement>;
+  containerRef: ElementRef<HTMLDivElement>;
   observeIntersectionForLoading: ObserveFn;
   observeIntersectionForPlaying: ObserveFn;
 };
@@ -81,10 +81,8 @@ const SponsoredMessage: FC<OwnProps & StateProps> = ({
   } = getActions();
 
   const lang = useOldLang();
-  // eslint-disable-next-line no-null/no-null
-  const contentRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>();
+  const ref = useRef<HTMLDivElement>();
   const shouldObserve = Boolean(message);
 
   const { isMobile } = useAppLayout();
@@ -287,7 +285,7 @@ const SponsoredMessage: FC<OwnProps & StateProps> = ({
             />
           )}
           <span className={buildClassName('message-title message-type', hasMedia && 'has-media')}>
-            {message!.isRecommended ? lang('Message.RecommendedLabel') : lang('SponsoredMessage')}
+            {message.isRecommended ? lang('Message.RecommendedLabel') : lang('SponsoredMessage')}
             <BadgeButton onClick={handleOpenAboutAdsModal} className="ad-about">
               {lang('SponsoredMessageAdWhatIsThis')}
             </BadgeButton>
@@ -343,7 +341,7 @@ export default memo(withGlobal<OwnProps>(
     const message = selectSponsoredMessage(global, chatId);
 
     const activeDownloads = selectActiveDownloads(global);
-    const downloadableMedia = message ? getMessageDownloadableMedia(message) : undefined;
+    const downloadableMedia = message ? selectMessageDownloadableMedia(global, message) : undefined;
     const isDownloading = downloadableMedia && getIsDownloading(activeDownloads, downloadableMedia);
 
     return {

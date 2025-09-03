@@ -37,8 +37,7 @@ const Tab: FC<OwnProps> = ({
   onClick,
   clickArg,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  const tabRef = useRef<HTMLDivElement>(null);
+  const tabRef = useRef<HTMLDivElement>(undefined);
 
   useLayoutEffect(() => {
     // Set initial active state

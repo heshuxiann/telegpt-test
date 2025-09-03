@@ -1,5 +1,5 @@
-/* eslint-disable max-len */
-import React, {
+import React from '@teact';
+import {
   memo, useLayoutEffect, useRef,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
@@ -64,8 +64,7 @@ const AuthCode = ({
 
   const suggestedLanguage = getSuggestedLanguage();
   const lang = useLang();
-  // eslint-disable-next-line no-null/no-null
-  const qrCodeRef = useRef<HTMLDivElement>(null);
+  const qrCodeRef = useRef<HTMLDivElement>();
 
   const isConnected = connectionState === 'connectionStateReady';
   const continueText = useLangString('AuthContinueOnThisLanguage', suggestedLanguage);

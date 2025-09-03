@@ -21,7 +21,7 @@ import { ArrowRightIcon, SendIcon } from '../icons';
 import { languagePrompt } from '../prompt';
 import { chatAIGenerate, getCurrentUserInfo } from '../utils/chat-api';
 import { cn, formatTimestamp } from '../utils/util';
-import { knowledgeEmbeddingStore } from '../vector-store';
+import { getBestKnowledgeMatch } from '../utils/knowledge-match';
 
 import Avatar from '../component/Avatar';
 import ChatAvatar from '../component/ChatAvatar';
@@ -40,7 +40,7 @@ const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) =
   const [showSmartReply, setShowSmartReply] = useState(false);
   const [replyResponse, setReplyResponse] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(undefined);
   const { messages, append } = useChat({
     api: `${SERVER_API_URL}/chat?userId=${userId}&userName=${userName}&platform=web`,
     sendExtraMessageFields: true,
@@ -94,13 +94,9 @@ const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) =
   }, [messages]);
   const handleSmaryReply = async (message:ApiMessage) => {
     if (message.content.text?.text) {
-      const vectorSearchResults = await knowledgeEmbeddingStore.similaritySearch({
-        query: message.content.text?.text,
-      });
-      type Metadata = { answer: string }; // Define the type for metadata
-      const similarResult = vectorSearchResults.similarItems[0] as { metadata: Metadata; score: number } | undefined;
-      if (similarResult && similarResult.score > 0.8) {
-        setReplyResponse(similarResult.metadata.answer);
+      const bestMatch = await getBestKnowledgeMatch(message.content.text.text);
+      if (bestMatch && bestMatch.score > 0.8) {
+        setReplyResponse(bestMatch.answer);
       } else {
         chatAIGenerate({
           data: {

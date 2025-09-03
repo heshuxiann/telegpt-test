@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
+import { memo, useEffect, useRef } from '../../lib/teact/teact';
 
 import { requestMutation } from '../../lib/fasterdom/fasterdom';
 import { animate, timingFunctions } from '../../util/animation';
@@ -43,8 +44,7 @@ const ProgressSpinner: FC<{
   withColor,
   onClick,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>();
   const width = SIZES[size];
   const progressRef = useStateRef(progress);
 

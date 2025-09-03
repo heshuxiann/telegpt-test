@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../../lib/teact/teact';
-import React, { memo, useMemo, useRef } from '../../../../lib/teact/teact';
+import { memo, useMemo, useRef } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
 import type {
@@ -83,8 +84,7 @@ const ReactionSelector: FC<OwnProps> = ({
   onShowMore,
 }) => {
   const { openPremiumModal } = getActions();
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
   const lang = useOldLang();
 
   const areReactionsLocked = isInSavedMessages && !isCurrentUserPremium && !isInStoryViewer;
@@ -110,7 +110,7 @@ const ReactionSelector: FC<OwnProps> = ({
       if ((!isCustomReaction && !availableReaction) || availableReaction?.isInactive) return undefined;
 
       if (!isPrivate && !shouldUseCurrentReactions
-         && (!enabledReactions || !canSendReaction(reaction, enabledReactions))) {
+        && (!enabledReactions || !canSendReaction(reaction, enabledReactions))) {
         return undefined;
       }
 

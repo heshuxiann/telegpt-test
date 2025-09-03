@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useCallback, useEffect, useMemo, useState,
 } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
@@ -60,7 +61,7 @@ const SettingsPrivacyVisibilityExceptionList: FC<OwnProps & StateProps> = ({
   const oldLang = useOldLang();
   const lang = useLang();
 
-  const customPeerBots : UniqueCustomPeer = useMemo(() => {
+  const customPeerBots: UniqueCustomPeer = useMemo(() => {
     return {
       isCustomPeer: true,
       type: 'bots',
@@ -90,8 +91,12 @@ const SettingsPrivacyVisibilityExceptionList: FC<OwnProps & StateProps> = ({
     if (!settings) {
       return [];
     }
-    if (settings.shouldAllowPremium) { return [CUSTOM_PEER_PREMIUM.type]; }
-    if (settings.botsPrivacy === 'allow' && isAllowList) { return [customPeerBots.type]; }
+    if (settings.shouldAllowPremium) {
+      return [CUSTOM_PEER_PREMIUM.type];
+    }
+    if (settings.botsPrivacy === 'allow' && isAllowList) {
+      return [customPeerBots.type];
+    }
     return [];
   }, [settings, isAllowList, customPeerBots]);
   const [searchQuery, setSearchQuery] = useState<string>('');

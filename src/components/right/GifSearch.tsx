@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React, { memo, useCallback, useRef } from '../../lib/teact/teact';
+import { memo, useCallback, useRef } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiChat, ApiChatFullInfo, ApiVideo } from '../../api/types';
@@ -69,8 +70,7 @@ const GifSearch: FC<OwnProps & StateProps> = ({
     setGifSearchQuery,
   } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
 
   const [requestCalendar, calendar] = useSchedule(canScheduleUntilOnline);
 
@@ -78,7 +78,8 @@ const GifSearch: FC<OwnProps & StateProps> = ({
     observe: observeIntersection,
   } = useIntersectionObserver({ rootRef: containerRef, debounceMs: INTERSECTION_DEBOUNCE });
 
-  const canSendGifs = canPostInChat && getAllowedAttachmentOptions(chat, chatFullInfo, isChatWithBot).canSendGifs;
+  const canSendGifs = canPostInChat
+    && getAllowedAttachmentOptions(chat, chatFullInfo, isChatWithBot, isSavedMessages).canSendGifs;
 
   const handleGifClick = useCallback((gif: ApiVideo, isSilent?: boolean, shouldSchedule?: boolean) => {
     if (canSendGifs) {

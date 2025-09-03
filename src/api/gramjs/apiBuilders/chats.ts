@@ -1,4 +1,3 @@
-import type BigInt from 'big-integer';
 import { Api as GramJs } from '../../../lib/gramjs';
 import type { Entity } from '../../../lib/gramjs/types';
 
@@ -24,7 +23,7 @@ import type {
   ApiTopic,
 } from '../../types';
 
-import { pick, pickTruthy } from '../../../util/iteratees';
+import { pickTruthy } from '../../../util/iteratees';
 import { getServerTimeOffset } from '../../../util/serverTime';
 import { addPhotoToLocalDb, addUserToLocalDb } from '../helpers/localDb';
 import { serializeBytes } from '../helpers/misc';
@@ -32,7 +31,7 @@ import {
   buildApiBotVerification, buildApiFormattedText, buildApiPhoto, buildApiUsernames, buildAvatarPhotoId,
 } from './common';
 import { omitVirtualClassFields } from './helpers';
-import { buildApiPeerNotifySettings } from './misc';
+import { buildApiPeerNotifySettings, buildApiRestrictionReasons } from './misc';
 import {
   buildApiEmojiStatus,
   buildApiPeerColor,
@@ -53,67 +52,83 @@ function buildApiChatFieldsFromPeerEntity(
   peerEntity: Entity,
   isSupport = false,
 ): PeerEntityApiChatFields {
+  const user = peerEntity instanceof GramJs.User ? peerEntity : undefined;
+  const channel = peerEntity instanceof GramJs.Channel ? peerEntity : undefined;
+
+  const userOrChannel = user || channel;
+
+  // Shared fields
   const isMin = Boolean('min' in peerEntity && peerEntity.min);
   const accessHash = ('accessHash' in peerEntity) ? String(peerEntity.accessHash) : undefined;
   const hasVideoAvatar = 'photo' in peerEntity && peerEntity.photo && 'hasVideo' in peerEntity.photo
     && peerEntity.photo.hasVideo;
   const avatarPhotoId = ('photo' in peerEntity) && peerEntity.photo ? buildAvatarPhotoId(peerEntity.photo) : undefined;
-  const areSignaturesShown = Boolean('signatures' in peerEntity && peerEntity.signatures);
-  const hasPrivateLink = Boolean('hasLink' in peerEntity && peerEntity.hasLink);
-  const isScam = Boolean('scam' in peerEntity && peerEntity.scam);
-  const isFake = Boolean('fake' in peerEntity && peerEntity.fake);
-  const isJoinToSend = Boolean('joinToSend' in peerEntity && peerEntity.joinToSend);
-  const isJoinRequest = Boolean('joinRequest' in peerEntity && peerEntity.joinRequest);
+  const hasUsername = Boolean('username' in peerEntity && peerEntity.username);
+
   const usernames = buildApiUsernames(peerEntity);
-  const isForum = Boolean('forum' in peerEntity && peerEntity.forum);
-  const areStoriesHidden = Boolean('storiesHidden' in peerEntity && peerEntity.storiesHidden);
-  const maxStoryId = 'storiesMaxId' in peerEntity ? peerEntity.storiesMaxId : undefined;
-  const botVerificationIconId = 'botVerificationIcon' in peerEntity
-    ? peerEntity.botVerificationIcon?.toString() : undefined;
-  const storiesUnavailable = Boolean('storiesUnavailable' in peerEntity && peerEntity.storiesUnavailable);
-  const color = ('color' in peerEntity && peerEntity.color) ? buildApiPeerColor(peerEntity.color) : undefined;
-  const emojiStatus = ('emojiStatus' in peerEntity && peerEntity.emojiStatus)
-    ? buildApiEmojiStatus(peerEntity.emojiStatus) : undefined;
-  const boostLevel = ('level' in peerEntity) ? peerEntity.level : undefined;
-  const areProfilesShown = Boolean('signatureProfiles' in peerEntity && peerEntity.signatureProfiles);
-  const subscriptionUntil = 'subscriptionUntilDate' in peerEntity ? peerEntity.subscriptionUntilDate : undefined;
-  const paidMessagesStars = 'sendPaidMessagesStars' in peerEntity ? peerEntity.sendPaidMessagesStars : undefined;
+
+  // Chat and channel shared fields
+  const isCallActive = 'callActive' in peerEntity && peerEntity.callActive;
+  const isCallNotEmpty = 'callNotEmpty' in peerEntity && peerEntity.callNotEmpty;
+  const creationDate = 'date' in peerEntity ? peerEntity.date : undefined;
+  const membersCount = 'participantsCount' in peerEntity ? peerEntity.participantsCount : undefined;
+  const isProtected = 'noforwards' in peerEntity && peerEntity.noforwards;
+  const isCreator = 'creator' in peerEntity && peerEntity.creator;
+
+  // User and channel shared fields
+  const isScam = userOrChannel?.scam;
+  const isFake = userOrChannel?.fake;
+  const areStoriesHidden = userOrChannel?.storiesHidden;
+  const maxStoryId = userOrChannel?.storiesMaxId;
+  const botVerificationIconId = userOrChannel?.botVerificationIcon?.toString();
+  const storiesUnavailable = userOrChannel?.storiesUnavailable;
+  const color = userOrChannel?.color ? buildApiPeerColor(userOrChannel.color) : undefined;
+  const emojiStatus = userOrChannel?.emojiStatus ? buildApiEmojiStatus(userOrChannel.emojiStatus) : undefined;
+  const paidMessagesStars = userOrChannel?.sendPaidMessagesStars;
+  const isVerified = userOrChannel?.verified;
 
   return {
     isMin,
-    hasPrivateLink,
-    areSignaturesShown,
-    areProfilesShown,
+    isLinkedInDiscussion: channel?.hasLink,
+    areSignaturesShown: channel?.signatures,
+    areProfilesShown: channel?.signatureProfiles,
     usernames,
     accessHash,
     hasVideoAvatar,
     avatarPhotoId,
-    ...('verified' in peerEntity && { isVerified: peerEntity.verified }),
-    ...('callActive' in peerEntity && { isCallActive: peerEntity.callActive }),
-    ...('callNotEmpty' in peerEntity && { isCallNotEmpty: peerEntity.callNotEmpty }),
-    ...('date' in peerEntity && { creationDate: peerEntity.date }),
-    ...('participantsCount' in peerEntity && peerEntity.participantsCount !== undefined && {
-      membersCount: peerEntity.participantsCount,
-    }),
-    ...('noforwards' in peerEntity && { isProtected: Boolean(peerEntity.noforwards) }),
+    isVerified,
+    isCallActive,
+    isCallNotEmpty,
+    creationDate,
+    hasUsername,
+    ...(membersCount !== undefined && { membersCount }),
+    isProtected,
     isSupport: isSupport || undefined,
-    ...buildApiChatPermissions(peerEntity),
-    ...('creator' in peerEntity && { isCreator: peerEntity.creator }),
-    ...buildApiChatRestrictions(peerEntity),
-    ...buildApiChatMigrationInfo(peerEntity),
+    isCreator,
     fakeType: isScam ? 'scam' : (isFake ? 'fake' : undefined),
     color,
-    isJoinToSend,
-    isJoinRequest,
-    isForum,
+    isJoinToSend: channel?.joinToSend,
+    isJoinRequest: channel?.joinRequest,
+    isForum: channel?.forum,
+    isMonoforum: channel?.monoforum,
+    linkedMonoforumId: channel?.linkedMonoforumId && buildApiPeerId(channel.linkedMonoforumId, 'channel'),
+    areChannelMessagesAllowed: channel?.broadcastMessagesAllowed,
     areStoriesHidden,
     maxStoryId,
     hasStories: Boolean(maxStoryId) && !storiesUnavailable,
     emojiStatus,
-    boostLevel,
+    boostLevel: channel?.level,
     botVerificationIconId,
-    subscriptionUntil,
+    hasGeo: channel?.hasGeo,
+    subscriptionUntil: channel?.subscriptionUntilDate,
     paidMessagesStars: paidMessagesStars?.toJSNumber(),
+    level: channel?.level,
+    hasAutoTranslation: channel?.autotranslation,
+    withForumTabs: channel?.forumTabs,
+
+    ...buildApiChatPermissions(peerEntity),
+    ...buildApiChatRestrictions(peerEntity),
+    ...buildApiChatMigrationInfo(peerEntity),
   };
 }
 
@@ -177,11 +192,11 @@ function buildApiChatPermissions(peerEntity: GramJs.TypeUser | GramJs.TypeChat):
   };
 }
 
-function buildApiChatRestrictions(peerEntity: GramJs.TypeUser | GramJs.TypeChat): {
+function buildApiChatRestrictions(peerEntity: Entity): {
   isNotJoined?: boolean;
   isForbidden?: boolean;
   isRestricted?: boolean;
-  restrictionReason?: ApiRestrictionReason;
+  restrictionReasons?: ApiRestrictionReason[];
 } {
   if (peerEntity instanceof GramJs.ChatForbidden) {
     return {
@@ -197,17 +212,12 @@ function buildApiChatRestrictions(peerEntity: GramJs.TypeUser | GramJs.TypeChat)
 
   const restrictions = {};
 
-  if ('restricted' in peerEntity) {
-    const restrictionReason = peerEntity.restricted
-      ? buildApiChatRestrictionReason(peerEntity.restrictionReason)
-      : undefined;
+  if ('restricted' in peerEntity && !peerEntity.min) {
+    const restrictionReasons = buildApiRestrictionReasons(peerEntity.restrictionReason);
 
-    if (restrictionReason) {
-      Object.assign(restrictions, {
-        isRestricted: true,
-        restrictionReason,
-      });
-    }
+    Object.assign(restrictions, {
+      restrictionReasons,
+    });
   }
 
   if (peerEntity instanceof GramJs.Chat) {
@@ -250,17 +260,6 @@ function buildApiChatMigrationInfo(peerEntity: Entity): {
   return {};
 }
 
-function buildApiChatRestrictionReason(
-  restrictionReasons?: GramJs.RestrictionReason[],
-): ApiRestrictionReason | undefined {
-  if (!restrictionReasons) {
-    return undefined;
-  }
-
-  const targetReason = restrictionReasons.find(({ platform }) => platform === 'all');
-  return targetReason ? pick(targetReason, ['reason', 'text']) : undefined;
-}
-
 export function buildApiChatFromPreview(
   preview: GramJs.TypeChat | GramJs.TypeUser,
   isSupport = false,
@@ -298,11 +297,11 @@ export function getApiChatTypeFromPeerEntity(peerEntity: GramJs.TypeChat | GramJ
 
 export function getPeerKey(peer: GramJs.TypePeer) {
   if (isMtpPeerUser(peer)) {
-    return `user${peer.userId}`;
+    return `user${peer.userId.toString()}`;
   } else if (isMtpPeerChat(peer)) {
-    return `chat${peer.chatId}`;
+    return `chat${peer.chatId.toString()}`;
   } else {
-    return `chat${peer.channelId}`;
+    return `chat${peer.channelId.toString()}`;
   }
 }
 
@@ -330,7 +329,7 @@ export function buildChatMember(
   return {
     userId,
     inviterId: 'inviterId' in member && member.inviterId
-      ? buildApiPeerId(member.inviterId as BigInt.BigInteger, 'user')
+      ? buildApiPeerId(member.inviterId, 'user')
       : undefined,
     joinedDate: 'date' in member ? member.date : undefined,
     kickedByUserId: 'kickedBy' in member && member.kickedBy ? buildApiPeerId(member.kickedBy, 'user') : undefined,

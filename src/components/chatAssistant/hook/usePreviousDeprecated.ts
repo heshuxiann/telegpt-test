@@ -8,7 +8,7 @@ function usePreviousDeprecated<T extends any>(next: T, shouldSkipUndefined: true
 // eslint-disable-next-line max-len
 function usePreviousDeprecated<T extends any>(next: T, shouldSkipUndefined?: boolean): Exclude<T, undefined> | undefined;
 function usePreviousDeprecated<T extends any>(next: T, shouldSkipUndefined?: boolean) {
-  const ref = useRef<T>();
+  const ref = useRef<T>(undefined);
   const { current } = ref;
   if (!shouldSkipUndefined || next !== undefined) {
     ref.current = next;

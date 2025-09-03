@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React, {
+import {
   memo, useCallback, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
 import { getActions } from '../../global';
@@ -184,12 +185,14 @@ const ManageUsernames: FC<OwnProps> = ({
                       icon: 'copy',
                     },
                   ]}
-                  // eslint-disable-next-line react/jsx-no-bind
                   onClick={() => {
                     handleUsernameClick(usernameData);
                   }}
                 >
-                  <span className="title">@{usernameData.username}</span>
+                  <span className="title">
+                    @
+                    {usernameData.username}
+                  </span>
                   <span className="subtitle">{lang(subtitle)}</span>
                 </ListItem>
               </Draggable>

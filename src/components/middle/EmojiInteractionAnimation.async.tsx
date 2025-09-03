@@ -1,5 +1,5 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React from '../../lib/teact/teact';
 
 import type { OwnProps } from './EmojiInteractionAnimation';
 
@@ -13,7 +13,6 @@ const EmojiInteractionAnimationAsync: FC<OwnProps> = (props) => {
     Bundles.Extra, 'EmojiInteractionAnimation', !activeEmojiInteraction,
   );
 
-  // eslint-disable-next-line react/jsx-props-no-spreading
   return EmojiInteractionAnimation ? <EmojiInteractionAnimation {...props} /> : undefined;
 };
 

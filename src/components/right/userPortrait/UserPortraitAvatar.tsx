@@ -1,9 +1,9 @@
-import React from '../../../lib/teact/teact';
+import React from '@teact';
 import { getActions, getGlobal } from '../../../global';
 
 import type { ApiChat, ApiUser } from '../../../api/types';
 
-import { isUserId } from '../../../global/helpers';
+import { isUserId } from '../../../util/entities/ids';
 import { selectChat, selectUser } from '../../../global/selectors';
 import { cn } from '../../chatAssistant/utils/util';
 

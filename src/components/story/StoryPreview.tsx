@@ -1,4 +1,5 @@
-import React, { memo, useEffect, useMemo } from '../../lib/teact/teact';
+import React from '@teact';
+import { memo, useEffect, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type {
@@ -97,7 +98,7 @@ function StoryPreview({
 export default memo(withGlobal<OwnProps>((global, { peer }): StateProps => {
   const {
     storyViewer: {
-      lastViewedByPeerIds,
+      lastViewedByPeerId: lastViewedByPeerIds,
       origin,
       storyList,
     },

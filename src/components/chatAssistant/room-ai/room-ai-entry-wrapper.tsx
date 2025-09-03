@@ -1,13 +1,12 @@
+/* eslint-disable @stylistic/max-len */
 /* eslint-disable no-null/no-null */
-/* eslint-disable teactn/no-unused-prop-types */
-/* eslint-disable react/no-unused-prop-types */
-
-import React, {
+import React from '@teact'
+import {
   memo, useCallback, useEffect, useRef, useState,
 } from '../../../lib/teact/teact';
 import { withGlobal } from '../../../global';
 
-import { injectComponent } from '../../../lib/injectComponent';
+import { injectComponent } from '../injectComponent';
 import buildStyle from '../../../util/buildStyle';
 import RoomAIEntryButton from './room-ai-entry-button';
 
@@ -17,11 +16,9 @@ interface StateProps {
   chatId: string;
 }
 
-const injectMessageAI = injectComponent(RoomAIEntryButton);
-
 const RoomAIEntryWrapper = (props: StateProps) => {
   const { chatId } = props;
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  // const containerRef = useRef<HTMLDivElement>();
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({
     x: 0,
@@ -161,19 +158,18 @@ const RoomAIEntryWrapper = (props: StateProps) => {
   useEffect(() => {
     loadPosition();
   }, [loadPosition]);
-
-  useEffect(() => {
-    if (containerRef.current && chatId) {
-      injectMessageAI(containerRef.current, { chatId });
-    }
-  }, [chatId]);
+  const containerRef = injectComponent({
+    component: RoomAIEntryButton,
+    props: {
+      chatId,
+    },
+  });
 
   return (
     <div
       className="room-ai-entry-wrapper"
       ref={containerRef}
       data-dragging={isDragging}
-      // eslint-disable-next-line max-len
       style={buildStyle(`right: ${-position.x}px; bottom: ${position.y}px; cursor: ${isDragging ? 'grabbing' : 'grab'}; userSelect: none`)}
       onMouseDown={handleMouseDown}
       onMouseLeave={handleMouseLeave}

@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React, {
+import {
   useCallback, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
 
@@ -46,8 +47,7 @@ const DropdownMenu: FC<OwnProps> = ({
   onHide,
   autoClose = true,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  const menuRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>();
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleIsOpen = () => {

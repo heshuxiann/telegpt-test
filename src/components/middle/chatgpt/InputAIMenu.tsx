@@ -1,9 +1,10 @@
+import React from '@teact';
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable max-len */
 /* eslint-disable no-null/no-null */
 /* eslint-disable no-console */
 import type { FC } from '../../../lib/teact/teact';
-import React, { useEffect, useState } from '../../../lib/teact/teact';
+import { useEffect, useState } from '../../../lib/teact/teact';
 
 import type { Signal } from '../../../util/signals';
 

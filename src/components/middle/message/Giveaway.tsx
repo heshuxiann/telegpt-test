@@ -1,4 +1,5 @@
-import React, {
+import React from '@teact';
+import {
   memo, useMemo, useRef, useState,
 } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
@@ -361,7 +362,7 @@ export default memo(withGlobal<OwnProps>(
   (global, { message }): StateProps => {
     const { giveaway } = message.content;
     const chat = selectChat(global, message.chatId)!;
-    const sender = selectChat(global, giveaway?.channelIds[0]!)
+    const sender = (giveaway?.channelIds[0] ? selectChat(global, giveaway.channelIds[0]) : undefined)
       || selectForwardedSender(global, message) || chat;
 
     const sticker = giveaway && selectGiftStickerForDuration(global, giveaway.months);

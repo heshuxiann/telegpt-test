@@ -1,4 +1,5 @@
-import React, { memo } from '../../../lib/teact/teact';
+import React from '@teact';
+import { memo } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
 
 import buildClassName from '../../../util/buildClassName';

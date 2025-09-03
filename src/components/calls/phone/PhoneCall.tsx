@@ -1,7 +1,8 @@
+import React from '@teact';
 import '../../../global/actions/calls';
 
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useCallback, useEffect, useMemo, useRef,
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
@@ -55,8 +56,7 @@ const PhoneCall: FC<StateProps> = ({
   const {
     hangUp, requestMasterAndAcceptCall, playGroupCallSound, toggleGroupCallPanel, connectToActivePhoneCall,
   } = getActions();
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
 
   const [isFullscreen, openFullscreen, closeFullscreen] = useFlag();
   const { isMobile } = useAppLayout();

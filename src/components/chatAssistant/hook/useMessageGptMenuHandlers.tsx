@@ -2,7 +2,7 @@ import type { RefObject } from 'react';
 import { useEffect, useState } from '../../../lib/teact/teact';
 
 const useMessageGptMenuHandlers = (
-  elementRef: RefObject<HTMLElement>,
+  elementRef: RefObject<HTMLElement | undefined>,
 ) => {
   const [isGptMenuOpen, setIsGptMenuOpen] = useState(false);
   const [gptMenuPosition, setGptMenuPosition] = useState<'top' | 'bottom'>('bottom');
@@ -29,7 +29,7 @@ const useMessageGptMenuHandlers = (
   }, []);
 
   useEffect(() => {
-    const el = elementRef.current;
+    const el = elementRef?.current;
     if (!el) return undefined;
 
     const handleMouseEnter = () => {

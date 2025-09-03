@@ -1,4 +1,5 @@
-import React, {
+import React from '@teact';
+import {
   beginHeavyAnimation,
   memo, useCallback, useEffect, useState,
 } from '../../lib/teact/teact';

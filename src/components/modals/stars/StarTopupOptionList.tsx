@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useEffect, useMemo,
 } from '../../../lib/teact/teact';
 
@@ -104,7 +105,8 @@ const StarTopupOptionList: FC<OwnProps> = ({
             onClick={() => onClick?.(option)}
           >
             <div className={styles.optionTop}>
-              +{formatInteger(option.stars)}
+              +
+              {formatInteger(option.stars)}
               <div className={styles.stackedStars} dir={lang.isRtl ? 'ltr' : 'rtl'}>
                 {Array.from({ length: starsCount }).map(() => (
                   <StarIcon className={styles.stackedStar} type="gold" size="big" />
@@ -114,7 +116,8 @@ const StarTopupOptionList: FC<OwnProps> = ({
             <div className={styles.optionBottom}>
               {formatCurrency(lang, option.amount, option.currency)}
             </div>
-            {(isActiveOption || (selectedStarOption && 'winners' in selectedStarOption)) && perUserStarCount && (
+            {(isActiveOption || (selectedStarOption && 'winners' in selectedStarOption))
+              && Boolean(perUserStarCount) && (
               <div className={styles.optionBottom}>
                 <div className={styles.perUserStars}>
                   {renderText(oldLang('BoostGift.Stars.PerUser', formatInteger(perUserStarCount)))}

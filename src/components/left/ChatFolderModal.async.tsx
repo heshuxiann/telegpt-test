@@ -1,5 +1,5 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React from '../../lib/teact/teact';
 
 import type { OwnProps } from './ChatFolderModal';
 
@@ -11,7 +11,6 @@ const ChatFolderModalAsync: FC<OwnProps> = (props) => {
   const { isOpen } = props;
   const ChatFolderModal = useModuleLoader(Bundles.Extra, 'ChatFolderModal', !isOpen);
 
-  // eslint-disable-next-line react/jsx-props-no-spreading
   return ChatFolderModal ? <ChatFolderModal {...props} /> : undefined;
 };
 

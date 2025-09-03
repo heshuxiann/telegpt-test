@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
@@ -58,10 +59,8 @@ const Location: FC<OwnProps> = ({
   peer,
 }) => {
   const { openMapModal } = getActions();
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const countdownRef = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
+  const countdownRef = useRef<HTMLDivElement>();
   const lang = useOldLang();
   const forceUpdate = useForceUpdate();
 

@@ -1,5 +1,5 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React from '../../lib/teact/teact';
 
 import type { OwnProps } from './CreateTopic';
 
@@ -12,7 +12,6 @@ import Loading from '../ui/Loading';
 const CreateTopicAsync: FC<OwnProps> = (props) => {
   const CreateTopic = useModuleLoader(Bundles.Extra, 'CreateTopic');
 
-  // eslint-disable-next-line react/jsx-props-no-spreading
   return CreateTopic ? <CreateTopic {...props} /> : <Loading />;
 };
 

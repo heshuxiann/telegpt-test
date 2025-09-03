@@ -6,10 +6,11 @@ import type {
 } from './bots';
 import type { ApiPeerColor } from './chats';
 import type { ApiMessageAction } from './messageActions';
+import type { ApiRestrictionReason } from './misc';
 import type {
   ApiLabeledPrice,
 } from './payments';
-import type { ApiStarGiftUnique } from './stars';
+import type { ApiStarGiftUnique, ApiTypeCurrencyAmount } from './stars';
 import type {
   ApiMessageStoryData, ApiStory, ApiWebPageStickerData, ApiWebPageStoryData,
 } from './stories';
@@ -332,9 +333,54 @@ export type ApiNewPoll = {
   };
 };
 
-export interface ApiWebPage {
-  mediaType: 'webpage';
+export interface ApiTodoItem {
   id: number;
+  title: ApiFormattedText;
+}
+
+export interface ApiTodoList {
+  title: ApiFormattedText;
+  items: ApiTodoItem[];
+  othersCanAppend?: boolean;
+  othersCanComplete?: boolean;
+}
+
+export interface ApiTodoCompletion {
+  itemId: number;
+  completedBy: string;
+  completedAt: number;
+}
+
+export interface ApiMediaTodo {
+  mediaType: 'todo';
+  todo: ApiTodoList;
+  completions?: ApiTodoCompletion[];
+}
+
+export type ApiNewMediaTodo = {
+  todo: ApiTodoList;
+};
+
+export interface ApiWebPagePending {
+  mediaType: 'webpage';
+  webpageType: 'pending';
+  id: string;
+  url?: string;
+  isSafe?: true;
+}
+
+export interface ApiWebPageEmpty {
+  mediaType: 'webpage';
+  webpageType: 'empty';
+  id: string;
+  url?: string;
+  isSafe?: true;
+}
+
+export interface ApiWebPageFull {
+  mediaType: 'webpage';
+  webpageType: 'full';
+  id: string;
   url: string;
   displayUrl: string;
   type?: string;
@@ -349,8 +395,18 @@ export interface ApiWebPage {
   story?: ApiWebPageStoryData;
   gift?: ApiStarGiftUnique;
   stickers?: ApiWebPageStickerData;
-  mediaSize?: WebPageMediaSize;
   hasLargeMedia?: boolean;
+}
+
+export type ApiWebPage = ApiWebPagePending | ApiWebPageEmpty | ApiWebPageFull;
+
+/**
+ * Wrapper with message-specific fields
+ */
+export interface ApiMessageWebPage {
+  id: string;
+  isSafe?: true;
+  mediaSize?: WebPageMediaSize;
 }
 
 export type ApiReplyInfo = ApiMessageReplyInfo | ApiStoryReplyInfo;
@@ -379,14 +435,29 @@ export interface ApiInputMessageReplyInfo {
   replyToMsgId: number;
   replyToTopId?: number;
   replyToPeerId?: string;
+  monoforumPeerId?: string;
   quoteText?: ApiFormattedText;
   quoteOffset?: number;
+}
+
+export interface ApiSuggestedPost {
+  isAccepted?: true;
+  isRejected?: true;
+  price?: ApiTypeCurrencyAmount;
+  scheduleDate?: number;
 }
 
 export interface ApiInputStoryReplyInfo {
   type: 'story';
   peerId: string;
   storyId: number;
+}
+
+export interface ApiInputSuggestedPostInfo {
+  price?: ApiTypeCurrencyAmount;
+  scheduleDate?: number;
+  isAccepted?: true;
+  isRejected?: true;
 }
 
 export type ApiInputReplyInfo = ApiInputMessageReplyInfo | ApiInputStoryReplyInfo;
@@ -474,8 +545,8 @@ export type ApiMessageEntityQuoteFocus = {
 };
 
 export type ApiMessageEntity = ApiMessageEntityDefault | ApiMessageEntityPre | ApiMessageEntityTextUrl |
-ApiMessageEntityMentionName | ApiMessageEntityCustomEmoji | ApiMessageEntityBlockquote | ApiMessageEntityTimestamp |
-ApiMessageEntityQuoteFocus;
+  ApiMessageEntityMentionName | ApiMessageEntityCustomEmoji | ApiMessageEntityBlockquote | ApiMessageEntityTimestamp |
+  ApiMessageEntityQuoteFocus;
 
 export enum ApiMessageEntityTypes {
   Bold = 'MessageEntityBold',
@@ -515,8 +586,9 @@ export type MediaContent = {
   sticker?: ApiSticker;
   contact?: ApiContact;
   pollId?: string;
+  todo?: ApiMediaTodo;
   action?: ApiMessageAction;
-  webPage?: ApiWebPage;
+  webPage?: ApiMessageWebPage;
   audio?: ApiAudio;
   voice?: ApiVoice;
   invoice?: ApiMediaInvoice;
@@ -535,7 +607,16 @@ export type MediaContainer = {
 export type StatefulMediaContent = {
   poll?: ApiPoll;
   story?: ApiStory;
+  webPage?: ApiWebPage;
 };
+
+export type SizeTarget =
+  'micro'
+  | 'pictogram'
+  | 'inline'
+  | 'preview'
+  | 'full'
+  | 'download';
 
 export type BoughtPaidMedia = Pick<MediaContent, 'photo' | 'video'>;
 
@@ -547,6 +628,7 @@ export interface ApiMessage {
   isOutgoing: boolean;
   senderId?: string;
   replyInfo?: ApiReplyInfo;
+  suggestedPostInfo?: ApiInputSuggestedPostInfo;
   sendingState?: 'messageSendingStatePending' | 'messageSendingStateFailed';
   forwardInfo?: ApiMessageForwardInfo;
   isDeleting?: boolean;
@@ -597,6 +679,7 @@ export interface ApiMessage {
   areReactionsPossible?: true;
   reportDeliveryUntilDate?: number;
   paidMessageStars?: number;
+  restrictionReasons?: ApiRestrictionReason[];
 }
 
 export interface ApiReactions {
@@ -695,7 +778,7 @@ export type ApiSavedReactionTag = {
 };
 
 export type ApiPaidReactionPrivacyType = ApiPaidReactionPrivacyDefault |
-ApiPaidReactionPrivacyAnonymous | PaidReactionPrivacyPeer;
+  ApiPaidReactionPrivacyAnonymous | PaidReactionPrivacyPeer;
 
 export type ApiPaidReactionPrivacyDefault = {
   type: 'default';
@@ -836,6 +919,13 @@ interface ApiKeyboardButtonCopy {
   copyText: string;
 }
 
+export interface ApiKeyboardButtonSuggestedMessage {
+  type: 'suggestedMessage';
+  text: string;
+  buttonType: 'approve' | 'decline' | 'suggestChanges';
+  disabled?: boolean;
+}
+
 export type ApiKeyboardButton = (
   ApiKeyboardButtonSimple
   | ApiKeyboardButtonReceipt
@@ -848,6 +938,7 @@ export type ApiKeyboardButton = (
   | ApiKeyboardButtonSimpleWebView
   | ApiKeyboardButtonUrlAuth
   | ApiKeyboardButtonCopy
+  | ApiKeyboardButtonSuggestedMessage
 );
 
 export type ApiKeyboardButtons = ApiKeyboardButton[][];
@@ -855,9 +946,7 @@ export type ApiReplyKeyboard = {
   keyboardPlaceholder?: string;
   isKeyboardSingleUse?: boolean;
   isKeyboardSelective?: boolean;
-} & {
-  [K in 'inlineButtons' | 'keyboardButtons']?: ApiKeyboardButtons;
-};
+} & Partial<Record<'inlineButtons' | 'keyboardButtons', ApiKeyboardButtons>>;
 
 export type ApiTranscription = {
   text: string;
@@ -866,11 +955,12 @@ export type ApiTranscription = {
 };
 
 export type ApiMessageSearchType = 'text' | 'media' | 'documents' | 'links' | 'audio' | 'voice' | 'profilePhoto';
-export type ApiGlobalMessageSearchType = 'text' | 'channels' | 'media' | 'documents' | 'links' | 'audio' | 'voice';
+export type ApiGlobalMessageSearchType = 'text' |
+  'channels' | 'media' | 'documents' | 'links' | 'audio' | 'voice' | 'publicPosts';
 export type ApiMessageSearchContext = 'all' | 'users' | 'groups' | 'channels';
 
 export type ApiReportReason = 'spam' | 'violence' | 'pornography' | 'childAbuse'
-| 'copyright' | 'geoIrrelevant' | 'fake' | 'illegalDrugs' | 'personalDetails' | 'other';
+  | 'copyright' | 'geoIrrelevant' | 'fake' | 'illegalDrugs' | 'personalDetails' | 'other';
 
 export type ApiSendMessageAction = {
   type: 'cancel' | 'typing' | 'recordAudio' | 'chooseSticker' | 'playingGame';
@@ -937,6 +1027,15 @@ export type ApiPreparedInlineMessage = {
   result: ApiBotInlineResult | ApiBotInlineMediaResult;
   peerTypes: ApiInlineQueryPeerType[];
   cacheTime: number;
+};
+
+export type ApiSearchPostsFlood = {
+  query?: string;
+  queryIsFree?: boolean;
+  totalDaily: number;
+  remains: number;
+  waitTill?: number;
+  starsAmount: number;
 };
 
 export const MAIN_THREAD_ID = -1;

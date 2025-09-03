@@ -1,5 +1,5 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React from '../../lib/teact/teact';
 import { withGlobal } from '../../global';
 
 type OwnProps = {
@@ -24,8 +24,14 @@ const ErrorTest: FC<OwnProps & StateProps> = ({ parentRand, globalRand }) => {
         THIS IS `ErrorTest` Component
       </h3>
       <div>
-        <div>parent: {parentRand}</div>
-        <div>global: {globalRand}</div>
+        <div>
+          parent:
+          {parentRand}
+        </div>
+        <div>
+          global:
+          {globalRand}
+        </div>
       </div>
     </div>
   );

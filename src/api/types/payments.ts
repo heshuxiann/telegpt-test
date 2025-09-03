@@ -1,4 +1,4 @@
-import type { PREMIUM_FEATURE_SECTIONS } from '../../config';
+import type { PREMIUM_FEATURE_SECTIONS, STARS_CURRENCY_CODE, TON_CURRENCY_CODE } from '../../config';
 import type { ApiWebDocument } from './bots';
 import type { ApiChat, ApiPeer } from './chats';
 import type {
@@ -189,7 +189,7 @@ export type ApiInputStorePaymentStarsGiveaway = {
 };
 
 export type ApiInputStorePaymentPurpose = ApiInputStorePaymentGiveaway | ApiInputStorePaymentGiftcode |
-ApiInputStorePaymentStarsTopup | ApiInputStorePaymentStarsGift | ApiInputStorePaymentStarsGiveaway;
+  ApiInputStorePaymentStarsTopup | ApiInputStorePaymentStarsGift | ApiInputStorePaymentStarsGiveaway;
 
 export interface ApiPremiumGiftCodeOption {
   users: number;
@@ -360,6 +360,13 @@ export type ApiInputInvoiceStarGift = {
   shouldUpgrade?: true;
 };
 
+export type ApiInputInvoiceStarGiftResale = {
+  type: 'stargiftResale';
+  slug: string;
+  peerId: string;
+  currency: typeof TON_CURRENCY_CODE | typeof STARS_CURRENCY_CODE;
+};
+
 export type ApiInputInvoiceStarsGiveaway = {
   type: 'starsgiveaway';
   chatId: string;
@@ -393,9 +400,9 @@ export type ApiInputInvoiceStarGiftTransfer = {
 };
 
 export type ApiInputInvoice = ApiInputInvoiceMessage | ApiInputInvoiceSlug | ApiInputInvoiceGiveaway
-| ApiInputInvoiceGiftCode | ApiInputInvoicePremiumGiftStars | ApiInputInvoiceStars | ApiInputInvoiceStarsGift
-| ApiInputInvoiceStarsGiveaway | ApiInputInvoiceStarGift | ApiInputInvoiceChatInviteSubscription
-| ApiInputInvoiceStarGiftUpgrade | ApiInputInvoiceStarGiftTransfer;
+  | ApiInputInvoiceGiftCode | ApiInputInvoicePremiumGiftStars | ApiInputInvoiceStars | ApiInputInvoiceStarsGift
+  | ApiInputInvoiceStarsGiveaway | ApiInputInvoiceStarGift | ApiInputInvoiceChatInviteSubscription
+  | ApiInputInvoiceStarGiftUpgrade | ApiInputInvoiceStarGiftTransfer | ApiInputInvoiceStarGiftResale;
 
 /* Used for Invoice request */
 export type ApiRequestInputInvoiceMessage = {
@@ -441,6 +448,13 @@ export type ApiRequestInputInvoiceStarGift = {
   shouldUpgrade?: true;
 };
 
+export type ApiRequestInputInvoiceStarGiftResale = {
+  type: 'stargiftResale';
+  slug: string;
+  peer: ApiPeer;
+  currency: typeof TON_CURRENCY_CODE | typeof STARS_CURRENCY_CODE;
+};
+
 export type ApiRequestInputInvoiceChatInviteSubscription = {
   type: 'chatInviteSubscription';
   hash: string;
@@ -459,6 +473,7 @@ export type ApiRequestInputInvoiceStarGiftTransfer = {
 };
 
 export type ApiRequestInputInvoice = ApiRequestInputInvoiceMessage | ApiRequestInputInvoiceSlug
-| ApiRequestInputInvoiceGiveaway | ApiRequestInputInvoiceStars | ApiRequestInputInvoiceStarsGiveaway
-| ApiRequestInputInvoiceChatInviteSubscription | ApiRequestInputInvoiceStarGift | ApiRequestInputInvoiceStarGiftUpgrade
-| ApiRequestInputInvoiceStarGiftTransfer | ApiRequestInputInvoicePremiumGiftStars;
+  | ApiRequestInputInvoiceGiveaway | ApiRequestInputInvoiceStars | ApiRequestInputInvoiceStarsGiveaway
+  | ApiRequestInputInvoiceChatInviteSubscription | ApiRequestInputInvoiceStarGift
+  | ApiRequestInputInvoiceStarGiftUpgrade | ApiRequestInputInvoiceStarGiftTransfer
+  | ApiRequestInputInvoicePremiumGiftStars | ApiRequestInputInvoiceStarGiftResale;

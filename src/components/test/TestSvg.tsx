@@ -1,4 +1,5 @@
-import React, { useState } from '../../lib/teact/teact';
+import React from '@teact';
+import { useState } from '../../lib/teact/teact';
 
 export function App() {
   const [stateValue, setStateValue] = useState(false);

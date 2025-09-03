@@ -1,4 +1,5 @@
-import React, { memo, useMemo } from '../../../../lib/teact/teact';
+import React from '@teact';
+import { memo, useMemo } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type {
@@ -109,15 +110,17 @@ const GiftStatusInfoModal = ({
           </p>
         </div>
         <div className={styles.titleContainer}>
-          <div className={styles.giftTitle}>{
-            lang('UniqueStatusWearTitle', {
-              gift: mockPeerWithStatus?.emojiStatus?.title,
-            })
-          }
+          <div className={styles.giftTitle}>
+            {
+              lang('UniqueStatusWearTitle', {
+                gift: mockPeerWithStatus?.emojiStatus?.title,
+              })
+            }
           </div>
-          <div className={styles.infoDescription}>{
-            lang('UniqueStatusBenefitsDescription')
-          }
+          <div className={styles.infoDescription}>
+            {
+              lang('UniqueStatusBenefitsDescription')
+            }
           </div>
         </div>
       </div>

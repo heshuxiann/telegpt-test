@@ -36,6 +36,7 @@ export interface ApiOnProgress {
 }
 
 export interface ApiAttachment {
+  blob: Blob;
   blobUrl: string;
   compressedBlobUrl?: string;
   filename: string;
@@ -62,6 +63,7 @@ export interface ApiAttachment {
 
   uniqueId?: string;
   ttlSeconds?: number;
+  shouldSendInHighQuality?: boolean;
 }
 
 export interface ApiWallpaper {
@@ -235,6 +237,7 @@ export interface ApiAppConfig {
   bandwidthPremiumUploadSpeedup?: number;
   bandwidthPremiumDownloadSpeedup?: number;
   channelRestrictAdsLevelMin?: number;
+  channelAutoTranslationLevelMin?: number;
   paidReactionMaxAmount?: number;
   isChannelRevenueWithdrawalEnabled?: boolean;
   isStarsGiftEnabled?: boolean;
@@ -246,6 +249,32 @@ export interface ApiAppConfig {
   freezeSinceDate?: number;
   freezeUntilDate?: number;
   freezeAppealUrl?: string;
+  starsStargiftResaleAmountMin?: number;
+  starsStargiftResaleAmountMax?: number;
+  starsStargiftResaleCommissionPermille?: number;
+  starsSuggestedPostAmountMax?: number;
+  starsSuggestedPostAmountMin?: number;
+  starsSuggestedPostCommissionPermille?: number;
+  starsSuggestedPostAgeMin?: number;
+  starsSuggestedPostFutureMax?: number;
+  starsSuggestedPostFutureMin?: number;
+  tonSuggestedPostCommissionPermille?: number;
+  tonSuggestedPostAmountMax?: number;
+  tonSuggestedPostAmountMin?: number;
+  tonStargiftResaleAmountMax?: number;
+  tonStargiftResaleAmountMin?: number;
+  tonStargiftResaleCommissionPermille?: number;
+  tonUsdRate?: number;
+  tonTopupUrl?: string;
+  pollMaxAnswers?: number;
+  todoItemsMax?: number;
+  todoTitleLengthMax?: number;
+  todoItemLengthMax?: number;
+  ignoreRestrictionReasons?: string[];
+  needAgeVideoVerification?: boolean;
+  verifyAgeBotUsername?: string;
+  verifyAgeCountry?: string;
+  verifyAgeMin?: number;
 }
 
 export interface ApiConfig {
@@ -263,13 +292,11 @@ export interface ApiConfig {
 export type ApiPeerColorSet = string[];
 
 export interface ApiPeerColors {
-  general: {
-    [key: number]: {
-      isHidden?: true;
-      colors?: ApiPeerColorSet;
-      darkColors?: ApiPeerColorSet;
-    };
-  };
+  general: Record<number, {
+    isHidden?: true;
+    colors?: ApiPeerColorSet;
+    darkColors?: ApiPeerColorSet;
+  }>;
   generalHash?: number;
 }
 
@@ -366,3 +393,9 @@ export type ApiPeerNotifySettings = {
 };
 
 export type ApiNotifyPeerType = 'users' | 'groups' | 'channels';
+
+export interface ApiRestrictionReason {
+  reason: string;
+  text: string;
+  platform: string;
+}

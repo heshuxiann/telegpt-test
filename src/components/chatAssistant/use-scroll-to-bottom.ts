@@ -1,11 +1,9 @@
-/* eslint-disable indent */
-/* eslint-disable consistent-return */
-/* eslint-disable no-null/no-null */
-import { type RefObject, useEffect, useRef } from 'react';
+import React from "react";
+import { type RefObject, useEffect, useRef } from "react";
 
 export function useScrollToBottom<T extends HTMLElement>(): [
-  RefObject<T>,
-  RefObject<T>,
+  RefObject<T | null>,
+  RefObject<T | null>
 ] {
   const containerRef = useRef<T>(null);
   const endRef = useRef<T>(null);
@@ -16,7 +14,7 @@ export function useScrollToBottom<T extends HTMLElement>(): [
 
     if (container && end) {
       const observer = new MutationObserver(() => {
-        end.scrollIntoView({ behavior: 'instant', block: 'end' });
+        end.scrollIntoView({ behavior: "instant", block: "end" });
       });
 
       observer.observe(container, {
@@ -28,6 +26,7 @@ export function useScrollToBottom<T extends HTMLElement>(): [
 
       return () => observer.disconnect();
     }
+    return undefined;
   }, []);
 
   return [containerRef, endRef];

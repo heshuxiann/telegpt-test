@@ -1,5 +1,6 @@
-import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useEffect, useRef } from '../../../lib/teact/teact';
+import React from '@teact';
+import type { FC } from '@teact';
+import { memo, useEffect, useRef } from '@teact';
 import { getActions, getGlobal } from '../../../global';
 
 import type { ApiSendAsPeerId } from '../../../api/types';
@@ -45,8 +46,7 @@ const SendAsMenu: FC<OwnProps> = ({
   const chatsById = getGlobal().chats.byId;
 
   const lang = useOldLang();
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
 
   const [handleMouseEnter, handleMouseLeave, markMouseInside] = useMouseInside(isOpen, onClose, undefined);
 
@@ -120,7 +120,6 @@ const SendAsMenu: FC<OwnProps> = ({
           <ListItem
             key={id}
             className="SendAsItem chat-item-clickable scroll-item with-avatar"
-            // eslint-disable-next-line react/jsx-no-bind
             onClick={handleClick}
             focus={selectedSendAsIndex === index}
             rightElement={!isCurrentUserPremium && isPremium
@@ -133,9 +132,10 @@ const SendAsMenu: FC<OwnProps> = ({
             />
             <div className="info">
               {peer && <FullNameTitle peer={peer} noFake />}
-              <span className="subtitle">{user
-                ? lang('VoipGroupPersonalAccount')
-                : lang('Subscribers', chat?.membersCount, 'i')}
+              <span className="subtitle">
+                {user
+                  ? lang('VoipGroupPersonalAccount')
+                  : lang('Subscribers', chat?.membersCount, 'i')}
               </span>
             </div>
           </ListItem>

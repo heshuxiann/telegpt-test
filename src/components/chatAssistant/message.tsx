@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable jsx-quotes */
-/* eslint-disable max-len */
-/* eslint-disable no-null/no-null */
-// @ts-nocheck
 
-import React, { memo, useMemo } from 'react';
+/* eslint-disable @stylistic/max-len */
+
+// @ts-nocheck
+import React from 'react';
+import { memo, useMemo } from 'react';
 import type { Message } from 'ai';
 import cx from 'classnames';
 import equal from 'fast-deep-equal';
@@ -27,9 +26,7 @@ import IntroduceSummaryMessage from './messages/introduce-summary-message';
 import IntroduceTranslationMessage from './messages/introduce-translation-message';
 import RoomActionMessage from './messages/room-actions-message';
 import RoomAIDescriptionMessage from './messages/room-ai-des-message';
-// eslint-disable-next-line import/no-cycle
 import RoomAIMediaMessage from './messages/room-ai-media-message';
-// eslint-disable-next-line import/no-cycle
 import ReplyMentionMessage from './messages/room-ai-reply-mention-message';
 import RoomAIUserPortraitMessage from './messages/room-ai-user-portrait';
 import RoomSummaryMessage from './messages/room-summary-message';
@@ -71,9 +68,9 @@ export enum AIMessageType {
   Default = 'default',
 }
 
-const DefaultMessage = ({ message, isLoading }:{
+const DefaultMessage = ({ message, isLoading }: {
   message: Message;
-  isLoading:boolean;
+  isLoading: boolean;
 }) => {
   return (
     <motion.div
@@ -82,7 +79,7 @@ const DefaultMessage = ({ message, isLoading }:{
       animate={{ y: 0, opacity: 1 }}
       data-role={message.role}
     >
-      <div className='flex gap-4 w-full group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl'>
+      <div className="flex gap-4 w-full group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl">
         <div className="flex flex-col gap-4 w-full">
           {message.experimental_attachments && (
             <div className="flex flex-row justify-end gap-2">
@@ -110,8 +107,8 @@ const DefaultMessage = ({ message, isLoading }:{
                       message.role === 'user',
                 })}
               >
-                <Markdown>{message.content as string}</Markdown>
-                { message.role !== 'user' && (
+                <Markdown>{message.content}</Markdown>
+                {message.role !== 'user' && (
                   <MessageActions message={message} />
                 )}
               </div>
@@ -131,62 +128,89 @@ const PurePreviewMessage = ({
   isLoading: boolean;
   deleteMessage?: (messageId: string) => void;
 }) => {
-  const messageType:AIMessageType | undefined = useMemo(() => {
+  const messageType: AIMessageType | undefined = useMemo(() => {
     const matched = message?.annotations?.find(
       (item) => item
-      && typeof item === 'object'
-      && 'type' in item
-      && Object.values(AIMessageType).includes(item.type as AIMessageType),
+        && typeof item === 'object'
+        && 'type' in item
+        && Object.values(AIMessageType).includes(item.type as AIMessageType),
     );
 
     const type = matched?.type as AIMessageType || AIMessageType.Default;
     return type;
   }, [message]);
 
-  return (
-    <AnimatePresence>
-      {messageType === AIMessageType.GlobalSummary && (
-        <ErrorBoundary>
-          <GlobalSummaryMessage
+  const renderMessageComponent = () => {
+    switch (messageType) {
+      case AIMessageType.GlobalSummary:
+        return (
+          <ErrorBoundary>
+            <GlobalSummaryMessage
+              message={message}
+              deleteMessage={() => deleteMessage?.(message.id)}
+            />
+          </ErrorBoundary>
+        );
+      case AIMessageType.UrgentCheck:
+        return (
+          <UrgentCheckMessage
             message={message}
-            // eslint-disable-next-line react/jsx-no-bind
             deleteMessage={() => deleteMessage?.(message.id)}
           />
-        </ErrorBoundary>
-      )}
-      {messageType === AIMessageType.UrgentCheck && (
-        <UrgentCheckMessage
-          message={message}
-          // eslint-disable-next-line react/jsx-no-bind
-          deleteMessage={() => deleteMessage?.(message.id)}
-        />
-      )}
-      {messageType === AIMessageType.GroupSearch && (<GroupSearchMessage message={message} />)}
-      {messageType === AIMessageType.UserSearch && (<UserSearchMessage message={message} />)}
-      {messageType === AIMessageType.GoogleAuth && (
-        <GoogleLoginAuthMessage
-          // eslint-disable-next-line react/jsx-no-bind
-          deleteMessage={() => deleteMessage?.(message.id)}
-        />
-      )}
-      {messageType === AIMessageType.GoogleEventInsert && (<GoogleEventCreateMessage message={message} />)}
-      {messageType === AIMessageType.GoogleEventDetail && (<GoogleEventDetailMessage message={message} />)}
-      {messageType === AIMessageType.GoogleMeetTimeConfirm && (<GoogleMeetTimeConfirmMessage message={message} />)}
-      {messageType === AIMessageType.GoogleMeetMention && (<GoogleMeetMentionMessage message={message} />)}
-      {messageType === AIMessageType.GoogleMeetInformationSuggest && (<GoogleMeetInformationSuggestMessage message={message} />)}
-      {messageType === AIMessageType.RoomSummary && (<RoomSummaryMessage message={message} />)}
-      {messageType === AIMessageType.RoomActions && (<RoomActionMessage message={message} />)}
-      {messageType === AIMessageType.MeetingIntroduce && (<IntroduceMeetingMessage />)}
-      {messageType === AIMessageType.SummaryIntroduce && (<IntroduceSummaryMessage />)}
-      {messageType === AIMessageType.TranslationIntroduce && (<IntroduceTranslationMessage />)}
-      {messageType === AIMessageType.ActionsIntroduce && (<IntroduceActionsMessage />)}
-      {messageType === AIMessageType.GlobalIntroduce && (<GlobalIntroduceMessage />)}
-      {messageType === AIMessageType.RoomAIDescription && (<RoomAIDescriptionMessage message={message} />)}
-      {messageType === AIMessageType.AISearchSugesstion && (<AISearchSugesstionsMessage />)}
-      {messageType === AIMessageType.AIReplyMention && (<ReplyMentionMessage message={message} />)}
-      {messageType === AIMessageType.AIMediaSummary && (<RoomAIMediaMessage message={message} />)}
-      {messageType === AIMessageType.UserPortrait && (<RoomAIUserPortraitMessage userId={message?.content} />)}
-      {messageType === AIMessageType.Default && (<DefaultMessage message={message} isLoading={isLoading} />)}
+        );
+      case AIMessageType.GroupSearch:
+        return <GroupSearchMessage message={message} />;
+      case AIMessageType.UserSearch:
+        return <UserSearchMessage message={message} />;
+      case AIMessageType.GoogleAuth:
+        return (
+          <GoogleLoginAuthMessage
+            deleteMessage={() => deleteMessage?.(message.id)}
+          />
+        );
+      case AIMessageType.GoogleEventInsert:
+        return <GoogleEventCreateMessage message={message} />;
+      case AIMessageType.GoogleEventDetail:
+        return <GoogleEventDetailMessage message={message} />;
+      case AIMessageType.GoogleMeetTimeConfirm:
+        return <GoogleMeetTimeConfirmMessage message={message} />;
+      case AIMessageType.GoogleMeetMention:
+        return <GoogleMeetMentionMessage message={message} />;
+      case AIMessageType.GoogleMeetInformationSuggest:
+        return <GoogleMeetInformationSuggestMessage message={message} />;
+      case AIMessageType.RoomSummary:
+        return <RoomSummaryMessage message={message} />;
+      case AIMessageType.RoomActions:
+        return <RoomActionMessage message={message} />;
+      case AIMessageType.MeetingIntroduce:
+        return <IntroduceMeetingMessage />;
+      case AIMessageType.SummaryIntroduce:
+        return <IntroduceSummaryMessage />;
+      case AIMessageType.TranslationIntroduce:
+        return <IntroduceTranslationMessage />;
+      case AIMessageType.ActionsIntroduce:
+        return <IntroduceActionsMessage />;
+      case AIMessageType.GlobalIntroduce:
+        return <GlobalIntroduceMessage />;
+      case AIMessageType.RoomAIDescription:
+        return <RoomAIDescriptionMessage message={message} />;
+      case AIMessageType.AISearchSugesstion:
+        return <AISearchSugesstionsMessage />;
+      case AIMessageType.AIReplyMention:
+        return <ReplyMentionMessage message={message} />;
+      case AIMessageType.AIMediaSummary:
+        return <RoomAIMediaMessage message={message} />;
+      case AIMessageType.UserPortrait:
+        return <RoomAIUserPortraitMessage userId={message?.content} />;
+      case AIMessageType.Default:
+      default:
+        return <DefaultMessage message={message} isLoading={isLoading} />;
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {renderMessageComponent()}
     </AnimatePresence>
   );
 };

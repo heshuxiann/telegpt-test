@@ -1,5 +1,6 @@
-import type { FC } from '../../lib/teact/teact';
-import React, { memo, useMemo, useRef } from '../../lib/teact/teact';
+import React from '@teact';
+import type { ElementRef, FC } from '../../lib/teact/teact';
+import { memo, useMemo, useRef } from '../../lib/teact/teact';
 import { getGlobal } from '../../global';
 
 import type { ApiSticker } from '../../api/types';
@@ -11,6 +12,7 @@ import { IS_ANDROID, IS_IOS, IS_WEBM_SUPPORTED } from '../../util/browser/window
 import buildClassName from '../../util/buildClassName';
 import * as mediaLoader from '../../util/mediaLoader';
 
+import useThumbnail from '../../hooks/media/useThumbnail';
 import useColorFilter from '../../hooks/stickers/useColorFilter';
 import useCoordsInSharedCanvas from '../../hooks/useCoordsInSharedCanvas';
 import useFlag from '../../hooks/useFlag';
@@ -18,7 +20,6 @@ import { useIsIntersecting } from '../../hooks/useIntersectionObserver';
 import useMedia from '../../hooks/useMedia';
 import useMediaTransition from '../../hooks/useMediaTransition';
 import useMountAfterHeavyAnimation from '../../hooks/useMountAfterHeavyAnimation';
-import useThumbnail from '../../hooks/useThumbnail';
 import useUniqueId from '../../hooks/useUniqueId';
 import useDevicePixelRatio from '../../hooks/window/useDevicePixelRatio';
 
@@ -28,7 +29,7 @@ import AnimatedSticker from './AnimatedSticker';
 import styles from './StickerView.module.scss';
 
 type OwnProps = {
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: ElementRef<HTMLDivElement>;
   sticker: ApiSticker;
   thumbClassName?: string;
   fullMediaHash?: string;
@@ -47,7 +48,7 @@ type OwnProps = {
   noPlay?: boolean;
   noVideoOnMobile?: boolean;
   withSharedAnimation?: boolean;
-  sharedCanvasRef?: React.RefObject<HTMLCanvasElement>;
+  sharedCanvasRef?: ElementRef<HTMLCanvasElement>;
   withTranslucentThumb?: boolean; // With shared canvas thumbs are opaque by default to provide better transition effect
   onVideoEnded?: AnyToVoidFunction;
   onAnimatedStickerLoop?: AnyToVoidFunction;
@@ -120,7 +121,7 @@ const StickerView: FC<OwnProps> = ({
     fullMediaHash === previewMediaHash && (cachedPreview || previewMediaData)
   ));
   const fullMediaData = useMedia(fullMediaHash || `sticker${id}`, !shouldLoad || shouldSkipLoadingFullMedia);
-  const shouldRenderFullMedia = isReadyToMountFullMedia && fullMediaData && !isVideoBroken;
+  const shouldRenderFullMedia = isReadyToMountFullMedia && Boolean(fullMediaData) && !isVideoBroken;
   const [isPlayerReady, markPlayerReady] = useFlag();
   const isFullMediaReady = shouldRenderFullMedia && (isStatic || isPlayerReady);
 
@@ -129,10 +130,12 @@ const StickerView: FC<OwnProps> = ({
   const isThumbOpaque = sharedCanvasRef && !withTranslucentThumb;
 
   const noCrossTransition = Boolean(isLottie && withPreview);
-  const thumbRef = useMediaTransition<HTMLImageElement>(thumbData && !isFullMediaReady, {
+  const { ref: thumbRef } = useMediaTransition<HTMLImageElement>({
+    hasMediaData: Boolean(thumbData && !isFullMediaReady),
     noCloseTransition: noCrossTransition,
   });
-  const fullMediaRef = useMediaTransition<HTMLElement>(isFullMediaReady, {
+  const { ref: fullMediaRef } = useMediaTransition<HTMLElement>({
+    hasMediaData: isFullMediaReady,
     noOpenTransition: noCrossTransition,
   });
 
@@ -169,7 +172,7 @@ const StickerView: FC<OwnProps> = ({
       />
       {shouldRenderFullMedia && (isLottie ? (
         <AnimatedSticker
-          ref={fullMediaRef as React.RefObject<HTMLDivElement>}
+          ref={fullMediaRef as ElementRef<HTMLDivElement>}
           key={renderId}
           renderId={renderId}
           size={size}
@@ -193,7 +196,7 @@ const StickerView: FC<OwnProps> = ({
         />
       ) : isVideo ? (
         <OptimizedVideo
-          ref={fullMediaRef as React.RefObject<HTMLVideoElement>}
+          ref={fullMediaRef as ElementRef<HTMLVideoElement>}
           canPlay={shouldPlay}
           className={buildClassName(styles.media, fullMediaClassName, 'sticker-media')}
           src={fullMediaData}
@@ -209,7 +212,7 @@ const StickerView: FC<OwnProps> = ({
         />
       ) : (
         <img
-          ref={fullMediaRef as React.RefObject<HTMLImageElement>}
+          ref={fullMediaRef as ElementRef<HTMLImageElement>}
           className={buildClassName(styles.media, fullMediaClassName, 'sticker-media')}
           src={fullMediaData}
           alt={emoji}

@@ -1,5 +1,5 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React from '../../../lib/teact/teact';
 
 import type { OwnProps } from './LeftSearch';
 
@@ -12,7 +12,6 @@ import Loading from '../../ui/Loading';
 const LeftSearchAsync: FC<OwnProps> = (props) => {
   const LeftSearch = useModuleLoader(Bundles.Extra, 'LeftSearch');
 
-  // eslint-disable-next-line react/jsx-props-no-spreading
   return LeftSearch ? <LeftSearch {...props} /> : <Loading />;
 };
 

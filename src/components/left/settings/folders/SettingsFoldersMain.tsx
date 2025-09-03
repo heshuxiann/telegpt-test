@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../../lib/teact/teact';
-import React, {
+import {
   memo, useCallback, useEffect, useMemo, useState,
 } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
@@ -330,7 +331,6 @@ const SettingsFoldersMain: FC<OwnProps & StateProps> = ({
                       icon: 'delete',
                     },
                   ]}
-                  // eslint-disable-next-line react/jsx-no-bind
                   onClick={() => {
                     if (isBlocked) {
                       openLimitReachedModal({
@@ -373,7 +373,6 @@ const SettingsFoldersMain: FC<OwnProps & StateProps> = ({
           {recommendedChatFolders.map((folder) => (
             <ListItem
               narrow
-              // eslint-disable-next-line react/jsx-no-bind
               onClick={() => handleCreateFolderFromRecommended(folder)}
             >
               <div className="settings-folders-recommended-item">

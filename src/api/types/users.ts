@@ -20,6 +20,7 @@ export interface ApiUser {
   lastName?: string;
   noStatus?: boolean;
   usernames?: ApiUsername[];
+  hasUsername?: boolean;
   phoneNumber: string;
   accessHash?: string;
   hasVideoAvatar?: boolean;
@@ -85,6 +86,61 @@ export interface ApiUserStatus {
   expires?: number;
   isReadDateRestrictedByMe?: boolean;
   isReadDateRestricted?: boolean;
+}
+
+export interface ApiUserCommonChats {
+  ids: string[];
+  maxId?: string;
+  isFullyLoaded: boolean;
+}
+
+export interface ApiSavedGifts {
+  gifts: ApiSavedStarGift[];
+  nextOffset?: string;
+}
+
+export interface ApiUsername {
+  username: string;
+  isActive?: boolean;
+  isEditable?: boolean;
+}
+
+export interface ApiAttachBotIcon {
+  name: string;
+  document: ApiDocument;
+}
+
+export interface ApiEmojiStatus {
+  type: 'regular';
+  documentId: string;
+  until?: number;
+}
+
+export interface ApiEmojiStatusCollectible {
+  type: 'collectible';
+  collectibleId: string;
+  documentId: string;
+  title: string;
+  slug: string;
+  patternDocumentId: string;
+  centerColor: string;
+  edgeColor: string;
+  patternColor: string;
+  textColor: string;
+  until?: number;
+}
+
+export interface ApiBirthday {
+  day: number;
+  month: number;
+  year?: number;
+}
+
+export interface ApiDisallowedGifts {
+  shouldDisallowUnlimitedStarGifts?: boolean;
+  shouldDisallowLimitedStarGifts?: boolean;
+  shouldDisallowUniqueStarGifts?: boolean;
+  shouldDisallowPremiumGifts?: boolean;
 }
 
 export interface ApiUserCommonChats {

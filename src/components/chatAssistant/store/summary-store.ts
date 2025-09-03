@@ -13,7 +13,7 @@ class SummaryStore {
 
   private db: IDBDatabase | null = null;
 
-  private chataiStoreManager:ChataiDB;
+  private chataiStoreManager: ChataiDB;
 
   constructor(private dbManager: ChataiDB) {
     this.db = dbManager.db;
@@ -89,7 +89,7 @@ class SummaryStore {
   async getMessages(
     lastTime: number | undefined,
     pageSize: number,
-  ): Promise<{ messages: any[]; lastTime: number | undefined ;hasMore:boolean }> {
+  ): Promise<{ messages: any[]; lastTime: number | undefined; hasMore: boolean }> {
     let db: IDBDatabase;
     try {
       db = await this.chataiStoreManager.getDB();

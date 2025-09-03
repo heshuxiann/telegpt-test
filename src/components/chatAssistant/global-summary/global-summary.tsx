@@ -1,6 +1,6 @@
 /* eslint-disable no-null/no-null */
-import React, {
-  forwardRef,
+import React from 'react';
+import {
   memo,
   useCallback, useEffect, useState,
 } from 'react';
@@ -38,12 +38,12 @@ import styles from './global-summary.module.scss';
 
 import SerenaPath from '../assets/serena.png';
 
-const GlobalSummary = forwardRef(() => {
+const GlobalSummary = () => {
   const { isOpen } = useDrawerStore();
   const { userId, userName } = getCurrentUserInfo();
   const [notificationMessage, setNotificationMessage] = useState<Message | null>(null);
   const [summaryMessages, setSummaryMessages] = useState<Message[]>([]);
-  const [viewMessages, setViewMessages] = useState<Message[] >([]);
+  const [viewMessages, setViewMessages] = useState<Message[]>([]);
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({
     lastTime: undefined,
     hasMore: true,
@@ -62,7 +62,7 @@ const GlobalSummary = forwardRef(() => {
   useEffect(() => {
     const sorted = orderBy(
       [...messages, ...summaryMessages],
-      [(item:Message) => new Date(item.createdAt as Date).getTime()],
+      [(item: Message) => new Date(item.createdAt as Date).getTime()],
       ['asc'],
     );
     setViewMessages(sorted);
@@ -152,7 +152,7 @@ const GlobalSummary = forwardRef(() => {
     });
   }, [scrollLocked]);
 
-  const handleInputSubmit = useCallback((value:string) => {
+  const handleInputSubmit = useCallback((value: string) => {
     scrollToBottom();
     append({
       role: 'user',
@@ -212,6 +212,6 @@ const GlobalSummary = forwardRef(() => {
     </ErrorBoundary>
 
   );
-});
+};
 
 export default memo(GlobalSummary);

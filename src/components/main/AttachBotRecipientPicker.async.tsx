@@ -1,5 +1,5 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React from '../../lib/teact/teact';
 
 import type { OwnProps } from './AttachBotRecipientPicker';
 
@@ -13,7 +13,6 @@ const AttachBotRecipientPickerAsync: FC<OwnProps> = (props) => {
     Bundles.Extra, 'AttachBotRecipientPicker', !requestedAttachBotInChat,
   );
 
-  // eslint-disable-next-line react/jsx-props-no-spreading
   return AttachBotRecipientPicker ? <AttachBotRecipientPicker {...props} /> : undefined;
 };
 

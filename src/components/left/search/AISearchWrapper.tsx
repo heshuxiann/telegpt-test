@@ -1,12 +1,13 @@
+import React from '@teact';
 /* eslint-disable no-null/no-null */
-import React, { useEffect, useRef } from '../../../lib/teact/teact';
+import { useEffect, useRef } from '../../../lib/teact/teact';
 
-import { injectComponent } from '../../../lib/injectComponent';
+import { injectComponent } from '../../chatAssistant/injectComponent';
 import { AISearch } from '../../chatAssistant/ai-search/AISearch';
 
-const injectMessageAI = injectComponent(AISearch);
+const injectMessageAI = injectComponent({ component: AISearch });
 export const AISearchWrapper = () => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | undefined>(undefined);
   useEffect(() => {
     let injected: { unmount: () => void } | undefined;
     if (containerRef.current) {

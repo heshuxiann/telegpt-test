@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useEffect, useMemo } from '../../../lib/teact/teact';
+import { memo, useEffect, useMemo } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type {
@@ -21,7 +22,6 @@ import { StoryViewerOrigin } from '../../../types';
 
 import {
   groupStatefulContent,
-  isUserId,
   isUserOnline,
 } from '../../../global/helpers';
 import { getIsChatMuted } from '../../../global/helpers/notifications';
@@ -36,6 +36,7 @@ import {
   selectIsCurrentUserFrozen,
   selectIsForumPanelClosed,
   selectIsForumPanelOpen,
+  selectMonoforumChannel,
   selectNotifyDefaults,
   selectNotifyException,
   selectOutgoingStatus,
@@ -51,6 +52,7 @@ import {
 } from '../../../global/selectors';
 import { IS_OPEN_IN_NEW_TAB_SUPPORTED } from '../../../util/browser/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
+import { isUserId } from '../../../util/entities/ids';
 import { createLocationHash } from '../../../util/routing';
 
 import useSelectorSignal from '../../../hooks/data/useSelectorSignal';
@@ -94,6 +96,7 @@ type OwnProps = {
 
 type StateProps = {
   chat?: ApiChat;
+  monoforumChannel?: ApiChat;
   lastMessageStory?: ApiTypeStory;
   listedTopicIds?: number[];
   topics?: Record<number, ApiTopic>;
@@ -128,6 +131,7 @@ const Chat: FC<OwnProps & StateProps> = ({
   topics,
   observeIntersection,
   chat,
+  monoforumChannel,
   lastMessageStory,
   isMuted,
   user,
@@ -177,7 +181,7 @@ const Chat: FC<OwnProps & StateProps> = ({
   const [shouldRenderMuteModal, markRenderMuteModal, unmarkRenderMuteModal] = useFlag();
   const [shouldRenderChatFolderModal, markRenderChatFolderModal, unmarkRenderChatFolderModal] = useFlag();
 
-  const { isForum, isForumAsMessages } = chat || {};
+  const { isForum, isForumAsMessages, isMonoforum } = chat || {};
 
   useEnsureMessage(isSavedDialog ? currentUserId : chatId, lastMessageId, lastMessage);
 
@@ -354,11 +358,12 @@ const Chat: FC<OwnProps & StateProps> = ({
     >
       <div className={buildClassName('status', 'status-clickable')}>
         <Avatar
-          peer={peer}
+          peer={isMonoforum ? monoforumChannel : peer}
           isSavedMessages={user?.isSelf}
           isSavedDialog={isSavedDialog}
           size={isPreview ? 'medium' : 'large'}
-          withStory={!user?.isSelf}
+          asMessageBubble={isMonoforum}
+          withStory={!user?.isSelf && !isMonoforum}
           withStoryGap={isAvatarOnlineShown || Boolean(chat.subscriptionUntil)}
           storyViewerOrigin={StoryViewerOrigin.ChatList}
           storyViewerMode="single-peer"
@@ -386,7 +391,9 @@ const Chat: FC<OwnProps & StateProps> = ({
       <div className="info">
         <div className="info-row">
           <FullNameTitle
-            peer={peer}
+            peer={isMonoforum ? monoforumChannel! : peer}
+            isMonoforum={isMonoforum}
+            monoforumBadgeClassName="monoforum-badge"
             withEmojiStatus
             isSavedMessages={chatId === user?.id && user?.isSelf}
             isSavedDialog={isSavedDialog}
@@ -488,6 +495,8 @@ export default memo(withGlobal<OwnProps>(
     const lastMessageStory = storyData && selectPeerStory(global, storyData.peerId, storyData.id);
     const isAccountFrozen = selectIsCurrentUserFrozen(global);
 
+    const monoforumChannel = selectMonoforumChannel(global, chatId);
+
     return {
       chat,
       isMuted: getIsChatMuted(chat, selectNotifyDefaults(global), selectNotifyException(global, chat.id)),
@@ -514,6 +523,7 @@ export default memo(withGlobal<OwnProps>(
       isSynced: global.isSynced,
       lastMessageStory,
       isAccountFrozen,
+      monoforumChannel,
     };
   },
 )(Chat));

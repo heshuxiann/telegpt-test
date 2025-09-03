@@ -1,5 +1,5 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React from '../../../lib/teact/teact';
 
 import type { OwnProps } from './Settings';
 
@@ -12,7 +12,6 @@ import Loading from '../../ui/Loading';
 const SettingsAsync: FC<OwnProps> = (props) => {
   const Settings = useModuleLoader(Bundles.Extra, 'Settings');
 
-  // eslint-disable-next-line react/jsx-props-no-spreading
   return Settings ? <Settings {...props} /> : <Loading />;
 };
 

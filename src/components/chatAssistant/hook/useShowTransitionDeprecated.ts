@@ -14,7 +14,7 @@ const useShowTransitionDeprecated = (
   noOpenTransition = false,
 ) => {
   const [isClosed, setIsClosed] = useState(!isOpen);
-  const closeTimeoutRef = useRef<number>();
+  const closeTimeoutRef = useRef<number>(undefined);
   // СSS class should be added in a separate tick to turn on CSS transition.
   const [hasOpenClassName, setHasOpenClassName] = useState(isOpen && noFirstOpenTransition);
 

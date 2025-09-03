@@ -1,8 +1,11 @@
-import React, { memo } from '../../lib/teact/teact';
+import React from '@teact';
+import { memo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import { getUserFirstOrLastName } from '../../global/helpers';
-import { selectTheme, selectThemeValues, selectUser } from '../../global/selectors';
+import type { ApiPeer } from '../../api/types';
+
+import { getPeerTitle, isApiPeerUser } from '../../global/helpers/peers';
+import { selectPeer, selectTheme, selectThemeValues } from '../../global/selectors';
 import { formatStarsAsIcon } from '../../util/localization/format';
 import { LOCAL_TGS_URLS } from '../common/helpers/animatedAssets';
 import renderText from '../common/helpers/renderText';
@@ -19,24 +22,29 @@ import Button from '../ui/Button';
 import styles from './RequirementToContactMessage.module.scss';
 
 type OwnProps = {
-  // eslint-disable-next-line react/no-unused-prop-types
-  userId: string;
+  peerId: string;
   paidMessagesStars?: number;
 };
 
 type StateProps = {
   patternColor?: string;
-  userName?: string;
+  peer?: ApiPeer;
 };
 
-function RequirementToContactMessage({ patternColor, userName, paidMessagesStars }: OwnProps & StateProps) {
+function RequirementToContactMessage({
+  patternColor, peer, paidMessagesStars,
+}: OwnProps & StateProps) {
   const oldLang = useOldLang();
   const lang = useLang();
   const { openPremiumModal, openStarsBalanceModal } = getActions();
 
   const handleOpenPremiumModal = useLastCallback(() => openPremiumModal());
 
-  const handleGetMoreStars = useLastCallback(() => { openStarsBalanceModal({}); });
+  const handleGetMoreStars = useLastCallback(() => {
+    openStarsBalanceModal({});
+  });
+
+  if (!peer) return undefined;
 
   return (
     <div className={styles.root}>
@@ -53,8 +61,8 @@ function RequirementToContactMessage({ patternColor, userName, paidMessagesStars
         <span className={styles.description}>
           {
             paidMessagesStars
-              ? lang('FirstMessageInPaidMessagesChat', {
-                user: userName,
+              ? lang(isApiPeerUser(peer) ? 'MessagesPlaceholderPaidUser' : 'MessagesPlaceholderPaidChannel', {
+                peer: getPeerTitle(lang, peer),
                 amount: formatStarsAsIcon(lang,
                   paidMessagesStars,
                   {
@@ -66,7 +74,7 @@ function RequirementToContactMessage({ patternColor, userName, paidMessagesStars
                 withNodes: true,
                 withMarkdown: true,
               })
-              : renderText(oldLang('MessageLockedPremium', userName), ['simple_markdown'])
+              : renderText(oldLang('MessageLockedPremium', getPeerTitle(lang, peer)), ['simple_markdown'])
           }
         </span>
         <Button
@@ -93,14 +101,14 @@ function RequirementToContactMessage({ patternColor, userName, paidMessagesStars
 }
 
 export default memo(
-  withGlobal<OwnProps>((global, { userId }): StateProps => {
+  withGlobal<OwnProps>((global, { peerId: userId }): StateProps => {
     const theme = selectTheme(global);
     const { patternColor } = selectThemeValues(global, theme) || {};
-    const user = selectUser(global, userId);
+    const peer = selectPeer(global, userId);
 
     return {
       patternColor,
-      userName: getUserFirstOrLastName(user),
+      peer,
     };
   })(RequirementToContactMessage),
 );

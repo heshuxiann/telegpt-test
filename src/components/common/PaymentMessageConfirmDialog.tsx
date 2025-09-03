@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC, StateHookSetter } from '../../lib/teact/teact';
-import React, { memo } from '../../lib/teact/teact';
+import { memo } from '../../lib/teact/teact';
 
 import { formatStarsAsText } from '../../util/localization/format';
 

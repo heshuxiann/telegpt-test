@@ -1,9 +1,7 @@
-import type { FC } from '../../lib/teact/teact';
-import React, {
-  memo, useCallback,
-  useEffect, useMemo, useRef, useState,
-} from '../../lib/teact/teact';
-import { getActions, withGlobal } from '../../global';
+import React from '@teact';
+import type { FC } from '@teact';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from '@teact';
+import { getActions, getGlobal, withGlobal } from '../../global';
 
 import type {
   ApiBotPreviewMedia,
@@ -16,40 +14,34 @@ import type {
   ApiUserStatus,
 } from '../../api/types';
 import type { TabState } from '../../global/types';
-import type {
-  ProfileState, ProfileTabType, SharedMediaType, ThemeKey, ThreadId,
-} from '../../types';
+import type { AnimationLevel, ProfileState, ProfileTabType, SharedMediaType, ThemeKey, ThreadId } from '../../types';
 import type { RegularLangKey } from '../../types/language';
 import { MAIN_THREAD_ID } from '../../api/types';
 import { AudioOrigin, MediaViewerOrigin, NewChatMembersProgress } from '../../types';
 
-import {
-  MEMBERS_SLICE,
-  PROFILE_SENSITIVE_AREA,
-  SHARED_MEDIA_SLICE,
-  SLIDE_TRANSITION_DURATION,
-} from '../../config';
+import { MEMBERS_SLICE, PROFILE_SENSITIVE_AREA, SHARED_MEDIA_SLICE, SLIDE_TRANSITION_DURATION } from '../../config';
 import {
   getHasAdminRight,
   getIsDownloading,
   getIsSavedDialog,
   getMessageDocument,
-  getMessageDownloadableMedia,
   isChatAdmin,
   isChatChannel,
   isChatGroup,
   isUserBot,
-  isUserId,
   isUserRightBanned,
 } from '../../global/helpers';
+import { getSavedGiftKey } from '../../global/helpers/stars';
 import {
   selectActiveDownloads,
   selectChat,
   selectChatFullInfo,
   selectChatMessages,
   selectCurrentSharedMediaSearch,
+  selectIsChatRestricted,
   selectIsCurrentUserPremium,
   selectIsRightColumnShown,
+  selectMonoforumChannel,
   selectPeerStories,
   selectSimilarBotsIds,
   selectSimilarChannelIds,
@@ -60,10 +52,13 @@ import {
   selectUserFullInfo,
 } from '../../global/selectors';
 import { selectPremiumLimit } from '../../global/selectors/limits';
+import { selectMessageDownloadableMedia } from '../../global/selectors/media';
 import { selectSharedSettings } from '../../global/selectors/sharedState';
 import { IS_TOUCH_ENV } from '../../util/browser/windowEnvironment';
 import buildClassName from '../../util/buildClassName';
 import { captureEvents, SwipeDirection } from '../../util/captureEvents';
+import { isUserId } from '../../util/entities/ids';
+import { resolveTransitionName } from '../../util/resolveTransitionName.ts';
 import { LOCAL_TGS_URLS } from '../common/helpers/animatedAssets';
 import renderText from '../common/helpers/renderText';
 import { getSenderName } from '../left/search/helpers/getSenderName';
@@ -119,6 +114,7 @@ type OwnProps = {
 };
 
 type StateProps = {
+  monoforumChannel?: ApiChat;
   theme: ThemeKey;
   isChannel?: boolean;
   isBot?: boolean;
@@ -150,10 +146,11 @@ type StateProps = {
   activeDownloads: TabState['activeDownloads'];
   isChatProtected?: boolean;
   nextProfileTab?: ProfileTabType;
+  animationLevel: AnimationLevel;
   shouldWarnAboutSvg?: boolean;
   similarChannels?: string[];
   similarBots?: string[];
-  botPreviewMedia? : ApiBotPreviewMedia[];
+  botPreviewMedia?: ApiBotPreviewMedia[];
   isCurrentUserPremium?: boolean;
   limitSimilarPeers: number;
   isTopicInfo?: boolean;
@@ -183,6 +180,7 @@ const Profile: FC<OwnProps & StateProps> = ({
   threadId,
   profileState,
   theme,
+  monoforumChannel,
   isChannel,
   isBot,
   currentUserId,
@@ -214,6 +212,7 @@ const Profile: FC<OwnProps & StateProps> = ({
   activeDownloads,
   isChatProtected,
   nextProfileTab,
+  animationLevel,
   shouldWarnAboutSvg,
   similarChannels,
   similarBots,
@@ -245,10 +244,8 @@ const Profile: FC<OwnProps & StateProps> = ({
     resetGiftProfileFilter,
   } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const transitionRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
+  const transitionRef = useRef<HTMLDivElement>();
 
   const oldLang = useOldLang();
   const lang = useLang();
@@ -359,13 +356,10 @@ const Profile: FC<OwnProps & StateProps> = ({
   const [renderingGifts, setRenderingGifts] = useState(gifts);
   const { startViewTransition, shouldApplyVtn } = useViewTransition();
 
-  const getGiftId = useLastCallback((gift: ApiSavedStarGift) => (
-    `${gift.date}-${gift.fromId}-${gift.gift.id}`
-  ));
-  const giftIds = useMemo(() => renderingGifts?.map(getGiftId), [renderingGifts]);
+  const giftIds = useMemo(() => renderingGifts?.map((gift) => getSavedGiftKey(gift)), [renderingGifts]);
 
   const renderingActiveTab = activeTab > tabs.length - 1 ? tabs.length - 1 : activeTab;
-  const tabType = tabs[renderingActiveTab].type as ProfileTabType;
+  const tabType = tabs[renderingActiveTab].type;
   const handleLoadCommonChats = useCallback(() => {
     loadCommonChats({ userId: chatId });
   }, [chatId]);
@@ -378,6 +372,9 @@ const Profile: FC<OwnProps & StateProps> = ({
   const handleLoadGifts = useCallback(() => {
     loadPeerSavedGifts({ peerId: chatId });
   }, [chatId]);
+  const handleLoadMoreMembers = useCallback(() => {
+    loadMoreMembers({ chatId });
+  }, [chatId, loadMoreMembers]);
 
   useEffectWithPrevDeps(([prevGifts]) => {
     if (!gifts || !prevGifts) {
@@ -385,8 +382,8 @@ const Profile: FC<OwnProps & StateProps> = ({
       return;
     }
 
-    const prevGiftIds = prevGifts.map(getGiftId);
-    const newGiftIds = gifts.map(getGiftId);
+    const prevGiftIds = prevGifts.map((gift) => getSavedGiftKey(gift));
+    const newGiftIds = gifts.map((gift) => getSavedGiftKey(gift));
     const hasOrderChanged = prevGiftIds.some((id, index) => id !== newGiftIds[index]);
 
     if (hasOrderChanged) {
@@ -399,7 +396,7 @@ const Profile: FC<OwnProps & StateProps> = ({
   }, [gifts, startViewTransition]);
 
   const [resultType, viewportIds, getMore, noProfileInfo] = useProfileViewportIds({
-    loadMoreMembers,
+    loadMoreMembers: handleLoadMoreMembers,
     searchMessages: searchSharedMediaMessages,
     loadStories: handleLoadPeerStories,
     loadStoriesArchive: handleLoadStoriesArchive,
@@ -479,7 +476,7 @@ const Profile: FC<OwnProps & StateProps> = ({
   const handleSelectPreviewMedia = useLastCallback((index: number) => {
     openMediaViewer({
       standaloneMedia: botPreviewMedia?.flatMap((item) => item?.content.photo
-      || item?.content.video).filter(Boolean),
+        || item?.content.video).filter(Boolean),
       origin: MediaViewerOrigin.PreviewMedia,
       mediaIndex: index,
     });
@@ -522,7 +519,7 @@ const Profile: FC<OwnProps & StateProps> = ({
 
     return captureEvents(transitionRef.current, {
       selectorToPreventScroll: '.Profile',
-      onSwipe: ((e, direction) => {
+      onSwipe: (e, direction) => {
         if (direction === SwipeDirection.Left) {
           setActiveTab(Math.min(renderingActiveTab + 1, tabs.length - 1));
           return true;
@@ -532,7 +529,7 @@ const Profile: FC<OwnProps & StateProps> = ({
         }
 
         return false;
-      }),
+      },
     });
   }, [renderingActiveTab, tabs.length]);
 
@@ -585,8 +582,19 @@ const Profile: FC<OwnProps & StateProps> = ({
       );
     }
 
-    if ((!viewportIds && !botPreviewMedia) || !canRenderContent || !messagesById) {
-      const noSpinner = isFirstTab && !canRenderContent;
+    const noContent = (!viewportIds && !botPreviewMedia) || !canRenderContent || !messagesById;
+    const noSpinner = isFirstTab && !canRenderContent;
+    const isSpinner = noContent && !noSpinner;
+
+    return (
+      <Transition activeKey={isSpinner ? 0 : 1} name="fade">
+        {renderSpinnerOrContent(noContent, noSpinner)}
+      </Transition>
+    );
+  }
+
+  function renderSpinnerOrContent(noContent: boolean, noSpinner: boolean) {
+    if (noContent) {
       const forceRenderHiddenMembers = Boolean(resultType === 'members' && areMembersHidden);
 
       return (
@@ -644,6 +652,11 @@ const Profile: FC<OwnProps & StateProps> = ({
       );
     }
 
+    if (!messagesById) {
+      // A TypeScript assertion, should never be really reached
+      return;
+    }
+
     return (
       <div
         className={`content ${resultType}-list`}
@@ -651,7 +664,7 @@ const Profile: FC<OwnProps & StateProps> = ({
         teactFastList
       >
         {resultType === 'media' ? (
-          (viewportIds as number[])!.map((id) => messagesById[id] && (
+          (viewportIds as number[]).map((id) => messagesById[id] && (
             <Media
               key={id}
               message={messagesById[id]}
@@ -661,7 +674,7 @@ const Profile: FC<OwnProps & StateProps> = ({
             />
           ))
         ) : (resultType === 'stories' || resultType === 'storiesArchive') ? (
-          (viewportIds as number[])!.map((id, i) => storyByIds?.[id] && (
+          (viewportIds as number[]).map((id, i) => storyByIds?.[id] && (
             <MediaStory
               teactOrderKey={i}
               key={`${resultType}_${id}`}
@@ -670,7 +683,7 @@ const Profile: FC<OwnProps & StateProps> = ({
             />
           ))
         ) : resultType === 'documents' ? (
-          (viewportIds as number[])!.map((id) => messagesById[id] && (
+          (viewportIds as number[]).map((id) => messagesById[id] && (
             <Document
               key={id}
               document={getMessageDocument(messagesById[id])!}
@@ -685,7 +698,7 @@ const Profile: FC<OwnProps & StateProps> = ({
             />
           ))
         ) : resultType === 'links' ? (
-          (viewportIds as number[])!.map((id) => messagesById[id] && (
+          (viewportIds as number[]).map((id) => messagesById[id] && (
             <WebLink
               key={id}
               message={messagesById[id]}
@@ -695,7 +708,7 @@ const Profile: FC<OwnProps & StateProps> = ({
             />
           ))
         ) : resultType === 'audio' ? (
-          (viewportIds as number[])!.map((id) => messagesById[id] && (
+          (viewportIds as number[]).map((id) => messagesById[id] && (
             <Audio
               key={id}
               theme={theme}
@@ -710,33 +723,34 @@ const Profile: FC<OwnProps & StateProps> = ({
             />
           ))
         ) : resultType === 'voice' ? (
-          (viewportIds as number[])!.map((id) => {
+          (viewportIds as number[]).map((id) => {
+            const global = getGlobal();
             const message = messagesById[id];
             if (!message) return undefined;
-            const media = messagesById[id] && getMessageDownloadableMedia(message)!;
+
+            const media = selectMessageDownloadableMedia(global, message)!;
             return messagesById[id] && (
               <Audio
                 key={id}
                 theme={theme}
-                message={messagesById[id]}
-                senderTitle={getSenderName(oldLang, messagesById[id], chatsById, usersById)}
+                message={message}
+                senderTitle={getSenderName(oldLang, message, chatsById, usersById)}
                 origin={AudioOrigin.SharedMedia}
-                date={messagesById[id].date}
+                date={message.date}
                 className="scroll-item"
                 onPlay={handlePlayAudio}
                 onDateClick={handleMessageFocus}
-                canDownload={!isChatProtected && !messagesById[id].isProtected}
+                canDownload={!isChatProtected && !message.isProtected}
                 isDownloading={getIsDownloading(activeDownloads, media)}
               />
             );
           })
         ) : resultType === 'members' ? (
-          (viewportIds as string[])!.map((id, i) => (
+          (viewportIds as string[]).map((id, i) => (
             <ListItem
               key={id}
               teactOrderKey={i}
               className="chat-item-clickable contact-list-item scroll-item small-icon"
-              // eslint-disable-next-line react/jsx-no-bind
               onClick={() => handleMemberClick(id)}
               contextActions={getMemberContextAction(id)}
             >
@@ -744,12 +758,11 @@ const Profile: FC<OwnProps & StateProps> = ({
             </ListItem>
           ))
         ) : resultType === 'commonChats' ? (
-          (viewportIds as string[])!.map((id, i) => (
+          (viewportIds as string[]).map((id, i) => (
             <ListItem
               key={id}
               teactOrderKey={i}
               className="chat-item-clickable scroll-item small-icon"
-              // eslint-disable-next-line react/jsx-no-bind
               onClick={() => openChat({ id })}
             >
               <GroupChatInfo chatId={id} />
@@ -768,7 +781,7 @@ const Profile: FC<OwnProps & StateProps> = ({
           ))
         ) : resultType === 'similarChannels' ? (
           <div key={resultType}>
-            {(viewportIds as string[])!.map((channelId, i) => (
+            {(viewportIds as string[]).map((channelId, i) => (
               <ListItem
                 key={channelId}
                 teactOrderKey={i}
@@ -776,7 +789,6 @@ const Profile: FC<OwnProps & StateProps> = ({
                   'chat-item-clickable search-result',
                   !isCurrentUserPremium && i === similarChannels!.length - 1 && 'blured',
                 )}
-                // eslint-disable-next-line react/jsx-no-bind
                 onClick={() => openChat({ id: channelId })}
               >
                 <GroupChatInfo avatarSize="large" chatId={channelId} withFullInfo />
@@ -784,7 +796,7 @@ const Profile: FC<OwnProps & StateProps> = ({
             ))}
             {!isCurrentUserPremium && (
               <>
-                {/* eslint-disable-next-line react/jsx-no-bind */}
+                {}
                 <Button className="show-more-channels" size="smaller" onClick={() => openPremiumModal()}>
                   {oldLang('UnlockSimilar')}
                   <Icon name="unlock-badge" />
@@ -797,7 +809,7 @@ const Profile: FC<OwnProps & StateProps> = ({
           </div>
         ) : resultType === 'similarBots' ? (
           <div key={resultType}>
-            {(viewportIds as string[])!.map((userId, i) => (
+            {(viewportIds as string[]).map((userId, i) => (
               <ListItem
                 key={userId}
                 teactOrderKey={i}
@@ -805,7 +817,6 @@ const Profile: FC<OwnProps & StateProps> = ({
                   'chat-item-clickable search-result',
                   !isCurrentUserPremium && i === similarBots!.length - 1 && 'blured',
                 )}
-                // eslint-disable-next-line react/jsx-no-bind
                 onClick={() => openChat({ id: userId })}
               >
                 {isUserId(userId) ? (
@@ -823,7 +834,7 @@ const Profile: FC<OwnProps & StateProps> = ({
             ))}
             {!isCurrentUserPremium && (
               <>
-                {/* eslint-disable-next-line react/jsx-no-bind */}
+                {}
                 <Button className="show-more-bots" size="smaller" onClick={() => openPremiumModal()}>
                   {lang('UnlockMoreSimilarBots')}
                   <Icon name="unlock-badge" />
@@ -843,8 +854,8 @@ const Profile: FC<OwnProps & StateProps> = ({
             return (
               <SavedGift
                 peerId={chatId}
-                key={getGiftId(gift)}
-                style={shouldApplyVtn ? `view-transition-name: vt${getGiftId(gift)}` : undefined}
+                key={getSavedGiftKey(gift)}
+                style={shouldApplyVtn ? `view-transition-name: vt${getSavedGiftKey(gift)}` : undefined}
                 gift={gift}
                 observeIntersection={observeIntersectionForMedia}
               />
@@ -874,7 +885,12 @@ const Profile: FC<OwnProps & StateProps> = ({
       onScroll={handleScroll}
     >
       {!noProfileInfo && !isSavedMessages && (
-        renderProfileInfo(profileId, isRightColumnShown && canRenderContent, isSavedDialog)
+        renderProfileInfo(
+          monoforumChannel?.id || profileId,
+          isRightColumnShown && canRenderContent,
+          isSavedDialog,
+          Boolean(monoforumChannel),
+        )
       )}
       {!isRestricted && (
         <div
@@ -882,7 +898,7 @@ const Profile: FC<OwnProps & StateProps> = ({
         >
           <Transition
             ref={transitionRef}
-            name={oldLang.isRtl ? 'slideOptimizedRtl' : 'slideOptimized'}
+            name={resolveTransitionName('slideOptimized', animationLevel, undefined, oldLang.isRtl)}
             activeKey={activeKey}
             renderCount={tabs.length}
             shouldRestoreHeight
@@ -917,10 +933,10 @@ const Profile: FC<OwnProps & StateProps> = ({
   );
 };
 
-function renderProfileInfo(profileId: string, isReady: boolean, isSavedDialog?: boolean) {
+function renderProfileInfo(profileId: string, isReady: boolean, isSavedDialog?: boolean, isForMonoforum?: boolean) {
   return (
     <div className="profile-info">
-      <ProfileInfo peerId={profileId} canPlayVideo={isReady} />
+      <ProfileInfo peerId={profileId} canPlayVideo={isReady} isForMonoforum={isForMonoforum} />
       <ChatExtra chatOrUserId={profileId} isSavedDialog={isSavedDialog} />
     </div>
   );
@@ -936,7 +952,7 @@ export default memo(withGlobal<OwnProps>(
     const userFullInfo = selectUserFullInfo(global, chatId);
     const messagesById = selectChatMessages(global, chatId);
 
-    const { shouldWarnAboutSvg } = selectSharedSettings(global);
+    const { animationLevel, shouldWarnAboutSvg } = selectSharedSettings(global);
 
     const { currentType: mediaSearchType, resultsByType } = selectCurrentSharedMediaSearch(global) || {};
     const { foundIds } = (resultsByType && mediaSearchType && resultsByType[mediaSearchType]) || {};
@@ -951,7 +967,8 @@ export default memo(withGlobal<OwnProps>(
     const isGroup = chat && isChatGroup(chat);
     const isChannel = chat && isChatChannel(chat);
     const isBot = user && isUserBot(user);
-    const hasMembersTab = !isTopicInfo && !isSavedDialog && (isGroup || (isChannel && isChatAdmin(chat!)));
+    const hasMembersTab = !isTopicInfo && !isSavedDialog
+      && (isGroup || (isChannel && isChatAdmin(chat))) && !chat?.isMonoforum;
     const members = chatFullInfo?.members;
     const adminMembersById = chatFullInfo?.adminMembersById;
     const areMembersHidden = hasMembersTab && chat
@@ -986,6 +1003,9 @@ export default memo(withGlobal<OwnProps>(
     const hasGiftsTab = Boolean(peerFullInfo?.starGiftCount) && !isSavedDialog;
     const peerGifts = selectTabState(global).savedGifts.giftsByPeerId[chatId];
 
+    const monoforumChannel = selectMonoforumChannel(global, chatId);
+    const isRestricted = chat && selectIsChatRestricted(global, chat.id);
+
     return {
       theme: selectTheme(global),
       isChannel,
@@ -1002,7 +1022,7 @@ export default memo(withGlobal<OwnProps>(
       canDeleteMembers,
       currentUserId: global.currentUserId,
       isRightColumnShown: selectIsRightColumnShown(global, isMobile),
-      isRestricted: chat?.isRestricted,
+      isRestricted,
       activeDownloads,
       usersById,
       userStatusesById,
@@ -1016,6 +1036,7 @@ export default memo(withGlobal<OwnProps>(
       isChatProtected: chat?.isProtected,
       nextProfileTab: selectTabState(global).nextProfileTab,
       forceScrollProfileTab: selectTabState(global).forceScrollProfileTab,
+      animationLevel,
       shouldWarnAboutSvg,
       similarChannels: similarChannelIds,
       similarBots: similarBotsIds,
@@ -1027,6 +1048,7 @@ export default memo(withGlobal<OwnProps>(
       limitSimilarPeers: selectPremiumLimit(global, 'recommendedChannels'),
       ...(hasMembersTab && members && { members, adminMembersById }),
       ...(hasCommonChatsTab && user && { commonChatIds: commonChats?.ids }),
+      monoforumChannel,
     };
   },
 )(Profile));

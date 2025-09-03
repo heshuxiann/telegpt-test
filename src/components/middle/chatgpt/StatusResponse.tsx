@@ -1,5 +1,5 @@
 /* eslint-disable no-null/no-null */
-import React from '../../../lib/teact/teact';
+import React from '@teact';
 
 import './StatusResponse.scss';
 

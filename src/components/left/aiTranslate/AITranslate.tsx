@@ -1,12 +1,9 @@
+import React from '@teact';
 /* eslint-disable max-len */
 /* eslint-disable no-null/no-null */
 /* eslint-disable @typescript-eslint/no-shadow */
 import type { FC } from '../../../lib/teact/teact';
-import React, {
-  memo,
-} from '../../../lib/teact/teact';
-
-import { LAYERS_ANIMATION_NAME } from '../../../util/browser/windowEnvironment';
+import { memo } from '../../../lib/teact/teact';
 
 import Transition from '../../ui/Transition';
 import AITranslateContent from './AITranslateContent';
@@ -27,7 +24,7 @@ const AITranslate:FC<OwnProps> = ({ onReset }) => {
   return (
     <Transition
       id="AiTranslate"
-      name={LAYERS_ANIMATION_NAME}
+      name='fade'
       activeKey={0}
       renderCount={1}
       shouldWrap

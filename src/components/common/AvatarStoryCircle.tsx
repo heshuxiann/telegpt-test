@@ -1,4 +1,5 @@
-import React, {
+import React from '@teact';
+import {
   memo, useLayoutEffect, useMemo, useRef,
 } from '../../lib/teact/teact';
 import { withGlobal } from '../../global';
@@ -13,7 +14,6 @@ import { REM } from './helpers/mediaDimensions';
 import useDevicePixelRatio from '../../hooks/window/useDevicePixelRatio';
 
 interface OwnProps {
-  // eslint-disable-next-line react/no-unused-prop-types
   peerId: string;
   className?: string;
   size: number;
@@ -53,8 +53,7 @@ function AvatarStoryCircle({
   withExtraGap,
   appTheme,
 }: OwnProps & StateProps) {
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLCanvasElement>(null);
+  const ref = useRef<HTMLCanvasElement>();
 
   const dpr = useDevicePixelRatio();
 

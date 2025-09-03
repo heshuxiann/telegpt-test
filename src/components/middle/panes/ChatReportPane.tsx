@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useEffect, useState } from '../../../lib/teact/teact';
+import { memo, useEffect, useState } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type { ApiPeer } from '../../../api/types';

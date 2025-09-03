@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
-/* eslint-disable no-console */
-/* eslint-disable no-null/no-null */
-/* eslint-disable max-len */
 import React, {
   useCallback,
 } from 'react';

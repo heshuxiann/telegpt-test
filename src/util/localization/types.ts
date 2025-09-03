@@ -80,10 +80,10 @@ type RegularLangFnPluralParametersWithVariables<T = LangPairPluralWithVariables>
 }[keyof T];
 
 export type RegularLangFnParameters =
-| RegularLangFnParametersWithoutVariables
-| RegularLangFnParametersWithVariables
-| RegularLangFnPluralParameters
-| RegularLangFnPluralParametersWithVariables;
+  | RegularLangFnParametersWithoutVariables
+  | RegularLangFnParametersWithVariables
+  | RegularLangFnPluralParameters
+  | RegularLangFnPluralParametersWithVariables;
 
 type AdvancedLangFnParametersWithoutVariables = {
   key: RegularLangKey;
@@ -114,10 +114,10 @@ type AdvancedLangFnPluralParametersWithVariables<T = LangPairPluralWithNodes> = 
 }[keyof T];
 
 export type AdvancedLangFnParameters =
-| AdvancedLangFnParametersWithoutVariables
-| AdvancedLangFnParametersWithVariables
-| AdvancedLangFnPluralParameters
-| AdvancedLangFnPluralParametersWithVariables;
+  | AdvancedLangFnParametersWithoutVariables
+  | AdvancedLangFnParametersWithVariables
+  | AdvancedLangFnPluralParameters
+  | AdvancedLangFnPluralParametersWithVariables;
 
 export type LangFnParameters = RegularLangFnParameters | AdvancedLangFnParameters;
 
@@ -155,6 +155,7 @@ export type LangFn = {
   conjunction: (list: string[]) => string;
   disjunction: (list: string[]) => string;
   number: (value: number) => string;
+  preciseNumber: (value: number) => string;
   internalFormatters: LangFormatters;
   isRtl?: boolean;
   rawCode: string;
@@ -171,6 +172,7 @@ export type LangFormatters = {
   conjunction: ListFormat;
   disjunction: ListFormat;
   number: Intl.NumberFormat;
+  preciseNumber: Intl.NumberFormat;
 };
 
 /* GUARDS */

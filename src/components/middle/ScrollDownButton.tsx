@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React, { memo, useRef } from '../../lib/teact/teact';
+import { memo, useRef } from '../../lib/teact/teact';
 
 import type { IconName } from '../../types/icons';
 
@@ -37,8 +38,7 @@ const ScrollDownButton: FC<OwnProps> = ({
   const oldLang = useOldLang();
   const lang = useLang();
 
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
   const {
     isContextMenuOpen,
     handleContextMenu,

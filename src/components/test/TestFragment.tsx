@@ -1,4 +1,5 @@
-import React, { useRef, useState } from '../../lib/teact/teact';
+import React from '@teact';
+import { useRef, useState } from '../../lib/teact/teact';
 
 export function App() {
   const [trigger, setTrigger] = useState(false);
@@ -27,7 +28,9 @@ function Child() {
 
   return (
     <div>
-      This number should never change: {idRef.current}
+      This number should never change:
+      {' '}
+      {idRef.current}
     </div>
   );
 }

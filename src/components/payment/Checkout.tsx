@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React, { memo, useCallback } from '../../lib/teact/teact';
+import { memo, useCallback } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import type {
@@ -94,7 +95,9 @@ const Checkout: FC<OwnProps> = ({
 
   const photoUrl = useMedia(getWebDocumentHash(photo));
 
-  const ref = useMediaTransition<HTMLImageElement>(photoUrl);
+  const { ref } = useMediaTransition<HTMLImageElement>({
+    hasMediaData: Boolean(photoUrl),
+  });
 
   const handleTipsClick = useCallback((tips: number) => {
     dispatch!({ type: 'setTipAmount', payload: maxTipAmount ? Math.min(tips, maxTipAmount) : tips });
@@ -274,7 +277,7 @@ function renderCheckoutItem({
   customIcon,
   onClick,
 }: {
-  title : string | undefined;
+  title: string | undefined;
   label: string | undefined;
   icon?: IconName;
   onClick?: NoneToVoidFunction;

@@ -1,4 +1,5 @@
-import React, { memo } from '../../lib/teact/teact';
+import React from '@teact';
+import { memo } from '../../lib/teact/teact';
 
 import type { ApiSticker } from '../../api/types';
 import type { OwnProps as AnimatedIconProps } from './AnimatedIcon';
@@ -33,7 +34,6 @@ function AnimatedIconFromSticker(props: OwnProps) {
       tgsUrl={tgsUrl}
       previewUrl={previewBlobUrl}
       thumbDataUri={thumbDataUri}
-      // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherProps}
     />
   );

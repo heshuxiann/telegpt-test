@@ -1,10 +1,12 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useEffect, useMemo, useState,
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
-import type { AccountSettings, LangCode, SharedSettings } from '../../../types';
+import type { SharedSettings } from '../../../global/types';
+import type { AccountSettings, LangCode } from '../../../types';
 import { SettingsScreens } from '../../../types';
 
 import { selectIsCurrentUserPremium } from '../../../global/selectors';
@@ -25,7 +27,6 @@ import Loading from '../../ui/Loading';
 type OwnProps = {
   isActive?: boolean;
   onReset: () => void;
-  onScreenSelect: (screen: SettingsScreens) => void;
 };
 
 type StateProps = {
@@ -41,7 +42,6 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
   canTranslate,
   canTranslateChats,
   doNotTranslate,
-  onScreenSelect,
   onReset,
 }) => {
   const {
@@ -49,6 +49,7 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
     setSettingOption,
     setSharedSettingOption,
     openPremiumModal,
+    openSettingsScreen,
   } = getActions();
 
   const [selectedLanguage, setSelectedLanguage] = useState<string>(language);
@@ -120,7 +121,7 @@ const SettingsLanguage: FC<OwnProps & StateProps> = ({
   }, [doNotTranslate, lang, language]);
 
   const handleDoNotSelectOpen = useLastCallback(() => {
-    onScreenSelect(SettingsScreens.DoNotTranslate);
+    openSettingsScreen({ screen: SettingsScreens.DoNotTranslate });
   });
 
   useHistoryBack({

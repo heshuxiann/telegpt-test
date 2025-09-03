@@ -1,5 +1,5 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React from '../../../lib/teact/teact';
 
 import type { OwnProps } from './StickerTooltip';
 
@@ -11,7 +11,6 @@ const StickerTooltipAsync: FC<OwnProps> = (props) => {
   const { isOpen } = props;
   const StickerTooltip = useModuleLoader(Bundles.Extra, 'StickerTooltip', !isOpen);
 
-  // eslint-disable-next-line react/jsx-props-no-spreading
   return StickerTooltip ? <StickerTooltip {...props} /> : undefined;
 };
 

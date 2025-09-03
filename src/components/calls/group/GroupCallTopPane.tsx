@@ -1,6 +1,7 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, {
-  memo, useCallback, useEffect, useMemo,
+import {
+  memo, useCallback, useMemo,
 } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
@@ -41,7 +42,6 @@ const GroupCallTopPane: FC<OwnProps & StateProps> = ({
 }) => {
   const {
     requestMasterAndJoinGroupCall,
-    subscribeToGroupCallUpdates,
   } = getActions();
 
   const lang = useOldLang();
@@ -68,23 +68,6 @@ const GroupCallTopPane: FC<OwnProps & StateProps> = ({
       .map(({ id }) => usersById[id] || chatsById[id])
       .filter(Boolean);
   }, [participants]);
-
-  useEffect(() => {
-    if (!groupCall?.id) return undefined;
-    if (!isActive && groupCall.isLoaded) return undefined;
-
-    subscribeToGroupCallUpdates({
-      id: groupCall.id,
-      subscribed: true,
-    });
-
-    return () => {
-      subscribeToGroupCallUpdates({
-        id: groupCall.id,
-        subscribed: false,
-      });
-    };
-  }, [groupCall?.id, groupCall?.isLoaded, isActive, subscribeToGroupCallUpdates]);
 
   const renderingParticipantCount = useCurrentOrPrev(groupCall?.participantsCount, true);
   const renderingFetchedParticipants = useCurrentOrPrev(fetchedParticipants, true);

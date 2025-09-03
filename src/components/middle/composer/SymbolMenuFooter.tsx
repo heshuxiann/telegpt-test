@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, { memo } from '../../../lib/teact/teact';
+import { memo } from '../../../lib/teact/teact';
 
 import buildClassName from '../../../util/buildClassName';
 
@@ -20,10 +21,10 @@ type OwnProps = {
 };
 
 export enum SymbolMenuTabs {
-  'Emoji',
-  'CustomEmoji',
-  'Stickers',
-  'GIFs',
+  Emoji,
+  CustomEmoji,
+  Stickers,
+  GIFs,
 }
 
 export const SYMBOL_MENU_TAB_TITLES: Record<SymbolMenuTabs, string> = {
@@ -50,7 +51,6 @@ const SymbolMenuFooter: FC<OwnProps> = ({
     return (
       <Button
         className={`symbol-tab-button ${activeTab === tab ? 'activated' : ''}`}
-        // eslint-disable-next-line react/jsx-no-bind
         onClick={() => onSwitchTab(tab)}
         ariaLabel={lang(SYMBOL_MENU_TAB_TITLES[tab])}
         round

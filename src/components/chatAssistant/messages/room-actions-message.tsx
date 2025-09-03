@@ -1,13 +1,13 @@
+/* eslint-disable @stylistic/max-len */
 /* eslint-disable no-null/no-null */
 /* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable max-len */
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Message } from 'ai';
 import { getGlobal } from '../../../global';
 
-import { isUserId } from '../../../global/helpers';
 import { selectChat, selectUser } from '../../../global/selectors';
+import { isUserId } from '../../../util/entities/ids';
 import { cn, formatTimestamp } from '../utils/util';
 import MessageActionsItems from './message-actions-button';
 
@@ -36,7 +36,7 @@ interface ISummaryPendingItem {
 
 const ChatAvatar = ({
   chatId, classNames, size, style,
-}: { chatId: string; classNames?: string; size:number;style?: { [key:string]:string } }) => {
+}: { chatId: string; classNames?: string; size: number; style?: Record<string, string> }) => {
   if (!chatId) return null;
   const global = getGlobal();
   let peer;
@@ -82,7 +82,7 @@ const ActionsItems = ({
   );
 };
 
-const ActionInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
+const ActionInfoContent = ({ summaryInfo }: { summaryInfo: ISummaryInfo }) => {
   return (
     <ErrorBoundary>
       <div>
@@ -96,7 +96,9 @@ const ActionInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
             <div className="flex items-center gap-[4px]">
               <span className="mr-[4px] font-bold text-[14px]" data-readable-inline>Time:</span>
               {summaryInfo?.summaryTime ? (
-                <p className="text-[14px] text-[#A8A6AC]" data-readable-inline>{formatTimestamp(summaryInfo.summaryTime)}</p>
+                <p className="text-[14px] text-[#A8A6AC]" data-readable-inline>
+                  {formatTimestamp(summaryInfo.summaryTime)}
+                </p>
               ) : null}
             </div>
           </p>
@@ -127,7 +129,10 @@ const ActionInfoContent = ({ summaryInfo }:{ summaryInfo:ISummaryInfo }) => {
                 );
               })}
               {summaryInfo.userIds.length > 10 ? (
-                <div className="w-[24px] h-[24px] rounded-full bg-[#979797] text-[12px] whitespace-nowrap flex items-center justify-center" data-readable>{summaryInfo.userIds.length - 10}+</div>
+                <div className="w-[24px] h-[24px] rounded-full bg-[#979797] text-[12px] whitespace-nowrap flex items-center justify-center" data-readable>
+                  {summaryInfo.userIds.length - 10}
+                  +
+                </div>
               ) : null}
             </div>
           </div>
@@ -155,7 +160,6 @@ const RoomActionMessage = (props: IProps) => {
     try {
       parseMessage(message.content);
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error(error);
     }
   }, [message, parseMessage]);

@@ -96,11 +96,6 @@ declare module '*.strings' {
   export default url;
 }
 
-declare module '*.json' {
-  const value: any;
-  export default value;
-}
-
 declare module 'pako/dist/pako_inflate' {
   function inflate(...args: any[]): string;
 }
@@ -110,7 +105,7 @@ declare module 'opus-recorder' {
     // eslint-disable-next-line @typescript-eslint/no-misused-new
     new(options: AnyLiteral): IOpusRecorder;
 
-    start(stream?: MediaStreamAudioSourceNode): void;
+    start(stream?: MediaStreamAudioSourceNode): Promise<void>;
 
     sourceNode: MediaStreamAudioSourceNode;
 
@@ -200,14 +195,11 @@ type FilesystemReadWriteOptions = {
   at: number;
 };
 
-declare global {
-  interface Window {
+declare namespace google {
+   interface Window {
     google: typeof google;
   }
-}
-
-declare namespace google {
-  namespace accounts.oauth2 {
+    namespace accounts.oauth2 {
     interface TokenResponse {
       access_token: string;
       expires_in: number;

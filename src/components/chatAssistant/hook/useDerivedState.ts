@@ -21,7 +21,7 @@ function useDerivedState<T>(resolverOrSignal: Resolver<T> | T, dependencies?: re
   const resolver = dependencies ? resolverOrSignal as Resolver<T> : () => ((resolverOrSignal as Signal<T>)());
   dependencies ??= [resolverOrSignal];
 
-  const valueRef = useRef<T>();
+  const valueRef = useRef<T>(undefined);
   const forceUpdate = useForceUpdate();
   const resolverRef = useStateRef(resolver);
 

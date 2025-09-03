@@ -1,4 +1,5 @@
-import React, { memo } from '../../../../lib/teact/teact';
+import React from '@teact';
+import { memo } from '../../../../lib/teact/teact';
 
 import type { ApiMessageActionChatEditPhoto } from '../../../../api/types/messageActions';
 
@@ -22,7 +23,7 @@ const ChannelPhotoAction = ({
   action,
   onClick,
   observeIntersection,
-} : OwnProps) => {
+}: OwnProps) => {
   return (
     <Avatar
       className={styles.channelPhoto}

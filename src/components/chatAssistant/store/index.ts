@@ -10,6 +10,7 @@ import type GeneralStore from './general-store';
 import type KnowledgeStore from './knowledge-store';
 import type MessageStore from './messages-store';
 import type SummaryStore from './summary-store';
+import type TgMessageStore from './tg-message-store';
 import type UserPortraitMessageStore from './user-portrait-message-store';
 import type UserPortraitStore from './user-portrait-store';
 import type UsersStore from './user-store';
@@ -32,4 +33,5 @@ export const ChataiStores = {
   aIChatFolders: null as AIChatFoldersStore | null,
   userPortrait: null as UserPortraitStore | null,
   userPortraitMessage: null as UserPortraitMessageStore | null,
+  tgMessage: null as TgMessageStore | null,
 };

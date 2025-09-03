@@ -1,10 +1,10 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React, { memo } from '../../lib/teact/teact';
+import { memo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import type { GlobalState } from '../../global/types';
 import type { FolderEditDispatch } from '../../hooks/reducers/useFoldersReducer';
-import type { LeftColumnContent, SettingsScreens } from '../../types';
 
 import { ANIMATION_END_DELAY } from '../../config';
 import buildClassName from '../../util/buildClassName';
@@ -35,9 +35,7 @@ export type OwnProps = {
   isStoryRibbonShown?: boolean;
   onReset: () => void;
   onTopicSearch: NoneToVoidFunction;
-  onSettingsScreenSelect: (screen: SettingsScreens) => void;
   foldersDispatch: FolderEditDispatch;
-  onLeftColumnContentChange: (content: LeftColumnContent) => void;
 };
 
 const ArchivedChats: FC<OwnProps> = ({
@@ -47,8 +45,6 @@ const ArchivedChats: FC<OwnProps> = ({
   isStoryRibbonShown,
   onReset,
   onTopicSearch,
-  onSettingsScreenSelect,
-  onLeftColumnContentChange,
   foldersDispatch,
 }) => {
   const { updateArchiveSettings } = getActions();
@@ -136,8 +132,7 @@ const ArchivedChats: FC<OwnProps> = ({
           folderType="archived"
           isActive={isActive}
           isForumPanelOpen={isForumPanelVisible}
-          onSettingsScreenSelect={onSettingsScreenSelect}
-          onLeftColumnContentChange={onLeftColumnContentChange}
+          isMainList
           foldersDispatch={foldersDispatch}
           archiveSettings={archiveSettings}
         />

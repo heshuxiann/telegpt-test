@@ -1,20 +1,18 @@
 import type { FC } from '../../../lib/teact/teact';
-import React from '../../../lib/teact/teact';
 
-import type { OwnProps } from './SponsoredMessageContextMenuContainer';
+import type { OwnProps } from './SponsoredContextMenuContainer';
 
 import { Bundles } from '../../../util/moduleLoader';
 
 import useModuleLoader from '../../../hooks/useModuleLoader';
 
-const SponsoredMessageContextMenuContainerAsync: FC<OwnProps> = (props) => {
+const SponsoredContextMenuContainerAsync: FC<OwnProps> = (props) => {
   const { isOpen } = props;
-  const SponsoredMessageContextMenuContainer = useModuleLoader(
-    Bundles.Extra, 'SponsoredMessageContextMenuContainer', !isOpen,
+  const SponsoredContextMenuContainer = useModuleLoader(
+    Bundles.Extra, 'SponsoredContextMenuContainer', !isOpen,
   );
 
-  // eslint-disable-next-line react/jsx-props-no-spreading
-  return SponsoredMessageContextMenuContainer ? <SponsoredMessageContextMenuContainer {...props} /> : undefined;
+  return SponsoredContextMenuContainer ? <SponsoredContextMenuContainer {...props} /> : undefined;
 };
 
-export default SponsoredMessageContextMenuContainerAsync;
+export default SponsoredContextMenuContainerAsync;

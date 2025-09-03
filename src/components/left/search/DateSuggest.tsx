@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useMemo } from '../../../lib/teact/teact';
+import { memo, useMemo } from '../../../lib/teact/teact';
 
 import { formatDateToString } from '../../../util/dates/dateFormat';
 

@@ -1,7 +1,8 @@
-/* eslint-disable max-len */
+/* eslint-disable @stylistic/max-len */
 /* eslint-disable no-null/no-null */
 // Import React dependencies.
 import React, {
+  type ChangeEvent,
   useCallback, useRef, useState,
 } from 'react';
 import type { DSlateRef } from '@dslate/antd';
@@ -14,16 +15,15 @@ import { v4 as uuidv4 } from 'uuid';
 import type { AiKnowledge } from '../../chatAssistant/store/knowledge-store';
 
 import { ChataiStores } from '../../chatAssistant/store';
-import { knowledgeEmbeddingStore } from '../../chatAssistant/vector-store';
 
 type OwnProps = {
-  knowledge?:AiKnowledge | null;
+  knowledge?: AiKnowledge | null;
   type: 'add' | 'edit';
   onClose: () => void;
-  onUpdate:()=>void;
+  onUpdate: () => void;
 };
 
-const ErrorTip = ({ message }:{ message:string }) => {
+const ErrorTip = ({ message }: { message: string }) => {
   return (
     <div className="text-[12px] leading-[18px] text-red-400">{message}</div>
   );
@@ -44,7 +44,7 @@ const AIKnowledgeEditor = (props: OwnProps) => {
   const [questionError, setQuestionError] = useState<string>('');
   const [valueError, setValueError] = useState<string>('');
   const ref = useRef<DSlateRef>(null);
-  const handleQuestionChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleQuestionChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setQuestion(e.target.value);
   }, []);
   const serialize = (nodes: Descendant[]) => {
@@ -74,9 +74,6 @@ const AIKnowledgeEditor = (props: OwnProps) => {
       onClose();
       onUpdate();
     });
-    knowledgeEmbeddingStore.updateText(question, knowledgeIdValue, {
-      answer: plainText,
-    });
   }, [knowledge?.id, onClose, onUpdate, question, type, value]);
   return (
     <div className="flex flex-col gap-[20px] h-full">
@@ -92,7 +89,10 @@ const AIKnowledgeEditor = (props: OwnProps) => {
         {valueError && <ErrorTip message={valueError} />}
       </div>
       <div className="flex flex-col gap-[8px]">
-        <div>Preset standard questions <span className="text-[#FF543D]">*</span></div>
+        <div>
+          Preset standard questions
+          <span className="text-[#FF543D]">*</span>
+        </div>
         <Input value={question} onChange={handleQuestionChange} />
         {questionError && <ErrorTip message={questionError} />}
       </div>

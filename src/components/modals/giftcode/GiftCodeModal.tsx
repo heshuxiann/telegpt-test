@@ -1,4 +1,5 @@
-import React, { memo, useMemo } from '../../../lib/teact/teact';
+import React from '@teact';
+import { memo, useMemo } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type { ApiPeer } from '../../../api/types';
@@ -18,7 +19,7 @@ import TableInfoModal, { type TableData } from '../common/TableInfoModal';
 
 import styles from './GiftCodeModal.module.scss';
 
-import PremiumLogo from '../../../assets/premium/PremiumLogo.svg';
+import PremiumLogo from '../../../assets/premium/PremiumStar.svg';
 
 export type OwnProps = {
   modal: TabState['giftCodeModal'];
@@ -75,18 +76,30 @@ const GiftCodeModal = ({
       </>
     );
 
-    const tableData = [
+    const tableData: TableData = [
       [lang('BoostingFrom'), fromId ? { chatId: fromId } : lang('BoostingNoRecipient')],
       [lang('BoostingTo'), info.toId ? { chatId: info.toId } : lang('BoostingNoRecipient')],
       [lang('BoostingGift'), lang('BoostingTelegramPremiumFor', lang('Months', info.months, 'i'))],
-      [lang('BoostingReason'), (
-        <span className={buildClassName(info.giveawayMessageId && styles.clickable)} onClick={handleOpenGiveaway}>
-          {info.isFromGiveaway && !info.toId ? lang('BoostingIncompleteGiveaway')
-            : lang(info.isFromGiveaway ? 'BoostingGiveaway' : 'BoostingYouWereSelected')}
-        </span>
-      )],
-      [lang('BoostingDate'), formatDateTimeToString(info.date * 1000, lang.code, true)],
-    ] satisfies TableData;
+    ];
+    if (info.isFromGiveaway) {
+      tableData.push([
+        lang('BoostingReason'),
+        (
+          <span
+            className={buildClassName(info.giveawayMessageId && styles.clickable)}
+            onClick={handleOpenGiveaway}
+          >
+            {info.isFromGiveaway && !info.toId
+              ? lang('BoostingIncompleteGiveaway')
+              : lang('BoostingGiveaway')}
+          </span>
+        ),
+      ]);
+    }
+    tableData.push([
+      lang('BoostingDate'),
+      formatDateTimeToString(info.date * 1000, lang.code, true),
+    ]);
 
     const footer = (
       <span className={styles.centered}>

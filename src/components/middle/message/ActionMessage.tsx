@@ -1,4 +1,5 @@
-import React, {
+import React from '@teact';
+import {
   memo, useEffect, useMemo, useRef, useUnmountCleanup,
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
@@ -48,10 +49,13 @@ import useFocusMessage from './hooks/useFocusMessage';
 import ActionMessageText from './ActionMessageText';
 import ChannelPhoto from './actions/ChannelPhoto';
 import Gift from './actions/Gift';
-import PremiumGiftCode from './actions/GiveawayPrize';
+import GiveawayPrize from './actions/GiveawayPrize';
 import StarGift from './actions/StarGift';
 import StarGiftUnique from './actions/StarGiftUnique';
 import SuggestedPhoto from './actions/SuggestedPhoto';
+import SuggestedPostApproval from './actions/SuggestedPostApproval';
+import SuggestedPostBalanceTooLow from './actions/SuggestedPostBalanceTooLow';
+import SuggestedPostRejected from './actions/SuggestedPostRejected';
 import ContextMenuContainer from './ContextMenuContainer';
 import Reactions from './reactions/Reactions';
 import SimilarChannels from './SimilarChannels';
@@ -89,13 +93,16 @@ type StateProps = {
   isAccountFrozen?: boolean;
 };
 
-const SINGLE_LINE_ACTIONS: Set<ApiMessageAction['type']> = new Set([
+const SINGLE_LINE_ACTIONS = new Set<ApiMessageAction['type']>([
   'pinMessage',
   'chatEditPhoto',
   'chatDeletePhoto',
+  'todoCompletions',
+  'todoAppendTasks',
   'unsupported',
 ]);
-const HIDDEN_TEXT_ACTIONS: Set<ApiMessageAction['type']> = new Set(['giftCode', 'prizeStars', 'suggestProfilePhoto']);
+const HIDDEN_TEXT_ACTIONS = new Set<ApiMessageAction['type']>(['giftCode', 'prizeStars',
+  'suggestProfilePhoto', 'suggestedPostApproval']);
 
 const ActionMessage = ({
   message,
@@ -136,10 +143,10 @@ const ActionMessage = ({
     toggleChannelRecommendations,
     animateUnreadReaction,
     markMentionsRead,
+    focusMessage,
   } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
 
   const { id, chatId } = message;
   const action = message.content.action!;
@@ -148,6 +155,7 @@ const ActionMessage = ({
   const isTextHidden = HIDDEN_TEXT_ACTIONS.has(action.type);
   const isSingleLine = SINGLE_LINE_ACTIONS.has(action.type);
   const isFluidMultiline = IS_FLUID_BACKGROUND_SUPPORTED && !isSingleLine;
+  const isClickableText = action.type === 'suggestedPostSuccess';
 
   const messageReplyInfo = getMessageReplyInfo(message);
   const { replyToMsgId, replyToPeerId } = messageReplyInfo || {};
@@ -287,6 +295,7 @@ const ActionMessage = ({
         break;
       }
 
+      case 'giftTon':
       case 'giftStars': {
         openStarsTransactionFromGift({
           chatId: message.chatId,
@@ -306,6 +315,30 @@ const ActionMessage = ({
 
       case 'channelJoined': {
         toggleChannelRecommendations({ chatId });
+        break;
+      }
+
+      case 'suggestedPostApproval': {
+        const replyInfo = getMessageReplyInfo(message);
+        if (replyInfo?.type === 'message' && replyInfo.replyToMsgId) {
+          focusMessage({
+            chatId: message.chatId,
+            threadId,
+            messageId: replyInfo.replyToMsgId,
+          });
+        }
+        break;
+      }
+
+      case 'suggestedPostSuccess': {
+        const replyInfo = getMessageReplyInfo(message);
+        if (replyInfo?.type === 'message' && replyInfo.replyToMsgId) {
+          focusMessage({
+            chatId: message.chatId,
+            threadId,
+            messageId: replyInfo.replyToMsgId,
+          });
+        }
         break;
       }
     }
@@ -336,8 +369,9 @@ const ActionMessage = ({
       case 'prizeStars':
       case 'giftCode':
         return (
-          <PremiumGiftCode
+          <GiveawayPrize
             action={action}
+            sender={sender}
             observeIntersectionForLoading={observeIntersectionForLoading}
             observeIntersectionForPlaying={observeIntersectionForPlaying}
             onClick={handleClick}
@@ -345,6 +379,7 @@ const ActionMessage = ({
         );
 
       case 'giftPremium':
+      case 'giftTon':
       case 'giftStars':
         return (
           <Gift
@@ -384,10 +419,34 @@ const ActionMessage = ({
           />
         );
 
+      case 'suggestedPostApproval':
+        if (action.isBalanceTooLow) {
+          return (
+            <SuggestedPostBalanceTooLow
+              message={message}
+              action={action}
+              onClick={handleClick}
+            />
+          );
+        }
+        return action.isRejected ? (
+          <SuggestedPostRejected
+            message={message}
+            action={action}
+            onClick={handleClick}
+          />
+        ) : (
+          <SuggestedPostApproval
+            message={message}
+            action={action}
+            onClick={handleClick}
+          />
+        );
+
       default:
         return undefined;
     }
-  }, [action, observeIntersectionForLoading, message, observeIntersectionForPlaying]);
+  }, [action, message, observeIntersectionForLoading, sender, observeIntersectionForPlaying]);
 
   if ((isInsideTopic && action.type === 'topicCreate') || action.type === 'phoneCall') {
     return undefined;
@@ -418,13 +477,13 @@ const ActionMessage = ({
       {!isTextHidden && (
         <>
           {isFluidMultiline && (
-            <div className={styles.inlineWrapper}>
+            <div className={buildClassName(styles.inlineWrapper, isClickableText && styles.hoverable)}>
               <span className={styles.fluidBackground} style={fluidBackgroundStyle}>
                 <ActionMessageText message={message} isInsideTopic={isInsideTopic} />
               </span>
             </div>
           )}
-          <div className={styles.inlineWrapper}>
+          <div className={buildClassName(styles.inlineWrapper, isClickableText && styles.hoverable)}>
             <span className={styles.textContent} onClick={handleClick}>
               <ActionMessageText message={message} isInsideTopic={isInsideTopic} />
             </span>
@@ -446,7 +505,7 @@ const ActionMessage = ({
       {withServiceReactions && (
         <Reactions
           isOutside
-          message={message!}
+          message={message}
           threadId={threadId}
           observeIntersection={observeIntersectionForPlaying}
           isCurrentUserPremium={isCurrentUserPremium}

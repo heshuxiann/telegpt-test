@@ -1,4 +1,5 @@
-import React, { memo, type TeactNode } from '../../../lib/teact/teact';
+import React from '@teact';
+import { memo, type TeactNode } from '../../../lib/teact/teact';
 
 import type { IconName } from '../../../types/icons';
 

@@ -1,3 +1,4 @@
+import CopyWebpackPlugin from 'copy-webpack-plugin';
 import path from 'path';
 import { EnvironmentPlugin } from 'webpack';
 
@@ -22,12 +23,12 @@ export default {
   },
 
   output: {
-    filename: '[name].js',
+    filename: '[name].cjs',
     path: path.resolve(__dirname, 'dist'),
   },
 
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: ['.js', '.cjs', '.mjs', '.ts', '.tsx'],
   },
 
   plugins: [
@@ -36,24 +37,24 @@ export default {
       BASE_URL,
       IS_PREVIEW: false,
     }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, 'node_modules/electron-drag-click/build/Release/electron_drag_click.node'),
+          to: path.resolve(__dirname, 'build/Release/electron_drag_click.node'),
+        },
+      ],
+    }),
   ],
 
   module: {
     rules: [{
-      test: /\.(ts|tsx|js)$/,
+      test: /\.(ts|tsx|js|mjs|cjs)$/,
       loader: 'babel-loader',
       exclude: /node_modules/,
     }],
   },
-
   externals: {
     electron: 'require("electron")',
-    fs: 'require("fs")',
-    path: 'require("path")',
-    util: 'require("util")',
-    http: 'require("http")',
-    https: 'require("https")',
-    url: 'require("url")',
-    crypto: 'require("crypto")',
   },
 };

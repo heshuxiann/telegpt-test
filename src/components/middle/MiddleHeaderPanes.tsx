@@ -1,7 +1,6 @@
-import React, {
-  memo, useRef, useSignal,
-} from '../../lib/teact/teact';
-import { setExtraStyles } from '../../lib/teact/teact-dom';
+import React from '@teact';
+import { memo, useRef, useSignal } from '@teact';
+import { setExtraStyles } from '@teact/teact-dom';
 import { withGlobal } from '../../global';
 
 import type { ApiChat, ApiUserFullInfo } from '../../api/types';
@@ -10,7 +9,12 @@ import type { Signal } from '../../util/signals';
 import { MAIN_THREAD_ID } from '../../api/types';
 
 import {
-  selectChat, selectChatMessage, selectCurrentMiddleSearch, selectTabState, selectUserFullInfo,
+  selectCanAnimateRightColumn,
+  selectChat,
+  selectChatMessage,
+  selectCurrentMiddleSearch,
+  selectTabState,
+  selectUserFullInfo,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 
@@ -45,6 +49,7 @@ type StateProps = {
   userFullInfo?: ApiUserFullInfo;
   isAudioPlayerRendered?: boolean;
   isMiddleSearchOpen?: boolean;
+  withRightColumnAnimation?: boolean;
 };
 
 const FALLBACK_PANE_STATE = { height: 0 };
@@ -60,6 +65,7 @@ const MiddleHeaderPanes = ({
   getLoadingPinnedId,
   isAudioPlayerRendered,
   isMiddleSearchOpen,
+  withRightColumnAnimation,
   onFocusPinnedMessage,
 }: OwnProps & StateProps) => {
   const { settings } = userFullInfo || {};
@@ -119,7 +125,16 @@ const MiddleHeaderPanes = ({
   if (!shouldRender) return undefined;
 
   return (
-    <div ref={ref} className={buildClassName(styles.root, className)}>
+    <div
+      ref={ref}
+      className={
+        buildClassName(
+          styles.root,
+          withRightColumnAnimation && styles.root_withRightColumnAnimation,
+          className,
+        )
+      }
+    >
       <AudioPlayer
         isFullWidth
         onPaneStateChange={setAudioPlayerState}
@@ -187,6 +202,7 @@ export default memo(withGlobal<OwnProps>(
       userFullInfo,
       isAudioPlayerRendered: Boolean(audioMessage),
       isMiddleSearchOpen,
+      withRightColumnAnimation: selectCanAnimateRightColumn(global),
     };
   },
 )(MiddleHeaderPanes));

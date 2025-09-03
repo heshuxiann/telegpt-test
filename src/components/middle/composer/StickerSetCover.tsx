@@ -1,5 +1,6 @@
-import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useEffect, useRef } from '../../../lib/teact/teact';
+import React from '@teact';
+import type { ElementRef, FC } from '../../../lib/teact/teact';
+import { memo, useEffect, useRef } from '../../../lib/teact/teact';
 import { getActions, getGlobal } from '../../../global';
 
 import type { ApiStickerSet } from '../../../api/types';
@@ -32,7 +33,7 @@ type OwnProps = {
   noPlay?: boolean;
   forcePlayback?: boolean;
   observeIntersection: ObserveFn;
-  sharedCanvasRef?: React.RefObject<HTMLCanvasElement>;
+  sharedCanvasRef?: ElementRef<HTMLCanvasElement>;
 };
 
 const StickerSetCover: FC<OwnProps> = ({
@@ -44,8 +45,7 @@ const StickerSetCover: FC<OwnProps> = ({
   sharedCanvasRef,
 }) => {
   const { loadStickers } = getActions();
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
 
   const {
     hasThumbnail, hasVideoThumb, hasAnimatedThumb, hasStaticThumb, thumbCustomEmojiId,

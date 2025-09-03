@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useCallback } from '../../../lib/teact/teact';
+import { memo, useCallback } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type { ApiUser, ApiWebSession } from '../../../api/types';

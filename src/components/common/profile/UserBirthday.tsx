@@ -1,4 +1,5 @@
-import React, {
+import React from '@teact';
+import {
   memo, useEffect, useMemo, useRef,
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
@@ -54,8 +55,7 @@ const UserBirthday = ({
   isInSettings,
 }: OwnProps & StateProps) => {
   const { openGiftModal, requestConfetti } = getActions();
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
   const animationPlayedRef = useRef(false);
   const [isPlayingAnimation, playAnimation, stopAnimation] = useFlag();
 

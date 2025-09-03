@@ -1,6 +1,7 @@
+import React from '@teact';
 import type { ChangeEvent } from 'react';
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useCallback, useEffect, useMemo, useState,
 } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
@@ -187,7 +188,7 @@ const ManageChatPrivacyType: FC<OwnProps & StateProps> = ({
 
     return (
       <p className="section-info" dir="auto">
-        {(lang('lng_username_purchase_available') as string)
+        {(lang('lng_username_purchase_available'))
           .replace('{link}', '%PURCHASE_LINK%')
           .split('%')
           .map((s) => {
@@ -302,7 +303,7 @@ const ManageChatPrivacyType: FC<OwnProps & StateProps> = ({
 export default memo(withGlobal<OwnProps>(
   (global, { chatId }): StateProps => {
     const chat = selectChat(global, chatId)!;
-    const { isUsernameAvailable, checkedUsername, error } = selectManagement(global, chatId)!;
+    const { isUsernameAvailable, checkedUsername, error } = selectManagement(global, chatId);
 
     return {
       chat,

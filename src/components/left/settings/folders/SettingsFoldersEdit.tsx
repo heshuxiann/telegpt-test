@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../../lib/teact/teact';
-import React, {
+import {
   memo, useCallback, useEffect, useMemo, useState,
 } from '../../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../../global';
@@ -11,9 +12,9 @@ import type {
 } from '../../../../hooks/reducers/useFoldersReducer';
 
 import { STICKER_SIZE_FOLDER_SETTINGS } from '../../../../config';
-import { isUserId } from '../../../../global/helpers';
 import { selectCanShareFolder } from '../../../../global/selectors';
 import { selectCurrentLimit } from '../../../../global/selectors/limits';
+import { isUserId } from '../../../../util/entities/ids';
 import { findIntersectionWithSet } from '../../../../util/iteratees';
 import { MEMO_EMPTY_ARRAY } from '../../../../util/memo';
 import { CUSTOM_PEER_EXCLUDED_CHAT_TYPES, CUSTOM_PEER_INCLUDED_CHAT_TYPES } from '../../../../util/objects/customPeer';
@@ -268,7 +269,6 @@ const SettingsFoldersEdit: FC<OwnProps & StateProps> = ({
             key="load-more"
             className="settings-folders-list-item"
             narrow
-            // eslint-disable-next-line react/jsx-no-bind
             onClick={clickHandler}
             icon="down"
           >

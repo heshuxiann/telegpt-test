@@ -1,6 +1,7 @@
+import React from '@teact';
 import type { MouseEvent as ReactMouseEvent } from 'react';
 import type { FC, TeactNode } from '../../lib/teact/teact';
-import React, { memo, useMemo, useRef } from '../../lib/teact/teact';
+import { memo, useMemo, useRef } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import type {
@@ -21,11 +22,11 @@ import {
   isAnonymousForwardsChat,
   isChatWithRepliesBot,
   isDeletedUser,
-  isUserId,
 } from '../../global/helpers';
 import { isApiPeerChat, isApiPeerUser } from '../../global/helpers/peers';
 import buildClassName, { createClassNameBuilder } from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
+import { isUserId } from '../../util/entities/ids';
 import { getFirstLetters } from '../../util/textFormat';
 import { REM } from './helpers/mediaDimensions';
 import { getPeerColorClass } from './helpers/peerColor';
@@ -84,8 +85,11 @@ type OwnProps = {
   storyViewerMode?: 'full' | 'single-peer' | 'disabled';
   loopIndefinitely?: boolean;
   noPersonalPhoto?: boolean;
+  asMessageBubble?: boolean;
   observeIntersection?: ObserveFn;
   onClick?: (e: ReactMouseEvent<HTMLDivElement, MouseEvent>, hasMedia: boolean) => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
+  onMouseMove?: (e: React.MouseEvent) => void;
 };
 
 const Avatar: FC<OwnProps> = ({
@@ -109,12 +113,14 @@ const Avatar: FC<OwnProps> = ({
   storyViewerMode = 'single-peer',
   loopIndefinitely,
   noPersonalPhoto,
+  asMessageBubble,
   onClick,
+  onContextMenu,
+  onMouseMove,
 }) => {
   const { openStoryViewer } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
   const videoLoopCountRef = useRef(0);
   const isCustomPeer = peer && 'isCustomPeer' in peer;
   const realPeer = peer && !isCustomPeer ? peer : undefined;
@@ -244,7 +250,7 @@ const Avatar: FC<OwnProps> = ({
   }
 
   const isRoundedRect = (isCustomPeer && peer.isAvatarSquare)
-  || (isForum && !((withStory || withStorySolid) && realPeer?.hasStories));
+    || (isForum && !((withStory || withStorySolid) && realPeer?.hasStories));
   const isPremiumGradient = isCustomPeer && peer.withPremiumGradient;
   const customColor = isCustomPeer && peer.customPeerAvatarColor;
 
@@ -259,6 +265,7 @@ const Avatar: FC<OwnProps> = ({
     isReplies && 'replies-bot-account',
     isPremiumGradient && 'premium-gradient-bg',
     isRoundedRect && 'forum',
+    asMessageBubble && 'message-bubble',
     (photo || webPhoto) && 'force-fit',
     ((withStory && realPeer?.hasStories) || forPremiumPromo) && 'with-story-circle',
     withStorySolid && realPeer?.hasStories && 'with-story-solid',
@@ -297,7 +304,9 @@ const Avatar: FC<OwnProps> = ({
       aria-label={typeof content === 'string' ? author : undefined}
       style={buildStyle(`--_size: ${pxSize}px;`, customColor && `--color-user: ${customColor}`)}
       onClick={handleClick}
+      onContextMenu={onContextMenu}
       onMouseDown={handleMouseDown}
+      onMouseMove={onMouseMove}
     >
       <div className="inner">
         {typeof content === 'string' ? renderText(content, [isBig ? 'hq_emoji' : 'emoji']) : content}

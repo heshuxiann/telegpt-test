@@ -1,5 +1,4 @@
-import React from '../../lib/teact/teact';
-
+import React from '@teact';
 import type { LangFnParameters } from '../../util/localization';
 
 import useLang from '../../hooks/useLang';

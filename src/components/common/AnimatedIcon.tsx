@@ -1,4 +1,5 @@
-import React, { memo, useState } from '../../lib/teact/teact';
+import React from '@teact';
+import { memo, useState } from '../../lib/teact/teact';
 
 import type { OwnProps as AnimatedStickerProps } from './AnimatedSticker';
 
@@ -54,7 +55,6 @@ function AnimatedIcon(props: OwnProps) {
       noLoop={noLoop}
       onClick={!nonInteractive ? handleClick : undefined}
       onLoad={handleLoad}
-      /* eslint-disable-next-line react/jsx-props-no-spreading */
       {...otherProps}
     />
   );

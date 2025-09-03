@@ -1,6 +1,6 @@
-import type { RefObject } from 'react';
-import type { FC, TeactNode } from '../../lib/teact/teact';
-import React, { useRef } from '../../lib/teact/teact';
+import React from '@teact';
+import type { ElementRef, FC, TeactNode } from '../../lib/teact/teact';
+import { useRef } from '../../lib/teact/teact';
 
 import type { IconName } from '../../types/icons';
 
@@ -41,8 +41,8 @@ export type MenuItemContextAction =
   | MenuItemContextActionSeparator;
 
 interface OwnProps {
-  ref?: RefObject<HTMLDivElement>;
-  buttonRef?: RefObject<HTMLDivElement | HTMLAnchorElement>;
+  ref?: ElementRef<HTMLDivElement>;
+  buttonRef?: ElementRef<HTMLDivElement | HTMLAnchorElement>;
   icon?: IconName;
   iconClassName?: string;
   leftElement?: TeactNode;
@@ -115,8 +115,7 @@ const ListItem: FC<OwnProps> = ({
   onDragEnter,
   nonInteractive,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  let containerRef = useRef<HTMLDivElement>(null);
+  let containerRef = useRef<HTMLDivElement>();
   if (ref) {
     containerRef = ref;
   }

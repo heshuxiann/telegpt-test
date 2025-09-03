@@ -27,6 +27,7 @@ import { debounce } from '../../../util/schedulers';
 import { getServerTime } from '../../../util/serverTime';
 import { extractCurrentThemeParams } from '../../../util/themeStyle';
 import { callApi } from '../../../api/gramjs';
+import { getMainUsername } from '../../helpers';
 import {
   getWebAppKey,
 } from '../../helpers/bots';
@@ -76,6 +77,23 @@ const GAMEE_URL = 'https://prizes.gamee.com/';
 const TOP_PEERS_REQUEST_COOLDOWN = 60; // 1 min
 const runDebouncedForSearch = debounce((cb) => cb(), 500, false);
 let botFatherId: string | null;
+
+addActionHandler('clickSuggestedMessageButton', (global, actions, payload): ActionReturnType => {
+  const {
+    chatId, messageId, button, tabId = getCurrentTabId(),
+  } = payload;
+
+  const { buttonType } = button;
+  const message = selectChatMessage(global, chatId, messageId);
+
+  switch (buttonType) {
+    case 'suggestChanges':
+      if (!message) break;
+
+      actions.initDraftFromSuggestedMessage({ chatId, messageId, tabId });
+      break;
+  }
+});
 
 addActionHandler('clickBotInlineButton', (global, actions, payload): ActionReturnType => {
   const {
@@ -337,7 +355,7 @@ addActionHandler('queryInlineBot', async (global, actions, payload): Promise<voi
   void runDebouncedForSearch(() => {
     searchInlineBot(global, {
       username,
-      inlineBotData: inlineBotData as InlineBotSettings,
+      inlineBotData,
       chatId,
       query,
       offset,
@@ -377,7 +395,7 @@ addActionHandler('switchBotInline', (global, actions, payload): ActionReturnType
 
   actions.openChatWithDraft({
     text: {
-      text: `@${botSender.usernames![0].username} ${query}`,
+      text: `@${getMainUsername(botSender)} ${query}`,
     },
     chatId: isSamePeer ? chat.id : undefined,
     filter,
@@ -438,10 +456,8 @@ addActionHandler('sendInlineBotResult', async (global, actions, payload): Promis
     return;
   }
 
-  // eslint-disable-next-line eslint-multitab-tt/no-getactions-in-actions
   actions.sendInlineBotApiResult({ ...params });
 
-  // eslint-disable-next-line eslint-multitab-tt/no-getactions-in-actions
   actions.showNotification({
     localId: queryId,
     title: { key: 'MessageSentPaidToastTitle', variables: { count: 1 }, options: { pluralValue: 1 } },
@@ -878,7 +894,7 @@ addActionHandler('requestAppWebView', async (global, actions, payload): Promise<
 
   global = getGlobal();
 
-  const peerId = (peer ? peer.id : bot!.id);
+  const peerId = (peer ? peer.id : bot.id);
 
   const newActiveApp: WebApp = {
     url,
@@ -1038,8 +1054,8 @@ addActionHandler('callAttachBot', (global, actions, payload): ActionReturnType =
     actions.openThread({ chatId, threadId, tabId });
     actions.requestWebView({
       url,
-      peerId: chatId!,
-      botId: (isFromBotMenu ? chatId : bot.id)!,
+      peerId: chatId,
+      botId: (isFromBotMenu ? chatId : bot.id),
       theme,
       buttonText: '',
       isFromBotMenu,

@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useEffect, useMemo, useState,
 } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
@@ -178,7 +179,6 @@ const PaidReactionModal = ({
 
     return (
       <MenuItem
-        // eslint-disable-next-line react/jsx-no-bind
         onClick={() => handleSendAsPeerChange(peerId)}
       >
         <Avatar
@@ -342,7 +342,7 @@ const PaidReactionModal = ({
           })}
         </div>
       )}
-      {topReactors && (<Separator className={styles.separator} />) }
+      {topReactors && (<Separator className={styles.separator} />)}
       <Checkbox
         className={buildClassName(styles.checkBox, 'dialog-checkbox')}
         checked={!shouldSendAsAnonymous}

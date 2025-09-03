@@ -36,8 +36,7 @@ const SCROLL_DURATION = IS_IOS ? 450 : IS_ANDROID ? 400 : 300;
 const TabList: FC<OwnProps> = ({
   tabs, activeTab, onSwitchTab, className, tabClassName, inversion,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(undefined);
   const previousActiveTab = usePreviousDeprecated(activeTab);
 
   useHorizontalScroll(containerRef, undefined, true);

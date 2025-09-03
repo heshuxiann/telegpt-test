@@ -1,7 +1,8 @@
+import React from '@teact';
 import '../../global/actions/initial';
 
 import type { FC } from '../../lib/teact/teact';
-import React, { memo, useRef } from '../../lib/teact/teact';
+import { memo, useRef } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { GlobalState } from '../../global/types';
@@ -46,8 +47,7 @@ const Auth: FC<StateProps> = ({
     onBack: handleChangeAuthorizationMethod,
   });
 
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
   useElectronDrag(containerRef);
 
   // For animation purposes

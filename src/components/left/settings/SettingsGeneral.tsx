@@ -1,10 +1,12 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useCallback, useEffect, useState,
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
-import type { SharedSettings, ThemeKey, TimeFormat } from '../../../types';
+import type { SharedSettings } from '../../../global/types';
+import type { ThemeKey, TimeFormat } from '../../../types';
 import type { IRadioOption } from '../../ui/RadioGroup';
 import { SettingsScreens } from '../../../types';
 
@@ -26,7 +28,6 @@ import RangeSlider from '../../ui/RangeSlider';
 
 type OwnProps = {
   isActive?: boolean;
-  onScreenSelect: (screen: SettingsScreens) => void;
   onReset: () => void;
 };
 
@@ -46,11 +47,10 @@ const SettingsGeneral: FC<OwnProps & StateProps> = ({
   timeFormat,
   theme,
   shouldUseSystemTheme,
-  onScreenSelect,
   onReset,
 }) => {
   const {
-    setSharedSettingOption,
+    setSharedSettingOption, openSettingsScreen,
   } = getActions();
 
   const lang = useLang();
@@ -145,8 +145,8 @@ const SettingsGeneral: FC<OwnProps & StateProps> = ({
         <ListItem
           icon="photo"
           narrow
-          // eslint-disable-next-line react/jsx-no-bind
-          onClick={() => onScreenSelect(SettingsScreens.GeneralChatBackground)}
+
+          onClick={() => openSettingsScreen({ screen: SettingsScreens.GeneralChatBackground })}
         >
           {lang('ChatBackground')}
         </ListItem>

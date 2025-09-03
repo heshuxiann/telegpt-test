@@ -1,12 +1,15 @@
 .root {
+  cursor: var(--custom-cursor, pointer);
+
+  position: relative;
+
+  overflow: hidden;
   display: block !important;
+
   width: 12rem;
   height: 0;
   // Aspect-ratio trick https://css-tricks.com/aspect-ratio-boxes/ (192:344)
   padding-bottom: 179%;
-  overflow: hidden;
-  position: relative;
-  cursor: var(--custom-cursor, pointer);
 }
 
 .preview {
@@ -47,8 +50,8 @@
 }
 
 .expiredIcon {
+  margin-inline-start: 0.3125rem;
   font-size: 1.25rem;
   line-height: 0.9375rem;
   vertical-align: -0.1875rem;
-  margin-inline-start: 0.3125rem;
 }

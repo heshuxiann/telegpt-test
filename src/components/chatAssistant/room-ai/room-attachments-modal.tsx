@@ -102,10 +102,8 @@ const RoomAttachmentsModal: FC<OwnProps & StateProps> = ({
     searchSharedMediaMessages,
   } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const transitionRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
+  const transitionRef = useRef<HTMLDivElement>();
 
   const oldLang = useOldLang();
   const lang = useLang();

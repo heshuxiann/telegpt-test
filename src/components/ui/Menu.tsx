@@ -1,4 +1,7 @@
-import React, {
+import React from '@teact';
+import type {
+  ElementRef } from '../../lib/teact/teact';
+import {
   beginHeavyAnimation,
   type FC, memo, useEffect, useRef,
 } from '../../lib/teact/teact';
@@ -27,7 +30,7 @@ export type { MenuPositionOptions } from '../../hooks/useMenuPosition';
 
 type OwnProps =
   {
-    ref?: React.RefObject<HTMLDivElement>;
+    ref?: ElementRef<HTMLDivElement>;
     isOpen: boolean;
     shouldCloseFast?: boolean;
     id?: string;
@@ -76,8 +79,7 @@ const Menu: FC<OwnProps> = ({
 }) => {
   const { isTouchScreen } = useAppLayout();
 
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
 
   const { ref: bubbleRef } = useShowTransition({
     isOpen,

@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React, {
+import {
   memo, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
@@ -129,7 +130,6 @@ const ChatLanguageModal: FC<OwnProps & StateProps> = ({
             disabled={activeTranslationLanguage === langCode}
             multiline
             narrow
-            // eslint-disable-next-line react/jsx-no-bind
             onClick={() => handleSelect(langCode)}
           >
             <span className={buildClassName('title', styles.title)}>

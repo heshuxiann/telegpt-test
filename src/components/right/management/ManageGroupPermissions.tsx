@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useCallback, useEffect,
   useMemo, useState,
 } from '../../../lib/teact/teact';
@@ -322,7 +323,6 @@ const ManageGroupPermissions: FC<OwnProps & StateProps> = ({
             <ListItem
               key={member.userId}
               className="chat-item-clickable exceptions-member"
-              // eslint-disable-next-line react/jsx-no-bind
               onClick={() => handleExceptionMemberClick(member)}
             >
               <PrivateChatInfo

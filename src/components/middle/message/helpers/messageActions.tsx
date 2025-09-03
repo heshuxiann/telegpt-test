@@ -1,4 +1,5 @@
-import React, { type TeactNode } from '../../../../lib/teact/teact';
+import React from '@teact';
+import { type TeactNode } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
 import type { ApiMessage } from '../../../../api/types';
@@ -35,16 +36,23 @@ export function translateWithYou<K extends LangKey>(
   key: K,
   isYou: boolean,
   variables: VariablesForKey<K>,
-  options?: { pluralValue?: number; asText?: boolean; isMarkdown?: boolean },
+  options?: {
+    pluralValue?: number;
+    asText?: boolean;
+    withMarkdown?: boolean;
+    renderTextFilters?: string[];
+  },
 ): TeactNode {
-  const { pluralValue, asText, isMarkdown } = options || {};
+  const { pluralValue, asText, withMarkdown, renderTextFilters } = options || {};
   const translationKey = isYou ? (`${key}You` as LangKey) : key;
 
   return lang(
     // @ts-ignore -- I have no idea if this even possible to type correctly
     translationKey,
     variables,
-    { withNodes: !asText, isMarkdown, pluralValue },
+    {
+      withNodes: !asText, withMarkdown, pluralValue, renderTextFilters,
+    },
   );
 }
 
@@ -83,7 +91,6 @@ export function renderPeerLink(peerId: string | undefined, text: string, asPrevi
   return (
     <Link
       className={buildClassName(styles.peerLink, styles.strong)}
-      // eslint-disable-next-line react/jsx-no-bind
       onClick={(e) => {
         e.stopPropagation();
         getActions().openChat({ id: peerId });
@@ -96,12 +103,21 @@ export function renderPeerLink(peerId: string | undefined, text: string, asPrevi
   );
 }
 
-export function renderMessageLink(targetMessage: ApiMessage, text: TeactNode, asPreview?: boolean) {
-  if (asPreview) return text;
+export function renderMessageLink(
+  targetMessage: ApiMessage | undefined,
+  text: TeactNode,
+  asPreview: boolean | undefined,
+  params?: {
+    noEllipsis?: boolean;
+  },
+) {
+  const { noEllipsis } = params || {};
+
+  if (asPreview || !targetMessage) return text;
+
   return (
     <Link
-      className={styles.messageLink}
-      // eslint-disable-next-line react/jsx-no-bind
+      className={buildClassName(styles.messageLink, noEllipsis && styles.noEllipsis)}
       onClick={(e) => {
         e.stopPropagation();
         getActions().focusMessage({ chatId: targetMessage.chatId, messageId: targetMessage.id });

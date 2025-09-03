@@ -30,6 +30,7 @@ import {
   buildInputStorePaymentPurpose,
   buildInputThemeParams,
   buildShippingInfo,
+  DEFAULT_PRIMITIVES,
 } from '../gramjsBuilders';
 import {
   deserializeBytes,
@@ -49,9 +50,9 @@ export async function validateRequestedInfo({
   requestInfo: GramJs.TypePaymentRequestedInfo;
   shouldSave?: boolean;
 }): Promise<{
-    id: string;
-    shippingOptions: any;
-  } | undefined> {
+  id: string;
+  shippingOptions: any;
+} | undefined> {
   const result = await invokeRequest(new GramJs.payments.ValidateRequestedInfo({
     invoice: buildInputInvoice(inputInvoice),
     save: shouldSave || undefined,
@@ -258,7 +259,7 @@ export async function fetchMyBoosts() {
 export async function applyBoost({
   chat,
   slots,
-} : {
+}: {
   chat: ApiChat;
   slots: number[];
 }) {
@@ -295,8 +296,8 @@ export async function fetchBoostStatus({
 export async function fetchBoostList({
   chat,
   isGifts,
-  offset = '',
-  limit,
+  offset = DEFAULT_PRIMITIVES.STRING,
+  limit = DEFAULT_PRIMITIVES.INT,
 }: {
   chat: ApiChat;
   isGifts?: boolean;

@@ -1,16 +1,15 @@
+import React from '@teact';
 /* eslint-disable max-len */
 /* eslint-disable no-null/no-null */
 /* eslint-disable @typescript-eslint/no-shadow */
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useCallback, useEffect, useState,
 } from '../../../lib/teact/teact';
 
 import type { AiKnowledge } from '../../chatAssistant/store/knowledge-store';
 
-import { LAYERS_ANIMATION_NAME } from '../../../util/browser/windowEnvironment';
 import { ChataiStores } from '../../chatAssistant/store';
-import { knowledgeEmbeddingStore } from '../../chatAssistant/vector-store';
 
 import useLastCallback from '../../../hooks/useLastCallback';
 
@@ -59,7 +58,6 @@ const AIKnowledge:FC<OwnProps> = ({ onReset }) => {
         return prev.filter((item) => item.id !== id);
       });
     });
-    knowledgeEmbeddingStore.deleteText(id);
   }, []);
   function renderCurrentSection() {
     return (
@@ -80,7 +78,7 @@ const AIKnowledge:FC<OwnProps> = ({ onReset }) => {
   return (
     <Transition
       id="AiKnowledge"
-      name={LAYERS_ANIMATION_NAME}
+      name="fade"
       activeKey={0}
       renderCount={1}
       shouldWrap

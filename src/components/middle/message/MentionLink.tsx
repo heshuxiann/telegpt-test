@@ -1,5 +1,5 @@
+import React from '@teact';
 import type { TeactNode } from '../../../lib/teact/teact';
-import React from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type { ApiPeer } from '../../../api/types';

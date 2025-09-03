@@ -10,13 +10,14 @@ import GeneralStore from './general-store';
 import KnowledgeStore from './knowledge-store';
 import MessageStore from './messages-store';
 import SummaryStore from './summary-store';
+import TgMessageStore from './tg-message-store';
 import UserPortraitMessageStore from './user-portrait-message-store';
 import UserPortraitStore from './user-portrait-store';
 import UsersStore from './user-store';
 import { ChataiStores } from '.';
 
 let currentUserId!: string;
-const dbVersion = 19;
+const dbVersion = 20;
 export function setChataiStoreBuilderCurrentUserId(_currentUserId: string) {
   if (_currentUserId && (!currentUserId || currentUserId !== _currentUserId)) {
     initChataiStores(_currentUserId);
@@ -41,6 +42,7 @@ export async function initChataiStores(_currentUserId: string) {
   ChataiStores.aIChatFolders = new AIChatFoldersStore(chataiStoreManager);
   ChataiStores.userPortrait = new UserPortraitStore(chataiStoreManager);
   ChataiStores.userPortraitMessage = new UserPortraitMessageStore(chataiStoreManager);
+  ChataiStores.tgMessage = new TgMessageStore(chataiStoreManager);
   eventEmitter.emit(Actions.ChatAIStoreReady);
   // init local user info
   userInformationCollection.initLocalInformation();

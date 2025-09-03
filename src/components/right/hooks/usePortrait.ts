@@ -83,9 +83,7 @@ export default function usePortrait({ userId }: Props) {
   const [newUserInfo, setNewUserInfo] = useState<UserPortraitInfo | undefined>(
     undefined,
   );
-  const [portraitMessage, setPortraitMessage] = useState<
-  UserPortraitMessageInfo[]
-  >([]);
+  const [portraitMessage, setPortraitMessage] = useState<UserPortraitMessageInfo[]>([]);
   const [chatTags, setChatTags] = useState<string[]>([]);
 
   const searchUserMessages = useCallback(
@@ -122,7 +120,7 @@ export default function usePortrait({ userId }: Props) {
       && (userId === messages?.[0]?.senderId)
     ) {
       const lastMsgId = userInfo?.lastMsgId ?? 0;
-      const chatCountByChatId = messages.reduce((acc:{ [key:string]:number }, message) => {
+      const chatCountByChatId = messages.reduce((acc: Record<string, number>, message) => {
         acc[message.chatId] = (acc[message.chatId] || 0) + 1;
         return acc;
       }, {});

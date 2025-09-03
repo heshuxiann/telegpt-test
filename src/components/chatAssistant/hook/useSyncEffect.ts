@@ -7,7 +7,7 @@ export default function useSyncEffect<const T extends readonly any[]>(
   dependencies: T,
 ) {
   const prevDeps = usePreviousDeprecated<T>(dependencies);
-  const cleanupRef = useRef<NoneToVoidFunction>();
+  const cleanupRef = useRef<NoneToVoidFunction>(undefined);
 
   if (!prevDeps || dependencies.some((d, i) => d !== prevDeps[i])) {
     cleanupRef.current?.();

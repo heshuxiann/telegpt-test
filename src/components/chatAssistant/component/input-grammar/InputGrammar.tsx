@@ -29,7 +29,7 @@ type CorrectionItem = {
   start: number;
 };
 export interface InputGrammerProps {
-  inputRef: React.RefObject<HTMLDivElement | null>;
+  inputRef: React.RefObject<HTMLDivElement | undefined>;
   getHtml: Signal<string>;
   setHtml: (newValue: string) => void;
 }

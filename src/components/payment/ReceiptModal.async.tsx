@@ -1,5 +1,5 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React from '../../lib/teact/teact';
 
 import type { OwnProps } from './ReceiptModal';
 
@@ -11,7 +11,6 @@ const ReceiptModalAsync: FC<OwnProps> = (props) => {
   const { isOpen } = props;
   const ReceiptModal = useModuleLoader(Bundles.Extra, 'ReceiptModal', !isOpen);
 
-  // eslint-disable-next-line react/jsx-props-no-spreading
   return ReceiptModal ? <ReceiptModal {...props} /> : undefined;
 };
 

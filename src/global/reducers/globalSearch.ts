@@ -1,4 +1,4 @@
-import type { ApiGlobalMessageSearchType, ApiMessage } from '../../api/types';
+import type { ApiGlobalMessageSearchType, ApiMessage, ApiSearchPostsFlood } from '../../api/types';
 import type { GlobalSearchContent } from '../../types';
 import type { GlobalState, TabArgs, TabState } from '../types';
 
@@ -91,7 +91,7 @@ export function updateGlobalSearchResults<T extends GlobalState>(
 }
 
 export function updateGlobalSearchFetchingStatus<T extends GlobalState>(
-  global: T, newState: { chats?: boolean; messages?: boolean; botApps?: boolean },
+  global: T, newState: { chats?: boolean; messages?: boolean; botApps?: boolean; publicPosts?: boolean },
   ...[tabId = getCurrentTabId()]: TabArgs<T>
 ): T {
   return updateGlobalSearch(global, {

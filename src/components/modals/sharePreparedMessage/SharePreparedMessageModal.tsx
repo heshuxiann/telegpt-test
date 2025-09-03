@@ -1,4 +1,5 @@
-import React, {
+import React from '@teact';
+import {
   type FC,
   memo, useEffect,
 } from '../../../lib/teact/teact';

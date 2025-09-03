@@ -81,9 +81,8 @@ export async function init(initialArgs: ApiInitialArgs) {
 
   const session = new sessions.CallbackSession(sessionData, onSessionUpdate);
 
-  // eslint-disable-next-line no-restricted-globals
   (self as any).isWebmSupported = isWebmSupported;
-  // eslint-disable-next-line no-restricted-globals
+
   (self as any).maxBufferSize = maxBufferSize;
 
   client = new TelegramClient(
@@ -113,9 +112,8 @@ export async function init(initialArgs: ApiInitialArgs) {
     if (DEBUG) {
       log('CONNECTING');
 
-      // eslint-disable-next-line no-restricted-globals
       (self as any).invoke = invokeRequest;
-      // eslint-disable-next-line no-restricted-globals
+
       (self as any).GramJs = GramJs;
     }
 
@@ -218,7 +216,6 @@ export function handleGramJsUpdate(update: any) {
     const updates = 'updates' in update ? update.updates : [update];
     updates.forEach((nestedUpdate: any) => {
       if (!(nestedUpdate instanceof GramJs.UpdateConfig)) return;
-      // eslint-disable-next-line no-underscore-dangle
       const currentUser = (nestedUpdate as UpdateConfig)._entities
         ?.find((entity) => entity instanceof GramJs.User && buildApiPeerId(entity.id, 'user') === currentUserId);
       if (!(currentUser instanceof GramJs.User)) return;
@@ -476,7 +473,11 @@ async function handleTerminatedSession() {
       shouldThrow: true,
     });
   } catch (err: any) {
-    if (err.errorMessage === 'AUTH_KEY_UNREGISTERED' || err.errorMessage === 'SESSION_REVOKED') {
+    if (
+      err.errorMessage === 'AUTH_KEY_UNREGISTERED'
+      || err.errorMessage === 'SESSION_REVOKED'
+      || err.errorMessage === 'USER_DEACTIVATED'
+    ) {
       sendApiUpdate({
         '@type': 'updateConnectionState',
         connectionState: 'connectionStateBroken',
@@ -491,7 +492,6 @@ export async function repairFileReference({
   url: string;
 }) {
   const parsed = parseMediaUrl(url);
-
   if (!parsed) return undefined;
 
   const {

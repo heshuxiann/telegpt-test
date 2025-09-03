@@ -1,4 +1,5 @@
-import React, {
+import React from '@teact';
+import {
   memo, useEffect, useMemo, useState,
 } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
@@ -22,7 +23,6 @@ import PickerModal from '../../common/pickers/PickerModal';
 
 type OwnProps = {
   isOpen?: boolean;
-  // eslint-disable-next-line react/no-unused-prop-types
   giveawayChatId?: string;
   selectionLimit: number;
   initialSelectedIds: string[];

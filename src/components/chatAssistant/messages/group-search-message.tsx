@@ -4,11 +4,12 @@ import React, { useEffect, useState } from 'react';
 import type { Message } from 'ai';
 import { getActions, getGlobal } from '../../../global';
 
-import { getChatTitle, isUserId } from '../../../global/helpers';
+import { getChatTitle } from '../../../global/helpers';
 import { selectChat } from '../../../global/selectors';
 import useOldLang from '../hook/useOldLang';
 
 import Avatar from '../component/Avatar';
+import { isUserId } from '../../../util/entities/ids';
 
 export const GroupSearchMessage = ({ message }: { message: Message }) => {
   const [chatIds, setChatIds] = useState<string[]>([]);

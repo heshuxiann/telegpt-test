@@ -1,4 +1,5 @@
-import React, {
+import React from '@teact';
+import {
   memo, useEffect, useMemo, useRef,
 } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
@@ -35,8 +36,7 @@ const ReportAdModal = ({
   const lang = useOldLang();
   const isOpen = Boolean(modal);
 
-  // eslint-disable-next-line no-null/no-null
-  const transitionRef = useRef<HTMLDivElement>(null);
+  const transitionRef = useRef<HTMLDivElement>();
 
   const handleOptionClick = useLastCallback((e, option: string) => {
     const { chatId, randomId } = modal!;

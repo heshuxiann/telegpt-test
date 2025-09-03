@@ -1,6 +1,7 @@
+import React from '@teact';
 /* eslint-disable max-len */
 import copy from 'copy-to-clipboard';
-import React, { memo, useCallback } from '../../../lib/teact/teact';
+import { memo, useCallback } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
 
 import type { AiKnowledge } from '../../chatAssistant/store/knowledge-store';

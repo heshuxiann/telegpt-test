@@ -1,11 +1,9 @@
-/* eslint-disable no-null/no-null */
 import { getActions } from '../../../global';
 
 import type { ApiDraft } from '../../../api/types';
 import type { ApiMessage } from '../../../api/types/messages';
 
-import { sendGAEvent } from '../utils/analytics';
-import { knowledgeEmbeddingStore } from '../vector-store';
+import { getBestKnowledgeMatch } from '../utils/knowledge-match';
 
 class IntelligentReplyTask {
   private static instance: IntelligentReplyTask | undefined;
@@ -27,7 +25,6 @@ class IntelligentReplyTask {
     const ranges = entities.map((entity) => ({ start: entity.offset, length: entity.length }));
     const sortedRanges = ranges.sort((a, b) => b.start - a.start);
 
-    // eslint-disable-next-line @typescript-eslint/no-shadow
     for (const { start, length } of sortedRanges) {
       text = text.slice(0, start) + text.slice(start + length);
     }
@@ -57,35 +54,29 @@ class IntelligentReplyTask {
         if (!content.trim()) {
           return;
         }
-        const vectorSearchResults = await knowledgeEmbeddingStore.similaritySearch({
-          query: content,
-        });
-        if (vectorSearchResults.similarItems) {
-          const result:any = vectorSearchResults.similarItems[0];
-          if (result && result.score > 0.8) {
-            const threadId = -1; // Default to -1 for non-threaded messages
-            const replyInfo = {
-              type: 'message',
-              replyToMsgId: messageId,
-              replyToPeerId: undefined,
-            };
-            getActions().saveReplyDraft({
+        const bestMatch = await getBestKnowledgeMatch(content);
+        if (bestMatch && bestMatch.score > 0.8) {
+          const threadId = -1; // Default to -1 for non-threaded messages
+          const replyInfo = {
+            type: 'message',
+            replyToMsgId: messageId,
+            replyToPeerId: undefined,
+          };
+          getActions().saveReplyDraft({
+            chatId,
+            threadId,
+            draft: { replyInfo } as ApiDraft,
+            isLocalOnly: true,
+          });
+          getActions().sendMessage({
+            messageList: {
               chatId,
               threadId,
-              draft: { replyInfo } as ApiDraft,
-              isLocalOnly: true,
-            });
-            getActions().sendMessage({
-              messageList: {
-                chatId,
-                threadId,
-                type: 'thread',
-              },
-              text: result.metadata.answer,
-            });
-            getActions().clearDraft({ chatId, isLocalOnly: true });
-            sendGAEvent('intelligent_reply');
-          }
+              type: 'thread',
+            },
+            text: bestMatch.answer,
+          });
+          getActions().clearDraft({ chatId, isLocalOnly: true });
         }
       }
     });

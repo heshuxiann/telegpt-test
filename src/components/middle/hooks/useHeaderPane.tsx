@@ -1,5 +1,7 @@
+import React from '@teact';
+import type {
+  ElementRef } from '../../../lib/teact/teact';
 import {
-  type RefObject,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -32,16 +34,15 @@ export default function useHeaderPane<RefType extends HTMLElement = HTMLDivEleme
   isDisabled,
   withResizeObserver,
   onStateChange,
-} : {
-  ref?: RefObject<RefType | null>;
+}: {
+  ref?: ElementRef<RefType>;
   isOpen?: boolean;
   isDisabled?: boolean;
   withResizeObserver?: boolean;
   onStateChange?: (state: PaneState) => void;
 }) {
   const [shouldRender, setShouldRender] = useState(isOpen);
-  // eslint-disable-next-line no-null/no-null
-  const localRef = useRef<RefType>(null);
+  const localRef = useRef<RefType>();
   const ref = providedRef || localRef;
 
   const lastHeightRef = useRef(0);

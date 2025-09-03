@@ -1,23 +1,25 @@
-import React, { memo } from '../../lib/teact/teact';
+import React from '@teact';
+import { memo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type {
   ApiDimensions, ApiMessage, ApiSponsoredMessage,
 } from '../../api/types';
 import type { MediaViewerOrigin, ThreadId } from '../../types';
-import type { MediaViewerItem } from './helpers/getViewableMedia';
+import type { MediaViewerItem, ViewableMedia } from './helpers/getViewableMedia';
 
 import { MEDIA_TIMESTAMP_SAVE_MINIMUM_DURATION } from '../../config';
 import {
-  selectIsMessageProtected, selectMessageTimestampableDuration, selectTabState,
+  selectIsMessageProtected, selectTabState,
 } from '../../global/selectors';
+import { selectMessageTimestampableDuration } from '../../global/selectors/media';
 import { ARE_WEBCODECS_SUPPORTED } from '../../util/browser/globalEnvironment';
 import { IS_TOUCH_ENV } from '../../util/browser/windowEnvironment';
 import buildClassName from '../../util/buildClassName';
 import stopEvent from '../../util/stopEvent';
 import { calculateMediaViewerDimensions } from '../common/helpers/mediaDimensions';
 import { renderMessageText } from '../common/helpers/renderMessageText';
-import getViewableMedia from './helpers/getViewableMedia';
+import selectViewableMedia from './helpers/getViewableMedia';
 
 import useAppLayout from '../../hooks/useAppLayout';
 import useCurrentTimeSignal from '../../hooks/useCurrentTimeSignal';
@@ -45,6 +47,7 @@ type OwnProps = {
 };
 
 type StateProps = {
+  viewableMedia?: ViewableMedia;
   textMessage?: ApiMessage | ApiSponsoredMessage;
   origin?: MediaViewerOrigin;
   isProtected?: boolean;
@@ -63,6 +66,7 @@ const PLAYBACK_SAVE_INTERVAL = 1000;
 
 const MediaViewerContent = ({
   item,
+  viewableMedia,
   isActive,
   textMessage,
   origin,
@@ -86,7 +90,7 @@ const MediaViewerContent = ({
 
   const isAvatar = item.type === 'avatar';
   const isSponsoredMessage = item.type === 'sponsoredMessage';
-  const { media } = getViewableMedia(item) || {};
+  const { media } = viewableMedia || {};
 
   const {
     isVideo,
@@ -171,11 +175,13 @@ const MediaViewerContent = ({
     }
   }
 
-  const textParts = textMessage && (textMessage.content.action?.type === 'suggestProfilePhoto'
-    ? lang('Conversation.SuggestedPhotoTitle')
-    : renderMessageText({
-      message: textMessage, maxTimestamp, threadId, forcePlayback: true, isForMediaViewer: true,
-    }));
+  const textParts = textMessage && (
+    textMessage.content.action
+      ? (textMessage.content.action.type === 'suggestProfilePhoto'
+        ? lang('Conversation.SuggestedPhotoTitle') : undefined)
+      : renderMessageText({
+        message: textMessage, maxTimestamp, threadId, forcePlayback: true, isForMediaViewer: true,
+      }));
   const buttonText = textMessage && 'buttonText' in textMessage ? textMessage.buttonText : undefined;
   const hasFooter = Boolean(textParts);
   const posterSize = calculateMediaViewerDimensions(dimensions!, hasFooter, isVideo);
@@ -251,6 +257,7 @@ export default memo(withGlobal<OwnProps>(
     const message = item.type === 'message' ? item.message : undefined;
     const sponsoredMessage = item.type === 'sponsoredMessage' ? item.message : undefined;
     const textMessage = message || sponsoredMessage;
+    const viewableMedia = selectViewableMedia(global, item);
 
     const maxTimestamp = message && selectMessageTimestampableDuration(global, message, true);
 
@@ -265,6 +272,7 @@ export default memo(withGlobal<OwnProps>(
       threadId,
       timestamp,
       maxTimestamp,
+      viewableMedia,
     };
   },
 )(MediaViewerContent));
@@ -305,7 +313,6 @@ function renderVideoPreview(blobUrl?: string, imageSize?: ApiDimensions, canDrag
         <div
           style={wrapperStyle}
         >
-          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
           <video
             style={videoStyle}
             className={buildClassName(isProtected && 'is-protected')}

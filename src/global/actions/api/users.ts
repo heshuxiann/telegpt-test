@@ -3,14 +3,15 @@ import type { ActionReturnType } from '../../types';
 import { ManagementProgress } from '../../../types';
 
 import { BOT_VERIFICATION_PEERS_LIMIT } from '../../../config';
+import { isUserId } from '../../../util/entities/ids';
 import { getCurrentTabId } from '../../../util/establishMultitabRole';
 import { buildCollectionByKey, unique } from '../../../util/iteratees';
 import * as langProvider from '../../../util/oldLangProvider';
 import { throttle } from '../../../util/schedulers';
 import { getServerTime } from '../../../util/serverTime';
 import { callApi } from '../../../api/gramjs';
+import { isUserBot } from '../../helpers';
 import { ChataiStores } from '../../../components/chatAssistant/store';
-import { isUserBot, isUserId } from '../../helpers';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   addUserStatuses,
@@ -31,6 +32,7 @@ import { updateTabState } from '../../reducers/tabs';
 import {
   selectChat,
   selectChatFullInfo,
+  selectIsChatRestricted,
   selectIsCurrentUserFrozen,
   selectIsCurrentUserPremium,
   selectPeer,
@@ -93,16 +95,6 @@ addActionHandler('loadUser', async (global, actions, payload): Promise<void> => 
   }
 
   const { users, userStatusesById } = result;
-
-  // add user to db
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  users.forEach((user) => {
-    ChataiStores.user?.addUser({
-      id: user.id,
-      name: `${user?.firstName || ''} ${user?.lastName || ''}`,
-      phoneNumber: user.phoneNumber,
-    });
-  });
 
   global = getGlobal();
   global = updateUsers(global, buildCollectionByKey(users, 'id'));
@@ -215,14 +207,14 @@ addActionHandler('loadCommonChats', async (global, actions, payload): Promise<vo
   setGlobal(global);
 });
 
-addActionHandler('addNoPaidMessagesException', async (global, actions, payload): Promise<void> => {
+addActionHandler('toggleNoPaidMessagesException', async (global, actions, payload): Promise<void> => {
   const { userId, shouldRefundCharged } = payload;
   const user = selectUser(global, userId);
   if (!user) {
     return;
   }
 
-  const result = await callApi('addNoPaidMessagesException',
+  const result = await callApi('toggleNoPaidMessagesException',
     { user, shouldRefundCharged });
   if (!result) {
     return;
@@ -333,6 +325,10 @@ addActionHandler('loadMoreProfilePhotos', async (global, actions, payload): Prom
   const user = isPrivate ? selectUser(global, peerId) : undefined;
   const chat = !isPrivate ? selectChat(global, peerId) : undefined;
   const peer = user || chat;
+
+  if (chat && selectIsChatRestricted(global, peerId)) {
+    return;
+  }
   const profilePhotos = selectPeerPhotos(global, peerId);
   if (!peer?.avatarPhotoId) {
     return;

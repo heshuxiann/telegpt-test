@@ -1,5 +1,5 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React from '../../../lib/teact/teact';
 
 import type { OwnProps } from './InviteViaLinkModal';
 
@@ -11,7 +11,6 @@ const InviteViaLinkModalAsync: FC<OwnProps> = (props) => {
   const { modal } = props;
   const InviteViaLinkModal = useModuleLoader(Bundles.Extra, 'InviteViaLinkModal', !modal);
 
-  // eslint-disable-next-line react/jsx-props-no-spreading
   return InviteViaLinkModal ? <InviteViaLinkModal {...props} /> : undefined;
 };
 

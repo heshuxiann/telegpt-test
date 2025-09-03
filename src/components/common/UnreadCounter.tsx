@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React, { memo, useEffect } from '../../lib/teact/teact';
+import { memo, useEffect } from '../../lib/teact/teact';
 
 import { updateAppBadge } from '../../util/appBadge';
 import { getAllNotificationsCount } from '../../util/folderManager';

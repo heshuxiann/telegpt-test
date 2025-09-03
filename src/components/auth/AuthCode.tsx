@@ -1,6 +1,7 @@
+import React from '@teact';
 import type { FormEvent } from 'react';
 import type { FC } from '../../lib/teact/teact';
-import React, {
+import {
   memo, useCallback, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
@@ -35,8 +36,7 @@ const AuthCode: FC<StateProps> = ({
   } = getActions();
 
   const lang = useLang();
-  // eslint-disable-next-line no-null/no-null
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>();
 
   const [code, setCode] = useState<string>('');
   const [isTracking, setIsTracking] = useState(false);

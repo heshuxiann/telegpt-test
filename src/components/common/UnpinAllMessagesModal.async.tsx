@@ -1,5 +1,5 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React from '../../lib/teact/teact';
 
 import type { OwnProps } from './UnpinAllMessagesModal';
 
@@ -11,7 +11,6 @@ const UnpinAllMessagesModalAsync: FC<OwnProps> = (props) => {
   const { isOpen } = props;
   const UnpinAllMessagesModal = useModuleLoader(Bundles.Extra, 'UnpinAllMessagesModal', !isOpen);
 
-  // eslint-disable-next-line react/jsx-props-no-spreading
   return UnpinAllMessagesModal ? <UnpinAllMessagesModal {...props} /> : undefined;
 };
 

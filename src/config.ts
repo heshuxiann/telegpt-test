@@ -3,6 +3,7 @@ import type {
 } from './api/types';
 import type {
   GiftProfileFilterOptions,
+  ResaleGiftsFilterOptions,
 } from './types';
 
 export const APP_CODE_NAME = 'A';
@@ -10,22 +11,25 @@ export const APP_NAME = process.env.APP_NAME || `Telegram Web ${APP_CODE_NAME}`;
 export const RELEASE_DATETIME = process.env.RELEASE_DATETIME;
 
 export const PRODUCTION_HOSTNAME = 'web.telegram.org';
-// export const PRODUCTION_URL = 'https://web.telegram.org/a';
-// export const PRODUCTION_URL = 'https://app.telegpt.org';
+// Telegpt相关配置
 export const PRODUCTION_URL = 'https://aquaverse.github.io/telegpt-web-app/';
 export const WEB_VERSION_BASE = 'https://web.telegram.org/'; // Used to redirect to other versions
-// export const SERVER_API_URL = 'https://api.telegpt.org';
 // export const SERVER_API_URL = 'http://localhost:3000';
-// export const SERVER_API_URL = 'https://telegpt-three.vercel.app';
 export const SERVER_API_URL = 'https://telegpt-phi.vercel.app';
 export const BASE_URL = process.env.BASE_URL;
 export const ACCOUNT_QUERY = 'account';
+export const GOOGLE_APP_CLIENT_ID = process.env.GOOGLE_APP_CLIENT_ID;
+export const GOOGLE_APP_CLIENT_SECRET = process.env.GOOGLE_APP_CLIENT_SECRET;
+export const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
 export const IS_MOCKED_CLIENT = process.env.APP_MOCKED_CLIENT === '1';
 export const IS_TEST = process.env.APP_ENV === 'test';
 export const IS_PERF = process.env.APP_ENV === 'perf';
 export const IS_BETA = process.env.APP_ENV === 'staging';
 export const IS_PACKAGED_ELECTRON = process.env.IS_PACKAGED_ELECTRON;
+
+export const ELECTRON_WINDOW_DRAG_EVENT_START = 'tt-electron-window-drag-start';
+export const ELECTRON_WINDOW_DRAG_EVENT_END = 'tt-electron-window-drag-end';
 export const PAID_MESSAGES_PURPOSE = 'paid_messages';
 
 export const DEBUG = process.env.APP_ENV !== 'production';
@@ -67,7 +71,7 @@ export const MEDIA_PROGRESSIVE_CACHE_DISABLED = false;
 export const MEDIA_PROGRESSIVE_CACHE_NAME = 'tt-media-progressive';
 export const MEDIA_CACHE_MAX_BYTES = 512 * 1024; // 512 KB
 export const CUSTOM_BG_CACHE_NAME = 'tt-custom-bg';
-export const LANG_CACHE_NAME = 'tt-lang-packs-v49';
+export const LANG_CACHE_NAME = 'tt-lang-packs-v50';
 export const ASSET_CACHE_NAME = 'tt-assets';
 export const AUTODOWNLOAD_FILESIZE_MB_LIMITS = [1, 5, 10, 50, 100, 500];
 export const DATA_BROADCAST_CHANNEL_PREFIX = 'tt-global';
@@ -108,6 +112,30 @@ export const STORY_LIST_LIMIT = 100;
 export const API_GENERAL_ID_LIMIT = 100;
 export const STATISTICS_PUBLIC_FORWARDS_LIMIT = 50;
 
+export const RESALE_GIFTS_LIMIT = 50;
+export const TODO_ITEMS_LIMIT = 30;
+export const TODO_TITLE_LENGTH_LIMIT = 32;
+export const TODO_ITEM_LENGTH_LIMIT = 64;
+
+// Public Posts Search defaults
+export const PUBLIC_POSTS_SEARCH_DEFAULT_STARS_AMOUNT = 10;
+export const PUBLIC_POSTS_SEARCH_DEFAULT_TOTAL_DAILY = 2;
+
+// Suggested Posts defaults
+export const STARS_SUGGESTED_POST_AMOUNT_MAX = 100000;
+export const STARS_SUGGESTED_POST_AMOUNT_MIN = 5;
+export const STARS_SUGGESTED_POST_COMMISSION_PERMILLE = 850;
+export const STARS_SUGGESTED_POST_AGE_MIN = 86400; // 24 hours in seconds
+export const STARS_SUGGESTED_POST_FUTURE_MAX = 2678400; // 31 days in seconds
+export const STARS_SUGGESTED_POST_FUTURE_MIN = 300; // 5 minutes in seconds
+export const TON_CURRENCY_CODE = 'TON';
+export const TON_SUGGESTED_POST_COMMISSION_PERMILLE = 850;
+export const TON_USD_RATE_DEFAULT = 3;
+export const VERIFY_AGE_MIN_DEFAULT = 18;
+export const TON_TOPUP_URL_DEFAULT = 'https://fragment.com/ads/topup';
+export const TON_SUGGESTED_POST_AMOUNT_MIN = 10000000; // 0.01 TON in nanos
+export const TON_SUGGESTED_POST_AMOUNT_MAX = 10000000000000; // 10 000 TON in nanos
+
 export const STORY_VIEWS_MIN_SEARCH = 15;
 export const STORY_MIN_REACTIONS_SORT = 10;
 export const STORY_VIEWS_MIN_CONTACTS_FILTER = 20;
@@ -145,7 +173,7 @@ export const ANIMATION_LEVEL_CUSTOM = -1;
 export const ANIMATION_LEVEL_MIN = 0;
 export const ANIMATION_LEVEL_MED = 1;
 export const ANIMATION_LEVEL_MAX = 2;
-export const ANIMATION_LEVEL_DEFAULT = ANIMATION_LEVEL_MAX;
+export const ANIMATION_LEVEL_DEFAULT = ANIMATION_LEVEL_MED;
 
 export const DEFAULT_MESSAGE_TEXT_SIZE_PX = 16;
 export const IOS_DEFAULT_MESSAGE_TEXT_SIZE_PX = 17;
@@ -162,7 +190,7 @@ export const GENERAL_REFETCH_INTERVAL = 60 * 60 * 1000; // 1h
 export const EDITABLE_INPUT_ID = 'editable-message-text';
 export const EDITABLE_INPUT_MODAL_ID = 'editable-message-text-modal';
 export const EDITABLE_STORY_INPUT_ID = 'editable-story-input-text';
-// eslint-disable-next-line max-len
+// eslint-disable-next-line @stylistic/max-len
 export const EDITABLE_INPUT_CSS_SELECTOR = `.messages-layout .Transition_slide-active #${EDITABLE_INPUT_ID}, .messages-layout .Transition > .Transition_slide-to #${EDITABLE_INPUT_ID}`;
 export const EDITABLE_INPUT_MODAL_CSS_SELECTOR = `#${EDITABLE_INPUT_MODAL_ID}`;
 export const EDITABLE_STORY_INPUT_CSS_SELECTOR = `#${EDITABLE_STORY_INPUT_ID}`;
@@ -258,6 +286,7 @@ export const BIRTHDAY_NUMBERS_SET = 'FestiveFontEmoji';
 export const RESTRICTED_EMOJI_SET = 'RestrictedEmoji';
 
 export const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+export const SVG_EXTENSIONS = new Set(['svg', 'svgz']);
 
 export const VIDEO_WEBM_TYPE = 'video/webm';
 export const GIF_MIME_TYPE = 'image/gif';
@@ -311,7 +340,7 @@ export const SUPPORTED_TRANSLATION_LANGUAGES = [
   'cy', 'xh', 'yi', 'yo', 'zu',
 ];
 
-// eslint-disable-next-line max-len
+// eslint-disable-next-line @stylistic/max-len
 export const RE_LINK_TEMPLATE = '((ftp|https?):\\/\\/)?((www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z][-a-zA-Z0-9]{1,62})\\b([-a-zA-Z0-9()@:%_+.,~#?&/=]*)';
 export const RE_MENTION_TEMPLATE = '(@[\\w\\d_-]+)';
 export const RE_TG_LINK = /^tg:(\/\/)?/i;
@@ -327,7 +356,9 @@ export const TME_WEB_DOMAINS = new Set(['t.me', 'web.t.me', 'a.t.me', 'k.t.me', 
 export const WEB_APP_PLATFORM = 'weba';
 export const LANG_PACK = 'weba';
 
-// eslint-disable-next-line max-len
+export const NSFW_RESTRICTION_REASON = 'sensitive';
+
+// eslint-disable-next-line @stylistic/max-len
 export const COUNTRIES_WITH_12H_TIME_FORMAT = new Set(['AU', 'BD', 'CA', 'CO', 'EG', 'HN', 'IE', 'IN', 'JO', 'MX', 'MY', 'NI', 'NZ', 'PH', 'PK', 'SA', 'SV', 'US']);
 
 export const API_CHAT_TYPES = ['bots', 'channels', 'chats', 'users', 'groups'] as const;
@@ -343,7 +374,7 @@ export const REPLIES_USER_ID = '1271266957'; // TODO For Test connection ID must
 export const VERIFICATION_CODES_USER_ID = '489000';
 export const ANONYMOUS_USER_ID = '2666000';
 export const RESTRICTED_EMOJI_SET_ID = '7173162320003080';
-export const CHANNEL_ID_LENGTH = 14; // 14 symbols, based on TDLib's `ZERO_CHANNEL_ID = -1000000000000`
+export const CHANNEL_ID_BASE = 10 ** 12;
 export const DEFAULT_GIF_SEARCH_BOT_USERNAME = 'gif';
 export const ALL_FOLDER_ID = 0;
 export const ARCHIVED_FOLDER_ID = 1;
@@ -435,6 +466,7 @@ export const PREMIUM_FEATURE_SECTIONS = [
   'last_seen',
   'message_privacy',
   'effects',
+  'todo',
 ] as const;
 
 export const PREMIUM_BOTTOM_VIDEOS: ApiPremiumSection[] = [
@@ -450,6 +482,7 @@ export const PREMIUM_BOTTOM_VIDEOS: ApiPremiumSection[] = [
   'last_seen',
   'message_privacy',
   'effects',
+  'todo',
 ];
 
 export const PREMIUM_LIMITS_ORDER: ApiLimitTypeForPromo[] = [
@@ -466,7 +499,7 @@ export const PREMIUM_LIMITS_ORDER: ApiLimitTypeForPromo[] = [
   'recommendedChannels',
 ];
 
-export const DEFAULT_GIFT_PROFILE_FILTER_OPTIONS : GiftProfileFilterOptions = {
+export const DEFAULT_GIFT_PROFILE_FILTER_OPTIONS: GiftProfileFilterOptions = {
   sortType: 'byDate',
   shouldIncludeUnlimited: true,
   shouldIncludeLimited: true,
@@ -474,3 +507,9 @@ export const DEFAULT_GIFT_PROFILE_FILTER_OPTIONS : GiftProfileFilterOptions = {
   shouldIncludeDisplayed: true,
   shouldIncludeHidden: true,
 } as const;
+
+export const DEFAULT_RESALE_GIFTS_FILTER_OPTIONS: ResaleGiftsFilterOptions = {
+  sortType: 'byDate',
+};
+
+export const ACCOUNT_TTL_OPTIONS = [1, 3, 6, 12, 18, 24];

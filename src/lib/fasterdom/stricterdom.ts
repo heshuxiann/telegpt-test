@@ -30,7 +30,7 @@ export function enableStrict() {
 
   isStrict = true;
   setupLayoutDetectors();
-  setupMutationObserver();
+  // setupMutationObserver();
 }
 
 export function disableStrict() {
@@ -73,6 +73,17 @@ export function forceMutation(cb: () => any, nodes: Node | Node[]) {
   return cb();
 }
 
+export function suppressStrict(cb: () => any) {
+  if (!isStrict) {
+    return cb();
+  }
+
+  disableStrict();
+  const result = cb();
+  enableStrict();
+  return result;
+}
+
 export function setHandler(handler?: ErrorHandler) {
   onError = handler || DEFAULT_ERROR_HANDLER;
 }
@@ -107,7 +118,6 @@ function setupLayoutDetectors() {
         const nativeMethod = (prototype as any)[method]!;
         nativeMethods.set(`${name}#${method}`, nativeMethod);
 
-        // eslint-disable-next-line func-names
         (prototype as any)[method] = function (...args: any[]) {
           onMeasure(method);
 
@@ -153,10 +163,6 @@ function setupMutationObserver() {
           return;
         }
 
-        if (type === 'attributes' && attributeName === 'style') {
-          return;
-        }
-
         if (forcedMutationAllowedFor.has(target)) {
           return;
         }
@@ -168,7 +174,6 @@ function setupMutationObserver() {
         if (attributeName?.startsWith('data-')) {
           return;
         }
-        // eslint-disable-next-line no-console
         onError(new Error(`Unexpected mutation detected: \`${type === 'attributes' ? attributeName : type}\``));
       });
     }

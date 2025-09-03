@@ -5,8 +5,9 @@ import { NewChatMembersProgress, RightColumnContent } from '../../types';
 
 import { IS_SNAP_EFFECT_SUPPORTED } from '../../util/browser/windowEnvironment';
 import { getCurrentTabId } from '../../util/establishMultitabRole';
-import { getMessageVideo, getMessageWebPageVideo } from '../helpers/messageMedia';
+import { getMessageVideo, getWebPageVideo } from '../helpers/messageMedia';
 import { selectCurrentManagement } from './management';
+import { selectWebPageFromMessage } from './messages';
 import { selectSharedSettings } from './sharedState';
 import { selectIsStatisticsShown } from './statistics';
 import { selectTabState } from './tabs';
@@ -121,7 +122,8 @@ export function selectPerformanceSettingsValue<T extends GlobalState>(
 }
 
 export function selectCanAutoPlayMedia<T extends GlobalState>(global: T, message: ApiMessage | ApiSponsoredMessage) {
-  const video = getMessageVideo(message) || getMessageWebPageVideo(message);
+  const webPage = selectWebPageFromMessage(global, message);
+  const video = getMessageVideo(message) || getWebPageVideo(webPage);
   if (!video) {
     return undefined;
   }
@@ -146,16 +148,20 @@ export function selectCanAnimateInterface<T extends GlobalState>(global: T) {
   return selectPerformanceSettingsValue(global, 'pageTransitions');
 }
 
+export function selectCanAnimateRightColumn<T extends GlobalState>(global: T) {
+  return selectPerformanceSettingsValue(global, 'rightColumnAnimations');
+}
+
+export function selectCanAnimateSnapEffect<T extends GlobalState>(global: T) {
+  return IS_SNAP_EFFECT_SUPPORTED && selectPerformanceSettingsValue(global, 'snapEffect');
+}
+
 export function selectIsContextMenuTranslucent<T extends GlobalState>(global: T) {
   return selectPerformanceSettingsValue(global, 'contextMenuBlur');
 }
 
 export function selectIsSynced<T extends GlobalState>(global: T) {
   return global.isSynced;
-}
-
-export function selectCanAnimateSnapEffect<T extends GlobalState>(global: T) {
-  return IS_SNAP_EFFECT_SUPPORTED && selectPerformanceSettingsValue(global, 'snapEffect');
 }
 
 export function selectWebApp<T extends GlobalState>(
@@ -171,4 +177,16 @@ export function selectActiveWebApp<T extends GlobalState>(
   if (!activeWebAppKey) return undefined;
 
   return selectWebApp(global, activeWebAppKey, tabId);
+}
+
+export function selectLeftColumnContentKey<T extends GlobalState>(
+  global: T, ...[tabId = getCurrentTabId()]: TabArgs<T>
+) {
+  return selectTabState(global, tabId).leftColumn.contentKey;
+}
+
+export function selectSettingsScreen<T extends GlobalState>(
+  global: T, ...[tabId = getCurrentTabId()]: TabArgs<T>
+) {
+  return selectTabState(global, tabId).leftColumn.settingsScreen;
 }

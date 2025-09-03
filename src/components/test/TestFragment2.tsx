@@ -1,4 +1,5 @@
-import React, { useState } from '../../lib/teact/teact';
+import React from '@teact';
+import { useState } from '../../lib/teact/teact';
 
 export function App() {
   const [trigger, setTrigger] = useState(true);
@@ -11,16 +12,19 @@ export function App() {
       }}
     >
       <h2>Click to update</h2>
-      {true && (
-        <>
-          {trigger && <span>fragment</span>}
-          {trigger && <span>content</span>}
-        </>
-      )}
+      <FragmentContainer items={trigger ? [1, 2, 3] : []} />
       <div>
         This should always go last.
       </div>
     </div>
+  );
+}
+
+function FragmentContainer({ items }: { items: number[] }) {
+  return (
+    <>
+      {items.map((n) => <div>{n}</div>)}
+    </>
   );
 }
 

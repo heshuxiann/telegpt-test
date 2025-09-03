@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useCallback, useEffect, useMemo, useRef, useState,
 } from '../../../lib/teact/teact';
 import { withGlobal } from '../../../global';
@@ -63,12 +64,9 @@ const GroupCallParticipantVideo: FC<OwnProps & StateProps> = ({
 }) => {
   const lang = useOldLang();
 
-  // eslint-disable-next-line no-null/no-null
-  const thumbnailRef = useRef<HTMLCanvasElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const videoRef = useRef<HTMLVideoElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const videoFallbackRef = useRef<HTMLCanvasElement>(null);
+  const thumbnailRef = useRef<HTMLCanvasElement>();
+  const videoRef = useRef<HTMLVideoElement>();
+  const videoFallbackRef = useRef<HTMLCanvasElement>();
 
   const {
     x, y, width, height, noAnimate, isRemoved,
@@ -202,10 +200,8 @@ const GroupCallParticipantVideo: FC<OwnProps & StateProps> = ({
     };
   }, [stream]);
 
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const menuRef = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
+  const menuRef = useRef<HTMLDivElement>();
 
   const {
     isContextMenuOpen,

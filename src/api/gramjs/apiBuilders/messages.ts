@@ -8,10 +8,13 @@ import type {
   ApiFactCheck,
   ApiInputMessageReplyInfo,
   ApiInputReplyInfo,
+  ApiInputSuggestedPostInfo,
+  ApiMediaTodo,
   ApiMessage,
   ApiMessageEntity,
   ApiMessageForwardInfo,
   ApiMessageReportResult,
+  ApiNewMediaTodo,
   ApiNewPoll,
   ApiPeer,
   ApiPhoto,
@@ -19,10 +22,12 @@ import type {
   ApiPreparedInlineMessage,
   ApiQuickReply,
   ApiReplyInfo,
+  ApiSearchPostsFlood,
   ApiSponsoredMessage,
   ApiSticker,
   ApiStory,
   ApiStorySkipped,
+  ApiSuggestedPost,
   ApiThreadInfo,
   ApiVideo,
   MediaContent,
@@ -42,6 +47,9 @@ import { addTimestampEntities } from '../../../util/dates/timestamp';
 import { omitUndefined, pick } from '../../../util/iteratees';
 import { getServerTime, getServerTimeOffset } from '../../../util/serverTime';
 import { interpolateArray } from '../../../util/waveform';
+import {
+  buildApiCurrencyAmount,
+} from '../apiBuilders/payments';
 import { buildPeer } from '../gramjsBuilders';
 import {
   addDocumentToLocalDb,
@@ -63,6 +71,7 @@ import {
 import { type OmitVirtualFields } from './helpers';
 import { buildApiMessageAction } from './messageActions';
 import { buildMessageContent, buildMessageMediaContent, buildMessageTextContent } from './messageContent';
+import { buildApiRestrictionReasons } from './misc';
 import { buildApiPeerColor, buildApiPeerId, getApiChatIdFromMtpPeer } from './peers';
 import { buildMessageReactions } from './reactions';
 
@@ -137,7 +146,6 @@ export function buildApiMessageFromShort(mtpMessage: GramJs.UpdateShortMessage):
 
   return buildApiMessageWithChatId(chatId, {
     ...mtpMessage,
-    fromId: buildPeer(mtpMessage.out ? currentUserId : buildApiPeerId(mtpMessage.userId, 'user')),
     peerId: buildPeer(mtpMessage.out ? buildApiPeerId(mtpMessage.userId, 'user') : currentUserId),
   });
 }
@@ -224,6 +232,8 @@ export function buildApiMessageWithChatId(
 
   const savedPeerId = mtpMessage.savedPeerId && getApiChatIdFromMtpPeer(mtpMessage.savedPeerId);
 
+  const restrictionReasons = buildApiRestrictionReasons(mtpMessage.restrictionReason);
+
   return {
     id: mtpMessage.id,
     chatId,
@@ -240,6 +250,7 @@ export function buildApiMessageWithChatId(
     reactions: mtpMessage.reactions && buildMessageReactions(mtpMessage.reactions),
     emojiOnlyCount,
     ...(mtpMessage.replyTo && { replyInfo: buildApiReplyInfo(mtpMessage.replyTo, mtpMessage) }),
+    ...(mtpMessage.suggestedPost && { suggestedPostInfo: buildApiSuggestedPost(mtpMessage.suggestedPost) }),
     forwardInfo,
     isEdited,
     editDate: mtpMessage.editDate,
@@ -270,6 +281,7 @@ export function buildApiMessageWithChatId(
     isVideoProcessingPending,
     reportDeliveryUntilDate: mtpMessage.reportDeliveryUntilDate,
     paidMessageStars: mtpMessage.paidMessageStars?.toJSNumber(),
+    restrictionReasons,
   };
 }
 
@@ -279,7 +291,7 @@ export function buildMessageDraft(draft: GramJs.TypeDraftMessage): ApiDraft | un
   }
 
   const {
-    message, entities, replyTo, date, effect,
+    message, entities, replyTo, date, effect, suggestedPost,
   } = draft;
 
   const replyInfo = replyTo instanceof GramJs.InputReplyToMessage ? {
@@ -287,15 +299,33 @@ export function buildMessageDraft(draft: GramJs.TypeDraftMessage): ApiDraft | un
     replyToMsgId: replyTo.replyToMsgId,
     replyToTopId: replyTo.topMsgId,
     replyToPeerId: replyTo.replyToPeerId && getApiChatIdFromMtpPeer(replyTo.replyToPeerId),
+    monoforumPeerId: replyTo.monoforumPeerId && getApiChatIdFromMtpPeer(replyTo.monoforumPeerId),
     quoteText: replyTo.quoteText ? buildMessageTextContent(replyTo.quoteText, replyTo.quoteEntities) : undefined,
     quoteOffset: replyTo.quoteOffset,
   } satisfies ApiInputMessageReplyInfo : undefined;
 
+  const suggestedPostInfo = suggestedPost instanceof GramJs.SuggestedPost ? {
+    isAccepted: suggestedPost.accepted,
+    isRejected: suggestedPost.rejected,
+    price: suggestedPost.price ? buildApiCurrencyAmount(suggestedPost.price) : undefined,
+    scheduleDate: suggestedPost.scheduleDate,
+  } satisfies ApiInputSuggestedPostInfo : undefined;
+
   return {
     text: message ? buildMessageTextContent(message, entities) : undefined,
     replyInfo,
+    suggestedPostInfo,
     date,
     effectId: effect?.toString(),
+  };
+}
+
+function buildApiSuggestedPost(suggestedPost: GramJs.SuggestedPost): ApiSuggestedPost {
+  return {
+    isAccepted: suggestedPost.accepted,
+    isRejected: suggestedPost.rejected,
+    price: suggestedPost.price ? buildApiCurrencyAmount(suggestedPost.price) : undefined,
+    scheduleDate: suggestedPost.scheduleDate,
   };
 }
 
@@ -381,16 +411,25 @@ function buildNewPoll(poll: ApiNewPoll, localId: number): ApiPoll {
   };
 }
 
+function buildNewTodo(todo: ApiNewMediaTodo): ApiMediaTodo {
+  return {
+    mediaType: 'todo',
+    todo: todo.todo,
+  };
+}
+
 export function buildLocalMessage(
   chat: ApiChat,
   lastMessageId?: number,
   text?: string,
   entities?: ApiMessageEntity[],
   replyInfo?: ApiInputReplyInfo,
+  suggestedPostInfo?: ApiInputSuggestedPostInfo,
   attachment?: ApiAttachment,
   sticker?: ApiSticker,
   gif?: ApiVideo,
   poll?: ApiNewPoll,
+  todo?: ApiNewMediaTodo,
   contact?: ApiContact,
   groupedId?: string,
   scheduledAt?: number,
@@ -408,6 +447,7 @@ export function buildLocalMessage(
   const resultReplyInfo = replyInfo && buildReplyInfo(replyInfo, chat.isForum);
 
   const localPoll = poll && buildNewPoll(poll, localId);
+  const localTodo = todo && buildNewTodo(todo);
 
   const formattedText = text ? addTimestampEntities({ text, entities }) : undefined;
 
@@ -422,11 +462,13 @@ export function buildLocalMessage(
       contact,
       storyData: story && { mediaType: 'storyData', ...story },
       pollId: localPoll?.id,
+      todo: localTodo,
     }),
     date: scheduledAt || Math.round(Date.now() / 1000) + getServerTimeOffset(),
     isOutgoing: !isChannel,
-    senderId: sendAs?.id || currentUserId,
+    senderId: chat.type !== 'chatTypePrivate' ? (sendAs?.id || currentUserId) : undefined,
     replyInfo: resultReplyInfo,
+    suggestedPostInfo,
     ...(groupedId && {
       groupedId,
       ...(media && (media.photo || media.video) && { isInAlbum: true }),
@@ -441,7 +483,7 @@ export function buildLocalMessage(
 
   const emojiOnlyCount = getEmojiOnlyCountForMessage(message.content, message.groupedId);
 
-  const finalMessage : ApiMessage = {
+  const finalMessage: ApiMessage = {
     ...message,
     ...(emojiOnlyCount && { emojiOnlyCount }),
   };
@@ -517,7 +559,7 @@ export function buildLocalForwardedMessage({
     content: updatedContent,
     date: scheduledAt || Math.round(Date.now() / 1000) + getServerTimeOffset(),
     isOutgoing: !asIncomingInChatWithSelf && toChat.type !== 'chatTypeChannel',
-    senderId: sendAs?.id || currentUserId,
+    senderId: toChat.type !== 'chatTypePrivate' ? (sendAs?.id || currentUserId) : undefined,
     sendingState: 'messageSendingStatePending',
     groupedId,
     isInAlbum,
@@ -777,5 +819,19 @@ export function buildPreparedInlineMessage(
     result: processInlineBotResult(queryId, result.result),
     peerTypes: result.peerTypes?.map(buildApiInlineQueryPeerType),
     cacheTime: result.cacheTime,
+  };
+}
+
+export function buildApiSearchPostsFlood(
+  searchFlood: GramJs.SearchPostsFlood,
+  query?: string,
+): ApiSearchPostsFlood {
+  return {
+    query,
+    queryIsFree: searchFlood.queryIsFree,
+    totalDaily: searchFlood.totalDaily,
+    remains: searchFlood.remains,
+    waitTill: searchFlood.waitTill,
+    starsAmount: searchFlood.starsAmount.toJSNumber(),
   };
 }

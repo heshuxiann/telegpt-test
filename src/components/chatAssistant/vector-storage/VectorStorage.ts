@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
+/* eslint-disable @stylistic/max-len */
 /* eslint-disable no-null/no-null */
-/* eslint-disable no-async-without-await/no-async-without-await */
 /* eslint-disable no-console */
-/* eslint-disable class-methods-use-this */
-/* eslint-disable max-len */
+
 import type { IDBPDatabase } from 'idb';
 import { openDB } from 'idb';
 
@@ -27,19 +27,19 @@ export class VectorStorage<T> {
 
   private readonly openaiApiKey?: string;
 
-  private readonly embedTextsFn: (texts: string[]) => Promise<number[][]>;
+  private readonly embedTextsFn: (text: string) => Promise<number[]>;
 
   private readonly dbName: string;
 
   private readonly dbVersion: number;
 
-  constructor(options: IVSOptions = {}) {
+  constructor(options: IVSOptions) {
     this.dbName = options.dbName ?? constants.DEFAULT_DB_NAME;
     this.dbVersion = options.dbVersion ?? constants.DEFAULT_DB_VERSION;
     this.maxSizeInMB = options.maxSizeInMB ?? constants.DEFAULT_MAX_SIZE_IN_MB;
     this.debounceTime = options.debounceTime ?? constants.DEFAULT_DEBOUNCE_TIME;
     this.openaiModel = options.openaiModel ?? constants.DEFAULT_OPENAI_MODEL;
-    this.embedTextsFn = options.embedTextsFn ?? this.embedTexts; // Use the custom function if provided, else use the default one
+    this.embedTextsFn = options.embedTextsFn; // Use the custom function if provided, else use the default one
     this.openaiApiKey = options.openAIApiKey;
     if (!this.openaiApiKey && !options.embedTextsFn) {
       console.error('VectorStorage: pass as an option either an OpenAI API key or a custom embedTextsFn function.');
@@ -49,7 +49,7 @@ export class VectorStorage<T> {
     }
   }
 
-  public async addText(text: string, id:string, metadata: T): Promise<IVSDocument<T>> {
+  public async addText(text: string, id: string, metadata: T): Promise<IVSDocument<T>> {
     // Create a document from the text and metadata
     const doc: IVSDocument<T> = {
       metadata,
@@ -59,11 +59,11 @@ export class VectorStorage<T> {
       vector: [],
       vectorMag: 0,
     };
-    const docs = await this.addDocuments([doc]);
-    return docs[0];
+    const docs = await this.addDocuments(doc);
+    return docs;
   }
 
-  public async updateText(text: string, id:string, metadata: T): Promise<IVSDocument<T>> {
+  public async updateText(text: string, id: string, metadata: T): Promise<IVSDocument<T>> {
     const doc: IVSDocument<T> = {
       metadata,
       text,
@@ -99,19 +99,19 @@ export class VectorStorage<T> {
     return result;
   }
 
-  public async addTexts(texts: string[], metadatas: T[]): Promise<Array<IVSDocument<T>>> {
-    if (texts.length !== metadatas.length) {
-      throw new Error('The lengths of texts and metadata arrays must match.');
-    }
-    const docs: Array<IVSDocument<T>> = texts.map((text, index) => ({
-      metadata: metadatas[index],
-      text,
-      timestamp: Date.now(),
-      vector: [],
-      vectorMag: 0,
-    }));
-    return this.addDocuments(docs);
-  }
+  // public async addTexts(texts: string[], metadatas: T[]): Promise<Array<IVSDocument<T>>> {
+  //   if (texts.length !== metadatas.length) {
+  //     throw new Error('The lengths of texts and metadata arrays must match.');
+  //   }
+  //   const docs: Array<IVSDocument<T>> = texts.map((text, index) => ({
+  //     metadata: metadatas[index],
+  //     text,
+  //     timestamp: Date.now(),
+  //     vector: [],
+  //     vectorMag: 0,
+  //   }));
+  //   return this.addDocuments(docs);
+  // }
 
   public async similaritySearch(params: IVSSimilaritySearchParams): Promise<{
     similarItems: Array<IVSSimilaritySearchItem<T>>;
@@ -124,7 +124,7 @@ export class VectorStorage<T> {
     if (!queryEmbedding || queryEmbedding.length === 0) {
       queryEmbedding = await this.embedText(query);
     }
-    const queryMagnitude = await this.calculateMagnitude(queryEmbedding);
+    const queryMagnitude = this.calculateMagnitude(queryEmbedding);
     const allDocuments = await this.loadFromIndexDbStorage();
     const filteredDocuments = filterDocuments(allDocuments, filterOptions);
     const scoresPairs: Array<[IVSDocument<T>, number]> = this.calculateSimilarityScores(filteredDocuments, queryEmbedding, queryMagnitude);
@@ -177,30 +177,32 @@ export class VectorStorage<T> {
     });
   }
 
-  private async addDocuments(documents: Array<IVSDocument<T>>): Promise<Array<IVSDocument<T>>> {
+  private async addDocuments(document: IVSDocument<T>): Promise<IVSDocument<T>> {
     // filter out already existing documents
     // const newDocuments = documents.filter((doc) => !this.documents.some((d) => d.text === doc.text));
     // If there are no new documents, return an empty array
     // if (newDocuments.length === 0) {
     //   return [];
-    // }
-    const newVectors = await this.embedTextsFn(documents.map((doc) => doc.text));
+    const vector = await this.embedTextsFn(document.text);
+    document.vector = vector;
+    document.vectorMag = calcVectorMagnitude(document);
+    // const newVectors = await this.embedTextsFn(documents.map((doc) => doc.text));
     // Assign vectors and precompute vector magnitudes for new documents
-    documents.forEach((doc, index) => {
-      doc.vector = newVectors[index];
-      doc.vectorMag = calcVectorMagnitude(doc);
-    });
+    // documents.forEach((doc, index) => {
+    //   doc.vector = newVectors[index];
+    //   doc.vectorMag = calcVectorMagnitude(doc);
+    // });
     // Add new documents to the store
     // this.documents.push(...newDocuments);
     // this.removeDocsLRU();
     // Save to index db storage
-    await this.addToIndexDbStorage(documents);
-    return documents;
+    await this.addToIndexDbStorage([document]);
+    return document;
   }
 
   private async updateDocument(document: IVSDocument<T>): Promise<IVSDocument<T>> {
-    const newVectors = await this.embedTextsFn([document.text]);
-    document.vector = newVectors[0];
+    const vertor = await this.embedTextsFn(document.text);
+    document.vector = vertor;
     document.vectorMag = calcVectorMagnitude(document);
     // const oldDoc = this.documents.find((doc) => doc.id === document.id);
     // if (oldDoc) {
@@ -243,7 +245,7 @@ export class VectorStorage<T> {
   }
 
   private async embedText(query: string): Promise<number[]> {
-    return (await this.embedTextsFn([query]))[0];
+    return (await this.embedTextsFn(query));
   }
 
   private calculateMagnitude(embedding: number[]): number {
@@ -308,14 +310,13 @@ export class VectorStorage<T> {
     return result;
   }
 
-  private async addToIndexDbStorage(documents:Array<IVSDocument<T>>): Promise<void> {
+  private async addToIndexDbStorage(documents: Array<IVSDocument<T>>): Promise<void> {
     if (!this.db) {
       this.db = await this.initDB();
     }
     try {
       const tx = this.db.transaction('documents', 'readwrite');
       for (const doc of documents) {
-        // eslint-disable-next-line no-await-in-loop
         await tx.objectStore('documents').put(doc);
       }
       await tx.done;

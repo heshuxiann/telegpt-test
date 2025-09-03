@@ -1,6 +1,7 @@
+import React from '@teact';
 import type { ChangeEvent } from 'react';
 import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useCallback, useState } from '../../../lib/teact/teact';
+import { memo, useCallback, useState } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type { ApiExportedInvite } from '../../../api/types';
@@ -207,7 +208,9 @@ const ManageInvite: FC<OwnProps & StateProps> = ({
           />
           {selectedExpireOption === 'custom' && (
             <Button className="expire-limit" isText onClick={openCalendar}>
-              {formatFullDate(lang, customExpireDate)} {formatTime(lang, customExpireDate)}
+              {formatFullDate(lang, customExpireDate)}
+              {' '}
+              {formatTime(lang, customExpireDate)}
             </Button>
           )}
           <p className="section-help hint">{lang('TimeLimitHelp')}</p>

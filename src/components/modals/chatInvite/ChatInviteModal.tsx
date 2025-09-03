@@ -1,4 +1,5 @@
-import React, { memo, useMemo, useRef } from '../../../lib/teact/teact';
+import React from '@teact';
+import { memo, useMemo, useRef } from '../../../lib/teact/teact';
 import { getActions, getGlobal } from '../../../global';
 
 import type { TabState } from '../../../global/types';
@@ -26,8 +27,7 @@ export type OwnProps = {
 
 const ChatInviteModal = ({ modal }: OwnProps) => {
   const { acceptChatInvite, closeChatInviteModal, showNotification } = getActions();
-  // eslint-disable-next-line no-null/no-null
-  const participantsRef = useRef<HTMLDivElement>(null);
+  const participantsRef = useRef<HTMLDivElement>();
 
   const lang = useOldLang();
 
@@ -44,9 +44,11 @@ const ChatInviteModal = ({ modal }: OwnProps) => {
   const handleAccept = useLastCallback(() => {
     acceptChatInvite({ hash: hash! });
 
-    showNotification({
-      message: isBroadcast ? lang('RequestToJoinChannelSentDescription') : lang('RequestToJoinGroupSentDescription'),
-    });
+    if (isRequestNeeded) {
+      showNotification({
+        message: isBroadcast ? lang('RequestToJoinChannelSentDescription') : lang('RequestToJoinGroupSentDescription'),
+      });
+    }
 
     handleClose();
   });

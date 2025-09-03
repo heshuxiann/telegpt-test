@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo,
   useCallback,
   useEffect,
@@ -26,7 +27,9 @@ import type {
   ApiTopic,
   ApiTypeStory,
   ApiUser,
+  ApiWebPage,
 } from '../../../api/types';
+import type { ActionPayloads } from '../../../global/types';
 import type { ObserveFn } from '../../../hooks/useIntersectionObserver';
 import type {
   ActiveEmojiInteraction,
@@ -43,16 +46,17 @@ import type { OnIntersectPinnedMessage } from '../hooks/usePinnedMessage';
 import { MAIN_THREAD_ID } from '../../../api/types';
 import { AudioOrigin } from '../../../types';
 
-import { EMOJI_STATUS_LOOP_LIMIT, MESSAGE_APPEARANCE_DELAY } from '../../../config';
+import { EMOJI_STATUS_LOOP_LIMIT, MESSAGE_APPEARANCE_DELAY, STARS_SUGGESTED_POST_FUTURE_MIN } from '../../../config';
 import {
   areReactionsEmpty,
   getIsDownloading,
+  getMainUsername,
   getMessageContent,
   getMessageCustomShape,
-  getMessageDownloadableMedia,
   getMessageHtmlId,
   getMessageSingleCustomEmoji,
   getMessageSingleRegularEmoji,
+  getMessageWebPage,
   hasMessageText,
   hasMessageTtl,
   isAnonymousForwardsChat,
@@ -66,7 +70,6 @@ import {
   isOwnMessage,
   isReplyToMessage,
   isSystemBot,
-  isUserId,
 } from '../../../global/helpers';
 import { getPeerFullTitle } from '../../../global/helpers/peers';
 import { getMessageReplyInfo, getStoryReplyInfo } from '../../../global/helpers/replies';
@@ -83,7 +86,9 @@ import {
   selectCurrentMiddleSearch,
   selectDefaultReaction,
   selectForwardedSender,
+  selectFullWebPageFromMessage,
   selectIsChatProtected,
+  selectIsChatRestricted,
   selectIsChatWithSelf,
   selectIsCurrentUserFrozen,
   selectIsCurrentUserPremium,
@@ -93,8 +98,6 @@ import {
   selectIsMessageProtected,
   selectIsMessageSelected,
   selectMessageIdsByGroupId,
-  selectMessageLastPlaybackTimestamp,
-  selectMessageTimestampableDuration,
   selectMessageTranslations,
   selectOutgoingStatus,
   selectPeer,
@@ -115,10 +118,18 @@ import {
   selectUploadProgress,
   selectUser,
 } from '../../../global/selectors';
+import {
+  selectIsMediaNsfw,
+  selectMessageDownloadableMedia,
+  selectMessageLastPlaybackTimestamp,
+  selectMessageTimestampableDuration,
+} from '../../../global/selectors/media';
 import { selectSharedSettings } from '../../../global/selectors/sharedState';
 import { IS_ANDROID, IS_ELECTRON, IS_TRANSLATION_SUPPORTED } from '../../../util/browser/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
+import { isUserId } from '../../../util/entities/ids';
 import { getMessageKey } from '../../../util/keys/messageKey';
+import { getServerTime } from '../../../util/serverTime';
 import stopEvent from '../../../util/stopEvent';
 import { isElementInViewport } from '../../../util/visibility/isElementInViewport';
 import MessageGptMenu from '../../chatAssistant/component/message-gpt-menu';
@@ -138,6 +149,7 @@ import useEnsureMessage from '../../../hooks/useEnsureMessage';
 import useEnsureStory from '../../../hooks/useEnsureStory';
 import useFlag from '../../../hooks/useFlag';
 import { useOnIntersect } from '../../../hooks/useIntersectionObserver';
+import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 import useOldLang from '../../../hooks/useOldLang';
 import usePreviousDeprecated from '../../../hooks/usePreviousDeprecated';
@@ -165,6 +177,8 @@ import ReactionStaticEmoji from '../../common/reactions/ReactionStaticEmoji';
 import TopicChip from '../../common/TopicChip';
 import { animateSnap } from '../../main/visualEffects/SnapEffectContainer';
 import Button from '../../ui/Button';
+import ConfirmDialog from '../../ui/ConfirmDialog';
+import InputText from '../../ui/InputText';
 import Album from './Album';
 import AnimatedCustomEmoji from './AnimatedCustomEmoji';
 import AnimatedEmoji from './AnimatedEmoji';
@@ -190,6 +204,7 @@ import RoundVideo from './RoundVideo';
 import Sticker from './Sticker';
 import Story from './Story';
 import StoryMention from './StoryMention';
+import TodoList from './TodoList';
 import Video from './Video';
 import WebPage from './WebPage';
 
@@ -206,9 +221,6 @@ type MessagePositionProperties = {
 type OwnProps =
   {
     message: ApiMessage;
-    observeIntersectionForBottom?: ObserveFn;
-    observeIntersectionForLoading?: ObserveFn;
-    observeIntersectionForPlaying?: ObserveFn;
     album?: IAlbum;
     noAvatars?: boolean;
     withAvatar?: boolean;
@@ -221,6 +233,9 @@ type OwnProps =
     isJustAdded: boolean;
     memoFirstUnreadIdRef?: { current: number | undefined };
     getIsMessageListReady?: Signal<boolean>;
+    observeIntersectionForBottom?: ObserveFn;
+    observeIntersectionForLoading?: ObserveFn;
+    observeIntersectionForPlaying?: ObserveFn;
     onIntersectPinnedMessage?: OnIntersectPinnedMessage;
   }
   & MessagePositionProperties;
@@ -284,8 +299,8 @@ type StateProps = {
   hasUnreadReaction?: boolean;
   isTranscribing?: boolean;
   transcribedText?: string;
-  isTranscriptionError?: boolean;
   hasTranslation?: boolean;
+  isTranscriptionError?: boolean;
   isPremium: boolean;
   senderAdminMember?: ApiChatMember;
   messageTopic?: ApiTopic;
@@ -306,11 +321,15 @@ type StateProps = {
   viaBusinessBot?: ApiUser;
   effect?: ApiAvailableEffect;
   poll?: ApiPoll;
+  webPage?: ApiWebPage;
   maxTimestamp?: number;
   lastPlaybackTimestamp?: number;
   paidMessageStars?: number;
   isChatWithUser?: boolean;
   isAccountFrozen?: boolean;
+  minFutureTime?: number;
+  isMediaNsfw?: boolean;
+  isReplyMediaNsfw?: boolean;
 };
 
 type MetaPosition =
@@ -329,6 +348,7 @@ const NBSP = '\u00A0';
 const NO_MEDIA_CORNERS_THRESHOLD = 18;
 const QUICK_REACTION_SIZE = 1.75 * REM;
 const EXTRA_SPACE_FOR_REACTIONS = 2.25 * REM;
+const MAX_REASON_LENGTH = 200;
 
 const Message: FC<OwnProps & StateProps> = ({
   message,
@@ -432,35 +452,41 @@ const Message: FC<OwnProps & StateProps> = ({
   poll,
   maxTimestamp,
   lastPlaybackTimestamp,
-  onIntersectPinnedMessage,
+  isMediaNsfw,
+  isReplyMediaNsfw,
   paidMessageStars,
   isChatWithUser,
   isAccountFrozen,
+  minFutureTime,
+  webPage,
+  onIntersectPinnedMessage,
 }) => {
   const {
     toggleMessageSelection,
     clickBotInlineButton,
+    clickSuggestedMessageButton,
+    rejectSuggestedPost,
+    openSuggestedPostApprovalModal,
     disableContextMenuHint,
     animateUnreadReaction,
     focusLastMessage,
     markMentionsRead,
   } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const bottomMarkerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const quickReactionRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const messageContentRef = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
+  const bottomMarkerRef = useRef<HTMLDivElement>();
+  const quickReactionRef = useRef<HTMLDivElement>();
+  const messageContentRef = useRef<HTMLDivElement>();
 
-  const lang = useOldLang();
+  const oldLang = useOldLang();
+  const lang = useLang();
 
   const [isTranscriptionHidden, setTranscriptionHidden] = useState(false);
   const [isPlayingSnapAnimation, setIsPlayingSnapAnimation] = useState(false);
   const [isPlayingDeleteAnimation, setIsPlayingDeleteAnimation] = useState(false);
   const [shouldPlayEffect, requestEffect, hideEffect] = useFlag();
+  const [isDeclineDialogOpen, openDeclineDialog, closeDeclineDialog] = useFlag();
+  const [declineReason, setDeclineReason] = useState('');
   const { isMobile, isTouchScreen } = useAppLayout();
 
   useOnIntersect(bottomMarkerRef, observeIntersectionForBottom);
@@ -528,9 +554,9 @@ const Message: FC<OwnProps & StateProps> = ({
   const {
     photo = paidMediaPhoto, video = paidMediaVideo, audio,
     voice, document, sticker, contact,
-    webPage, invoice, location,
+    invoice, location,
     action, game, storyData, giveaway,
-    giveawayResults,
+    giveawayResults, todo,
   } = getMessageContent(message);
 
   const messageReplyInfo = getMessageReplyInfo(message);
@@ -569,7 +595,7 @@ const Message: FC<OwnProps & StateProps> = ({
     && !((sticker || hasAnimatedEmoji) && asForwarded)
   );
   const canForward = isChannel && !isScheduled && message.isForwardingAllowed
-  && !isChatProtected;
+    && !isChatProtected;
   const canFocus = Boolean(isPinnedList
     || (forwardInfo
       && (forwardInfo.isChannelPost || isChatWithSelf || isRepliesChat || isAnonymousForwards)
@@ -587,7 +613,7 @@ const Message: FC<OwnProps & StateProps> = ({
       messageId,
       groupedId,
       ...(e?.shiftKey && { withShift: true }),
-      ...(isAlbum && { childMessageIds: album!.messages.map(({ id }) => id) }),
+      ...(isAlbum && { childMessageIds: album.messages.map(({ id }) => id) }),
     });
   });
 
@@ -655,9 +681,10 @@ const Message: FC<OwnProps & StateProps> = ({
     handleTopicChipClick,
     handleStoryClick,
   } = useInnerHandlers({
-    lang,
+    lang: oldLang,
     selectMessage,
     message,
+    webPage,
     chatId,
     threadId,
     isInDocumentGroup,
@@ -702,7 +729,7 @@ const Message: FC<OwnProps & StateProps> = ({
         setIsPlayingDeleteAnimation(true);
       }
     }
-  // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps -- Only start animation on `isDeleting` change
+    // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps -- Only start animation on `isDeleting` change
   }, [message.isDeleting]);
 
   const textMessage = album?.hasMultipleCaptions ? undefined : (album?.captionMessage || message);
@@ -744,7 +771,7 @@ const Message: FC<OwnProps & StateProps> = ({
   const text = textMessage && getMessageContent(textMessage).text;
   const isInvertedMedia = Boolean(message.isInvertedMedia);
 
-  const { replyToMsgId, replyToPeerId, isQuote } = messageReplyInfo || {};
+  const { replyToMsgId, replyToPeerId } = messageReplyInfo || {};
   const { peerId: storyReplyPeerId, storyId: storyReplyId } = storyReplyInfo || {};
 
   useEffect(() => {
@@ -790,6 +817,7 @@ const Message: FC<OwnProps & StateProps> = ({
 
   const contentClassName = buildContentClassName(message, album, {
     poll,
+    webPage,
     hasSubheader,
     isCustomShape,
     isLastInGroup,
@@ -842,24 +870,12 @@ const Message: FC<OwnProps & StateProps> = ({
 
   const quickReactionPosition: QuickReactionPosition = isCustomShape ? 'in-meta' : 'in-content';
 
-  // 自动翻译
-  // eslint-disable-next-line max-len
-  // if (autoTranslate && shouldTranslate && !isTranslationPending && !hasTranslation && requestedTranslationLanguage) {
-  //   if (!detectedLanguage || detectedLanguage !== autoTranslateLanguage) {
-  //     requestMessageTranslation({
-  //       chatId,
-  //       id: messageId,
-  //       toLanguageCode: autoTranslateLanguage,
-  //     });
-  //   }
-  // }
-
   useEnsureMessage(
     replyToPeerId || chatId,
     replyToMsgId,
     replyMessage,
     message.id,
-    shouldHideReply || isQuote || isReplyPrivate,
+    shouldHideReply || isReplyPrivate,
   );
 
   useEnsureStory(
@@ -880,7 +896,7 @@ const Message: FC<OwnProps & StateProps> = ({
     scrollTargetPosition,
   });
 
-  const viaBusinessBotTitle = viaBusinessBot ? getPeerFullTitle(lang, viaBusinessBot) : undefined;
+  const viaBusinessBotTitle = viaBusinessBot ? getPeerFullTitle(oldLang, viaBusinessBot) : undefined;
 
   const canShowPostAuthor = !message.senderId;
   const signature = viaBusinessBotTitle || (canShowPostAuthor && message.postAuthorTitle)
@@ -913,7 +929,7 @@ const Message: FC<OwnProps & StateProps> = ({
 
   const albumLayout = useMemo(() => {
     return isAlbum
-      ? calculateAlbumLayout(isOwn, Boolean(noAvatars), album!, isMobile)
+      ? calculateAlbumLayout(isOwn, Boolean(noAvatars), album, isMobile)
       : undefined;
   }, [isAlbum, isOwn, noAvatars, album, isMobile]);
 
@@ -997,7 +1013,7 @@ const Message: FC<OwnProps & StateProps> = ({
     return (
       <MessageText
         messageOrStory={textMessage}
-        translatedText={(requestedTranslationLanguage || hasTranslation) ? currentTranslatedText : undefined}
+        translatedText={requestedTranslationLanguage || hasTranslation ? currentTranslatedText : undefined}
         isForAnimation={isForAnimation}
         focusedQuote={focusedQuote}
         focusedQuoteOffset={focusedQuoteOffset}
@@ -1020,7 +1036,11 @@ const Message: FC<OwnProps & StateProps> = ({
 
     return (
       <div
-        className={buildClassName('quick-reaction', isQuickReactionVisible && !hasActiveReactions && 'visible')}
+        className={buildClassName(
+          'quick-reaction',
+          'no-selection',
+          isQuickReactionVisible && !hasActiveReactions && 'visible',
+        )}
         onClick={handleSendQuickReaction}
         ref={quickReactionRef}
       >
@@ -1128,6 +1148,7 @@ const Message: FC<OwnProps & StateProps> = ({
                 senderChat={replyMessageChat}
                 forwardSender={replyMessageForwardSender}
                 chatTranslations={chatTranslations}
+                isMediaNsfw={isReplyMediaNsfw}
                 requestedChatTranslationLanguage={requestedChatTranslationLanguage}
                 observeIntersectionForLoading={observeIntersectionForLoading}
                 observeIntersectionForPlaying={observeIntersectionForPlaying}
@@ -1154,6 +1175,7 @@ const Message: FC<OwnProps & StateProps> = ({
             shouldLoop={shouldLoopStickers}
             shouldPlayEffect={shouldPlayEffect}
             withEffect={withAnimatedEffects}
+            isMediaNsfw={isMediaNsfw}
             onStopEffect={hideEffect}
           />
         )}
@@ -1265,6 +1287,9 @@ const Message: FC<OwnProps & StateProps> = ({
         {poll && (
           <Poll message={message} poll={poll} onSendVote={handleVoteSend} />
         )}
+        {todo && (
+          <TodoList message={message} todoList={todo} />
+        )}
         {(giveaway || giveawayResults) && (
           <Giveaway message={message} />
         )}
@@ -1289,7 +1314,7 @@ const Message: FC<OwnProps & StateProps> = ({
             )}
             dir="auto"
           >
-            {(isTranscriptionError ? lang('NoWordsRecognized') : (
+            {(isTranscriptionError ? oldLang('NoWordsRecognized') : (
               isTranscribing && transcribedText ? <DotAnimation content={transcribedText} /> : transcribedText
             ))}
           </p>
@@ -1395,8 +1420,12 @@ const Message: FC<OwnProps & StateProps> = ({
   }
 
   function renderWebPage() {
-    return webPage && (
+    const messageWebPage = getMessageWebPage(message);
+    if (!messageWebPage || !webPage) return undefined;
+    return (
       <WebPage
+        messageWebPage={messageWebPage}
+        webPage={webPage}
         message={message}
         observeIntersectionForLoading={observeIntersectionForLoading}
         observeIntersectionForPlaying={observeIntersectionForPlaying}
@@ -1426,7 +1455,7 @@ const Message: FC<OwnProps & StateProps> = ({
       <>
         {isAlbum && observeIntersectionForLoading && (
           <Album
-            album={album!}
+            album={album}
             albumLayout={albumLayout!}
             observeIntersection={observeIntersectionForLoading}
             isOwn={isOwn}
@@ -1449,6 +1478,7 @@ const Message: FC<OwnProps & StateProps> = ({
             isProtected={isProtected}
             asForwarded={asForwarded}
             theme={theme}
+            isMediaNsfw={isMediaNsfw}
             forcedWidth={contentWidth}
             onClick={handlePhotoMediaClick}
             onCancelUpload={handleCancelUpload}
@@ -1468,6 +1498,7 @@ const Message: FC<OwnProps & StateProps> = ({
             isDownloading={isDownloading}
             isProtected={isProtected}
             asForwarded={asForwarded}
+            isMediaNsfw={isMediaNsfw}
             lastPlaybackTimestamp={lastPlaybackTimestamp}
             onClick={handleVideoMediaClick}
             onCancelUpload={handleCancelUpload}
@@ -1502,28 +1533,65 @@ const Message: FC<OwnProps & StateProps> = ({
         )}
         {asForwarded && (
           <span className="forward-title">
-            {lang('ForwardedFrom')}
+            {oldLang('ForwardedFrom')}
           </span>
         )}
       </span>
     );
   }
 
-  function renderSenderName(shouldSkipRenderForwardTitle:boolean = false, shouldSkipRenderAdminTitle: boolean = false) {
+  const handleSuggestedMessageButton = useLastCallback((payload: ActionPayloads['clickBotInlineButton']) => {
+    if (payload.button.type !== 'suggestedMessage') return;
+    if (payload.button.buttonType === 'approve') {
+      openSuggestedPostApprovalModal({
+        chatId,
+        messageId: message.id,
+      });
+      return;
+    }
+
+    if (payload.button.buttonType === 'decline') {
+      openDeclineDialog();
+      return;
+    }
+
+    clickSuggestedMessageButton({
+      ...payload,
+      button: payload.button,
+    });
+  });
+
+  const handleDeclineReasonChange = useLastCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setDeclineReason(e.target.value);
+  });
+
+  const handleDeclineConfirm = useLastCallback(() => {
+    rejectSuggestedPost({
+      chatId,
+      messageId: message.id,
+      rejectComment: declineReason.trim() || undefined,
+    });
+    closeDeclineDialog();
+    setDeclineReason('');
+  });
+
+  function renderSenderName(
+    shouldSkipRenderForwardTitle: boolean = false, shouldSkipRenderAdminTitle: boolean = false,
+  ) {
     let senderTitle;
     let senderColor;
     if (senderPeer && !(isCustomShape && viaBotId)) {
-      senderTitle = getPeerFullTitle(lang, senderPeer);
+      senderTitle = getPeerFullTitle(oldLang, senderPeer);
     } else if (forwardInfo?.hiddenUserName) {
       senderTitle = forwardInfo.hiddenUserName;
     } else if (storyData && originSender) {
-      senderTitle = getPeerFullTitle(lang, originSender!);
+      senderTitle = getPeerFullTitle(oldLang, originSender);
     }
     const senderEmojiStatus = senderPeer && 'emojiStatus' in senderPeer && senderPeer.emojiStatus;
     const senderIsPremium = senderPeer && 'isPremium' in senderPeer && senderPeer.isPremium;
 
     const shouldRenderForwardAvatar = asForwarded && senderPeer;
-    const hasBotSenderUsername = botSender?.usernames?.length;
+    const hasBotSenderUsername = botSender?.hasUsername;
     return (
       <div className="message-title" dir="ltr">
         {(senderTitle || asForwarded) ? (
@@ -1567,25 +1635,25 @@ const Message: FC<OwnProps & StateProps> = ({
         ) : !botSender ? (
           NBSP
         ) : undefined}
-        {botSender?.usernames?.length && (
+        {botSender?.hasUsername && (
           <span className="interactive">
-            <span className="via">{lang('ViaBot')}</span>
+            <span className="via">{oldLang('ViaBot')}</span>
             <span
               className="sender-title"
               onClick={handleViaBotClick}
             >
-              {renderText(`@${botSender.usernames[0].username}`)}
+              {renderText(`@${getMainUsername(botSender)}`)}
             </span>
           </span>
         )}
         <div className="title-spacer" />
         {!shouldSkipRenderAdminTitle && !hasBotSenderUsername ? (forwardInfo?.isLinkedChannelPost ? (
-          <span className="admin-title" dir="auto">{lang('DiscussChannel')}</span>
+          <span className="admin-title" dir="auto">{oldLang('DiscussChannel')}</span>
         ) : message.postAuthorTitle && isGroup && !asForwarded ? (
           <span className="admin-title" dir="auto">{message.postAuthorTitle}</span>
         ) : senderAdminMember && !asForwarded && !viaBotId ? (
           <span className="admin-title" dir="auto">
-            {senderAdminMember.customTitle || lang(
+            {senderAdminMember.customTitle || oldLang(
               senderAdminMember.isOwner ? 'GroupInfo.LabelOwner' : 'GroupInfo.LabelAdmin',
             )}
           </span>
@@ -1601,6 +1669,14 @@ const Message: FC<OwnProps & StateProps> = ({
   }
 
   const forwardAuthor = isGroup && asForwarded ? message.postAuthorTitle : undefined;
+  const shouldRenderSuggestedPostButtons = message.suggestedPostInfo
+    && !message.isOutgoing && !message.suggestedPostInfo.isAccepted && !message.suggestedPostInfo.isRejected;
+
+  const isSuggestedPostExpired = useMemo(() => {
+    if (!message.suggestedPostInfo?.scheduleDate || !minFutureTime) return false;
+    const now = getServerTime();
+    return message.suggestedPostInfo.scheduleDate <= now + minFutureTime;
+  }, [message.suggestedPostInfo, minFutureTime]);
 
   return (
     <div
@@ -1685,7 +1761,7 @@ const Message: FC<OwnProps & StateProps> = ({
                   color="translucent-white"
                   round
                   size="tiny"
-                  ariaLabel={lang('lng_context_forward_msg')}
+                  ariaLabel={oldLang('lng_context_forward_msg')}
                   onClick={isLastInDocumentGroup ? handleGroupForward : handleForward}
                 >
                   <Icon name="share-filled" />
@@ -1721,22 +1797,39 @@ const Message: FC<OwnProps & StateProps> = ({
               messageListType={messageListType}
               detectedLanguage={detectedLanguage}
             />
-          ) }
+          )}
         </div>
         {message.inlineButtons && (
           <InlineButtons message={message} onClick={clickBotInlineButton} />
         )}
-        {reactionsPosition === 'outside' && !isStoryMention && (
-          <Reactions
-            message={reactionMessage!}
-            threadId={threadId}
-            isOutside
-            isCurrentUserPremium={isPremium}
-            maxWidth={reactionsMaxWidth}
-            observeIntersection={observeIntersectionForPlaying}
-            noRecentReactors={isChannel}
-            tags={tags}
-            isAccountFrozen={isAccountFrozen}
+        {shouldRenderSuggestedPostButtons && (
+          <InlineButtons
+            message={{
+              ...message,
+              inlineButtons: [
+                [
+                  {
+                    type: 'suggestedMessage',
+                    buttonType: 'decline',
+                    text: lang('SuggestedPostDecline'),
+                  },
+                  {
+                    type: 'suggestedMessage',
+                    buttonType: 'approve',
+                    text: lang('SuggestedPostApprove'),
+                    disabled: isSuggestedPostExpired,
+                  },
+                ],
+                [
+                  {
+                    type: 'suggestedMessage',
+                    buttonType: 'suggestChanges',
+                    text: lang('SuggestedPostSuggestChanges'),
+                  },
+                ],
+              ],
+            }}
+            onClick={handleSuggestedMessageButton}
           />
         )}
         {reactionsPosition === 'outside' && !isStoryMention && (
@@ -1749,6 +1842,7 @@ const Message: FC<OwnProps & StateProps> = ({
             observeIntersection={observeIntersectionForPlaying}
             noRecentReactors={isChannel}
             tags={tags}
+            isAccountFrozen={isAccountFrozen}
           />
         )}
       </div>
@@ -1766,6 +1860,28 @@ const Message: FC<OwnProps & StateProps> = ({
           noReplies={noReplies}
           detectedLanguage={detectedLanguage}
         />
+      )}
+      {isDeclineDialogOpen && (
+        <ConfirmDialog
+          isOpen={isDeclineDialogOpen}
+          onClose={closeDeclineDialog}
+          title={lang('SuggestedPostDecline')}
+          confirmLabel={lang('SuggestedPostDecline')}
+          confirmHandler={handleDeclineConfirm}
+          confirmIsDestructive
+        >
+          <div className="decline-dialog-question">
+            {renderText(lang('DeclinePostDialogQuestion', {
+              sender: sender ? getPeerFullTitle(oldLang, sender) : '',
+            }, { withNodes: true, withMarkdown: true }))}
+          </div>
+          <InputText
+            placeholder={lang('DeclineReasonPlaceholder')}
+            value={declineReason}
+            onChange={handleDeclineReasonChange}
+            maxLength={MAX_REASON_LENGTH}
+          />
+        </ConfirmDialog>
       )}
     </div>
   );
@@ -1785,6 +1901,8 @@ export default memo(withGlobal<OwnProps>(
       paidMessageStars,
     } = message;
 
+    const webPage = selectFullWebPageFromMessage(global, message);
+
     const { shouldWarnAboutSvg } = selectSharedSettings(global);
     const isChatWithUser = isUserId(chatId);
 
@@ -1795,7 +1913,7 @@ export default memo(withGlobal<OwnProps>(
     const isChannel = chat && isChatChannel(chat);
     const isGroup = chat && isChatGroup(chat);
     const chatFullInfo = !isChatWithUser ? selectChatFullInfo(global, chatId) : undefined;
-    const webPageStoryData = message.content.webPage?.story;
+    const webPageStoryData = webPage?.story;
     const webPageStory = webPageStoryData
       ? selectPeerStory(global, webPageStoryData.peerId, webPageStoryData.id)
       : undefined;
@@ -1825,7 +1943,7 @@ export default memo(withGlobal<OwnProps>(
     const replyMessageChat = replyToPeerId ? selectChat(global, replyToPeerId) : undefined;
     const isReplyPrivate = !isSystemBotChat && !isAnonymousForwards && replyMessageChat
       && !isChatPublic(replyMessageChat)
-      && (replyMessageChat.isNotJoined || replyMessageChat.isRestricted);
+      && (replyMessageChat.isNotJoined || selectIsChatRestricted(global, replyMessageChat.id));
     const isReplyToTopicStart = replyMessage?.content.action?.type === 'topicCreate';
     const replyStory = storyReplyId && storyReplyPeerId
       ? selectPeerStory(global, storyReplyPeerId, storyReplyId)
@@ -1861,7 +1979,7 @@ export default memo(withGlobal<OwnProps>(
 
     const canReply = messageListType === 'thread' && selectCanReplyToMessage(global, message, threadId);
     const activeDownloads = selectActiveDownloads(global);
-    const downloadableMedia = getMessageDownloadableMedia(message);
+    const downloadableMedia = selectMessageDownloadableMedia(global, message);
     const isDownloading = downloadableMedia && getIsDownloading(activeDownloads, downloadableMedia);
 
     const repliesThreadInfo = selectThreadInfo(global, chatId, album?.commentsMessage?.id || id);
@@ -1912,6 +2030,11 @@ export default memo(withGlobal<OwnProps>(
       ? Boolean(selectMessageTranslations(global, message.chatId, requestedTranslationLanguage)[message.id]?.text)
       : undefined;
     const isAccountFrozen = selectIsCurrentUserFrozen(global);
+
+    const minFutureTime = global.appConfig?.starsSuggestedPostFutureMin || STARS_SUGGESTED_POST_FUTURE_MIN;
+
+    const isMediaNsfw = selectIsMediaNsfw(global, message);
+    const isReplyMediaNsfw = replyMessage && selectIsMediaNsfw(global, replyMessage);
 
     return {
       theme: selectTheme(global),
@@ -2000,6 +2123,7 @@ export default memo(withGlobal<OwnProps>(
       tags: global.savedReactionTags?.byKey,
       canTranscribeVoice: true,
       viaBusinessBot,
+      minFutureTime,
       effect,
       poll,
       maxTimestamp,
@@ -2007,6 +2131,9 @@ export default memo(withGlobal<OwnProps>(
       paidMessageStars,
       isChatWithUser,
       isAccountFrozen,
+      isMediaNsfw,
+      isReplyMediaNsfw,
+      webPage,
     };
   },
 )(Message));

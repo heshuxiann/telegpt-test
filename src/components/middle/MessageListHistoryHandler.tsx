@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React, { memo } from '../../lib/teact/teact';
+import { memo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { MessageList as GlobalMessageList } from '../../types';
@@ -34,9 +35,9 @@ const MessageListHistoryHandler: FC<StateProps> = ({ messageLists }) => {
     <div>
       {messageLists?.map((messageList, i) => (
         <MessageHistoryRecord
-          // eslint-disable-next-line react/no-array-index-key
+
           key={`${messageList.chatId}_${messageList.threadId}_${messageList.type}_${i}`}
-          // eslint-disable-next-line react/jsx-props-no-spreading
+
           {...messageList}
         />
       ))}

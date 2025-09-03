@@ -1,8 +1,12 @@
 .Loading {
   display: flex;
-  height: 100%;
   align-items: center;
   justify-content: center;
+  height: 100%;
+
+  &.interactive {
+    cursor: var(--custom-cursor, pointer);
+  }
 
   &.interactive {
     cursor: var(--custom-cursor, pointer);

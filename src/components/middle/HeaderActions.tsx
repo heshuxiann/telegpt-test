@@ -1,6 +1,7 @@
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
-import React, {
-  memo, useMemo, useRef, useState,
+import {
+  memo, useCallback, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
@@ -13,7 +14,7 @@ import {
   getHasAdminRight,
   getIsSavedDialog,
   isAnonymousForwardsChat,
-  isChatBasicGroup, isChatChannel, isChatSuperGroup, isUserId,
+  isChatBasicGroup, isChatChannel, isChatSuperGroup,
 } from '../../global/helpers';
 import {
   selectBot,
@@ -22,6 +23,7 @@ import {
   selectChat,
   selectChatFullInfo,
   selectIsChatBotNotStarted,
+  selectIsChatRestricted,
   selectIsChatWithSelf,
   selectIsCurrentUserFrozen,
   selectIsInSelectMode,
@@ -33,6 +35,7 @@ import {
   selectUserFullInfo,
 } from '../../global/selectors';
 import { ARE_CALLS_SUPPORTED, IS_APP } from '../../util/browser/windowEnvironment';
+import { isUserId } from '../../util/entities/ids';
 
 import { useHotkeys } from '../../hooks/useHotkeys';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -73,6 +76,7 @@ interface StateProps {
   canLeave?: boolean;
   canEnterVoiceChat?: boolean;
   canCreateVoiceChat?: boolean;
+  channelMonoforumId?: string;
   pendingJoinRequests?: number;
   shouldJoinToSend?: boolean;
   shouldSendJoinRequest?: boolean;
@@ -109,6 +113,7 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
   canLeave,
   canEnterVoiceChat,
   canCreateVoiceChat,
+  channelMonoforumId,
   pendingJoinRequests,
   isRightColumnShown,
   isForForum,
@@ -142,8 +147,7 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     setViewForumAsMessages,
     // openFrozenAccountModal,
   } = getActions();
-  // eslint-disable-next-line no-null/no-null
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>();
   const lang = useOldLang();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<IAnchorPosition | undefined>(undefined);
@@ -451,6 +455,7 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
           pendingJoinRequests={pendingJoinRequests}
           onJoinRequestsClick={handleJoinRequestsClick}
           withForumActions={isForForum}
+          channelMonoforumId={channelMonoforumId}
           onSubscribeChannel={handleSubscribeClick}
           onSearchClick={handleSearchClick}
           onAsMessagesClick={handleAsMessagesClick}
@@ -474,7 +479,8 @@ export default memo(withGlobal<OwnProps>(
     const isPrivate = isUserId(chatId);
     const { doNotTranslate } = global.settings.byKey;
 
-    if (!chat || chat.isRestricted || selectIsInSelectMode(global)) {
+    const isRestricted = selectIsChatRestricted(global, chatId);
+    if (!chat || isRestricted || selectIsInSelectMode(global)) {
       return {
         noMenu: true,
         language,
@@ -499,7 +505,7 @@ export default memo(withGlobal<OwnProps>(
     const canStartBot = !canRestartBot && Boolean(selectIsChatBotNotStarted(global, chatId));
     const canUnblock = isUserBlocked && !bot;
     const canSubscribe = Boolean(
-      (isMainThread || chat.isForum) && (isChannel || isSuperGroup) && chat.isNotJoined,
+      (isMainThread || chat.isForum) && (isChannel || isSuperGroup) && chat.isNotJoined && !chat.isMonoforum,
     );
     const canSearch = isMainThread || isDiscussionThread;
     const canCall = ARE_CALLS_SUPPORTED && isUserId(chat.id) && !isChatWithSelf && !bot && !chat.isSupport
@@ -508,18 +514,20 @@ export default memo(withGlobal<OwnProps>(
     const canLeave = isSavedDialog || (isMainThread && !canSubscribe);
     const canEnterVoiceChat = ARE_CALLS_SUPPORTED && isMainThread && chat.isCallActive;
     const canCreateVoiceChat = ARE_CALLS_SUPPORTED && isMainThread && !chat.isCallActive
-      && (chat.adminRights?.manageCall || (chat.isCreator && isChatBasicGroup(chat)));
+      && (chat.adminRights?.manageCall || (chat.isCreator && isChatBasicGroup(chat))) && !chat.isMonoforum;
     const canViewStatistics = isMainThread && chatFullInfo?.canViewStatistics;
     const canViewMonetization = isMainThread && chatFullInfo?.canViewMonetization;
-    const canViewBoosts = isMainThread
+    const canViewBoosts = isMainThread && !chat.isMonoforum
       && (isSuperGroup || isChannel) && (canViewStatistics || getHasAdminRight(chat, 'postStories'));
-    const canShowBoostModal = !canViewBoosts && (isSuperGroup || isChannel);
+    const canShowBoostModal = !canViewBoosts && (isSuperGroup || isChannel) && !chat.isMonoforum;
     const pendingJoinRequests = isMainThread ? chatFullInfo?.requestsPending : undefined;
     const shouldJoinToSend = Boolean(chat?.isNotJoined && chat.isJoinToSend);
     const shouldSendJoinRequest = Boolean(chat?.isNotJoined && chat.isJoinRequest);
     const noAnimation = !selectCanAnimateInterface(global);
 
     const isAccountFrozen = selectIsCurrentUserFrozen(global);
+
+    const channelMonoforumId = isChatChannel(chat) ? chat.linkedMonoforumId : undefined;
 
     const isTranslating = Boolean(selectRequestedChatTranslationLanguage(global, chatId));
     const canTranslate = selectCanTranslateChat(global, chatId) && !fullInfo?.isTranslationDisabled;
@@ -552,6 +560,7 @@ export default memo(withGlobal<OwnProps>(
       detectedChatLanguage: chat.detectedLanguage,
       canUnblock,
       isAccountFrozen,
+      channelMonoforumId,
     };
   },
 )(HeaderActions));

@@ -17,7 +17,7 @@ import * as mediaLoader from "../../../util/mediaLoader";
 import { message as showMessage } from "antd";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import { getActions, getGlobal } from "../../../global";
-import { selectChatMessage } from "../../../global/selectors";
+import { selectChatMessage, selectWebPageFromMessage } from "../../../global/selectors";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js";
 
@@ -106,7 +106,9 @@ export async function webPageSummary(
   message: ApiMessage,
   isAuto: boolean = false
 ) {
-  const webPage = message.content?.webPage;
+  // const webPage = message.content?.webPage;
+  const global = getGlobal();
+  const webPage = selectWebPageFromMessage(global, message);
   const url = webPage ? webPage?.url : message.content?.text?.text;
   if (!url || url === "") return;
 

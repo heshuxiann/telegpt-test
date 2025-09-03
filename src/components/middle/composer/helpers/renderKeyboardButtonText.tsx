@@ -1,4 +1,5 @@
-import React, { type TeactNode } from '../../../../lib/teact/teact';
+import React from '@teact';
+import { type TeactNode } from '../../../../lib/teact/teact';
 
 import type { ApiKeyboardButton } from '../../../../api/types';
 import type { LangFn } from '../../../../util/localization';

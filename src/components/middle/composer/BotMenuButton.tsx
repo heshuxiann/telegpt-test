@@ -1,5 +1,6 @@
-import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useEffect, useRef } from '../../../lib/teact/teact';
+import React from '@teact';
+import { memo, useEffect, useRef } from '@teact';
+import type { FC } from '@teact';
 
 import buildClassName from '../../../util/buildClassName';
 import renderText from '../../common/helpers/renderText';
@@ -20,8 +21,7 @@ const BotMenuButton: FC<OwnProps> = ({
   text,
   isDisabled,
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  const textRef = useRef<HTMLSpanElement>(null);
+  const textRef = useRef<HTMLSpanElement>();
 
   useEffect(() => {
     const textEl = textRef.current;

@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, {
+import {
   memo, useCallback, useMemo, useRef,
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
@@ -22,6 +23,7 @@ import Media from '../../common/Media';
 import NothingFound from '../../common/NothingFound';
 import InfiniteScroll from '../../ui/InfiniteScroll';
 import Loading from '../../ui/Loading';
+import Transition from '../../ui/Transition.tsx';
 import ChatMessage from './ChatMessage';
 
 export type OwnProps = {
@@ -45,8 +47,7 @@ const MediaResults: FC<OwnProps & StateProps> = ({
     openMediaViewer,
   } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
 
   const lang = useOldLang();
 
@@ -123,7 +124,13 @@ const MediaResults: FC<OwnProps & StateProps> = ({
   );
 
   return (
-    <div ref={containerRef} className="LeftSearch--content LeftSearch--media">
+    <Transition
+      ref={containerRef}
+      slideClassName="LeftSearch--content LeftSearch--media"
+      name="fade"
+      activeKey={canRenderContents ? 1 : 0}
+      shouldCleanup
+    >
       <InfiniteScroll
         className={classNames}
         items={canRenderContents ? foundMessages : undefined}
@@ -134,6 +141,7 @@ const MediaResults: FC<OwnProps & StateProps> = ({
         {!canRenderContents && <Loading />}
         {canRenderContents && (!foundIds || foundIds.length === 0) && (
           <NothingFound
+            withSticker
             text={lang('ChatList.Search.NoResults')}
             description={lang('ChatList.Search.NoResultsDescription')}
           />
@@ -141,7 +149,7 @@ const MediaResults: FC<OwnProps & StateProps> = ({
         {isMediaGrid && renderGallery()}
         {isMessageList && renderSearchResult()}
       </InfiniteScroll>
-    </div>
+    </Transition>
   );
 };
 

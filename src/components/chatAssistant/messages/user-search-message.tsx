@@ -4,10 +4,11 @@ import React, { useEffect, useState } from 'react';
 import type { Message } from 'ai';
 import { getActions, getGlobal } from '../../../global';
 
-import { getUserFullName, isUserId } from '../../../global/helpers';
+import { getUserFullName } from '../../../global/helpers';
 import { selectChat, selectUser } from '../../../global/selectors';
 
 import Avatar from '../component/Avatar';
+import { isUserId } from '../../../util/entities/ids';
 
 export const UserSearchMessage = ({ message }: { message: Message }) => {
   const [senderIds, setSenderIds] = useState<string[]>([]);

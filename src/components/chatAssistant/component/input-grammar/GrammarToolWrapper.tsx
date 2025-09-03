@@ -10,7 +10,7 @@ import React, {
 
 import type { Signal } from '../../../../util/signals';
 
-import { injectComponent } from '../../../../lib/injectComponent';
+import { injectComponent } from '../../injectComponent';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import parseHtmlAsFormattedText from '../../../../util/parseHtmlAsFormattedText';
 
@@ -28,15 +28,22 @@ interface GrammarToolWrapperProps {
   setHtml: (newValue: string) => void;
 }
 
-const injectMessageAI = injectComponent(GrammarTool);
-const GrammarToolWrapper = (props:GrammarToolWrapperProps) => {
+const GrammarToolWrapper = (props: GrammarToolWrapperProps) => {
   const [isGrammarToolOpen, openGrammarTool, closeGrammarTool] = useFlag();
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>();
   const { getHtml, setHtml } = props;
+  const injectMessageAI = injectComponent({
+    component: GrammarTool, props: {
+      getHtml,
+      setHtml,
+      onClose: closeGrammarTool,
+    }
+  });
   useEffect(() => {
     let injected: { unmount: () => void } | undefined;
     if (containerRef.current && isGrammarToolOpen) {
-      injected = injectMessageAI(containerRef.current, { getHtml, setHtml, onClose: closeGrammarTool });
+      // 类型断言确保 ref 是 HTMLElement
+      injected = injectMessageAI(containerRef.current as HTMLElement);
     }
     return () => {
       injected?.unmount();

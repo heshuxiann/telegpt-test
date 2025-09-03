@@ -1,5 +1,6 @@
+import React from '@teact';
 import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useMemo } from '../../../lib/teact/teact';
+import { memo, useMemo } from '../../../lib/teact/teact';
 
 import type { ApiDocument } from '../../../api/types';
 import type { ThemeKey } from '../../../types';

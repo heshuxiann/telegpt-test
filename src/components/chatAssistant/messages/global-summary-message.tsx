@@ -7,7 +7,6 @@ import type { Message } from 'ai';
 import { Popover } from 'antd';
 import { getActions, getGlobal } from '../../../global';
 
-import { isUserId } from '../../../global/helpers';
 import { selectChat, selectUser } from '../../../global/selectors';
 import { buildEntityTypeFromIds, getIdsFromEntityTypes, telegptSettings } from '../api/user-settings';
 import { cn, formatTimestamp } from '../utils/util';
@@ -25,6 +24,7 @@ import MessageIcon from '../assets/message.png';
 import SerenaLogoPath from '../assets/serena.png';
 import UserIcon from '../assets/user.png';
 import WriteIcon from '../assets/write.png';
+import { isUserId } from '../../../util/entities/ids';
 
 interface IProps {
   message: Message;

@@ -1,4 +1,5 @@
-import React, { memo, useEffect } from '../../../lib/teact/teact';
+import React from '@teact';
+import { memo, useEffect } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
 
 import type { ApiMessageStoryData, ApiTypeStory } from '../../../api/types';
@@ -106,7 +107,7 @@ function BaseStory({
       )}
       {Boolean(video?.duration) && (
         <div className="message-media-duration">
-          {formatMediaDuration(video!.duration)}
+          {formatMediaDuration(video.duration)}
         </div>
       )}
       {isProtected && <span className="protector" />}
