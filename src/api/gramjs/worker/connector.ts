@@ -32,6 +32,7 @@ import {
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
 import { deleteStoryFromUserPortraitMessage, handleStoryToUserPortraitMessage } from '../../../util/userPortrait';
 import ChatAIMessageQuene from '../../../components/chatAssistant/ai-task/chatai-task';
+import { ChataiStores } from '../../../components/chatAssistant/store';
 import hasMeetingIntent from '../../../components/chatAssistant/utils/meeting-match';
 
 import eventEmitter, {
@@ -313,19 +314,24 @@ function sendToAIAgent(data: ApiUpdate) {
       const messageContent = data.message?.content?.text?.text;
       if (chatId && messageContent) {
         isIntentionToScheduleMeeting(data.message as ApiMessage);
-        // const chatType = isUserId(chatId) ? 'private' : 'group';
-        // messageEmbeddingStore.addText(messageContent, `${chatId}-${id}`, {
-        //   chatId,
-        //   senderId,
-        //   messageId: id,
-        //   timestamp: date,
-        //   chatType,
-        //   date: date ? new Date(date * 1000).toISOString().split('T')[0] : '0',
-        // }).then((res: IVSDocument<any>) => {
-        //   if (chatType === 'private') {
-        //     isIntentionToScheduleMeeting(res.vector, data.message as ApiMessage);
-        //   }
-        // });
+
+        // 存储TG原始消息到数据库
+        const chatType = isUserId(chatId) ? 'private' : 'group';
+        if (ChataiStores.tgMessage) {
+          // 对于私聊，使用chatId作为sender（对方的用户ID）
+          // 对于群聊，使用实际的senderId
+          const senderValue = chatType === 'private' ? chatId : (senderId || '');
+          ChataiStores.tgMessage.storeTgMessage({
+            chatId,
+            sender: senderValue,
+            messageId: id!,
+            content: messageContent,
+            chatType,
+            timestamp: date || Math.floor(Date.now() / 1000),
+          }).catch(() => {
+            // Silently handle storage errors
+          });
+        }
       }
     }
   } else if (data['@type'] === 'updateStory') {

@@ -9,9 +9,7 @@ import { LoadMoreDirection } from '../../../types';
 
 import { hasMessageText } from '../../../global/helpers';
 import { selectUser } from '../../../global/selectors';
-
-const { callApi } = require('../../../api/gramjs/worker/connector');
-// import { callApi } from '../../../api/gramjs/worker/connector';
+import { callApi } from '../../../api/gramjs';
 
 export const fetchMessage = (props: {
   chat: ApiChat;

@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
 // eslint-disable-next-line @stylistic/max-len
-export type StoreName = 'message' | 'contact' | 'user' | 'general' | 'knowledge' | 'summaryTemplate' | 'urgentTopic' | 'summary' | 'folder' | 'aIChatFolders' | 'userPortrait' | 'userPortraitMessage';
+export type StoreName = 'message' | 'contact' | 'user' | 'general' | 'knowledge' | 'summaryTemplate' | 'urgentTopic' | 'summary' | 'folder' | 'aIChatFolders' | 'userPortrait' | 'userPortraitMessage' | 'tgMessage';
 
 type IndexConfig = [indexName: string, keyPath: string | string[]];
 
@@ -33,6 +33,7 @@ class ChataiStoreManager {
     aIChatFolders: { keyPath: 'id', autoIncrement: true },
     userPortrait: { keyPath: 'id', autoIncrement: true },
     userPortraitMessage: { keyPath: 'id', indexes: [['senderId', 'senderId']] },
+    tgMessage: { keyPath: 'id', indexes: [['chatId_timestamp', ['chatId', 'timestamp']]] },
   };
 
   constructor(VERSION: number, DB_NAME: string) {

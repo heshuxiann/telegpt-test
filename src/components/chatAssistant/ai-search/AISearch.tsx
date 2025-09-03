@@ -1,10 +1,7 @@
-
 /* eslint-disable no-null/no-null */
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable max-len */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import React, {
-  useCallback, useEffect, useRef, useState,
+
+import {
+  useCallback, useEffect, useState,
 } from 'react';
 import { useChat } from '@ai-sdk/react';
 import type { Message, UIMessage } from 'ai';
@@ -28,6 +25,7 @@ const GLOBAL_SEARCH_CHATID = '777889';
 export const AISearch = () => {
   const global = getGlobal();
   const { userId, userName } = getCurrentUserInfo();
+  // eslint-disable-next-line @stylistic/max-len
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
   const {
     scrollToBottom, scrollLocked, isScrollLock,
@@ -52,7 +50,7 @@ export const AISearch = () => {
         const localChatAiMessages = parseStoreMessage2Message(res.messages);
         setMessages((prev) => [...localChatAiMessages, ...prev]);
       } else {
-        const suggestionMessage:Message = {
+        const suggestionMessage: Message = {
           role: 'assistant',
           id: uuidv4(),
           createdAt: new Date(),
@@ -119,7 +117,7 @@ export const AISearch = () => {
     const similarItems = vectorSearchResults.similarItems;
     let searchResult = null;
     if (similarItems.length > 0) {
-      const chatIds = Array.from(new Set(similarItems.map((item:any) => {
+      const chatIds = Array.from(new Set(similarItems.map((item: any) => {
         if (item.score > 0.7) {
           return (item?.metadata as { chatId: string })?.chatId;
         }
@@ -168,7 +166,7 @@ export const AISearch = () => {
     const similarItems = vectorSearchResults.similarItems;
     let searchResult = null;
     if (similarItems.length > 0) {
-      const senderIds = Array.from(new Set(similarItems.map((item:any) => {
+      const senderIds = Array.from(new Set(similarItems.map((item: any) => {
         if (item.score > 0.7) {
           return (item?.metadata as { senderId: string })?.senderId;
         }
@@ -208,8 +206,8 @@ export const AISearch = () => {
     });
     const similarItems = vectorSearchResults.similarItems;
     if (similarItems.length > 0) {
-      const messageList = similarItems.map((item:any) => {
-        const { chatId, senderId } = item.metadata as { chatId:string;senderId:string };
+      const messageList = similarItems.map((item: any) => {
+        const { chatId, senderId } = item.metadata as { chatId: string; senderId: string };
         const chat = selectChat(global, chatId);
         if (chat) {
           const peer = senderId ? selectUser(global, senderId) : undefined;
@@ -295,7 +293,7 @@ export const AISearch = () => {
         messages={messages}
         loadMore={handleLoadMore}
         hasMore={pageInfo.hasMore}
-        chatId={GLOBAL_SEARCH_CHATID!}
+        chatId={GLOBAL_SEARCH_CHATID}
       />
       <form className="flex mx-auto gap-2 w-full">
         <AISearchInput

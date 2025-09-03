@@ -10,7 +10,6 @@ import {
 import type { AiKnowledge } from '../../chatAssistant/store/knowledge-store';
 
 import { ChataiStores } from '../../chatAssistant/store';
-import { knowledgeEmbeddingStore } from '../../chatAssistant/vector-store';
 
 import useLastCallback from '../../../hooks/useLastCallback';
 
@@ -59,7 +58,6 @@ const AIKnowledge:FC<OwnProps> = ({ onReset }) => {
         return prev.filter((item) => item.id !== id);
       });
     });
-    knowledgeEmbeddingStore.deleteText(id);
   }, []);
   function renderCurrentSection() {
     return (

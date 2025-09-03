@@ -4,7 +4,6 @@ import type { ApiUpdateDeleteStory, ApiUpdateStory } from '../api/types';
 import type { UserPortraitMessageStory } from '../components/chatAssistant/store/user-portrait-message-store';
 
 import { ChataiStores } from '../components/chatAssistant/store';
-import { messageEmbeddingStore } from '../components/chatAssistant/vector-store';
 
 export type TextMessage = {
   messageId: number;
@@ -85,28 +84,24 @@ export function groupMessagesByHalfHour(messages: TextMessage[]) {
   return result;
 }
 
-export async function getMessageBySendId(senderId: string) {
-  const vectorSearchResults = await messageEmbeddingStore.documentSearch({
-    filterOptions: {
-      include: {
-        metadata: {
-          senderId,
-        },
-      },
-    },
-  });
-  if (vectorSearchResults.length > 0) {
-    const messageList = vectorSearchResults.map((item: any) => ({
-      messageId: (item.metadata as { messageId: string }).messageId,
-      content: item.text,
-      chatId: (item.metadata as { chatId: string }).chatId,
-      senderId,
-      timestamp: (item.metadata as { timestamp: number }).timestamp,
+export async function getMessageBySendId(senderId: string, messageCount: number = 50): Promise<TextMessage[]> {
+  if (!ChataiStores.tgMessage) {
+    return [];
+  }
+
+  try {
+    const result = await ChataiStores.tgMessage.getTgMessagesBySenderId(senderId, messageCount);
+
+    // 转换为TextMessage格式
+    return result.messages.map((message) => ({
+      messageId: message.messageId,
+      content: message.content,
+      chatId: message.chatId,
+      senderId: message.sender,
+      timestamp: message.timestamp,
     }));
-    return messageList?.sort(
-      (a: TextMessage, b: TextMessage) => a.timestamp - b.timestamp,
-    );
-  } else {
+  } catch (error) {
+    // 静默处理错误，返回空数组
     return [];
   }
 }

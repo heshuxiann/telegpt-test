@@ -1,5 +1,5 @@
-import cx from 'classnames';
 import React from '@teact';
+import cx from 'classnames';
 import type { FC } from '../../../lib/teact/teact';
 import { memo, useState } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
@@ -27,8 +27,8 @@ import { getAuthState, isTokenValid } from '../utils/google-auth';
 import {
   AIReplyIcon, AITranslateIcon, MeetingIcon, SummarizeIcon,
 } from '../utils/icons';
+import { getBestKnowledgeMatch } from '../utils/knowledge-match';
 import ScheduleMeeting from '../utils/schedule-meeting';
-import { knowledgeEmbeddingStore } from '../vector-store';
 
 import useLastCallback from '../../../hooks/useLastCallback';
 
@@ -90,47 +90,43 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
       getActions().updateDraftReplyInfo({
         replyToMsgId: message.id, replyToPeerId: undefined, quoteText: undefined, quoteOffset: undefined,
       });
-      const vectorSearchResults = await knowledgeEmbeddingStore.similaritySearch({
-        query: message.content.text?.text,
-      });
-        type Metadata = { answer: string }; // Define the type for metadata
-        const similarResult = vectorSearchResults.similarItems[0] as { metadata: Metadata; score: number } | undefined;
-        if (similarResult && similarResult.score > 0.8) {
-          eventEmitter.emit('update-input-text', similarResult.metadata.answer);
-        } else {
-          eventEmitter.emit('update-input-spiner', true);
-          chatAIGenerate({
-            data: {
-              messages: [
-                {
-                  role: 'system',
-                  content: '你是一个多语种智能助手。接收用户消息后，自动识别其使用的语言，并用相同的语言进行自然、得体的回复。你应该理解消息的语境，确保回复简洁、友好且符合语言习惯。',
-                  id: '1',
-                },
-                {
-                  role: 'user',
-                  content: `请回复下面的消息: ${message.content.text?.text}`,
-                  id: '2',
-                },
-              ],
-            },
-            onResponse: (response) => {
-              eventEmitter.emit('update-input-text', response);
-            },
-            onFinish: () => {
-              // eslint-disable-next-line no-console
-              console.log('Finish');
-            },
-          });
-        }
+      const bestMatch = await getBestKnowledgeMatch(message.content.text.text);
+      if (bestMatch && bestMatch.score > 0.8) {
+        eventEmitter.emit('update-input-text', bestMatch.answer);
+      } else {
+        eventEmitter.emit('update-input-spiner', true);
+        chatAIGenerate({
+          data: {
+            messages: [
+              {
+                role: 'system',
+                content: '你是一个多语种智能助手。接收用户消息后，自动识别其使用的语言，并用相同的语言进行自然、得体的回复。你应该理解消息的语境，确保回复简洁、友好且符合语言习惯。',
+                id: '1',
+              },
+              {
+                role: 'user',
+                content: `请回复下面的消息: ${message.content.text?.text}`,
+                id: '2',
+              },
+            ],
+          },
+          onResponse: (response) => {
+            eventEmitter.emit('update-input-text', response);
+          },
+          onFinish: () => {
+            // eslint-disable-next-line no-console
+            console.log('Finish');
+          },
+        });
+      }
     }
   });
-  const handleSummarize = useLastCallback(async () => {
+  const handleSummarize = useLastCallback(() => {
     const {
       photo, document, webPage, voice, audio, text, video,
     } = message.content;
     const isUrl = checkIsUrl(text?.text);
-    await getActions().openChatAIWithInfo({ chatId: message.chatId });
+    getActions().openChatAIWithInfo({ chatId: message.chatId });
     if (photo) {
       photoSummary(message);
     } else if ((webPage && !text?.text) || isUrl) {
