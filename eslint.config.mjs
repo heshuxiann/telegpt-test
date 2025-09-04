@@ -18,7 +18,6 @@ export default tseslint.config(
   tseslint.configs.recommendedTypeChecked,
   tseslint.configs.stylistic,
   reactPlugin.configs.flat.recommended,
-  reactPlugin.configs.flat['jsx-runtime'],
   reactXPlugin.configs['recommended-type-checked'],
   jsxA11yPlugin.flatConfigs.recommended,
   ttMultitabPlugin.configs.recommended,
@@ -68,7 +67,7 @@ export default tseslint.config(
       'no-unused-vars': 'off',
       '@stylistic/multiline-ternary': 'off',
       '@stylistic/max-len': ['error', {
-        code: 120,
+        code: 240,
         ignoreComments: true,
         ignorePattern: '\\sd=".+"', // Ignore lines with "d" attribute
       }],
@@ -193,6 +192,7 @@ export default tseslint.config(
       'react/no-unknown-property': 'off',
       'react/display-name': 'off',
       'react/jsx-key': 'off',
+      'react/react-in-jsx-scope': 'error',
       'react/jsx-curly-spacing': [
         'error',
         {

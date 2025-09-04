@@ -11,7 +11,6 @@ import type { Signal } from '../../../util/signals';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import TranslateIcon from '../../chatAssistant/assets/ai-translate.png';
 import chatAILogoPath from '../../chatAssistant/assets/cgat-ai-logo.png';
-import { sendGAEvent } from '../../chatAssistant/utils/analytics';
 import { chatAIGenerate } from '../../chatAssistant/utils/chat-api';
 
 import useFlag from '../../../hooks/useFlag';
@@ -83,7 +82,6 @@ const InputAIMenu: FC = ({ getHtml }: { getHtml: Signal<string> }) => {
         console.log('Finish');
       },
     });
-    sendGAEvent('input_translate');
   });
   const onTranslationClick = useLastCallback((e: React.MouseEvent) => {
     e.preventDefault();

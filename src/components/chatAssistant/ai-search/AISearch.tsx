@@ -1,5 +1,5 @@
 /* eslint-disable no-null/no-null */
-
+import React from 'react';
 import {
   useCallback, useEffect, useState,
 } from 'react';
@@ -14,7 +14,6 @@ import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { Messages } from '../messages';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
-import { sendGAEvent } from '../utils/analytics';
 import { getCurrentUserInfo } from '../utils/chat-api';
 import { messageEmbeddingStore } from '../vector-store';
 
@@ -282,7 +281,6 @@ export const AISearch = () => {
       }];
     });
     toolsHitCheck(query);
-    sendGAEvent('ai_search');
   }, [setMessages, toolsHitCheck]);
 
   return (

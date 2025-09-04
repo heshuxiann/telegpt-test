@@ -21,7 +21,6 @@ import { Messages } from '../messages';
 import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
-import { sendGAEvent } from '../utils/analytics';
 import { getCurrentUserInfo, getHitTools } from '../utils/chat-api';
 import { getAuthState, isTokenValid } from '../utils/google-auth';
 import { toolsEmbeddingStore } from '../vector-store';
@@ -222,7 +221,6 @@ const RoomAIInner = (props: StateProps) => {
             } else {
               insertMessage(createGoogleMeetingMessage());
             }
-            sendGAEvent('google_meet');
           } else if (toolCall.toolName === 'checkIsUserPortrait') {
             const userName = toolCall.result?.keyword;
             insertMessage(createUserPortraitMessage(userName));

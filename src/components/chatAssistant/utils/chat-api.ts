@@ -68,7 +68,7 @@ export const chatAITranslate = (data: {
   });
 };
 
-export const summaryMessage = (data: Object) => {
+export const summaryMessage = (data: object) => {
   const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/summary`, {
@@ -92,7 +92,7 @@ export const summaryMessage = (data: Object) => {
   });
 };
 
-export const globalSummary = (data: Object) => {
+export const globalSummary = (data: object) => {
   const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/global-summary`, {
@@ -116,7 +116,7 @@ export const globalSummary = (data: Object) => {
   });
 };
 
-export const getActionItems = (data: Object) => {
+export const getActionItems = (data: object) => {
   const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/action-items`, {
@@ -177,7 +177,7 @@ export const getHitTools = (
   });
 };
 
-export function imageAISummary(data: Object) {
+export function imageAISummary(data: object) {
   const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/image-summary`, {
@@ -201,7 +201,7 @@ export function imageAISummary(data: Object) {
   });
 }
 
-export function webPageAISummary(data: Object) {
+export function webPageAISummary(data: object) {
   const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/webpage-summary`, {
@@ -225,7 +225,7 @@ export function webPageAISummary(data: Object) {
   });
 }
 
-export function documentAISummary(data: Object) {
+export function documentAISummary(data: object) {
   const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/document-summary`, {
@@ -287,7 +287,7 @@ export function audioToText(formData: FormData): Promise<{ text: string }> {
   });
 }
 
-export function mentionReply(data: Object) {
+export function mentionReply(data: object) {
   const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/mention-reply`, {
@@ -351,7 +351,7 @@ export function calendlyRanges(data: {
   });
 }
 
-export function chatAIChatFolders(data: Object):Promise<{ text: string }> {
+export function chatAIChatFolders(data: object): Promise<{ text: string }> {
   const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/classify-generate`, {
@@ -375,7 +375,7 @@ export function chatAIChatFolders(data: Object):Promise<{ text: string }> {
   });
 }
 
-export function urgentMessageCheck(data:Object):Promise<any> {
+export function urgentMessageCheck(data: object): Promise<any> {
   const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/urgent-message-check`, {

@@ -799,18 +799,6 @@ class ScheduleMeeting {
       .then((createMeetResponse: ICreateMeetResponse) => {
         this.sendMessage(MEETING_INVITATION_TIP);
         if (createMeetResponse) {
-          // const eventMessage = `Event details \n📝 Title\n${
-          //   createMeetResponse.summary
-          // }\n👥 Guests\n${createMeetResponse.attendees
-          //   .map((attendee) => attendee.email)
-          //   .join('\\n')}\n📅 Time\n${formatMeetingTimeRange(
-          //   createMeetResponse.start.dateTime,
-          //   createMeetResponse.end.dateTime,
-          // )}\n${createMeetResponse.start.timeZone}\n🔗 Meeting link\n${
-          //   createMeetResponse.hangoutLink
-          // }
-          //     `;
-          // this.sendMessage(eventMessage);
           generateEventScreenshot(createMeetResponse, this.chatId);
           this.cleanup();
         }

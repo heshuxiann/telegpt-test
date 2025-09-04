@@ -1,8 +1,7 @@
-/* eslint-disable max-len */
-/* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-console */
-/* eslint-disable no-null/no-null */
-import React, { useCallback, useEffect, useState } from 'react';
+
+import React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Message } from 'ai';
 import {
   Button, ConfigProvider, DatePicker, Input,
@@ -192,6 +191,7 @@ const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
       endDate: new Date(endDate),
       selectedTimezone,
       emails,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
       googleToken: auth?.accessToken!,
     }).then((res) => {
       eventEmitter.emit(Actions.CreateCalendarSuccess, {

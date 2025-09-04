@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable no-console */
-/* eslint-disable no-null/no-null */
+
 import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
 
@@ -13,7 +12,6 @@ import { getOrderedIds } from '../../../util/folderManager';
 import { getIdsFromEntityTypes, telegptSettings } from '../api/user-settings';
 import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
-import { sendGAEvent } from '../utils/analytics';
 import { getCurrentUserInfo, urgentMessageCheck } from '../utils/chat-api';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
 
@@ -43,7 +41,6 @@ class UrgentCheckTask {
     }));
     const sortedRanges = ranges.sort((a, b) => b.start - a.start);
 
-    // eslint-disable-next-line @typescript-eslint/no-shadow
     for (const { start, length } of sortedRanges) {
       text = text.slice(0, start) + text.slice(start + length);
     }
@@ -90,14 +87,13 @@ class UrgentCheckTask {
         RoomStorage.increaseUnreadCount(GLOBAL_SUMMARY_CHATID);
         // check strong alert
         try {
-          const hasStrongAlert = urgent_info.find((item:any) => item.is_call);
+          const hasStrongAlert = urgent_info.find((item: any) => item.is_call);
           const { phone } = telegptSettings.telegptSettings;
           const { userId, userName } = getCurrentUserInfo();
           if (hasStrongAlert && phone) {
             fetch(`${SERVER_API_URL}/voice-call?phoneNumber=${phone}&userId=${userId}&userName=${userName}`, {
               method: 'GET',
             });
-            sendGAEvent('call_reminder');
           }
         } catch (e) {
           console.log('error', e);

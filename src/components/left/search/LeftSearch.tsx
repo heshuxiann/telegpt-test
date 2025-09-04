@@ -56,7 +56,7 @@ type TabInfo = {
 
 const TABS: TabInfo[] = [
   { type: GlobalSearchContent.ChatList, key: 'SearchTabChats' },
-  { type: GlobalSearchContent.AI, key: 'SearchTabAI' },
+  // { type: GlobalSearchContent.AI, key: 'SearchTabAI' },
   { type: GlobalSearchContent.ChannelList, key: 'SearchTabChannels' },
   { type: GlobalSearchContent.BotApps, key: 'SearchTabApps' },
   { type: GlobalSearchContent.PublicPosts, key: 'SearchTabPublicPosts' },

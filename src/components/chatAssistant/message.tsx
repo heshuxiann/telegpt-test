@@ -1,6 +1,3 @@
-
-/* eslint-disable @stylistic/max-len */
-
 // @ts-nocheck
 import React from 'react';
 import { memo, useMemo } from 'react';
@@ -10,7 +7,7 @@ import equal from 'fast-deep-equal';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import { cn } from '../../lib/utils';
-import AISearchSugesstionsMessage from './messages/ai-search-sugesstion-message';
+// import AISearchSugesstionsMessage from './messages/ai-search-sugesstion-message';
 import { GlobalIntroduceMessage } from './messages/global-introduce-message';
 import GlobalSummaryMessage from './messages/global-summary-message';
 import GoogleEventCreateMessage from './messages/google-event-create-messages';
@@ -194,8 +191,8 @@ const PurePreviewMessage = ({
         return <GlobalIntroduceMessage />;
       case AIMessageType.RoomAIDescription:
         return <RoomAIDescriptionMessage message={message} />;
-      case AIMessageType.AISearchSugesstion:
-        return <AISearchSugesstionsMessage />;
+      // case AIMessageType.AISearchSugesstion:
+      //   return <AISearchSugesstionsMessage />;
       case AIMessageType.AIReplyMention:
         return <ReplyMentionMessage message={message} />;
       case AIMessageType.AIMediaSummary:

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
 import { v4 as uuidv4 } from 'uuid';
@@ -12,10 +11,10 @@ import { ALL_FOLDER_ID } from '../../../config';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { loadChats } from '../../../global/actions/api/chats';
 import { isSystemBot } from '../../../global/helpers';
-import { isUserId } from '../../../util/entities/ids';
 import {
   selectBot, selectChat, selectChatLastMessageId, selectUser,
 } from '../../../global/selectors';
+import { isUserId } from '../../../util/entities/ids';
 import { getOrderedIds } from '../../../util/folderManager';
 import { getIdsFromEntityTypes, telegptSettings } from '../api/user-settings';
 import RoomStorage from '../room-storage';
@@ -23,43 +22,42 @@ import {
   ChataiStores,
   GLOBAL_SUMMARY_LAST_TIME,
 } from '../store';
-import { sendGAEvent } from '../utils/analytics';
 import { globalSummary } from '../utils/chat-api';
 import { fetchChatMessageByDeadline, loadTextMessages } from '../utils/fetch-messages';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
 
-function getAlignedExecutionTimestamp(): number | null {
-  const date = new Date();
-  const hour = date.getHours();
-  const minute = date.getMinutes();
+// function getAlignedExecutionTimestamp(): number | null {
+//   const date = new Date();
+//   const hour = date.getHours();
+//   const minute = date.getMinutes();
 
-  const toTimestamp = (h: number, m: number = 0) => {
-    const d = new Date(date);
-    d.setHours(h, m, 0, 0);
-    return d.getTime();
-  };
+//   const toTimestamp = (h: number, m: number = 0) => {
+//     const d = new Date(date);
+//     d.setHours(h, m, 0, 0);
+//     return d.getTime();
+//   };
 
-  // 09:00 - 12:00
-  if (hour >= 9 && hour < 12) {
-    const minutesAligned = Math.floor(minute / 30) * 30;
-    return toTimestamp(hour, minutesAligned);
-  }
+//   // 09:00 - 12:00
+//   if (hour >= 9 && hour < 12) {
+//     const minutesAligned = Math.floor(minute / 30) * 30;
+//     return toTimestamp(hour, minutesAligned);
+//   }
 
-  // 14:00 - 17:00
-  if (hour >= 14 && hour < 17) {
-    const minutesAligned = Math.floor(minute / 30) * 30;
-    return toTimestamp(hour, minutesAligned);
-  }
+//   // 14:00 - 17:00
+//   if (hour >= 14 && hour < 17) {
+//     const minutesAligned = Math.floor(minute / 30) * 30;
+//     return toTimestamp(hour, minutesAligned);
+//   }
 
-  // 17:00 - 23:00 每2小时执行一次
-  if (hour >= 17 && hour < 23) {
-    const baseHour = Math.floor((hour - 17) / 2) * 2 + 17;
-    return toTimestamp(baseHour, 0);
-  }
+//   // 17:00 - 23:00 每2小时执行一次
+//   if (hour >= 17 && hour < 23) {
+//     const baseHour = Math.floor((hour - 17) / 2) * 2 + 17;
+//     return toTimestamp(baseHour, 0);
+//   }
 
-  // 不在执行时间内
-  return null;
-}
+//   // 不在执行时间内
+//   return null;
+// }
 
 function getCurrentHourTimestamp() {
   const now = new Date();
@@ -74,10 +72,10 @@ function getSummaryInfo({
   startTime,
   endTime,
   chats,
-}:{
-  startTime:number | null;
-  endTime:number | null;
-  chats:Record<string, ApiMessage[]>;
+}: {
+  startTime: number | null;
+  endTime: number | null;
+  chats: Record<string, ApiMessage[]>;
 }) {
   const summaryInfo = {
     summaryStartTime: startTime,
@@ -91,7 +89,7 @@ function getSummaryInfo({
   return summaryInfo;
 }
 
-function getAllChatIds():Promise<string[] | undefined> {
+function getAllChatIds(): Promise<string[] | undefined> {
   return new Promise((resolve) => {
     (async () => {
       const orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
@@ -162,17 +160,17 @@ class GlobalSummaryTask {
 
   startSummary(
     chats: Record<string, ApiMessage[]>,
-    summaryInfo:{
-      summaryStartTime:number | null;
-      summaryEndTime:number | null;
-      summaryMessageCount:number;
-      summaryChatIds:string[];
+    summaryInfo: {
+      summaryStartTime: number | null;
+      summaryEndTime: number | null;
+      summaryMessageCount: number;
+      summaryChatIds: string[];
     },
   ) {
     const global = getGlobal();
     const { autoTranslateLanguage = 'en' } = global.settings.byKey;
     if (!Object.keys(chats).length) return;
-    const summaryChats:any[] = [];
+    const summaryChats: any[] = [];
     Object.keys(chats).forEach((chatId) => {
       const chat = chatId ? selectChat(global, chatId) : undefined;
       const chatType = isUserId(chatId) ? 'private' : 'group';
@@ -204,7 +202,7 @@ class GlobalSummaryTask {
       messages: summaryChats,
       language: new Intl.DisplayNames([autoTranslateLanguage], { type: 'language' }).of(autoTranslateLanguage),
       customTopics,
-    }).then((res:any) => {
+    }).then((res: any) => {
       const content = {
         ...res.data,
         summaryInfo,
@@ -231,7 +229,6 @@ class GlobalSummaryTask {
           });
           notification.onclick = () => {
             getActions().openChat({ id: GLOBAL_SUMMARY_CHATID });
-            sendGAEvent('summary_view');
           };
           setTimeout(() => notification.close(), 5000);
         }
@@ -239,10 +236,9 @@ class GlobalSummaryTask {
     });
   }
 
-  // eslint-disable-next-line class-methods-use-this
   getCustomTopic = () => {
     const { curious_info, curious_id } = telegptSettings.telegptSettings;
-    const customTopics = curious_info.filter((item:any) => curious_id.includes(item.id)).map((item) => {
+    const customTopics = curious_info.filter((item: any) => curious_id.includes(item.id)).map((item) => {
       return {
         topicName: item.topic,
         topicDescription: item.prompt,
