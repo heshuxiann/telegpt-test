@@ -1,4 +1,5 @@
-/* eslint-disable max-len */
+/* eslint-disable @stylistic/max-len */
+
 /* eslint-disable react/no-unescaped-entities */
 import React, { useState } from 'react';
 import type { Message } from 'ai';
@@ -13,7 +14,7 @@ import { createAuthConfirmModal } from '../utils/google-api';
 import { getAuthState, isTokenValid } from '../utils/google-auth';
 import ScheduleMeeting from '../utils/schedule-meeting';
 
-const GoogleMeetMentionMessage = ({ message }:{ message:Message }) => {
+const GoogleMeetMentionMessage = ({ message }: { message: Message }) => {
   const { chatId, messageId, isConfirmed } = JSON.parse(message.content) || {};
   const [mergeConfirmed, setMergeConfirmed] = useState(isConfirmed);
 
@@ -49,7 +50,7 @@ const GoogleMeetMentionMessage = ({ message }:{ message:Message }) => {
     });
     ChataiStores?.message?.storeMessage(parseMessage2StoreMessage(chatId, [message])[0]);
   };
-  const handleClick = () => {
+  const handleClick = async () => {
     if (mergeConfirmed) {
       return;
     }
@@ -58,7 +59,7 @@ const GoogleMeetMentionMessage = ({ message }:{ message:Message }) => {
     }
 
     const auth = getAuthState();
-    if (!auth || !isTokenValid(auth)) {
+    if (!auth || !(await isTokenValid(auth))) {
       createAuthConfirmModal({
         onOk: () => {
           handleConfirm();
@@ -75,7 +76,11 @@ const GoogleMeetMentionMessage = ({ message }:{ message:Message }) => {
         className="p-[10px] border border-solid border-[#D9D9D9] rounded-[16px] w-full bg-white dark:bg-[#292929] dark:border-[#292929]"
       >
         <div>
-          🔔 I noticed that {renderName()} wants to schedule a meeting with you. Would you like me to help set it up?
+          🔔 I noticed that
+          {' '}
+          {renderName()}
+          {' '}
+          wants to schedule a meeting with you. Would you like me to help set it up?
         </div>
         <div>
           👉 Click

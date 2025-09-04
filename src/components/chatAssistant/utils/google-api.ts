@@ -1,12 +1,13 @@
+/* eslint-disable @stylistic/max-len */
 /* eslint-disable no-console */
-/* eslint-disable max-len */
+
 import { message as showMessage, Modal } from 'antd';
 
 import type { AuthState } from './google-auth';
 
+import { GOOGLE_API_KEY, GOOGLE_APP_CLIENT_ID, GOOGLE_APP_CLIENT_SECRET } from '../../../config';
 import { IS_ELECTRON } from '../../../util/browser/windowEnvironment';
 import { getAuthState, onLoginSuccess, setAuthState } from './google-auth';
-import { GOOGLE_API_KEY, GOOGLE_APP_CLIENT_ID, GOOGLE_APP_CLIENT_SECRET } from '../../../config';
 
 export const GOOGLE_SCOPES = [
   'openid',
@@ -32,7 +33,7 @@ export function loadGoogleSdk(): Promise<void> {
   });
 }
 
-export async function loginWithGoogle():Promise<AuthState> {
+export async function loginWithGoogle(): Promise<AuthState> {
   return new Promise((resolve, reject) => {
     // 构建OAuth2授权URL
     const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
@@ -48,7 +49,7 @@ export async function loginWithGoogle():Promise<AuthState> {
     const authWindow = window.open(
       authUrl.toString(),
       'google-auth',
-      'width=500,height=600,scrollbars=yes,resizable=yes'
+      'width=500,height=600,scrollbars=yes,resizable=yes',
     );
 
     if (!authWindow) {
@@ -58,11 +59,11 @@ export async function loginWithGoogle():Promise<AuthState> {
 
     // 监听授权窗口消息
     let authCompleted = false;
-    
+
     const messageHandler = async (event: MessageEvent) => {
       console.log('Received message:', event.data);
       console.log('Message origin:', event.origin);
-      
+
       if (event.origin !== window.location.origin) {
         return;
       }
@@ -71,7 +72,7 @@ export async function loginWithGoogle():Promise<AuthState> {
         console.log('Authorization code received:', event.data.code);
         window.removeEventListener('message', messageHandler);
         authCompleted = true;
-        
+
         try {
           const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
             method: 'POST',
@@ -92,7 +93,7 @@ export async function loginWithGoogle():Promise<AuthState> {
           }
 
           const tokenData = await tokenResponse.json();
-          
+
           const authState = {
             isLoggedIn: true,
             accessToken: tokenData.access_token,
@@ -101,7 +102,7 @@ export async function loginWithGoogle():Promise<AuthState> {
             grantedScopes: tokenData.scope,
             expiresAt: Date.now() + tokenData.expires_in * 1000,
           };
-          
+
           setAuthState(authState);
           onLoginSuccess();
           resolve(authState);
@@ -131,7 +132,7 @@ export async function loginWithGoogle():Promise<AuthState> {
   });
 }
 
-export const createAuthConfirmModal = (props:{ onOk?:(accessToken:string)=>void;onCancel?:()=>void }) => {
+export const createAuthConfirmModal = (props: { onOk?: (accessToken: string) => void; onCancel?: () => void }) => {
   Modal.confirm({
     title: 'Google authorization',
     content: 'This service requires access to your Google Calendar.',
@@ -150,7 +151,7 @@ export const createAuthConfirmModal = (props:{ onOk?:(accessToken:string)=>void;
             expiresAt: res.expiry_date,
           };
           setAuthState(authState);
-          props.onOk?.(res.access_token!);
+          props.onOk?.(res.access_token);
         }).catch((error) => {
           console.error('Google login failed:', error);
           showMessage.info('Google login failed');
@@ -245,7 +246,7 @@ export const createGoogleMeet = ({
   });
 };
 
-export const getGoogleCalendarFreeBusy = ():Promise<{ start:string; end:string }[]> => {
+export const getGoogleCalendarFreeBusy = (): Promise<{ start: string; end: string }[]> => {
   const auth = getAuthState();
   return new Promise((resolve, reject) => {
     const params = {

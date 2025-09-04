@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable max-len */
+/* eslint-disable @stylistic/max-len */
 import React, { useState } from 'react';
 import type { Message } from '@ai-sdk/react';
 import cx from 'classnames';
@@ -11,7 +10,11 @@ import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage } from '../store/messages-store';
 import { createAuthConfirmModal, createGoogleMeet } from '../utils/google-api';
 import { getAuthState, isTokenValid } from '../utils/google-auth';
-import ScheduleMeeting, { formatMeetingTimeRange, generateEventScreenshot, MEETING_INVITATION_TIP } from '../utils/schedule-meeting';
+import ScheduleMeeting, {
+  formatMeetingTimeRange,
+  generateEventScreenshot,
+  MEETING_INVITATION_TIP,
+} from '../utils/schedule-meeting';
 
 const GoogleMeetTimeConfirmMessage = ({ message }: { message: Message }) => {
   const { content } = message;
@@ -48,19 +51,16 @@ const GoogleMeetTimeConfirmMessage = ({ message }: { message: Message }) => {
       // console.log('createMeetResponse', createMeetResponse);
       if (createMeetResponse) {
         generateEventScreenshot(createMeetResponse, chatId);
-        // const eventMessage = `Event details \n📝 Title\n${createMeetResponse.summary}\n👥 Guests\n${createMeetResponse.attendees.map((attendee) => attendee.email).join('\\n')}\n📅 Time\n${formatMeetingTimeRange(createMeetResponse.start.dateTime, createMeetResponse.end.dateTime)}\n${createMeetResponse.start.timeZone}\n🔗 Meeting link\n${createMeetResponse.hangoutLink}
-        //     `;
-
       }
     });
   };
-  const handleTimeSelect = (time: { start: string; end: string }) => {
+  const handleTimeSelect = async (time: { start: string; end: string }) => {
     if (mergeConfirmed) {
       return;
     }
     if (email.length > 0) {
       const auth = getAuthState();
-      if (!auth || !isTokenValid(auth)) {
+      if (!auth || !(await isTokenValid(auth))) {
         createAuthConfirmModal({
           onOk: (accessToken: string) => {
             handleCreateGoogleMeet({
@@ -82,7 +82,7 @@ const GoogleMeetTimeConfirmMessage = ({ message }: { message: Message }) => {
     } else {
       const scheduleMeeting = ScheduleMeeting.create({ chatId, date: [time], hasConfirmed: true });
       const auth = getAuthState();
-      if (!auth || !isTokenValid(auth)) {
+      if (!auth || !(await isTokenValid(auth))) {
         createAuthConfirmModal({
           onOk: () => {
             scheduleMeeting.start();

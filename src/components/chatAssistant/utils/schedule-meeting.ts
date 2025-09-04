@@ -1,73 +1,73 @@
 /* eslint-disable no-null/no-null */
 /* eslint-disable no-console */
-/* eslint-disable max-len */
-import React from "react";
-import { createRoot } from "react-dom/client";
-import { toBlob } from "html-to-image";
-import { DateTime, Interval } from "luxon";
-import { getActions, getGlobal } from "../../../global";
 
-import type { ApiMessage } from "../../../api/types";
-import type { ICreateMeetResponse } from "./google-api";
-import { MAIN_THREAD_ID } from "../../../api/types/messages";
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { toBlob } from 'html-to-image';
+import { DateTime, Interval } from 'luxon';
+import { getActions, getGlobal } from '../../../global';
 
-import eventEmitter, { Actions } from "../lib/EventEmitter";
-import { getMessageContent, hasMessageText } from "../../../global/helpers";
-import { selectCurrentChat, selectUser } from "../../../global/selectors";
-import { extractCalendlyLinks } from "./util";
-import buildAttachment from "../../middle/composer/helpers/buildAttachment";
-import { createMeetingTimeConfirmMessage } from "../room-ai/room-ai-utils";
-import { ChataiStores } from "../store";
-import { parseMessage2StoreMessage } from "../store/messages-store";
-import { calendlyRanges, getHitTools } from "./chat-api";
+import type { ApiMessage } from '../../../api/types';
+import type { ICreateMeetResponse } from './google-api';
+import { MAIN_THREAD_ID } from '../../../api/types/messages';
+
+import eventEmitter, { Actions } from '../lib/EventEmitter';
+import { getMessageContent, hasMessageText } from '../../../global/helpers';
+import { selectCurrentChat, selectUser } from '../../../global/selectors';
+import { extractCalendlyLinks } from './util';
+import buildAttachment from '../../middle/composer/helpers/buildAttachment';
+import { createMeetingTimeConfirmMessage } from '../room-ai/room-ai-utils';
+import { ChataiStores } from '../store';
+import { parseMessage2StoreMessage } from '../store/messages-store';
+import { calendlyRanges, getHitTools } from './chat-api';
 import {
   createAuthConfirmModal,
   createGoogleMeet,
   getGoogleCalendarFreeBusy,
-} from "./google-api";
-import { getAuthState, isTokenValid } from "./google-auth";
+} from './google-api';
+import { getAuthState, isTokenValid } from './google-auth';
 
-import Avatar from "../component/Avatar";
+import Avatar from '../component/Avatar';
 
-import CalendarIcon from "../assets/calendar.png";
-import GoogleMeetIcon from "../assets/google-meet.png";
-import SerenaPath from "../assets/serena.png";
-import ShareHeaderBg from "../assets/share-header-bg.png";
-import UserIcon from "../assets/user.png";
-import WriteIcon from "../assets/write.png";
+import CalendarIcon from '../assets/calendar.png';
+import GoogleMeetIcon from '../assets/google-meet.png';
+import SerenaPath from '../assets/serena.png';
+import ShareHeaderBg from '../assets/share-header-bg.png';
+import UserIcon from '../assets/user.png';
+import WriteIcon from '../assets/write.png';
 
-export const ASK_MEETING_TIME_AND_EMAIL =
-  "Could you tell me what time would be good for you to have the meeting? Also, could I get your email address?";
-export const ASK_MEETING_TIME =
-  "Could you tell me what time would be good for you to have the meeting?";
-export const ASK_MEETING_EMAIL = "Could you please share your email address?";
-export const MEETING_INVITATION_TIP =
-  "I'll send you the meeting invitation later.";
+export const ASK_MEETING_TIME_AND_EMAIL
+  = 'Could you tell me what time would be good for you to have the meeting? Also, could I get your email address?';
+export const ASK_MEETING_TIME
+  = 'Could you tell me what time would be good for you to have the meeting?';
+export const ASK_MEETING_EMAIL = 'Could you please share your email address?';
+export const MEETING_INVITATION_TIP
+  = 'I\'ll send you the meeting invitation later.';
 
-export type MeetingInformationSuggestType = "time" | "email" | "both";
+export type MeetingInformationSuggestType = 'time' | 'email' | 'both';
 
 export function formatMeetingTimeRange(
   startISO: string,
   endISO: string,
-  timeZoneVisable?: boolean
+  timeZoneVisable?: boolean,
 ) {
   const startDate = new Date(startISO);
   const endDate = new Date(endISO);
 
-  const dayFormatter = new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
+  const dayFormatter = new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
   });
 
-  const timeFormatter = new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
+  const timeFormatter = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
     hour12: false,
   });
 
   const formatTime = (date: Date) => {
-    return timeFormatter.format(date).toLowerCase().replace(" ", "");
+    return timeFormatter.format(date).toLowerCase().replace(' ', '');
   };
 
   const dateStr = dayFormatter.format(startDate);
@@ -104,7 +104,7 @@ async function getSuitableTime(calendlyUrl: string) {
 
 function getAvailableSlots(
   aFreeSlots: { start: string; end: string }[],
-  bBusySlots: { start: string; end: string }[]
+  bBusySlots: { start: string; end: string }[],
 ) {
   const result = [];
 
@@ -139,7 +139,7 @@ function getAvailableSlots(
 function suggestFreeTimes(
   busySlots: { start: string; end: string }[],
   durationMinutes = 30,
-  count = 3
+  count = 3,
 ) {
   const now = DateTime.utc();
   const endRange = now.plus({ days: 3 });
@@ -148,8 +148,8 @@ function suggestFreeTimes(
   const busyIntervals = busySlots.map((slot) =>
     Interval.fromDateTimes(
       DateTime.fromISO(slot.start),
-      DateTime.fromISO(slot.end)
-    )
+      DateTime.fromISO(slot.end),
+    ),
   );
 
   const freeSlots: { start: string; end: string }[] = [];
@@ -192,7 +192,7 @@ function suggestFreeTimes(
 
       slotStart = slotStart.plus({ minutes: durationMinutes });
     }
-    cursor = cursor.plus({ days: 1 }).startOf("day");
+    cursor = cursor.plus({ days: 1 }).startOf('day');
   }
   return freeSlots;
 }
@@ -230,9 +230,9 @@ function getMeetParamsByAITools(message: string): Promise<any> {
         let date: string | null = null;
         if (toolResults && toolResults.length > 0) {
           toolResults.forEach((toolCall: any) => {
-            if (toolCall.toolName === "parseTime") {
+            if (toolCall.toolName === 'parseTime') {
               date = toolCall.result;
-            } else if (toolCall.toolName === "extractEmail") {
+            } else if (toolCall.toolName === 'extractEmail') {
               email = toolCall.result || [];
             }
           });
@@ -255,15 +255,15 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
   const { currentUserId } = global;
   const currentUser = selectUser(global, currentUserId!);
   // Create a temporary container with proper positioning
-  const container = document.createElement("div");
-  container.style.position = "fixed";
-  container.style.top = "0";
-  container.style.left = "0";
-  container.style.transform = "translateX(-1000000px) translateY(-1000000px)";
-  container.style.zIndex = "-9999";
+  const container = document.createElement('div');
+  container.style.position = 'fixed';
+  container.style.top = '0';
+  container.style.left = '0';
+  container.style.transform = 'translateX(-1000000px) translateY(-1000000px)';
+  container.style.zIndex = '-9999';
 
   // Create the main card element that will be captured
-  const cardElement = document.createElement("div");
+  const cardElement = document.createElement('div');
   cardElement.style.cssText = `
       position: relative;
       width: 330px;
@@ -275,7 +275,7 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
     `;
 
   // Create the background blur element
-  const bgElement = document.createElement("div");
+  const bgElement = document.createElement('div');
   bgElement.style.cssText = `
       position: absolute;
       top: 0;
@@ -284,16 +284,16 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
       filter: blur(12px);
       pointer-events: none;
     `;
-  const bgImage = document.createElement("img");
+  const bgImage = document.createElement('img');
   bgImage.src = ShareHeaderBg;
-  bgImage.alt = "";
+  bgImage.alt = '';
   bgImage.style.cssText = `
       width: 100%;
     `;
   bgElement.appendChild(bgImage);
 
   // Create the content container
-  const contentElement = document.createElement("div");
+  const contentElement = document.createElement('div');
   contentElement.style.cssText = `
       position: relative;
       padding: 12px 16px;
@@ -303,7 +303,7 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
     `;
 
   // Create user info section
-  const userSection = document.createElement("div");
+  const userSection = document.createElement('div');
   userSection.style.cssText = `
       display: flex;
       flex-direction: row;
@@ -315,7 +315,7 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
     `;
 
   // Create avatar container for React component
-  const avatarContainer = document.createElement("div");
+  const avatarContainer = document.createElement('div');
   avatarContainer.style.cssText = `
       width: 20px;
       height: 20px;
@@ -325,29 +325,29 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
   const root = createRoot(avatarContainer);
   root.render(
     React.createElement(Avatar, {
-      className: "w-[20px] h-[20px]",
+      className: 'w-[20px] h-[20px]',
       peer: currentUser,
-    })
+    }),
   );
 
-  const firstName = document.createElement("span");
-  firstName.textContent = currentUser?.firstName || "User";
-  const lastName = document.createElement("span");
-  lastName.textContent = currentUser?.lastName || "";
+  const firstName = document.createElement('span');
+  firstName.textContent = currentUser?.firstName || 'User';
+  const lastName = document.createElement('span');
+  lastName.textContent = currentUser?.lastName || '';
   userSection.appendChild(avatarContainer);
   userSection.appendChild(firstName);
   userSection.appendChild(lastName);
   // Create card title
-  const cardTitleSection = document.createElement("div");
-  cardTitleSection.textContent = "Meeting Invitation";
+  const cardTitleSection = document.createElement('div');
+  cardTitleSection.textContent = 'Meeting Invitation';
   cardTitleSection.style.cssText = `
       font-size: 20px;
       font-weight: 600;
     `;
 
   // Create title section
-  const titleSection = document.createElement("div");
-  const titleLabel = document.createElement("div");
+  const titleSection = document.createElement('div');
+  const titleLabel = document.createElement('div');
   titleLabel.style.cssText = `
       font-size: 14px;
       font-weight: 600;
@@ -356,27 +356,27 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
       align-items: center;
       gap: 4px;
     `;
-  const writeIcon = document.createElement("img");
+  const writeIcon = document.createElement('img');
   writeIcon.src = WriteIcon;
   writeIcon.style.cssText = `
       width: 12px;
       height: 12px;
     `;
   titleLabel.appendChild(writeIcon);
-  const titleText = document.createElement("span");
-  titleText.textContent = "Title";
+  const titleText = document.createElement('span');
+  titleText.textContent = 'Title';
   titleLabel.appendChild(titleText);
-  const titleValue = document.createElement("span");
-  titleValue.style.fontSize = "14px";
-  titleValue.textContent = eventData.summary || "";
+  const titleValue = document.createElement('span');
+  titleValue.style.fontSize = '14px';
+  titleValue.textContent = eventData.summary || '';
   titleSection.appendChild(titleLabel);
   titleSection.appendChild(titleValue);
 
   // Create guests section if attendees exist
   let guestsSection: HTMLDivElement | null = null;
   if (eventData.attendees && eventData.attendees.length > 0) {
-    guestsSection = document.createElement("div");
-    const guestsLabel = document.createElement("div");
+    guestsSection = document.createElement('div');
+    const guestsLabel = document.createElement('div');
     guestsLabel.style.cssText = `
         font-size: 14px;
         font-weight: 600;
@@ -385,28 +385,28 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
         align-items: center;
         gap: 4px;
       `;
-    const userIcon = document.createElement("img");
+    const userIcon = document.createElement('img');
     userIcon.src = UserIcon;
     userIcon.style.cssText = `
         width: 12px;
         height: 12px;
       `;
     guestsLabel.appendChild(userIcon);
-    const guestsText = document.createElement("span");
-    guestsText.textContent = "Guests";
+    const guestsText = document.createElement('span');
+    guestsText.textContent = 'Guests';
     guestsLabel.appendChild(guestsText);
     guestsSection.appendChild(guestsLabel);
     eventData.attendees.forEach((attendee: any) => {
-      const guestDiv = document.createElement("div");
-      guestDiv.style.fontSize = "14px";
+      const guestDiv = document.createElement('div');
+      guestDiv.style.fontSize = '14px';
       guestDiv.textContent = attendee.email;
       guestsSection!.appendChild(guestDiv);
     });
   }
 
   // Create time section
-  const timeSection = document.createElement("div");
-  const timeLabel = document.createElement("div");
+  const timeSection = document.createElement('div');
+  const timeLabel = document.createElement('div');
   timeLabel.style.cssText = `
       font-size: 14px;
       font-weight: 600;
@@ -415,28 +415,28 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
       align-items: center;
       gap: 4px;
     `;
-  const calendarIcon = document.createElement("img");
+  const calendarIcon = document.createElement('img');
   calendarIcon.src = CalendarIcon;
   calendarIcon.style.cssText = `
       width: 12px;
       height: 12px;
     `;
   timeLabel.appendChild(calendarIcon);
-  const timeText = document.createElement("span");
-  timeText.textContent = "Time";
+  const timeText = document.createElement('span');
+  timeText.textContent = 'Time';
   timeLabel.appendChild(timeText);
-  const timeContainer = document.createElement("div");
+  const timeContainer = document.createElement('div');
   timeContainer.style.cssText = `
       display: flex;
       flex-direction: column;
     `;
-  const timeValue = document.createElement("span");
-  timeValue.style.fontSize = "14px";
+  const timeValue = document.createElement('span');
+  timeValue.style.fontSize = '14px';
   timeValue.textContent = formatMeetingTimeRange(
     eventData.start.dateTime,
-    eventData.end.dateTime
+    eventData.end.dateTime,
   );
-  const timeZone = document.createElement("span");
+  const timeZone = document.createElement('span');
   timeZone.style.cssText = `
       font-size: 14px;
       color: #979797;
@@ -448,8 +448,8 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
   timeSection.appendChild(timeContainer);
 
   // Create meet section
-  const meetSection = document.createElement("div");
-  const meetLabel = document.createElement("div");
+  const meetSection = document.createElement('div');
+  const meetLabel = document.createElement('div');
   meetLabel.style.cssText = `
       font-size: 14px;
       font-weight: 600;
@@ -458,24 +458,24 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
       align-items: center;
       gap: 4px;
     `;
-  const googleMeetIcon = document.createElement("img");
+  const googleMeetIcon = document.createElement('img');
   googleMeetIcon.src = GoogleMeetIcon;
   googleMeetIcon.style.cssText = `
       width: 12px;
       height: 12px;
     `;
   meetLabel.appendChild(googleMeetIcon);
-  const meetText = document.createElement("span");
-  meetText.textContent = "Meeting link";
+  const meetText = document.createElement('span');
+  meetText.textContent = 'Meeting link';
   meetLabel.appendChild(meetText);
-  const meetValue = document.createElement("span");
-  meetValue.style.fontSize = "14px";
-  meetValue.textContent = eventData.hangoutLink || "";
+  const meetValue = document.createElement('span');
+  meetValue.style.fontSize = '14px';
+  meetValue.textContent = eventData.hangoutLink || '';
   meetSection.appendChild(meetLabel);
   meetSection.appendChild(meetValue);
 
   // Create footer section
-  const footerSection = document.createElement("section");
+  const footerSection = document.createElement('section');
   footerSection.style.cssText = `
       display: flex;
       flex-direction: row;
@@ -486,7 +486,7 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
       font-size: 12px;
       background-color: #F7FAFF;
     `;
-  const footerIcon = document.createElement("img");
+  const footerIcon = document.createElement('img');
   footerIcon.style.cssText = `
       display: inline;
       width: 20px;
@@ -495,12 +495,12 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
       margin-top: -2px;
     `;
   footerIcon.src = SerenaPath;
-  footerIcon.alt = "Serena";
-  const footerText1 = document.createElement("span");
-  footerText1.textContent = "Powered by";
-  const footerText2 = document.createElement("span");
-  footerText2.style.color = "#2996FF";
-  footerText2.textContent = "telepgt.org";
+  footerIcon.alt = 'Serena';
+  const footerText1 = document.createElement('span');
+  footerText1.textContent = 'Powered by';
+  const footerText2 = document.createElement('span');
+  footerText2.style.color = '#2996FF';
+  footerText2.textContent = 'telepgt.org';
   footerSection.appendChild(footerIcon);
   footerSection.appendChild(footerText1);
   footerSection.appendChild(footerText2);
@@ -523,7 +523,7 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
   // Wait for DOM to render and then capture
   setTimeout(() => {
     toBlob(cardElement, {
-      backgroundColor: "white",
+      backgroundColor: 'white',
       width: 330,
       pixelRatio: 2, // Higher pixel ratio for better quality
       quality: 1, // Maximum quality
@@ -534,7 +534,7 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
             // Create attachment from blob
             const attachment = await buildAttachment(
               `event-details-${chatId}.png`,
-              blob
+              blob,
             );
 
             // Get current chat and send message with attachment
@@ -546,20 +546,20 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
                 messageList: {
                   chatId: chat.id,
                   threadId: MAIN_THREAD_ID,
-                  type: "thread",
+                  type: 'thread',
                 },
                 attachments: [attachment],
               });
             }
           } catch (error) {
-            console.error("Error sending image:", error);
+            console.error('Error sending image:', error);
           }
         }
         // Clean up the temporary element
         document.body.removeChild(container);
       })
       .catch((error) => {
-        console.error("Error generating screenshot:", error);
+        console.error('Error generating screenshot:', error);
         // Clean up the temporary element even on error
         if (document.body.contains(container)) {
           document.body.removeChild(container);
@@ -576,7 +576,7 @@ interface ScheduleMeetingParams {
   hasConfirmed?: boolean;
 }
 class ScheduleMeeting {
-  private static instances: Map<string, ScheduleMeeting> = new Map();
+  private static instances = new Map<string, ScheduleMeeting>();
 
   private chatId: string;
 
@@ -635,7 +635,7 @@ class ScheduleMeeting {
     // 超时自动清理
     this.timeout = setTimeout(() => {
       this.cleanup();
-      console.log("已超过五分钟未完成输入，工作流已结束。");
+      console.log('已超过五分钟未完成输入，工作流已结束。');
     }, 1000 * 60 * 5);
 
     if (!this.isMeetingInitiator) {
@@ -644,7 +644,6 @@ class ScheduleMeeting {
   }
 
   public cleanup() {
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     eventEmitter.off(Actions.NewTextMessage, this.handlerRef);
     clearTimeout(this.timeout);
     ScheduleMeeting.instances.delete(this.chatId);
@@ -653,14 +652,14 @@ class ScheduleMeeting {
   private handlerImMessage({ message }: { message?: ApiMessage }) {
     // 只处理对方发过来的消息
     if (
-      message &&
-      hasMessageText(message) &&
-      !this.isMeetingInitiator &&
-      !message.isOutgoing
+      message
+      && hasMessageText(message)
+      && !this.isMeetingInitiator
+      && !message.isOutgoing
     ) {
       this.handler({
         chatId: message.chatId,
-        text: getMessageContent(message).text?.text || "",
+        text: getMessageContent(message).text?.text || '',
       });
     }
   }
@@ -682,7 +681,7 @@ class ScheduleMeeting {
             const suitableDates = await getSuitableTime(calendlyUrl);
             if (suitableDates.length === 0) {
               console.log(
-                "No available time slots found for the provided Calendly link."
+                'No available time slots found for the provided Calendly link.',
               );
             }
             this.date = suitableDates.slice(0, 3);
@@ -696,18 +695,18 @@ class ScheduleMeeting {
           const dateRange = {
             start: toolCheckRes.date,
             end: new Date(
-              new Date(toolCheckRes.date).getTime() + 30 * 60 * 1000
+              new Date(toolCheckRes.date).getTime() + 30 * 60 * 1000,
             ).toISOString(),
           };
           const { isAvailable, suggestions } = await isTimeSlotAvailable(
-            dateRange
+            dateRange,
           );
           if (isAvailable) {
             this.date = [dateRange];
             this.hasConfirmed = true; // 如果有时间回执，设置为已确认
           } else {
             this.sendMessage(
-              "The time you provided is not available. Could you please suggest another time?"
+              'The time you provided is not available. Could you please suggest another time?',
             );
             // 根据自己日历的时间，给出时间建议
             await new Promise<void>((res) => {
@@ -720,10 +719,10 @@ class ScheduleMeeting {
                     `${index + 1}.${formatMeetingTimeRange(
                       slot.start,
                       slot.end,
-                      true
-                    )}`
+                      true,
+                    )}`,
                 )
-                .join("\n")}`
+                .join('\n')}`,
             );
             return;
           }
@@ -737,7 +736,7 @@ class ScheduleMeeting {
           email: this.email,
         });
         ChataiStores?.message?.storeMessage(
-          parseMessage2StoreMessage(this.chatId, [meetingTimeConfirmMessage])[0]
+          parseMessage2StoreMessage(this.chatId, [meetingTimeConfirmMessage])[0],
         );
         this.cleanup();
         // TODO: add meeting time confirm message and open ai room
@@ -746,7 +745,7 @@ class ScheduleMeeting {
         if (currentChat && currentChat.id === this.chatId) {
           eventEmitter.emit(
             Actions.AddRoomAIMessage,
-            meetingTimeConfirmMessage
+            meetingTimeConfirmMessage,
           );
           getActions().openChatAIWithInfo({ chatId: this.chatId });
         }
@@ -771,13 +770,13 @@ class ScheduleMeeting {
     }
   }
 
-  private handleGoogleAuthCheck() {
+  private async handleGoogleAuthCheck() {
     this.cleanup();
     const auth = getAuthState();
-    if (!auth || !isTokenValid(auth)) {
+    if (!auth || !(await isTokenValid(auth))) {
       createAuthConfirmModal({
         onOk: (accessToken: string) => {
-          this.handleCreateGoogleMeet(accessToken!);
+          this.handleCreateGoogleMeet(accessToken);
         },
         onCancel: () => {
           this.cleanup();
@@ -794,8 +793,8 @@ class ScheduleMeeting {
       startDate: new Date(date.start),
       endDate: new Date(date.end),
       selectedTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // Add timezone
-      emails: this.email!,
-      googleToken: accessToken as string,
+      emails: this.email,
+      googleToken: accessToken,
     })
       .then((createMeetResponse: ICreateMeetResponse) => {
         this.sendMessage(MEETING_INVITATION_TIP);
@@ -827,8 +826,8 @@ class ScheduleMeeting {
     getActions().sendMessage({
       messageList: {
         chatId: this.chatId,
-        threadId: "-1",
-        type: "thread",
+        threadId: '-1',
+        type: 'thread',
       },
       text: message,
     });

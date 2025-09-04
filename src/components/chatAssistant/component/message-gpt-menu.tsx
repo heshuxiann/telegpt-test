@@ -58,7 +58,7 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
   const canSerenaAI = canScheduleMeeting || canAISummarize || canSmartReply || canTranslate;
   const [isSchedulingMeeting, setIsSchedulingMeeting] = useState(false);
 
-  const handleScheduleMeeting = useLastCallback(() => {
+  const handleScheduleMeeting = useLastCallback(async () => {
     if (isSchedulingMeeting) return;
 
     setIsSchedulingMeeting(true);
@@ -76,7 +76,7 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
       setTimeout(() => setIsSchedulingMeeting(false), 2000);
     };
 
-    if (!auth || !isTokenValid(auth)) {
+    if (!auth || !(await isTokenValid(auth))) {
       createAuthConfirmModal({
         onOk: startMeeting,
         onCancel: () => setIsSchedulingMeeting(false),

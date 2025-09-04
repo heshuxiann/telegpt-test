@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable no-null/no-null */
 import React from 'react';
 import {
@@ -208,15 +209,15 @@ const RoomAIInner = (props: StateProps) => {
     }
   }, [messages, status, chatId]);
 
-  const toolsHitCheck = (formMessage: Message) => {
-    getHitTools(formMessage.content).then((toolResults) => {
+  const toolsHitCheck = async (formMessage: Message) => {
+    getHitTools(formMessage.content).then(async (toolResults) => {
       setIsLoading(false);
       if (toolResults && toolResults.length > 0) {
-        toolResults.forEach((toolCall: any) => {
+        toolResults.forEach(async (toolCall: any) => {
           if (toolCall.toolName === 'checkIsCreateMeet') {
             // TODO createMeet
             const auth = getAuthState();
-            if (!auth || !isTokenValid(auth)) {
+            if (!auth || !(await isTokenValid(auth))) {
               insertMessage(createGoogleLoginMessage());
             } else {
               insertMessage(createGoogleMeetingMessage());

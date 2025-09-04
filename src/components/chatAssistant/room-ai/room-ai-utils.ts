@@ -12,7 +12,7 @@ import { getActionItems, summaryMessage } from '../utils/chat-api';
 import { fetchChatMessageByOffsetId, formateMessage2Summary } from '../utils/fetch-messages';
 import { getAuthState, isTokenValid } from '../utils/google-auth';
 
-export const createRoomDescriptionMessage = (chatId:string):Message => {
+export const createRoomDescriptionMessage = (chatId: string): Message => {
   return {
     role: 'assistant',
     id: uuidv4(),
@@ -23,7 +23,7 @@ export const createRoomDescriptionMessage = (chatId:string):Message => {
     }],
   };
 };
-export const createGoogleLoginMessage = ():Message => {
+export const createGoogleLoginMessage = (): Message => {
   return {
     role: 'assistant',
     id: uuidv4(),
@@ -35,7 +35,7 @@ export const createGoogleLoginMessage = ():Message => {
   };
 };
 
-export const createGoogleMeetingMessage = ():Message => {
+export const createGoogleMeetingMessage = (): Message => {
   return {
     role: 'assistant',
     id: uuidv4(),
@@ -47,9 +47,9 @@ export const createGoogleMeetingMessage = ():Message => {
   };
 };
 
-export const scheduleGoogleMeeting = (insertMessage:(message:Message)=>void, callback?:()=>void) => {
+export const scheduleGoogleMeeting = async (insertMessage: (message: Message) => void, callback?: () => void) => {
   const auth = getAuthState();
-  if (!auth || !isTokenValid(auth)) {
+  if (!auth || !(await isTokenValid(auth))) {
     insertMessage(createGoogleLoginMessage());
   } else {
     insertMessage(createGoogleMeetingMessage());
@@ -58,9 +58,9 @@ export const scheduleGoogleMeeting = (insertMessage:(message:Message)=>void, cal
 };
 
 export const summaryRoomMessage = async (
-  chatId:string,
-  insertMessage:(message:Message)=>void,
-  callback?:()=>void,
+  chatId: string,
+  insertMessage: (message: Message) => void,
+  callback?: () => void,
 ) => {
   const global = getGlobal();
   const { autoTranslateLanguage = 'en' } = global.settings.byKey;
@@ -96,7 +96,7 @@ export const summaryRoomMessage = async (
     summaryMessage({
       messages: formateMessages,
       language: new Intl.DisplayNames([autoTranslateLanguage], { type: 'language' }).of(autoTranslateLanguage),
-    }).then((res:any) => {
+    }).then((res: any) => {
       const content = {
         ...res.data,
         summaryInfo,
@@ -129,9 +129,9 @@ export const summaryRoomMessage = async (
 };
 
 export const generateRoomActionItems = async (
-  chatId:string,
-  insertMessage:(message:Message)=>void,
-  callback?:()=>void,
+  chatId: string,
+  insertMessage: (message: Message) => void,
+  callback?: () => void,
 ) => {
   const global = getGlobal();
   const { autoTranslateLanguage } = global.settings.byKey;
@@ -148,6 +148,7 @@ export const generateRoomActionItems = async (
     });
     const formateMessages = messages.map((message) => {
       if (message.content.text?.text) {
+        // eslint-disable-next-line tt-multitab/must-update-global-after-await
         const peer = message.senderId ? selectUser(global, message.senderId) : undefined;
         return {
           senderId: message?.senderId || message?.chatId,
@@ -168,7 +169,7 @@ export const generateRoomActionItems = async (
     getActionItems({
       messages: formateMessages,
       language: autoTranslateLanguage,
-    }).then((res:any) => {
+    }).then((res: any) => {
       const content = {
         ...res.data,
         summaryInfo,
@@ -196,11 +197,11 @@ export const createMeetingTimeConfirmMessage = ({
   chatId,
   date,
   email,
-}:{
-  chatId:string;
-  date:{ start:string;end:string }[];
-  email:string[] | null;
-}):Message => {
+}: {
+  chatId: string;
+  date: { start: string; end: string }[];
+  email: string[] | null;
+}): Message => {
   return {
     role: 'assistant',
     id: uuidv4(),
@@ -214,7 +215,7 @@ export const createMeetingTimeConfirmMessage = ({
   };
 };
 
-export const createMeetingMentionMessage = (data:{ chatId:string;messageId:number }):Message => {
+export const createMeetingMentionMessage = (data: { chatId: string; messageId: number }): Message => {
   return {
     role: 'assistant',
     id: uuidv4(),
@@ -229,12 +230,12 @@ export const createMeetingMentionMessage = (data:{ chatId:string;messageId:numbe
   };
 };
 
-export const createMeetingInformationSuggestMessage = (data:{
-  chatId:string;
-  messageId:number;
-  senderId:string | undefined;
-  suggestType:MeetingInformationSuggestType;
-}):Message => {
+export const createMeetingInformationSuggestMessage = (data: {
+  chatId: string;
+  messageId: number;
+  senderId: string | undefined;
+  suggestType: MeetingInformationSuggestType;
+}): Message => {
   return {
     role: 'assistant',
     id: uuidv4(),
@@ -250,13 +251,13 @@ export const createMeetingInformationSuggestMessage = (data:{
   };
 };
 
-export const createUserPortraitMessage = (name: string):Message => {
+export const createUserPortraitMessage = (name: string): Message => {
   const usersById = getGlobal().users.byId;
   let userId = null;
   Object.values(usersById).forEach((user) => {
     if (user.firstName?.toLowerCase() === name?.toLowerCase()
-        || user.lastName?.toLowerCase() === name?.toLowerCase()
-        || (`${user.firstName} ${user.lastName}`)?.toLowerCase() === name?.toLowerCase()
+      || user.lastName?.toLowerCase() === name?.toLowerCase()
+      || (`${user.firstName} ${user.lastName}`)?.toLowerCase() === name?.toLowerCase()
     ) {
       userId = user.id;
     }
@@ -272,7 +273,7 @@ export const createUserPortraitMessage = (name: string):Message => {
   };
 };
 
-export const createNewFeatureReminderMessage = (tip = 'Comming soon!'):Message => {
+export const createNewFeatureReminderMessage = (tip = 'Comming soon!'): Message => {
   return {
     role: 'assistant',
     id: uuidv4(),

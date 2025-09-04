@@ -25,9 +25,21 @@ export function clearAuthState() {
   localStorage.removeItem(STORAGE_KEY);
 }
 
-export function isTokenValid(state: AuthState | null): boolean {
+export async function isTokenValid(state: AuthState | null): Promise<boolean> {
   if (!state || !state.accessToken || !state.expiresAt) return false;
-  return Date.now() < state.expiresAt - 60 * 1000;
+
+  // 如果token仍然有效（还有1分钟以上）
+  if (Date.now() < state.expiresAt - 60 * 1000) {
+    return true;
+  }
+
+  // token已过期，尝试使用refreshToken获取新的token
+  if (state.refreshToken) {
+    const refreshedState = await refreshAccessToken();
+    return refreshedState !== null;
+  }
+
+  return false;
 }
 
 export async function refreshAccessToken(): Promise<AuthState | null> {
@@ -67,6 +79,7 @@ export async function refreshAccessToken(): Promise<AuthState | null> {
     setAuthState(newAuthState);
     return newAuthState;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Token refresh failed:', error);
     clearAuthState();
     return null;
@@ -76,12 +89,12 @@ export async function refreshAccessToken(): Promise<AuthState | null> {
 export async function isTokenValidOrRefresh(): Promise<boolean> {
   const state = getAuthState();
   if (!state || !state.accessToken) return false;
-  
+
   // 如果token仍然有效（还有5分钟以上）
   if (state.expiresAt && Date.now() < state.expiresAt - 5 * 60 * 1000) {
     return true;
   }
-  
+
   // 尝试刷新token
   const refreshedState = await refreshAccessToken();
   return refreshedState !== null;
@@ -102,7 +115,6 @@ export function startTokenRefreshTimer() {
       // 如果token在10分钟内过期，则刷新
       const timeUntilExpiry = authState.expiresAt - Date.now();
       if (timeUntilExpiry < 10 * 60 * 1000) {
-        console.log('Token expiring soon, refreshing...');
         await refreshAccessToken();
       }
     }
