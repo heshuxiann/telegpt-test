@@ -5,7 +5,6 @@ import { SERVER_API_URL } from '../../../config';
 import { getUserFullName } from '../../../global/helpers';
 import { selectUser } from '../../../global/selectors';
 import { TelegptFetch } from './telegpt-fetch';
-
 export const getCurrentUserInfo = () => {
   const global = getGlobal();
   const { currentUserId } = global;

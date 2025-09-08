@@ -401,6 +401,7 @@ class ScheduleMeeting {
         const isTimeAvailable = await this.checkTimeAvailable([startTime]);
         if (isTimeAvailable) {
           this.startTime = [startTime];
+          this.hasConfirmed = true;
           paramHit = true;
         }
       }
@@ -439,11 +440,11 @@ class ScheduleMeeting {
         if (!this.startTime || this.startTime.length === 0) {
           this.sendMessage(ASK_MEETING_TIME);
           return;
-        } else if (!this.email.length) {
-          this.sendMessage(ASK_MEETING_EMAIL);
-          return;
         } else if (!this.timeZone) {
           this.sendMessage(ASK_MEETING_TIMEZONE);
+          return;
+        } else if (!this.email.length) {
+          this.sendMessage(ASK_MEETING_EMAIL);
           return;
         }
       } else {

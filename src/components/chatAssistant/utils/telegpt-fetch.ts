@@ -19,8 +19,8 @@ export function TelegptFetch(path: string, method: 'POST' | 'GET' | 'DELETE', pa
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
-  if (userId) headers.userId = userId;
-  if (userName) headers.userName = userName;
+  if (userId) headers['user-id'] = userId;
+  if (userName) headers['user-name'] = userName;
   return fetch(`${SERVER_API_URL}${path}`, {
     method,
     headers,
