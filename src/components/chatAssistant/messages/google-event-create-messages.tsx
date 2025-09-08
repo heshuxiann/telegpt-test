@@ -11,7 +11,6 @@ import {
 import type { RangePickerProps } from 'antd/es/date-picker';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
-import type { ITimezoneOption } from 'react-timezone-select/dist/index.d';
 import { getGlobal } from '../../../global';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
@@ -113,8 +112,8 @@ const GoogleEventCreateMessage = ({ message }: { message: Message }) => {
       setTitleError('');
     }
   }, []);
-  const handleTimeZoomChange = useCallback((item: ITimezoneOption) => {
-    setSelectedTimezone(item.value);
+  const handleTimeZoomChange = useCallback((timeZone: string) => {
+    setSelectedTimezone(timeZone);
   }, []);
   const handleTimeChange = useCallback((dates: null | (Dayjs | null)[], dateStrings: string[]) => {
     if (dates) {

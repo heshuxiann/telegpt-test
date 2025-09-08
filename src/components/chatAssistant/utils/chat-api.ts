@@ -4,6 +4,7 @@ import { getGlobal } from '../../../global';
 import { SERVER_API_URL } from '../../../config';
 import { getUserFullName } from '../../../global/helpers';
 import { selectUser } from '../../../global/selectors';
+import { TelegptFetch } from './telegpt-fetch';
 
 export const getCurrentUserInfo = () => {
   const global = getGlobal();
@@ -177,6 +178,28 @@ export const getHitTools = (
   });
 };
 
+export const getHitToolsForMeeting = (text: string): Promise<Array<any>> => {
+  const params = {
+    messages: [
+      {
+        id: uuidv4(),
+        content: text,
+        role: 'user',
+      },
+    ],
+  };
+  return new Promise((resolve, reject) => {
+    TelegptFetch('/meeting-tool', 'POST', params)
+      .then((res) => res.json()).then()
+      .then((toolResults) => {
+        resolve(toolResults);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
 export function imageAISummary(data: object) {
   const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
@@ -313,7 +336,7 @@ export function mentionReply(data: object) {
 
 export function calendlyRanges(data: {
   calendlyUrl: string;
-}): Promise<{ start: string; end: string }[]> {
+}): Promise<{ times: string[]; timeZone: string }> {
   const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/calendly-ranges`, {
@@ -329,21 +352,20 @@ export function calendlyRanges(data: {
     })
       .then((res) => res.json())
       .then((res) => {
-        const times: { start: string; end: string }[] = [];
+        const times: string[] = [];
+        const timeZone = res.data.availability_timezone;
         if (res.data.days) {
           res.data.days.forEach((day: any) => {
             day.spots.forEach((spot: { start_time: string }) => {
               const start = new Date(spot.start_time);
-              const end = new Date(start.getTime() + 30 * 60 * 1000);
-
-              times.push({
-                start: start.toISOString(),
-                end: end.toISOString(),
-              });
+              times.push(start.toISOString());
             });
           });
         }
-        resolve(times);
+        resolve({
+          times,
+          timeZone,
+        });
       })
       .catch((err) => {
         reject(err);

@@ -11,12 +11,12 @@ export type GrammarlyCheckItem = {
   length: number;
   originalText?: string;
   remove_segment: boolean;
-  suggestions:string[];
+  suggestions: string[];
 };
 type GrammarlyCheckResponse = {
-  code:number;
-  data:{
-    errors:GrammarlyCheckItem[];
+  code: number;
+  data: {
+    errors: GrammarlyCheckItem[];
   };
 };
 
@@ -30,7 +30,7 @@ function getUserInfo() {
     userName,
   };
 }
-export const grammarlyCheck = (text:string):Promise<GrammarlyCheckResponse> => {
+export const grammarlyCheck = (text: string): Promise<GrammarlyCheckResponse> => {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/grammarly-check`, {
@@ -50,7 +50,7 @@ export const grammarlyCheck = (text:string):Promise<GrammarlyCheckResponse> => {
       });
   });
 };
-export const grammarlyShorten = (text:string):Promise<GrammarlyCheckResponse> => {
+export const grammarlyShorten = (text: string): Promise<GrammarlyCheckResponse> => {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/grammarly-shorten`, {
@@ -70,7 +70,7 @@ export const grammarlyShorten = (text:string):Promise<GrammarlyCheckResponse> =>
       });
   });
 };
-export const grammarlyFormal = (text:string):Promise<GrammarlyCheckResponse> => {
+export const grammarlyFormal = (text: string): Promise<GrammarlyCheckResponse> => {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/grammarly-formal`, {
@@ -90,7 +90,7 @@ export const grammarlyFormal = (text:string):Promise<GrammarlyCheckResponse> => 
       });
   });
 };
-export const grammarlyFriendly = (text:string):Promise<GrammarlyCheckResponse> => {
+export const grammarlyFriendly = (text: string): Promise<GrammarlyCheckResponse> => {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/grammarly-friendly`, {
@@ -110,7 +110,7 @@ export const grammarlyFriendly = (text:string):Promise<GrammarlyCheckResponse> =
       });
   });
 };
-export const grammarlyRephrase = (text:string):Promise<GrammarlyCheckResponse> => {
+export const grammarlyRephrase = (text: string): Promise<GrammarlyCheckResponse> => {
   const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/grammarly-rephrase`, {

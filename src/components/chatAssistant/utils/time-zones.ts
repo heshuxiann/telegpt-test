@@ -1,9 +1,3 @@
-/* eslint-disable no-mixed-operators */
-/* eslint-disable no-underscore-dangle */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable max-len */
-/* eslint-disable no-return-assign */
-/* eslint-disable no-cond-assign */
 /* eslint-disable no-null/no-null */
 import { useMemo } from 'react';
 import spacetime from 'spacetime';
@@ -103,7 +97,7 @@ const allTimezones = {
   'Asia/Kamchatka': 'Kamchatka, Marshall Islands',
   'Pacific/Fiji': 'Fiji Islands',
   'Pacific/Auckland': 'Auckland, Wellington',
-  'Pacific/Tongatapu': "Nuku'alofa",
+  'Pacific/Tongatapu': 'Nuku\'alofa',
 };
 
 // src/index.tsx
@@ -112,8 +106,10 @@ export function useTimezoneSelect() {
   const displayValue = 'GMT';
   const options = useMemo(() => {
     return Object.entries(timezones).map((zone) => {
-      let _a; let _b; let _c; let
-        _d;
+      let _a;
+      let _b;
+      let _c;
+      let _d;
       try {
         const now = spacetime.now().goto(zone[0]);
         const isDstString = now.isDST() ? 'daylight' : 'standard';
@@ -136,7 +132,7 @@ export function useTimezoneSelect() {
       }
     }).filter(Boolean).sort((a, b) => a.offset - b.offset) as ITimezoneOption[];
   }, [timezones]);
-  const findFuzzyTz = (zone:any) => {
+  const findFuzzyTz = (zone: any) => {
     let _a;
     let _b;
     let currentTime;
@@ -145,9 +141,9 @@ export function useTimezoneSelect() {
     } catch (err) {
       currentTime = spacetime.now().goto('GMT');
     }
-    return (_b = (_a = options.filter((tz:any) => tz.offset === currentTime.timezone().current.offset).map((tz:any) => {
+    return (_b = (_a = options.filter((tz: any) => tz.offset === currentTime.timezone().current.offset).map((tz: any) => {
       let score = 0;
-      if (currentTime.timezones[tz.value.toLowerCase()] && !!currentTime.timezones[tz.value.toLowerCase()].dst === currentTime.timezone().hasDst) {
+      if (currentTime.timezones[tz.value.toLowerCase()] && Boolean(currentTime.timezones[tz.value.toLowerCase()].dst) === currentTime.timezone().hasDst) {
         if (tz.value.toLowerCase().indexOf(currentTime.tz.substring(currentTime.tz.indexOf('/') + 1)) !== -1) {
           score += 8;
         }
@@ -164,14 +160,15 @@ export function useTimezoneSelect() {
       return { tz, score };
     }).sort((a, b) => b.score - a.score)) == null ? void 0 : _a[0]) == null ? void 0 : _b.tz;
   };
-  function isObject(item:any) {
+  function isObject(item: any) {
     return typeof item === 'object' && !Array.isArray(item) && item !== null;
   }
-  const parseTimezone = (zone:ITimezone) => {
+  const parseTimezone = (zone: ITimezone) => {
     if (typeof zone === 'string') {
-      return options.find((tz:any) => tz.value === zone) || zone.indexOf('/') !== -1 && findFuzzyTz(zone);
+      // eslint-disable-next-line @stylistic/no-mixed-operators
+      return options.find((tz: any) => tz.value === zone) || zone.indexOf('/') !== -1 && findFuzzyTz(zone);
     } else if (isObject(zone) && !zone.label) {
-      return options.find((tz:any) => tz.value === zone.value);
+      return options.find((tz: any) => tz.value === zone.value);
     } else {
       return zone;
     }
