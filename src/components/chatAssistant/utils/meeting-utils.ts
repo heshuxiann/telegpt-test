@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Temporal } from '@js-temporal/polyfill';
 import { toBlob } from 'html-to-image';
@@ -22,47 +23,36 @@ import WriteIcon from '../assets/write.png';
 export function formatMeetingTimeRange(
   startISO: string,
   endISO: string,
-  timeZoneVisable?: boolean,
+  timeZone?: string, // 必须传入时区，例如 "Asia/Shanghai" 或 "America/New_York"
+  timeZoneVisible?: boolean,
 ) {
-  const startDate = new Date(startISO);
-  const endDate = new Date(endISO);
-
+  timeZone = timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
   const dayFormatter = new Intl.DateTimeFormat('en-US', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
+    timeZone, // ✅ 指定时区
   });
 
   const timeFormatter = new Intl.DateTimeFormat('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: false,
+    timeZone, // ✅ 指定时区
   });
 
-  const formatTime = (date: Date) => {
-    return timeFormatter.format(date).toLowerCase().replace(' ', '');
-  };
+  const formatTime = (date: Date) =>
+    timeFormatter.format(date).toLowerCase().replace(' ', '');
+
+  const startDate = new Date(startISO);
+  const endDate = new Date(endISO);
 
   const dateStr = dayFormatter.format(startDate);
   const startTimeStr = formatTime(startDate);
   const endTimeStr = formatTime(endDate);
 
-  // 方式一：取时区名称
-  const timeZoneName = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-  // 方式二：取 GMT 偏移
-  // const offsetMinutes = startDate.getTimezoneOffset();
-  // const sign = offsetMinutes <= 0 ? '+' : '-';
-  // const absMinutes = Math.abs(offsetMinutes);
-  // const hours = String(Math.floor(absMinutes / 60)).padStart(2, '0');
-  // const minutes = String(absMinutes % 60).padStart(2, '0');
-  // const gmtOffset = `GMT${sign}${hours}:${minutes}`;
-
-  // 任选一种
-  const tzString = timeZoneName;
-  // const tzString = gmtOffset;
-  if (timeZoneVisable) {
-    return `${dateStr}, ${startTimeStr}-${endTimeStr} ${tzString}`;
+  if (timeZoneVisible) {
+    return `${dateStr}, ${startTimeStr}-${endTimeStr} ${timeZone}`;
   } else {
     return `${dateStr}, ${startTimeStr}-${endTimeStr}`;
   }
@@ -253,6 +243,7 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
   timeValue.textContent = formatMeetingTimeRange(
     eventData.start.dateTime,
     eventData.end.dateTime,
+    eventData.start.timeZone,
   );
   const timeZone = document.createElement('span');
   timeZone.style.cssText = `

@@ -167,7 +167,7 @@ const GoogleMeetTimeConfirmMessage = ({ message }: { message: Message }) => {
                   })}
                   onClick={() => handleTimeSelect(item)}
                 >
-                  {formatMeetingTime(item.start, duration)}
+                  {formatMeetingTime(item, duration)}
                 </div>
               </li>
             );

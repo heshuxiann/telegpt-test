@@ -22,15 +22,14 @@ import {
   getGoogleCalendarFreeBusy,
 } from './google-api';
 import { getAuthState, isTokenValid } from './google-auth';
-import { formatMeetingTimeRange, generateEventScreenshot } from './meeting-utils';
+import { attachZoneWithTemporal, formatMeetingTimeRange, generateEventScreenshot } from './meeting-utils';
 
 export const ASK_MEETING_TIME_AND_EMAIL
   = 'Could you tell me what time would be good for you to have the meeting? Also, could I get your email address?';
 // export const ASK_MEETING_TIME
 //   = 'Could you tell me what time would be good for you to have the meeting?';
 // export const ASK_MEETING_EMAIL = 'Could you please share your email address?';
-export const MEETING_INVITATION_TIP
-  = 'I\'ll send you the meeting invitation later.';
+export const MEETING_INVITATION_TIP = 'I\'ll send you the meeting invitation later.';
 
 export const ASK_MEETING_TIME = 'I’d like to set up a meeting with you. Could you let me know a time that works best for you? [By TelyAI]';
 export const ASK_MEETING_TIMEZONE = 'Which time zone are you currently in? [By TelyAI]';
@@ -134,7 +133,7 @@ function suggestFreeTimes(
 async function isTimeSlotAvailable(proposedSlot: {
   start: string;
   end: string;
-}, timeZone: string) {
+}): Promise<{ isAvailable: boolean; suggestions?: { start: string; end: string }[] }> {
   const myBusyTimes = await getGoogleCalendarFreeBusy();
   const proposedStart = new Date(proposedSlot.start).getTime();
   const proposedEnd = new Date(proposedSlot.end).getTime();
@@ -225,6 +224,8 @@ class ScheduleMeeting {
 
   private handlerRef: ({ message }: { message: ApiMessage }) => void;
 
+  private hasCheckedTimeAvailability: boolean = false;
+
   constructor({
     chatId,
     email = [],
@@ -242,6 +243,7 @@ class ScheduleMeeting {
     this.isMeetingInitiator = isMeetingInitiator;
     this.hasConfirmed = hasConfirmed;
     this.handlerRef = ({ message }) => this.handlerImMessage({ message });
+    this.hasCheckedTimeAvailability = false;
   }
 
   /**
@@ -275,6 +277,17 @@ class ScheduleMeeting {
       console.log('已超过五分钟未完成输入，工作流已结束。');
     }, 1000 * 60 * 5);
 
+    // 检查是否有缺少的参数，如果有则继续询问
+    if (this.hasConfirmed) {
+      if (!this.timeZone) {
+        this.sendMessage(ASK_MEETING_TIMEZONE);
+        return;
+      } else if (!this.email.length) {
+        this.sendMessage(ASK_MEETING_EMAIL);
+        return;
+      }
+    }
+
     if (!this.isMeetingInitiator) {
       this.handler(params);
     }
@@ -301,52 +314,28 @@ class ScheduleMeeting {
     }
   }
 
-  private async checkTimeAvailable(startTimes?: string[]): Promise<boolean> {
+  private async checkTimeAvailable(startTimes?: string[]): Promise<{ isAvailable: boolean; suggestions?: { start: string; end: string }[] }> {
     const timeToCheck = startTimes ? startTimes[0] : (this.startTime.length > 0 ? this.startTime[0] : null);
 
     if (!timeToCheck) {
-      return false;
+      return {
+        isAvailable: false,
+        suggestions: [],
+      };
     }
 
+    const endTime = new Date(new Date(timeToCheck).getTime() + this.duration * 1000).toISOString();
     const dateRange = {
       start: timeToCheck,
-      end: new Date(new Date(timeToCheck).getTime() + this.duration * 1000).toISOString(),
+      end: endTime,
     };
 
-    const { isAvailable, suggestions } = await isTimeSlotAvailable(
-      dateRange,
-      this.timeZone,
-    );
+    const { isAvailable, suggestions } = await isTimeSlotAvailable(dateRange);
 
-    if (isAvailable) {
-      if (!startTimes) { // 只有在检查内部时间时才设置确认状态
-        this.hasConfirmed = true; // 如果有时间回执，设置为已确认
-      }
-      return true;
-    } else {
-      if (!startTimes) { // 只有在检查内部时间时才发送消息
-        this.sendMessage(
-          'The time you provided is not available. Could you please suggest another time?',
-        );
-        // 根据自己日历的时间，给出时间建议
-        await new Promise<void>((res) => {
-          void setTimeout(res, 1000);
-        });
-        this.sendMessage(
-          `Here are some available time slots you can choose from: \n ${suggestions!
-            .map(
-              (slot, index) =>
-                `${index + 1}.${formatMeetingTimeRange(
-                  slot.start,
-                  slot.end,
-                  true,
-                )}`,
-            )
-            .join('\n')}`,
-        );
-      }
-      return false;
-    }
+    return {
+      isAvailable,
+      suggestions,
+    };
   }
 
   private async checkCalendlyLinks(text: string): Promise<string[]> {
@@ -395,14 +384,41 @@ class ScheduleMeeting {
       if (duration) {
         this.duration = duration;
       }
+      if (startTime && !this.startTime.length) {
+        this.startTime = [startTime];
+        paramHit = true;
+      }
 
-      // 如果通过AI工具获取到了startTime，检查时间是否合理
-      if (startTime) {
-        const isTimeAvailable = await this.checkTimeAvailable([startTime]);
-        if (isTimeAvailable) {
-          this.startTime = [startTime];
+      // 如果通过AI工具获取到了startTime和timeZone，且还未检查过时间可用性，则检查时间是否合理
+      if (this.startTime.length && this.timeZone && !this.hasCheckedTimeAvailability) {
+        this.hasCheckedTimeAvailability = true;
+        this.startTime = [attachZoneWithTemporal(this.startTime[0], this.timeZone).utcInstant];
+        const { isAvailable, suggestions } = await this.checkTimeAvailable(this.startTime);
+        if (!isAvailable) {
+          this.startTime = [];
+          this.sendMessage(
+            'The time you provided is not available. Could you please suggest another time?',
+          );
+          // 根据自己日历的时间，给出时间建议
+          await new Promise<void>((res) => {
+            void setTimeout(res, 1000);
+          });
+          this.sendMessage(
+            `Here are some available time slots you can choose from: \n ${suggestions!
+              .map(
+                (slot, index) =>
+                  `${index + 1}.${formatMeetingTimeRange(
+                    slot.start,
+                    slot.end,
+                    this.timeZone,
+                    true,
+                  )}`,
+              )
+              .join('\n')}`,
+          );
+          return;
+        } else {
           this.hasConfirmed = true;
-          paramHit = true;
         }
       }
 
