@@ -24,12 +24,12 @@ import {
 import { getAuthState, isTokenValid } from './google-auth';
 import { attachZoneWithTemporal, formatMeetingTimeRange, generateEventScreenshot } from './meeting-utils';
 
-export const MEETING_INVITATION_TIP = 'I\'ll send you the meeting invitation later.';
+export const MEETING_INVITATION_TIP = 'I\'ll send you the meeting invitation later. [By TelyAI]';
 
 export const ASK_MEETING_TIME = 'I’d like to set up a meeting with you. Could you let me know a time that works best for you? [By TelyAI]';
 export const ASK_MEETING_TIMEZONE = 'Which time zone are you currently in? [By TelyAI]';
 export const ASK_MEETING_EMAIL = 'Could you share your email address? If additional participants should be included, please provide their email addresses as well. [By TelyAI]';
-const MEETING_TIME_UNAVAILABLE = 'The time you provided is not available. Could you please suggest another time?';
+const MEETING_TIME_UNAVAILABLE = 'The time you provided is not available. Could you please suggest another time? [By TelyAI]';
 
 export type MeetingInformationSuggestType = 'time' | 'email' | 'both';
 
@@ -475,7 +475,7 @@ class ScheduleMeeting {
                     true,
                   )}`,
               )
-              .join('\n')}`,
+              .join('\n')} \n [By TelyAI]`,
           );
           return;
         } else {
