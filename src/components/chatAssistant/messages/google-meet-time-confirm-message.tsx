@@ -129,16 +129,23 @@ const GoogleMeetTimeConfirmMessage = ({ message }: { message: Message }) => {
         });
       }
     } else {
-      const scheduleMeeting = ScheduleMeeting.create({ chatId, startTime: [time.start], hasConfirmed: true });
+      const scheduleMeeting = ScheduleMeeting.create({ chatId });
+      const confirmParams = {
+        startTime: [time.start],
+        email,
+        timeZone,
+        duration,
+        timeConfirmed: true,
+      };
       const auth = getAuthState();
       if (!auth || !(await isTokenValid(auth))) {
         createAuthConfirmModal({
           onOk: () => {
-            scheduleMeeting.start();
+            scheduleMeeting.confirmCallback(confirmParams);
           },
         });
       } else {
-        scheduleMeeting.start();
+        scheduleMeeting.confirmCallback(confirmParams);
       }
     }
     message.content = JSON.stringify({

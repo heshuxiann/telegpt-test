@@ -9,7 +9,7 @@ import type { MessageListType } from '../../../types';
 
 import eventEmitter from '../lib/EventEmitter';
 import {
-  getMessageContent, hasMessageText, isOwnMessage, isUserRightBanned,
+  hasMessageText, isOwnMessage, isUserRightBanned,
 } from '../../../global/helpers';
 import {
   selectAllowedMessageActionsSlow, selectCanTranslateMessage, selectChat, selectChatFullInfo, selectCurrentMessageList,
@@ -60,18 +60,17 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
 
   const handleScheduleMeeting = useLastCallback(async () => {
     if (isSchedulingMeeting) return;
-
-    setIsSchedulingMeeting(true);
     const chatId = message.chatId;
-    const text = getMessageContent(message)?.text?.text || '';
-    const scheduleMeeting = ScheduleMeeting.create({ chatId });
+    if (ScheduleMeeting.get(chatId)) {
+      return;
+    }
+    setIsSchedulingMeeting(true);
+    const targetUserId = isUserId(chatId) ? undefined : message.senderId;
+    const scheduleMeeting = ScheduleMeeting.create({ chatId, targetUserId });
     const auth = getAuthState();
 
     const startMeeting = () => {
-      scheduleMeeting.start({
-        chatId,
-        text,
-      });
+      scheduleMeeting.handleTargetMessage(message);
       // Reset the flag after a delay to prevent rapid clicks
       setTimeout(() => setIsSchedulingMeeting(false), 2000);
     };

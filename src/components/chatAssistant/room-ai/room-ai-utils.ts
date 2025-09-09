@@ -219,7 +219,12 @@ export const createMeetingTimeConfirmMessage = ({
   };
 };
 
-export const createMeetingMentionMessage = (data: { chatId: string; messageId: number }): Message => {
+export const createMeetingMentionMessage = (data: {
+  chatId: string;
+  senderId: string | undefined;
+  messageId: number;
+  messageText: string | undefined;
+}): Message => {
   return {
     role: 'assistant',
     id: uuidv4(),

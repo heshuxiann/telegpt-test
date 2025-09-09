@@ -5,7 +5,7 @@ import React from 'react';
 import { DateTime, Interval } from 'luxon';
 import { getActions, getGlobal } from '../../../global';
 
-import type { ApiMessage } from '../../../api/types';
+import type { ApiDraft, ApiMessage } from '../../../api/types';
 import type { ICreateMeetResponse } from './google-api';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
@@ -24,16 +24,12 @@ import {
 import { getAuthState, isTokenValid } from './google-auth';
 import { attachZoneWithTemporal, formatMeetingTimeRange, generateEventScreenshot } from './meeting-utils';
 
-export const ASK_MEETING_TIME_AND_EMAIL
-  = 'Could you tell me what time would be good for you to have the meeting? Also, could I get your email address?';
-// export const ASK_MEETING_TIME
-//   = 'Could you tell me what time would be good for you to have the meeting?';
-// export const ASK_MEETING_EMAIL = 'Could you please share your email address?';
 export const MEETING_INVITATION_TIP = 'I\'ll send you the meeting invitation later.';
 
 export const ASK_MEETING_TIME = 'I’d like to set up a meeting with you. Could you let me know a time that works best for you? [By TelyAI]';
 export const ASK_MEETING_TIMEZONE = 'Which time zone are you currently in? [By TelyAI]';
 export const ASK_MEETING_EMAIL = 'Could you share your email address? If additional participants should be included, please provide their email addresses as well. [By TelyAI]';
+const MEETING_TIME_UNAVAILABLE = 'The time you provided is not available. Could you please suggest another time?';
 
 export type MeetingInformationSuggestType = 'time' | 'email' | 'both';
 
@@ -155,7 +151,7 @@ async function isTimeSlotAvailable(proposedSlot: {
   return { isAvailable: true };
 }
 
-function getMeetParamsByAITools(message: string): Promise<any> {
+export function getMeetParamsByAITools(message: string): Promise<any> {
   return new Promise((resolve, reject) => {
     getHitToolsForMeeting(message)
       .then((toolResults) => {
@@ -196,19 +192,18 @@ function getMeetParamsByAITools(message: string): Promise<any> {
 
 interface ScheduleMeetingParams {
   chatId: string;
+  targetUserId?: string | undefined;
   email?: string[];
   startTime?: string[];
   duration?: number;
   timeZone?: string;
-  isMeetingInitiator?: boolean;
-  hasConfirmed?: boolean;
 }
 class ScheduleMeeting {
   private static instances = new Map<string, ScheduleMeeting>();
 
   private chatId: string;
 
-  private hasConfirmed: boolean;
+  private targetUserId: string;
 
   private email: string[];
 
@@ -218,32 +213,43 @@ class ScheduleMeeting {
 
   private timeZone: string;
 
-  public isMeetingInitiator: boolean;
-
   public timeout: NodeJS.Timeout | undefined = undefined;
 
   private handlerRef: ({ message }: { message: ApiMessage }) => void;
 
   private hasCheckedTimeAvailability: boolean = false;
 
+  private messageId: number | undefined;
+
+  private timeConfirmed: boolean = false;
+
+  private authCheckTimeout: NodeJS.Timeout | undefined = undefined;
+
   constructor({
     chatId,
+    targetUserId = '',
     email = [],
     startTime = [],
     duration = 1800,
     timeZone = '',
-    hasConfirmed = false,
-    isMeetingInitiator = false,
   }: ScheduleMeetingParams) {
     this.chatId = chatId;
+    this.targetUserId = targetUserId;
     this.email = email;
     this.timeZone = timeZone;
     this.startTime = startTime;
     this.duration = duration;
-    this.isMeetingInitiator = isMeetingInitiator;
-    this.hasConfirmed = hasConfirmed;
     this.handlerRef = ({ message }) => this.handlerImMessage({ message });
     this.hasCheckedTimeAvailability = false;
+
+    // 注册监听器
+    eventEmitter.on(Actions.NewTextMessage, this.handlerRef);
+
+    // 超时自动清理
+    this.timeout = setTimeout(() => {
+      this.cleanup();
+      console.log('已超过五分钟未完成输入，工作流已结束。');
+    }, 1000 * 60 * 5);
   }
 
   /**
@@ -267,36 +273,80 @@ class ScheduleMeeting {
     return ScheduleMeeting.instances.get(chatId);
   }
 
-  public start(params?: { text: string; chatId: string }) {
-    // 注册监听器
-    eventEmitter.on(Actions.NewTextMessage, this.handlerRef);
-
-    // 超时自动清理
-    this.timeout = setTimeout(() => {
-      this.cleanup();
-      console.log('已超过五分钟未完成输入，工作流已结束。');
-    }, 1000 * 60 * 5);
-
-    // 检查是否有缺少的参数，如果有则继续询问
-    if (this.hasConfirmed) {
-      if (!this.timeZone) {
-        this.sendMessage(ASK_MEETING_TIMEZONE);
-        return;
-      } else if (!this.email.length) {
-        this.sendMessage(ASK_MEETING_EMAIL);
-        return;
-      }
+  public confirmCallback({ startTime, email, timeZone, duration, timeConfirmed = false }: {
+    startTime: string[] | null;
+    email: string[] | null;
+    timeZone: string;
+    duration: number;
+    timeConfirmed?: boolean;
+  }) {
+    if (startTime && startTime.length) {
+      this.startTime = startTime;
     }
+    if (email && email.length) {
+      this.email = email;
+    }
+    if (timeZone) {
+      this.timeZone = timeZone;
+    }
+    if (duration) {
+      this.duration = duration;
+    }
+    this.timeConfirmed = timeConfirmed;
+    this.handleMeetingInfoAsk();
+  }
 
-    if (!this.isMeetingInitiator) {
-      this.handler(params);
+  private handleMeetingInfoAsk() {
+    if (!this.startTime || this.startTime.length === 0) {
+      this.sendMessage(ASK_MEETING_TIME);
+      return;
+    } else if (!this.timeZone) {
+      this.sendMessage(ASK_MEETING_TIMEZONE);
+      return;
+    } else if (!this.email.length) {
+      this.sendMessage(ASK_MEETING_EMAIL);
+      return;
     }
   }
 
   public cleanup() {
     eventEmitter.off(Actions.NewTextMessage, this.handlerRef);
-    clearTimeout(this.timeout);
+    if (this.timeout) clearTimeout(this.timeout);
+    if (this.authCheckTimeout) clearTimeout(this.authCheckTimeout);
     ScheduleMeeting.instances.delete(this.chatId);
+  }
+
+  private resetAuthCheckTimer() {
+    if (this.authCheckTimeout) {
+      clearTimeout(this.authCheckTimeout);
+      this.authCheckTimeout = undefined;
+    }
+  }
+
+  private scheduleAuthCheck() {
+    this.resetAuthCheckTimer();
+    this.authCheckTimeout = setTimeout(() => {
+      this.handleGoogleAuthCheck();
+    }, 15000); // 15秒延迟
+  }
+
+  public async handleTargetMessage(message: ApiMessage) {
+    const text = getMessageContent(message)?.text?.text || '';
+    this.messageId = message.id;
+    const { email, startTime, duration, timeZone } = await getMeetParamsByAITools(text);
+    if (startTime && startTime.length) {
+      this.startTime = startTime;
+    }
+    if (email && email.length) {
+      this.email = email;
+    }
+    if (timeZone) {
+      this.timeZone = timeZone;
+    }
+    if (duration) {
+      this.duration = duration;
+    }
+    this.handleMeetingInfoAsk();
   }
 
   private handlerImMessage({ message }: { message?: ApiMessage }) {
@@ -304,11 +354,13 @@ class ScheduleMeeting {
     if (
       message
       && hasMessageText(message)
-      && !this.isMeetingInitiator
       && !message.isOutgoing
     ) {
+      this.messageId = message.id;
       this.handler({
         chatId: message.chatId,
+        senderId: message.senderId,
+        messageId: message.id,
         text: getMessageContent(message).text?.text || '',
       });
     }
@@ -355,18 +407,23 @@ class ScheduleMeeting {
     return [];
   }
 
-  private async handler(params?: { text: string; chatId: string }) {
-    const { text, chatId } = params || {};
+  public async handler(params?: {
+    chatId: string;
+    senderId: string | undefined;
+    messageId: number | undefined;
+    text: string;
+  }) {
+    const { text, chatId, senderId, messageId } = params || {};
     if (chatId && chatId !== this.chatId) {
+      return;
+    }
+    if (this.targetUserId && senderId !== this.targetUserId) {
       return;
     }
     if (text?.trim() === '') {
       return;
     }
-    if (this.email.length && this.startTime.length && this.timeZone && this.hasConfirmed) {
-      this.handleGoogleAuthCheck();
-      return;
-    }
+    this.messageId = messageId;
     try {
       // 先获取参数
       const { email, startTime, duration, timeZone } = await getMeetParamsByAITools(text!);
@@ -374,19 +431,25 @@ class ScheduleMeeting {
 
       // 检查是否命中任何必要参数
       if (email && email.length > 0) {
-        this.email = email;
+        this.email = this.email.concat(email);
         paramHit = true;
       }
-      if (timeZone && !this.timeZone) {
+      if (timeZone) {
         this.timeZone = timeZone;
+        this.hasCheckedTimeAvailability = false;
         paramHit = true;
       }
       if (duration) {
         this.duration = duration;
       }
-      if (startTime && !this.startTime.length) {
+      if (startTime) {
         this.startTime = [startTime];
+        this.hasCheckedTimeAvailability = false;
         paramHit = true;
+      }
+      // 当任意必要条件有更新时，重置定时器
+      if (paramHit) {
+        this.resetAuthCheckTimer();
       }
 
       // 如果通过AI工具获取到了startTime和timeZone，且还未检查过时间可用性，则检查时间是否合理
@@ -396,9 +459,7 @@ class ScheduleMeeting {
         const { isAvailable, suggestions } = await this.checkTimeAvailable(this.startTime);
         if (!isAvailable) {
           this.startTime = [];
-          this.sendMessage(
-            'The time you provided is not available. Could you please suggest another time?',
-          );
+          this.sendMessage(MEETING_TIME_UNAVAILABLE);
           // 根据自己日历的时间，给出时间建议
           await new Promise<void>((res) => {
             void setTimeout(res, 1000);
@@ -418,7 +479,7 @@ class ScheduleMeeting {
           );
           return;
         } else {
-          this.hasConfirmed = true;
+          this.timeConfirmed = true;
         }
       }
 
@@ -426,7 +487,7 @@ class ScheduleMeeting {
       const availableSlots = await this.checkCalendlyLinks(text!);
 
       // 如果有可用时间，打开小助手让用户确认时间
-      if (availableSlots && availableSlots.length > 0 && !this.hasConfirmed) {
+      if (availableSlots && availableSlots.length > 0 && !this.timeConfirmed) {
         const meetingTimeConfirmMessage = createMeetingTimeConfirmMessage({
           chatId: this.chatId,
           startTime: availableSlots,
@@ -453,23 +514,11 @@ class ScheduleMeeting {
 
       // 只有当命中参数时才询问下一个必要条件
       if (paramHit) {
-        if (!this.startTime || this.startTime.length === 0) {
-          this.sendMessage(ASK_MEETING_TIME);
-          return;
-        } else if (!this.timeZone) {
-          this.sendMessage(ASK_MEETING_TIMEZONE);
-          return;
-        } else if (!this.email.length) {
-          this.sendMessage(ASK_MEETING_EMAIL);
-          return;
-        }
-      } else {
-        this.sendMessage(ASK_MEETING_TIME);
-        return;
+        this.handleMeetingInfoAsk();
       }
 
-      if (this.email.length && this.startTime && this.timeZone && this.duration && this.hasConfirmed) {
-        this.handleGoogleAuthCheck();
+      if (this.email.length && this.startTime && this.timeZone && this.duration && this.timeConfirmed) {
+        this.scheduleAuthCheck();
       }
     } catch (e) {
       console.log(e);
@@ -518,6 +567,19 @@ class ScheduleMeeting {
   }
 
   private sendMessage(message: string) {
+    if (this.targetUserId) {
+      const replyInfo = {
+        type: 'message',
+        replyToMsgId: this.messageId,
+        replyToPeerId: undefined,
+      };
+      getActions().saveReplyDraft({
+        chatId: this.chatId,
+        threadId: -1,
+        draft: { replyInfo } as ApiDraft,
+        isLocalOnly: true,
+      });
+    }
     getActions().sendMessage({
       messageList: {
         chatId: this.chatId,
@@ -526,6 +588,9 @@ class ScheduleMeeting {
       },
       text: message,
     });
+    if (this.targetUserId) {
+      getActions().clearDraft({ chatId: this.chatId, isLocalOnly: true });
+    }
   }
 }
 
