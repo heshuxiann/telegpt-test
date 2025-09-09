@@ -17,9 +17,9 @@ import ScheduleMeeting, {
 } from '../utils/schedule-meeting';
 
 // 格式化会议时间，返回相对日期和时间范围
-function formatMeetingTime(startTime: string, duration: number = 30): string {
+function formatMeetingTime(startTime: string, duration: number = 1800): string {
   const startDate = new Date(startTime);
-  const endDate = new Date(new Date(startTime).getTime() + duration * 60 * 1000);
+  const endDate = new Date(new Date(startTime).getTime() + duration * 1000);
 
   // 获取当前日期
   const today = new Date();
@@ -103,35 +103,32 @@ const GoogleMeetTimeConfirmMessage = ({ message }: { message: Message }) => {
       }
     });
   };
-  const handleTimeSelect = async (time: { start: string; end: string }) => {
+  const handleTimeSelect = async (time: string) => {
     if (mergeConfirmed) {
       return;
     }
     if (email.length > 0 && timeZone && duration) {
       const auth = getAuthState();
+      const createMeetParams = {
+        token: auth?.accessToken || '',
+        start: time,
+        end: new Date(new Date(time).getTime() + duration * 1000).toISOString(),
+        email,
+      };
       if (!auth || !(await isTokenValid(auth))) {
         createAuthConfirmModal({
           onOk: (accessToken: string) => {
-            handleCreateGoogleMeet({
-              token: accessToken,
-              start: time.start,
-              end: time.end,
-              email,
-            });
+            createMeetParams.token = accessToken!;
+            handleCreateGoogleMeet(createMeetParams);
           },
         });
       } else {
-        handleCreateGoogleMeet({
-          token: auth.accessToken!,
-          start: time.start,
-          end: time.end,
-          email,
-        });
+        handleCreateGoogleMeet(createMeetParams);
       }
     } else {
       const scheduleMeeting = ScheduleMeeting.create({ chatId });
       const confirmParams = {
-        startTime: [time.start],
+        startTime: [time],
         email,
         timeZone,
         duration,

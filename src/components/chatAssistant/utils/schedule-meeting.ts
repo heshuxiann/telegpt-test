@@ -217,8 +217,6 @@ class ScheduleMeeting {
 
   private handlerRef: ({ message }: { message: ApiMessage }) => void;
 
-  private hasCheckedTimeAvailability: boolean = false;
-
   private messageId: number | undefined;
 
   private timeConfirmed: boolean = false;
@@ -240,7 +238,6 @@ class ScheduleMeeting {
     this.startTime = startTime;
     this.duration = duration;
     this.handlerRef = ({ message }) => this.handlerImMessage({ message });
-    this.hasCheckedTimeAvailability = false;
 
     // 注册监听器
     eventEmitter.on(Actions.NewTextMessage, this.handlerRef);
@@ -436,7 +433,7 @@ class ScheduleMeeting {
       }
       if (timeZone) {
         this.timeZone = timeZone;
-        this.hasCheckedTimeAvailability = false;
+        this.timeConfirmed = false;
         paramHit = true;
       }
       if (duration) {
@@ -444,7 +441,7 @@ class ScheduleMeeting {
       }
       if (startTime) {
         this.startTime = [startTime];
-        this.hasCheckedTimeAvailability = false;
+        this.timeConfirmed = false;
         paramHit = true;
       }
       // 当任意必要条件有更新时，重置定时器
@@ -453,8 +450,7 @@ class ScheduleMeeting {
       }
 
       // 如果通过AI工具获取到了startTime和timeZone，且还未检查过时间可用性，则检查时间是否合理
-      if (this.startTime.length && this.timeZone && !this.hasCheckedTimeAvailability) {
-        this.hasCheckedTimeAvailability = true;
+      if (this.startTime.length && this.timeZone && !this.timeConfirmed) {
         this.startTime = [attachZoneWithTemporal(this.startTime[0], this.timeZone).utcInstant];
         const { isAvailable, suggestions } = await this.checkTimeAvailable(this.startTime);
         if (!isAvailable) {
