@@ -556,9 +556,10 @@ class ScheduleMeeting {
         this.sendMessage(MEETING_INVITATION_TIP);
         if (createMeetResponse) {
           generateEventScreenshot(createMeetResponse, this.chatId);
-          this.cleanup();
         }
-        this.cleanup();
+        setTimeout(() => {
+          this.cleanup();
+        }, 3000);
       })
       .catch((err) => {
         console.log(err);
@@ -567,7 +568,7 @@ class ScheduleMeeting {
   }
 
   private sendMessage(message: string) {
-    if (this.targetUserId) {
+    if (this.targetUserId && this.messageId) {
       const replyInfo = {
         type: 'message',
         replyToMsgId: this.messageId,
