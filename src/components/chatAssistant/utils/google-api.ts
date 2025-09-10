@@ -209,8 +209,8 @@ export const createGoogleMeet = ({
     });
     const event = {
       summary: title,
-      start: { dateTime: new Date(startDate), timeZone: selectedTimezone },
-      end: { dateTime: new Date(endDate), timeZone: selectedTimezone },
+      start: { dateTime: startDate, timeZone: selectedTimezone },
+      end: { dateTime: endDate, timeZone: selectedTimezone },
       attendees,
       reminders: {
         useDefault: false,

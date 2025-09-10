@@ -1,3 +1,4 @@
+/* eslint-disable no-implicit-coercion */
 /* eslint-disable no-console */
 class GrammarChecker {
   private languageToolURL: string;
@@ -28,7 +29,7 @@ class GrammarChecker {
       const data = await response.json();
 
       console.log('LanguageTool response:', JSON.stringify(data));
-      return data.matches.map((m:any) => {
+      return data.matches.map((m: any) => {
         if (m.replacements && m.replacements.length) {
           return {
             description: m.rule.description,
@@ -53,7 +54,7 @@ class GrammarChecker {
     }
   }
 
-  public static classifyTypeGramma(rule:any) {
+  public static classifyTypeGramma(rule: any) {
     const category = rule?.category?.id?.toLowerCase() || '';
     return category;
   }

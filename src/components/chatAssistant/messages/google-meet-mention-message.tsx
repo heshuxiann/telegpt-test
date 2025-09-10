@@ -1,21 +1,20 @@
-/* eslint-disable @stylistic/max-len */
-
+/* eslint-disable no-null/no-null */
 /* eslint-disable react/no-unescaped-entities */
 import React, { useState } from 'react';
 import type { Message } from 'ai';
 import cx from 'classnames';
 import { getGlobal } from '../../../global';
 
-import { getMessageContent, getUserFullName, hasMessageText } from '../../../global/helpers';
-import { selectChatLastMessageId, selectChatMessage, selectUser } from '../../../global/selectors';
+import { getUserFullName } from '../../../global/helpers';
+import { selectUser } from '../../../global/selectors';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage } from '../store/messages-store';
 import { createAuthConfirmModal } from '../utils/google-api';
 import { getAuthState, isTokenValid } from '../utils/google-auth';
-import ScheduleMeeting from '../utils/schedule-meeting';
+import ScheduleMeeting, { getMeetParamsByAITools } from '../utils/schedule-meeting';
 
 const GoogleMeetMentionMessage = ({ message }: { message: Message }) => {
-  const { chatId, messageId, isConfirmed } = JSON.parse(message.content) || {};
+  const { chatId, messageId, messageText, isConfirmed } = JSON.parse(message.content) || {};
   const [mergeConfirmed, setMergeConfirmed] = useState(isConfirmed);
 
   const renderName = () => {
@@ -25,22 +24,15 @@ const GoogleMeetMentionMessage = ({ message }: { message: Message }) => {
     return fullName;
   };
 
-  const handleConfirm = () => {
-    const global = getGlobal();
+  const handleConfirm = async () => {
     // TODO: get meeting info from recent message
-    let messageString = '';
-    const chatLastMessageId = selectChatLastMessageId(global, chatId) || 0;
-    for (let i = messageId; i <= chatLastMessageId; i++) {
-      const messageItem = selectChatMessage(global, chatId, i);
-      if (messageItem && hasMessageText(messageItem) && !messageItem.isOutgoing) {
-        const text = getMessageContent(messageItem).text?.text;
-        messageString += `;${text}`;
-      }
-    }
     const scheduleMeeting = ScheduleMeeting.create({ chatId });
-    scheduleMeeting.start({
-      chatId,
-      text: messageString,
+    const { email, startTime, duration, timeZone } = await getMeetParamsByAITools(messageText);
+    scheduleMeeting.confirmCallback({
+      startTime: startTime ? [startTime] : null,
+      email,
+      duration: duration || 1800,
+      timeZone,
     });
     setMergeConfirmed(true);
     message.content = JSON.stringify({

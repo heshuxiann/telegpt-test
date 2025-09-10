@@ -9,21 +9,21 @@ import { buildMtpPeerId, getEntityTypeById } from '../../../api/gramjs/gramjsBui
 type EntityType = 'user' | 'chat' | 'channel';
 
 // Create a mapping object
-export const ENTITY_TYPE_TO_NUMBER: { [key in EntityType]: number } = {
+export const ENTITY_TYPE_TO_NUMBER: Record<EntityType, number> = {
   user: 0,
   chat: 1,
   channel: 2,
 } as const;
 
 // Create a reverse mapping
-export const NUMBER_TO_ENTITY_TYPE: { [key: number]: EntityType } = {
+export const NUMBER_TO_ENTITY_TYPE: Record<number, EntityType> = {
   0: 'user',
   1: 'chat',
   2: 'channel',
 } as const;
 
 export const buildEntityTypeFromIds = (ids: string[]) => {
-  const entityTypes = ids.map((id:string) => {
+  const entityTypes = ids.map((id: string) => {
     const type = getEntityTypeById(id);
     const intId = buildMtpPeerId(id, type);
     return {
@@ -64,7 +64,6 @@ export interface IUrgentTopic {
   created_at?: string;
 }
 
-/* eslint-disable no-console */
 interface ITelegptSettings {
   [key: string]: any;
   user_id: string;
@@ -103,7 +102,7 @@ const POKE_RATE_MS = 600000;
 class TelegptSettings {
   private settings: ITelegptSettings = defaultSettings;
 
-  private user_id:string = '';
+  private user_id: string = '';
 
   private timer: ReturnType<typeof setInterval> | undefined;
 
@@ -173,7 +172,6 @@ class TelegptSettings {
     this.updateGptSettings(callback);
   }
 
-  // eslint-disable-next-line class-methods-use-this
   setGlobalSettings(newSettings: Partial<ITelegptSettings>) {
     const { autotranslate, autotranslatelanguage } = newSettings;
     getActions().setSettingOption({ autoTranslate: autotranslate || false });
@@ -181,7 +179,7 @@ class TelegptSettings {
     getActions().setSettingOption({ translationLanguage: autotranslatelanguage || 'en' });
   }
 
-  updateSummarizeTemplate(template:Partial<ISummaryTemplate>) {
+  updateSummarizeTemplate(template: Partial<ISummaryTemplate>) {
     return new Promise((resolve, reject) => {
       fetch(`${SERVER_API_URL}/settings/update-summarize`, {
         method: 'POST',
@@ -197,7 +195,7 @@ class TelegptSettings {
         .then((res) => {
           if (res.code === 0 && res.data) {
             if (template.id) {
-              this.settings.curious_info = this.settings.curious_info.map((item:any) => {
+              this.settings.curious_info = this.settings.curious_info.map((item: any) => {
                 if (item.id === template.id) {
                   return res.data;
                 }
@@ -236,7 +234,7 @@ class TelegptSettings {
     });
   }
 
-  updateUrgentTopic(template:Partial<IUrgentTopic>) {
+  updateUrgentTopic(template: Partial<IUrgentTopic>) {
     return new Promise((resolve, reject) => {
       fetch(`${SERVER_API_URL}/settings/update-urgent`, {
         method: 'POST',
@@ -252,7 +250,7 @@ class TelegptSettings {
         .then((res) => {
           if (res.code === 0 && res.data) {
             if (template.id) {
-              this.settings.urgent_info = this.settings.urgent_info.map((item:any) => {
+              this.settings.urgent_info = this.settings.urgent_info.map((item: any) => {
                 if (item.id === template.id) {
                   return res.data;
                 }
