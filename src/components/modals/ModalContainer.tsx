@@ -16,6 +16,7 @@ import BoostModal from './boost/BoostModal.async';
 import ChatInviteModal from './chatInvite/ChatInviteModal.async';
 import ChatlistModal from './chatlist/ChatlistModal.async';
 import CollectibleInfoModal from './collectible/CollectibleInfoModal.async';
+import CreditsModal from './credits/CreditsModal.async';
 import DeleteAccountModal from './deleteAccount/DeleteAccountModal.async';
 import EmojiStatusAccessModal from './emojiStatusAccess/EmojiStatusAccessModal.async';
 import FrozenAccountModal from './frozenAccount/FrozenAccountModal.async';
@@ -28,6 +29,7 @@ import GiftTransferModal from './gift/transfer/GiftTransferModal.async';
 import GiftUpgradeModal from './gift/upgrade/GiftUpgradeModal.async';
 import GiftWithdrawModal from './gift/withdraw/GiftWithdrawModal.async';
 import GiftCodeModal from './giftcode/GiftCodeModal.async';
+import InviteFriendsModal from './inviteFriends/InviteFriendsModal.async';
 import InviteViaLinkModal from './inviteViaLink/InviteViaLinkModal.async';
 import LocationAccessModal from './locationAccess/LocationAccessModal.async';
 import MapModal from './map/MapModal.async';
@@ -71,6 +73,8 @@ type ModalKey = keyof Pick<TabState,
   'suggestedPostApprovalModal' |
   'webApps' |
   'chatInviteModal' |
+  'creditsModal' |
+  'inviteFriendsModal' |
   'starsSubscriptionModal' |
   'starsGiftModal' |
   'giftModal' |
@@ -125,6 +129,8 @@ const MODALS: ModalRegistry = {
   starsBalanceModal: StarsBalanceModal,
   starsTransactionModal: StarsTransactionInfoModal,
   chatInviteModal: ChatInviteModal,
+  creditsModal: CreditsModal,
+  inviteFriendsModal: InviteFriendsModal,
   paidReactionModal: PaidReactionModal,
   suggestMessageModal: SuggestMessageModal,
   suggestedPostApprovalModal: SuggestedPostApprovalModal,

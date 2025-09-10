@@ -56,15 +56,15 @@ import type {
   ApiVideo,
   BotsPrivacyType,
   PrivacyVisibility,
-} from "../../api/types";
+} from '../../api/types';
 import type {
   ApiEmojiStatusCollectible,
   ApiEmojiStatusType,
-} from "../../api/types/users";
-import type { ApiCredentials } from "../../components/payment/PaymentModal";
-import type { FoldersActions } from "../../hooks/reducers/useFoldersReducer";
-import type { ReducerAction } from "../../hooks/useReducer";
-import type { P2pMessage } from "../../lib/secret-sauce";
+} from '../../api/types/users';
+import type { ApiCredentials } from '../../components/payment/PaymentModal';
+import type { FoldersActions } from '../../hooks/reducers/useFoldersReducer';
+import type { ReducerAction } from '../../hooks/useReducer';
+import type { P2pMessage } from '../../lib/secret-sauce';
 import type {
   AccountSettings,
   AudioOrigin,
@@ -100,15 +100,15 @@ import type {
   ThemeKey,
   ThreadId,
   WebPageMediaSize,
-} from "../../types";
+} from '../../types';
 import type {
   WebApp,
   WebAppModalStateType,
   WebAppOutboundEvent,
-} from "../../types/webapp";
-import type { DownloadableMedia } from "../helpers";
-import type { SharedState } from "./sharedState";
-import type { TabState } from "./tabState";
+} from '../../types/webapp';
+import type { DownloadableMedia } from '../helpers';
+import type { SharedState } from './sharedState';
+import type { TabState } from './tabState';
 
 export type WithTabId = { tabId?: number };
 
@@ -116,8 +116,8 @@ export interface ActionPayloads {
   // system
   init:
     | ({
-        isMasterTab?: boolean;
-      } & WithTabId)
+      isMasterTab?: boolean;
+    } & WithTabId)
     | undefined;
   reset: undefined;
   disconnect: undefined;
@@ -189,9 +189,14 @@ export interface ActionPayloads {
   acceptChatInvite: { hash: string } & WithTabId;
   closeChatInviteModal: WithTabId | undefined;
 
+  openCreditsModal: WithTabId | undefined;
+  closeCreditsModal: WithTabId | undefined;
+  openInviteFriendsModal: WithTabId | undefined;
+  closeInviteFriendsModal: WithTabId | undefined;
+
   // settings
   setSettingOption: Partial<AccountSettings> | undefined;
-  setSharedSettingOption: Partial<SharedState["settings"]> | undefined;
+  setSharedSettingOption: Partial<SharedState['settings']> | undefined;
   updatePerformanceSettings: Partial<PerformanceType>;
   loadPasswordInfo: undefined;
   clearTwoFaError: undefined;
@@ -225,8 +230,8 @@ export interface ActionPayloads {
   };
   loadBlockedUsers:
     | {
-        isOnlyStories?: boolean;
-      }
+      isOnlyStories?: boolean;
+    }
     | undefined;
   blockUser: {
     userId: string;
@@ -306,7 +311,7 @@ export interface ActionPayloads {
   updateMiddleSearch: {
     chatId: string;
     threadId?: ThreadId;
-    update: Partial<Omit<MiddleSearchParams, "results">>;
+    update: Partial<Omit<MiddleSearchParams, 'results'>>;
   } & WithTabId;
   resetMiddleSearch: WithTabId | undefined;
   performMiddleSearch: {
@@ -337,10 +342,10 @@ export interface ActionPayloads {
   toggleUserPortrait: ({ force?: boolean } & WithTabId) | undefined;
   openUserPortrait:
     | ({
-        force?: boolean;
-        userId: string;
-        chatId?: string;
-      } & WithTabId)
+      force?: boolean;
+      userId: string;
+      chatId?: string;
+    } & WithTabId)
     | undefined;
   setIsUiReady: {
     uiReadyState: 0 | 1 | 2;
@@ -373,11 +378,11 @@ export interface ActionPayloads {
   loadPinnedDialogs: {
     listType: ChatListType;
   };
-  openChatWithInfo: ActionPayloads["openChat"] & {
+  openChatWithInfo: ActionPayloads['openChat'] & {
     profileTab?: ProfileTabType;
     forceScrollProfileTab?: boolean;
   } & WithTabId;
-  openThreadWithInfo: ActionPayloads["openThread"] & WithTabId;
+  openThreadWithInfo: ActionPayloads['openThread'] & WithTabId;
   openChatAIWithInfo: WithTabId & {
     chatId: string;
   };
@@ -411,12 +416,12 @@ export interface ActionPayloads {
   loadRecommendedChatFolders: undefined;
   editChatFolder: {
     id: number;
-    folderUpdate: Omit<ApiChatFolder, "id" | "description" | "emoticon">;
-    from?: "user" | "AI";
+    folderUpdate: Omit<ApiChatFolder, 'id' | 'description' | 'emoticon'>;
+    from?: 'user' | 'AI';
   };
   addChatFolder: {
     folder: ApiChatFolder;
-    from?: "user" | "AI";
+    from?: 'user' | 'AI';
   } & WithTabId;
   deleteChatFolder: {
     id: number;
@@ -722,7 +727,7 @@ export interface ActionPayloads {
   saveDraft: {
     chatId: string;
     threadId: ThreadId;
-    text: ApiDraft["text"];
+    text: ApiDraft['text'];
   };
   clearDraft: {
     chatId: string;
@@ -758,7 +763,7 @@ export interface ActionPayloads {
     memberIds?: string[];
     discussionChannelId?: string;
   } & ({ isChannel: true } | { isSuperGroup: true }) &
-    WithTabId;
+  WithTabId;
   createGroupChat: {
     title: string;
     memberIds: string[];
@@ -771,7 +776,7 @@ export interface ActionPayloads {
   closeStarsPaymentModal: WithTabId | undefined;
   resetPaymentStatus: WithTabId | undefined;
   addPaymentError: {
-    error: TabState["payment"]["error"];
+    error: TabState['payment']['error'];
   } & WithTabId;
   validateRequestedInfo: {
     requestInfo: any;
@@ -827,13 +832,13 @@ export interface ActionPayloads {
   toggleStatistics: WithTabId | undefined;
   toggleMessageStatistics:
     | ({
-        messageId?: number;
-      } & WithTabId)
+      messageId?: number;
+    } & WithTabId)
     | undefined;
   toggleStoryStatistics:
     | ({
-        storyId?: number;
-      } & WithTabId)
+      storyId?: number;
+    } & WithTabId)
     | undefined;
   loadStatistics: {
     chatId: string;
@@ -902,8 +907,8 @@ export interface ActionPayloads {
   } & WithTabId;
   enterMessageSelectMode:
     | ({
-        messageId: number;
-      } & WithTabId)
+      messageId: number;
+    } & WithTabId)
     | undefined;
   toggleMessageSelection: {
     messageId: number;
@@ -1008,13 +1013,13 @@ export interface ActionPayloads {
   };
   toggleManagement:
     | ({
-        force?: boolean;
-      } & WithTabId)
+      force?: boolean;
+    } & WithTabId)
     | undefined;
   requestNextManagementScreen:
     | ({
-        screen?: ManagementScreens;
-      } & WithTabId)
+      screen?: ManagementScreens;
+    } & WithTabId)
     | undefined;
   closeManagement: WithTabId | undefined;
   checkPublicLink: { username: string } & WithTabId;
@@ -1038,7 +1043,7 @@ export interface ActionPayloads {
   };
   loadTopChats: undefined;
   showDialog: {
-    data: TabState["dialogs"][number];
+    data: TabState['dialogs'][number];
   } & WithTabId;
   focusMessage: {
     chatId: string;
@@ -1088,8 +1093,8 @@ export interface ActionPayloads {
   afterHangUp: undefined;
   requestMasterAndCallAction: CallbackAction & WithTabId;
   clearMultitabNextAction: WithTabId | undefined;
-  requestMasterAndJoinGroupCall: ActionPayloads["joinGroupCall"];
-  requestMasterAndRequestCall: ActionPayloads["requestCall"];
+  requestMasterAndJoinGroupCall: ActionPayloads['joinGroupCall'];
+  requestMasterAndRequestCall: ActionPayloads['requestCall'];
   requestMasterAndAcceptCall: WithTabId | undefined;
 
   // Initial
@@ -1106,8 +1111,8 @@ export interface ActionPayloads {
   setIsElectronUpdateAvailable: { isAvailable: boolean };
   setGlobalSearchClosing:
     | ({
-        isClosing?: boolean;
-      } & WithTabId)
+      isClosing?: boolean;
+    } & WithTabId)
     | undefined;
   processPremiumFloodWait: {
     isUpload?: boolean;
@@ -1138,16 +1143,16 @@ export interface ActionPayloads {
   closeFrozenAccountModal: WithTabId | undefined;
   openDeleteAccountModal:
     | ({
-        days: number;
-      } & WithTabId)
+      days: number;
+    } & WithTabId)
     | undefined;
   closeDeleteAccountModal: WithTabId | undefined;
   openAgeVerificationModal: WithTabId | undefined;
   closeAgeVerificationModal: WithTabId | undefined;
   setAccountTTL:
     | ({
-        days: number;
-      } & WithTabId)
+      days: number;
+    } & WithTabId)
     | undefined;
   loadAccountDaysTtl: undefined;
 
@@ -1230,18 +1235,18 @@ export interface ActionPayloads {
     focusMessageId?: number;
   } & (
     | {
-        isComments: true;
-        chatId?: string;
-        originMessageId: number;
-        originChannelId: string;
-      }
+      isComments: true;
+      chatId?: string;
+      originMessageId: number;
+      originChannelId: string;
+    }
     | {
-        isComments?: false;
-        chatId: string;
-        threadId: ThreadId;
-      }
+      isComments?: false;
+      chatId: string;
+      threadId: ThreadId;
+    }
   ) &
-    WithTabId;
+  WithTabId;
   // Used by both openThread & openChat
   processOpenChatOrThread: {
     chatId: string | undefined;
@@ -1361,7 +1366,7 @@ export interface ActionPayloads {
     id: string;
   };
   openStarsBalanceModal: {
-    originStarsPayment?: TabState["starsPayment"];
+    originStarsPayment?: TabState['starsPayment'];
     originGift?: StarGiftInfo;
     originReaction?: {
       chatId: string;
@@ -1373,7 +1378,7 @@ export interface ActionPayloads {
       purpose?: string;
     };
     shouldIgnoreBalance?: boolean;
-    currency?: ApiTypeCurrencyAmount["currency"];
+    currency?: ApiTypeCurrencyAmount['currency'];
   } & WithTabId;
   closeStarsBalanceModal: WithTabId | undefined;
 
@@ -1744,9 +1749,9 @@ export interface ActionPayloads {
   } & WithTabId;
   activateStealthMode:
     | {
-        isForPast?: boolean;
-        isForFuture?: boolean;
-      }
+      isForPast?: boolean;
+      isForFuture?: boolean;
+    }
     | undefined;
 
   openBoostModal: {
@@ -2220,13 +2225,13 @@ export interface ActionPayloads {
 
   callAttachBot: (
     | {
-        chatId: string;
-        threadId?: ThreadId;
-        url?: string;
-      }
+      chatId: string;
+      threadId?: ThreadId;
+      url?: string;
+    }
     | {
-        isFromSideMenu: true;
-      }
+      isFromSideMenu: true;
+    }
   ) & {
     startParam?: string;
     bot?: ApiAttachBot;
@@ -2293,8 +2298,8 @@ export interface ActionPayloads {
   } & WithTabId;
   closeWebAppModal:
     | ({
-        shouldSkipConfirmation?: boolean;
-      } & WithTabId)
+      shouldSkipConfirmation?: boolean;
+    } & WithTabId)
     | undefined;
   changeWebAppModalState: {
     state: WebAppModalStateType;
@@ -2311,8 +2316,8 @@ export interface ActionPayloads {
   };
   openPollModal:
     | ({
-        isQuiz?: boolean;
-      } & WithTabId)
+      isQuiz?: boolean;
+    } & WithTabId)
     | undefined;
   closePollModal: WithTabId | undefined;
   openTodoListModal: {
@@ -2370,7 +2375,7 @@ export interface ActionPayloads {
     url?: string;
   } & WithTabId;
   closeUrlAuthModal: WithTabId | undefined;
-  showNotification: Omit<ApiNotification, "localId"> & {
+  showNotification: Omit<ApiNotification, 'localId'> & {
     localId?: string;
   } & WithTabId;
   showAllowedMessageTypesNotification: {
@@ -2382,12 +2387,12 @@ export interface ActionPayloads {
   updatePageTitle: WithTabId | undefined;
   closeInviteViaLinkModal: WithTabId | undefined;
 
-  openOneTimeMediaModal: TabState["oneTimeMediaModal"] & WithTabId;
+  openOneTimeMediaModal: TabState['oneTimeMediaModal'] & WithTabId;
   closeOneTimeMediaModal: WithTabId | undefined;
 
   requestCollectibleInfo: {
     peerId: string;
-    type: "phone" | "username";
+    type: 'phone' | 'username';
     collectible: string;
   } & WithTabId;
   closeCollectibleInfoModal: WithTabId | undefined;
@@ -2401,30 +2406,30 @@ export interface ActionPayloads {
   } & WithTabId;
   toggleGroupCallMute:
     | {
-        participantId: string;
-        value: boolean;
-      }
+      participantId: string;
+      value: boolean;
+    }
     | undefined;
   toggleGroupCallPresentation:
     | {
-        value?: boolean;
-      }
+      value?: boolean;
+    }
     | undefined;
   leaveGroupCall:
     | ({
-        isFromLibrary?: boolean;
-        shouldDiscard?: boolean;
-        shouldRemove?: boolean;
-        rejoin?: ActionPayloads["joinGroupCall"];
-        isPageUnload?: boolean;
-      } & WithTabId)
+      isFromLibrary?: boolean;
+      shouldDiscard?: boolean;
+      shouldRemove?: boolean;
+      rejoin?: ActionPayloads['joinGroupCall'];
+      isPageUnload?: boolean;
+    } & WithTabId)
     | undefined;
 
   toggleGroupCallVideo: undefined;
   requestToSpeak:
     | {
-        value: boolean;
-      }
+      value: boolean;
+    }
     | undefined;
   setGroupCallParticipantVolume: {
     participantId: string;
@@ -2479,8 +2484,8 @@ export interface ActionPayloads {
   loadConfig: undefined;
   loadAppConfig:
     | {
-        hash: number;
-      }
+      hash: number;
+    }
     | undefined;
   loadPeerColors: undefined;
   loadTimezones: undefined;
@@ -2522,14 +2527,14 @@ export interface ActionPayloads {
   // Premium
   openPremiumModal:
     | ({
-        initialSection?: ApiPremiumSection;
-        fromUserId?: string;
-        toUserId?: string;
-        isSuccess?: boolean;
-        isGift?: boolean;
-        monthsAmount?: number;
-        gift?: ApiStarGift;
-      } & WithTabId)
+      initialSection?: ApiPremiumSection;
+      fromUserId?: string;
+      toUserId?: string;
+      isSuccess?: boolean;
+      isGift?: boolean;
+      monthsAmount?: number;
+      gift?: ApiStarGift;
+    } & WithTabId)
     | undefined;
   closePremiumModal: WithTabId | undefined;
 
@@ -2628,15 +2633,15 @@ export interface ActionPayloads {
   } & WithTabId;
   openGiftInfoModal: (
     | {
-        peerId: string;
-        recipientId?: string;
-        gift: ApiSavedStarGift;
-      }
+      peerId: string;
+      recipientId?: string;
+      gift: ApiSavedStarGift;
+    }
     | {
-        gift: ApiStarGift;
-      }
+      gift: ApiStarGift;
+    }
   ) &
-    WithTabId;
+  WithTabId;
   openGiftResalePriceComposerModal: {
     peerId: string;
     gift: ApiSavedStarGift;
@@ -2706,9 +2711,9 @@ export interface ActionPayloads {
 
   openStarsGiftModal:
     | ({
-        chatId?: string;
-        forUserId?: string;
-      } & WithTabId)
+      chatId?: string;
+      forUserId?: string;
+    } & WithTabId)
     | undefined;
   closeStarsGiftModal: WithTabId | undefined;
 
@@ -2741,7 +2746,7 @@ export interface ActionPayloads {
   } & WithTabId;
 
   processOriginStarsPayment: {
-    originData: TabState["starsBalanceModal"];
+    originData: TabState['starsBalanceModal'];
     status: ApiPaymentStatus;
   } & WithTabId;
 
@@ -2750,7 +2755,7 @@ export interface ActionPayloads {
   openPriceConfirmModal: {
     originalAmount: number;
     newAmount: number;
-    currency: "TON" | "XTR";
+    currency: 'TON' | 'XTR';
     directInfo: {
       formId: string;
       inputInvoice: ApiInputInvoice;
@@ -2775,14 +2780,14 @@ export interface ActionPayloads {
   };
   loadTopicById:
     | {
-        chatId: string;
-        topicId: number;
-      }
+      chatId: string;
+      topicId: number;
+    }
     | ({
-        chatId: string;
-        topicId: number;
-        shouldCloseChatOnError?: boolean;
-      } & WithTabId);
+      chatId: string;
+      topicId: number;
+      shouldCloseChatOnError?: boolean;
+    } & WithTabId);
 
   deleteTopic: {
     chatId: string;

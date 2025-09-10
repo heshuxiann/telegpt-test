@@ -1,5 +1,5 @@
-import React from '@teact';
 import type { AriaRole } from 'react';
+import React from '@teact';
 import type { ElementRef } from '../../../lib/teact/teact';
 
 import type { IconName } from '../../../types/icons';

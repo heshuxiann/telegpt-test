@@ -1,5 +1,5 @@
-import React from '@teact';
 import type { ChangeEvent } from 'react';
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
 import {
   memo, useEffect, useLayoutEffect, useMemo, useRef, useState,

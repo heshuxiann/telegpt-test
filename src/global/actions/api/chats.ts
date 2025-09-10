@@ -1105,6 +1105,7 @@ addActionHandler('loadChatFolders', async (global): Promise<void> => {
   if (chatFolders?.byId && Object.keys(chatFolders?.byId).length > 0) {
     const allFolderDb = await ChataiStores.folder?.getAllFolders();
     allFolderDb?.forEach(async (item) => {
+      // eslint-disable-next-line no-implicit-coercion
       if (Object.keys(chatFolders?.byId).indexOf(`${item?.id}`) < 0) {
         await ChataiStores.folder?.deleteFolder(item?.title);
       }

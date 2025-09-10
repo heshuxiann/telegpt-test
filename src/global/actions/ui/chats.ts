@@ -243,3 +243,31 @@ addActionHandler('closeChatInviteModal', (global, actions, payload): ActionRetur
     chatInviteModal: undefined,
   }, tabId);
 });
+
+addActionHandler('openCreditsModal', (global, actions, payload): ActionReturnType => {
+  const { tabId = getCurrentTabId() } = payload || {};
+  return updateTabState(global, {
+    creditsModal: { isOpen: true },
+  }, tabId);
+});
+
+addActionHandler('closeCreditsModal', (global, actions, payload): ActionReturnType => {
+  const { tabId = getCurrentTabId() } = payload || {};
+  return updateTabState(global, {
+    creditsModal: undefined,
+  }, tabId);
+});
+
+addActionHandler('openInviteFriendsModal', (global, actions, payload): ActionReturnType => {
+  const { tabId = getCurrentTabId() } = payload || {};
+  return updateTabState(global, {
+    inviteFriendsModal: { isOpen: true },
+  }, tabId);
+});
+
+addActionHandler('closeInviteFriendsModal', (global, actions, payload): ActionReturnType => {
+  const { tabId = getCurrentTabId() } = payload || {};
+  return updateTabState(global, {
+    inviteFriendsModal: undefined,
+  }, tabId);
+});

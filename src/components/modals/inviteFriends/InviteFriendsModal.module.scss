@@ -1,0 +1,35 @@
+.modal {
+  :global(.modal-dialog) {
+    max-width: 550px;
+    width: 90vw;
+  }
+}
+
+.content {
+  padding: 0;
+}
+
+.header {
+  width: 100%;
+  height: 40px;
+  // background-image: url("../../chatAssistant/assets/share-header-bg.png");
+  // background-size: cover;
+  // background-repeat: no-repeat;
+  // border-radius: var(--border-radius-modal);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    filter: blur(8px);
+    left: 0;
+    top: 0;
+  }
+}

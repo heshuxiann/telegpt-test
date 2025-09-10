@@ -27,6 +27,8 @@ export { default as DeleteAccountModal } from '../components/modals/deleteAccoun
 export { default as AgeVerificationModal } from '../components/modals/ageVerification/AgeVerificationModal';
 export { default as ChatlistModal } from '../components/modals/chatlist/ChatlistModal';
 export { default as ChatInviteModal } from '../components/modals/chatInvite/ChatInviteModal';
+export { default as CreditsModal } from '../components/modals/credits/CreditsModal';
+export { default as InviteFriendsModal } from '../components/modals/inviteFriends/InviteFriendsModal';
 
 export { default as AboutAdsModal } from '../components/modals/aboutAds/AboutAdsModal';
 export { default as AboutMonetizationModal } from '../components/common/AboutMonetizationModal';

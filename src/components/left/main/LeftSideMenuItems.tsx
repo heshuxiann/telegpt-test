@@ -1,6 +1,6 @@
 import React from '@teact';
 import { Modal } from 'antd';
-import { memo, useMemo ,useCallback ,useState ,useEffect } from '../../../lib/teact/teact';
+import { memo, useMemo, useCallback, useState, useEffect } from '../../../lib/teact/teact';
 import { getActions, withGlobal, getGlobal } from '../../../global';
 
 import type { ApiUser } from '../../../api/types';
@@ -36,6 +36,7 @@ import { AIChatFolderStep } from '../../chatAssistant/ai-chatfolders/ai-chatfold
 import { deleteAiChatFoldersFromUser, hideTip } from '../../chatAssistant/ai-chatfolders/util';
 import { aiChatFoldersTask } from '../../chatAssistant/ai-task/ai-chatfolders-task';
 import AIChatFolderIcon from '../../chatAssistant/assets/ai-chat-folder.png';
+import InviteGiftIcon from '../../chatAssistant/assets/invite/invite-gift.png';
 import AIKnowledgeIcon from '../../chatAssistant/assets/ai-knowledge.png';
 import AITranslateIcon from '../../chatAssistant/assets/ai-translate.png';
 import { ChataiStores, GLOBAL_AICHATFOLDERS_TIP_SHOW } from '../../chatAssistant/store';
@@ -99,6 +100,8 @@ const LeftSideMenuItems = ({
     openChatByUsername,
     openUrl,
     openChatWithInfo,
+    openCreditsModal,
+    openInviteFriendsModal,
   } = getActions();
   const oldLang = useOldLang();
   const lang = useLang();
@@ -126,6 +129,14 @@ const LeftSideMenuItems = ({
 
     setSharedSettingOption({ theme: newTheme });
     setSharedSettingOption({ shouldUseSystemTheme: false });
+  });
+
+  const handleCreditsClick = useLastCallback(() => {
+    openCreditsModal();
+  });
+
+  const handleInviteFriendsClick = useLastCallback(() => {
+    openInviteFriendsModal();
   });
 
   const handleAnimationLevelChange = useLastCallback((e: React.SyntheticEvent<HTMLElement>) => {
@@ -180,7 +191,7 @@ const LeftSideMenuItems = ({
           hideTip(AIChatFolderStep.classify);
           setAiChatFoldersLoading(false);
         },
-        onCancel: () => {},
+        onCancel: () => { },
       });
     } else {
       setAiChatFoldersLoading(true);
@@ -226,6 +237,15 @@ const LeftSideMenuItems = ({
           <MenuSeparator />
         </>
       )}
+       <MenuItem
+        onClick={handleCreditsClick}
+      >
+        <div className='pl-[1.25rem] pr-[0.75rem] w-full flex items-center justify-between'>
+          <span>{oldLang('Credits')}</span>
+          <span className='text-[13px] font-semibold text-[#037EE5]'>200</span>
+        </div>
+      </MenuItem>
+      <MenuSeparator />
       <MenuItem
         customIcon={<img className="icon" src={AIKnowledgeIcon} alt="ai-knowledge" style={buildStyle('width: 24px;height: 24px;max-width: 24px;')} />}
         onClick={onSelectAIKnowledge}
@@ -237,6 +257,12 @@ const LeftSideMenuItems = ({
         onClick={onSelectAITranslate}
       >
         {oldLang('AI Translate')}
+      </MenuItem>
+      <MenuItem
+        customIcon={<img className="icon" src={InviteGiftIcon} alt="ai-translate" style={buildStyle('width: 24px;height: 24px;max-width: 24px;')} />}
+        onClick={handleInviteFriendsClick}
+      >
+        {oldLang('Invite Friends')}
       </MenuItem>
       <MenuItem
         customIcon={<img className="icon" src={AIChatFolderIcon} alt="ai-chat-folders" style={buildStyle('width: 24px;height: 24px;max-width: 24px; padding:3px;')} />}

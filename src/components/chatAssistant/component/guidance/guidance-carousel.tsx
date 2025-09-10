@@ -1,5 +1,5 @@
 /* eslint-disable no-null/no-null */
-/* eslint-disable max-len */
+
 import React, { useRef } from 'react';
 import { Carousel } from 'antd';
 import type { CarouselRef } from 'antd/es/carousel';
@@ -9,7 +9,7 @@ import { CloseIcon } from '../../icons';
 
 import './guidance.scss';
 
-const CarouselItem = ({ className, children }:{ className:string;children?:React.ReactNode }) => {
+const CarouselItem = ({ className, children }: { className: string; children?: React.ReactNode }) => {
   return (
     <div className={cx('guidance-carousel-item', className)}>
       <div className="w-[42%] pl-[50px] pt-[5%] pb-[12%] h-full flex flex-col justify-center">
@@ -18,9 +18,9 @@ const CarouselItem = ({ className, children }:{ className:string;children?:React
     </div>
   );
 };
-const GuidanceCarousel = ({ handleClose }:{ handleClose:()=>void }) => {
+const GuidanceCarousel = ({ handleClose }: { handleClose: () => void }) => {
   const carouselRef = useRef<CarouselRef>(null);
-  const handleNextClick = (step:number) => {
+  const handleNextClick = (step: number) => {
     carouselRef.current?.goTo(step);
     if (step === 4) {
       handleClose();

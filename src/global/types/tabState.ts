@@ -103,7 +103,7 @@ export type TabState = {
   inviteHash?: string;
   canInstall?: boolean;
   isChatInfoShown: boolean;
-  isChatAIShown?:boolean;
+  isChatAIShown?: boolean;
   isUserPortraitShown?: boolean;
   userPortraitUserId?: string;
   isStatisticsShown?: boolean;
@@ -861,6 +861,14 @@ export type TabState = {
     chatId: string;
     isLoading?: boolean;
     errorKey?: RegularLangFnParameters;
+  };
+
+  creditsModal?: {
+    isOpen: boolean;
+  };
+
+  inviteFriendsModal?: {
+    isOpen: boolean;
   };
 
   isWaitingForStarGiftUpgrade?: true;

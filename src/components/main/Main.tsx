@@ -1,6 +1,6 @@
-import React from '@teact';
 import '../../global/actions/all';
 
+import React from '@teact';
 import {
   beginHeavyAnimation,
   memo, useEffect, useLayoutEffect,
@@ -153,7 +153,6 @@ type StateProps = {
 const APP_OUTDATED_TIMEOUT_MS = 5 * 60 * 1000; // 5 min
 const CALL_BUNDLE_LOADING_DELAY_MS = 5000; // 5 sec
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 let DEBUG_isLogged = false;
 
 const Main = ({
