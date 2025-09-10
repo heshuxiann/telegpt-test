@@ -29,6 +29,7 @@ import GiftTransferModal from './gift/transfer/GiftTransferModal.async';
 import GiftUpgradeModal from './gift/upgrade/GiftUpgradeModal.async';
 import GiftWithdrawModal from './gift/withdraw/GiftWithdrawModal.async';
 import GiftCodeModal from './giftcode/GiftCodeModal.async';
+import InviteCodeModal from './inviteCode/InviteCodeModal.async';
 import InviteFriendsModal from './inviteFriends/InviteFriendsModal.async';
 import InviteViaLinkModal from './inviteViaLink/InviteViaLinkModal.async';
 import LocationAccessModal from './locationAccess/LocationAccessModal.async';
@@ -74,6 +75,7 @@ type ModalKey = keyof Pick<TabState,
   'webApps' |
   'chatInviteModal' |
   'creditsModal' |
+  'inviteCodeModal' |
   'inviteFriendsModal' |
   'starsSubscriptionModal' |
   'starsGiftModal' |
@@ -130,6 +132,7 @@ const MODALS: ModalRegistry = {
   starsTransactionModal: StarsTransactionInfoModal,
   chatInviteModal: ChatInviteModal,
   creditsModal: CreditsModal,
+  inviteCodeModal: InviteCodeModal,
   inviteFriendsModal: InviteFriendsModal,
   paidReactionModal: PaidReactionModal,
   suggestMessageModal: SuggestMessageModal,

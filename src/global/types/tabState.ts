@@ -871,6 +871,10 @@ export type TabState = {
     isOpen: boolean;
   };
 
+  inviteCodeModal?: {
+    isOpen: boolean;
+  };
+
   isWaitingForStarGiftUpgrade?: true;
   isWaitingForStarGiftTransfer?: true;
   insertingPeerIdMention?: string;

@@ -1,5 +1,7 @@
-import React, { useState } from '../../../../lib/teact/teact';
+import React, { useEffect, useState } from '../../../../lib/teact/teact';
+import { getActions } from '../../../../global';
 
+import { getMyInvitation } from '../../utils/telegpt-api';
 import GuidanceWrapper from './guidance-wrapper';
 
 import useLastCallback from '../../../../hooks/useLastCallback';
@@ -11,10 +13,53 @@ import './guidance.scss';
 const GuidanceModal = () => {
   const telegptGuidance = localStorage.getItem('telegpt-guidance') === 'true';
   const [isFirstIn, setIsFirstIn] = useState<boolean>(!telegptGuidance);
-  const handleClose = useLastCallback(() => {
+
+  const checkInvitationStatus = useLastCallback(async () => {
+    const { openInviteCodeModal } = getActions();
+
+    try {
+      // 先从localStorage获取受邀信息
+      const cachedInvitation = localStorage.getItem('user-invitation');
+      if (cachedInvitation) {
+        const invitation = JSON.parse(cachedInvitation);
+        if (invitation && invitation.length > 0) {
+          return; // 已有受邀信息，无需打开弹窗
+        }
+      }
+
+      // 调用API获取受邀状态
+      const invitationData = await getMyInvitation();
+
+      // 存储到localStorage
+      localStorage.setItem('user-invitation', JSON.stringify(invitationData));
+
+      // 如果受邀信息为空，打开邀请码提交弹窗
+      if (!invitationData || !invitationData.data) {
+        openInviteCodeModal();
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to check invitation status:', error);
+      // 如果API调用失败，也打开邀请码弹窗
+      openInviteCodeModal();
+    }
+  });
+
+  useEffect(() => {
+    if (!isFirstIn) {
+    // 检测用户受邀状态
+      checkInvitationStatus();
+    }
+  }, [isFirstIn]);
+
+  const handleClose = useLastCallback(async () => {
     localStorage.setItem('telegpt-guidance', 'true');
     setIsFirstIn(false);
+
+    // 检测用户受邀状态
+    await checkInvitationStatus();
   });
+
   if (!isFirstIn) {
     return undefined;
   }

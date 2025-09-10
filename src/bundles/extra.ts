@@ -29,6 +29,7 @@ export { default as ChatlistModal } from '../components/modals/chatlist/Chatlist
 export { default as ChatInviteModal } from '../components/modals/chatInvite/ChatInviteModal';
 export { default as CreditsModal } from '../components/modals/credits/CreditsModal';
 export { default as InviteFriendsModal } from '../components/modals/inviteFriends/InviteFriendsModal';
+export { default as InviteCodeModal } from '../components/modals/inviteCode/InviteCodeModal';
 
 export { default as AboutAdsModal } from '../components/modals/aboutAds/AboutAdsModal';
 export { default as AboutMonetizationModal } from '../components/common/AboutMonetizationModal';

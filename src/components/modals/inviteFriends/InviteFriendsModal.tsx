@@ -1,3 +1,4 @@
+/* eslint-disable no-null/no-null */
 import React, { memo, useCallback } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
 
@@ -22,6 +23,30 @@ const InviteFriendsModal = ({ modal }: OwnProps) => {
   const handleClose = useCallback(() => {
     closeInviteFriendsModal();
   }, [closeInviteFriendsModal]);
+
+  const myInviteCodes = [
+    {
+      inviteCode: 'xKgGFDR',
+      invitedUser: null,
+      points: 0,
+      invitedAt: null,
+      status: 'available',
+    },
+    {
+      inviteCode: 'NMuNCqO',
+      invitedUser: null,
+      points: 0,
+      invitedAt: null,
+      status: 'available',
+    },
+    {
+      inviteCode: 'LkpHYge',
+      invitedUser: null,
+      points: 0,
+      invitedAt: null,
+      status: 'available',
+    },
+  ];
 
   if (!modal?.isOpen) {
     return undefined;
@@ -74,12 +99,18 @@ const InviteFriendsModal = ({ modal }: OwnProps) => {
             </thead>
 
             <tbody>
-              <tr role="row">
-                <td data-label="Codes">ABC123</td>
-                <td data-label="Invitees">alice@example.com, bob@example.com</td>
-                <td data-label="Credits" data-align="right">12</td>
-                <td data-label="Time"><span>2025-09-08 20:00 UTC</span></td>
-              </tr>
+              {
+                myInviteCodes.map((item) => {
+                  return (
+                    <tr role="row">
+                      <td data-label="Codes">{item.inviteCode}</td>
+                      <td data-label="Invitees">{item.invitedUser}</td>
+                      <td data-label="Credits" data-align="right">{item.points}</td>
+                      <td data-label="Time"><span>{item.invitedAt}</span></td>
+                    </tr>
+                  );
+                })
+              }
 
               <tr role="row">
                 <td data-label="Codes">XYZ789</td>

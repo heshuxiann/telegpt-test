@@ -271,3 +271,17 @@ addActionHandler('closeInviteFriendsModal', (global, actions, payload): ActionRe
     inviteFriendsModal: undefined,
   }, tabId);
 });
+
+addActionHandler('openInviteCodeModal', (global, actions, payload): ActionReturnType => {
+  const { tabId = getCurrentTabId() } = payload || {};
+  return updateTabState(global, {
+    inviteCodeModal: { isOpen: true },
+  }, tabId);
+});
+
+addActionHandler('closeInviteCodeModal', (global, actions, payload): ActionReturnType => {
+  const { tabId = getCurrentTabId() } = payload || {};
+  return updateTabState(global, {
+    inviteCodeModal: undefined,
+  }, tabId);
+});

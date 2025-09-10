@@ -193,6 +193,8 @@ export interface ActionPayloads {
   closeCreditsModal: WithTabId | undefined;
   openInviteFriendsModal: WithTabId | undefined;
   closeInviteFriendsModal: WithTabId | undefined;
+  openInviteCodeModal: WithTabId | undefined;
+  closeInviteCodeModal: WithTabId | undefined;
 
   // settings
   setSettingOption: Partial<AccountSettings> | undefined;
