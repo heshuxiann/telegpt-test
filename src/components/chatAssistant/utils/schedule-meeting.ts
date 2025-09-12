@@ -219,7 +219,6 @@ interface ScheduleMeetingParams {
   startTime?: string[];
   duration?: number;
   timeZone?: string;
-  prevTimeZone?: string;
 }
 class ScheduleMeeting {
   private static instances = new Map<string, ScheduleMeeting>();
@@ -233,8 +232,6 @@ class ScheduleMeeting {
   private startTime: string[];
 
   private duration: number;
-
-  private prevTimeZone: string;
 
   private timeZone: string;
 
@@ -255,7 +252,6 @@ class ScheduleMeeting {
     startTime = [],
     duration = 1800,
     timeZone = '',
-    prevTimeZone = 'UTC',
   }: ScheduleMeetingParams) {
     this.chatId = chatId;
     this.targetUserId = targetUserId;
@@ -263,7 +259,6 @@ class ScheduleMeeting {
     this.timeZone = timeZone;
     this.startTime = startTime;
     this.duration = duration;
-    this.prevTimeZone = prevTimeZone;
     this.handlerRef = ({ message }) => this.handlerImMessage({ message });
 
     // 注册监听器
@@ -297,7 +292,7 @@ class ScheduleMeeting {
     return ScheduleMeeting.instances.get(chatId);
   }
 
-  public confirmCallback({ startTime, email, timeZone, duration, timeConfirmed = false }: {
+  public async confirmCallback({ startTime, email, timeZone, duration, timeConfirmed = false }: {
     startTime: string[] | null;
     email: string[] | null;
     timeZone: string;
@@ -311,16 +306,20 @@ class ScheduleMeeting {
       this.email = email;
     }
     if (timeZone) {
-      if (this.timeZone) {
-        this.prevTimeZone = this.timeZone;
-      }
       this.timeZone = timeZone;
     }
     if (duration) {
       this.duration = duration;
     }
     this.timeConfirmed = timeConfirmed;
-    this.handleMeetingInfoAsk();
+    if (!this.timeConfirmed) {
+      await this.handleTimeCheck();
+    }
+    if (this.email.length && this.startTime && this.timeZone && this.duration && this.timeConfirmed) {
+      this.scheduleAuthCheck();
+    } else {
+      this.handleMeetingInfoAsk();
+    }
   }
 
   private handleMeetingInfoAsk() {
@@ -368,9 +367,6 @@ class ScheduleMeeting {
       this.email = email;
     }
     if (timeZone) {
-      if (this.timeZone) {
-        this.prevTimeZone = this.timeZone;
-      }
       this.timeZone = timeZone;
     }
     if (duration) {
@@ -449,6 +445,67 @@ class ScheduleMeeting {
     return [];
   }
 
+  private async handleTimeCheck() {
+    if (this.startTime.length && this.timeZone && !this.timeConfirmed) {
+      const parseTime = [attachZoneWithTemporal(this.startTime[0], this.timeZone).utcInstant];
+      const { isAvailable, suggestions } = await this.checkTimeAvailable(parseTime);
+      if (!isAvailable) {
+        this.startTime = [];
+        this.sendMessage(MEETING_TIME_UNAVAILABLE);
+        // 根据自己日历的时间，给出时间建议
+        await new Promise<void>((res) => {
+          void setTimeout(res, 1000);
+        });
+        this.sendMessage(
+          `Here are some available time slots you can choose from: \n ${suggestions!
+            .map(
+              (slot, index) =>
+                `${index + 1}.${formatMeetingTimeRange(
+                  slot.start,
+                  slot.end,
+                  this.timeZone,
+                  true,
+                )}`,
+            )
+            .join('\n')} \n [By TelyAI]`,
+        );
+        return;
+      } else {
+        this.timeConfirmed = true;
+      }
+    }
+  }
+
+  private async handleCalendlyMatch(text: string) {
+    // 尝试从Calendly链接获取可用时间
+    const availableSlots = await this.checkCalendlyLinks(text);
+    // 如果有可用时间，打开小助手让用户确认时间
+    if (availableSlots && availableSlots.length > 0 && !this.timeConfirmed) {
+      const meetingTimeConfirmMessage = createMeetingTimeConfirmMessage({
+        chatId: this.chatId,
+        startTime: availableSlots,
+        duration: this.duration,
+        timeZone: this.timeZone,
+        email: this.email,
+      });
+      ChataiStores?.message?.storeMessage(
+        parseMessage2StoreMessage(this.chatId, [meetingTimeConfirmMessage])[0],
+      );
+      this.cleanup();
+      // TODO: add meeting time confirm message and open ai room
+      const global = getGlobal();
+      const currentChat = selectCurrentChat(global);
+      if (currentChat && currentChat.id === this.chatId) {
+        eventEmitter.emit(
+          Actions.AddRoomAIMessage,
+          meetingTimeConfirmMessage,
+        );
+        getActions().openChatAIWithInfo({ chatId: this.chatId });
+      }
+      return;
+    }
+  }
+
   public async handler(params?: {
     chatId: string;
     senderId: string | undefined;
@@ -477,9 +534,6 @@ class ScheduleMeeting {
         paramHit = true;
       }
       if (timeZone) {
-        if (this.timeZone) {
-          this.prevTimeZone = this.timeZone;
-        }
         this.timeZone = timeZone;
         this.timeConfirmed = false;
         paramHit = true;
@@ -498,63 +552,9 @@ class ScheduleMeeting {
       }
 
       // 如果通过AI工具获取到了startTime和timeZone，且还未检查过时间可用性，则检查时间是否合理
-      if (this.startTime.length && this.timeZone && !this.timeConfirmed) {
-        this.startTime = [attachZoneWithTemporal(this.startTime[0], this.prevTimeZone, this.timeZone).utcInstant];
-        const { isAvailable, suggestions } = await this.checkTimeAvailable(this.startTime);
-        if (!isAvailable) {
-          this.startTime = [];
-          this.sendMessage(MEETING_TIME_UNAVAILABLE);
-          // 根据自己日历的时间，给出时间建议
-          await new Promise<void>((res) => {
-            void setTimeout(res, 1000);
-          });
-          this.sendMessage(
-            `Here are some available time slots you can choose from: \n ${suggestions!
-              .map(
-                (slot, index) =>
-                  `${index + 1}.${formatMeetingTimeRange(
-                    slot.start,
-                    slot.end,
-                    this.timeZone,
-                    true,
-                  )}`,
-              )
-              .join('\n')} \n [By TelyAI]`,
-          );
-          return;
-        } else {
-          this.timeConfirmed = true;
-        }
-      }
+      await this.handleTimeCheck();
 
-      // 尝试从Calendly链接获取可用时间
-      const availableSlots = await this.checkCalendlyLinks(text!);
-
-      // 如果有可用时间，打开小助手让用户确认时间
-      if (availableSlots && availableSlots.length > 0 && !this.timeConfirmed) {
-        const meetingTimeConfirmMessage = createMeetingTimeConfirmMessage({
-          chatId: this.chatId,
-          startTime: availableSlots,
-          duration: this.duration,
-          timeZone: this.timeZone,
-          email: this.email,
-        });
-        ChataiStores?.message?.storeMessage(
-          parseMessage2StoreMessage(this.chatId, [meetingTimeConfirmMessage])[0],
-        );
-        this.cleanup();
-        // TODO: add meeting time confirm message and open ai room
-        const global = getGlobal();
-        const currentChat = selectCurrentChat(global);
-        if (currentChat && currentChat.id === this.chatId) {
-          eventEmitter.emit(
-            Actions.AddRoomAIMessage,
-            meetingTimeConfirmMessage,
-          );
-          getActions().openChatAIWithInfo({ chatId: this.chatId });
-        }
-        return;
-      }
+      await this.handleCalendlyMatch(text!);
 
       // 只有当命中参数时才询问下一个必要条件
       if (paramHit) {
@@ -588,7 +588,7 @@ class ScheduleMeeting {
   }
 
   public handleCreateGoogleMeet(accessToken: string) {
-    const start = this.startTime[0];
+    const start = attachZoneWithTemporal(this.startTime[0], this.timeZone).utcInstant;
     createGoogleMeet({
       startDate: new Date(start),
       endDate: new Date(new Date(start).getTime() + this.duration * 1000),
