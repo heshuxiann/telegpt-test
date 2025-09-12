@@ -1,148 +1,61 @@
 .content {
-  width: 420px;
+  width: 800px;
   max-width: 90vw;
   padding: 0;
 }
 
-.header {
-  padding: 1.5rem 1.5rem 1rem;
-  text-align: center;
-  border-bottom: 1px solid var(--color-borders);
-}
-
-.title {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.body {
-  padding: 1.5rem;
-}
-
-.balanceSection {
+.totalPoints {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
-  background: var(--color-background-secondary);
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-}
-
-.balanceIcon {
-  font-size: 2rem;
-  margin-right: 1rem;
-}
-
-.balanceInfo {
-  flex: 1;
-}
-
-.balanceAmount {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-text);
-  margin-bottom: 0.25rem;
-}
-
-.balanceLabel {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
-
-.historySection {
-  margin-top: 1.5rem;
-}
-
-.sectionTitle {
-  margin: 0 0 1rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.transactionList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.transaction {
-  display: flex;
-  align-items: center;
-  padding: 0.75rem;
-  background: var(--color-background-secondary);
-  border-radius: 8px;
-}
-
-.transactionIcon {
-  width: 2rem;
-  height: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-weight: 600;
-  margin-right: 0.75rem;
+  padding: 16px 20px;
+  background-color: #F8F9FA;
+  border-bottom: 1px solid #E5E5E5;
+  margin-bottom: 0;
   
-  &:has-text("+") {
-    background: var(--color-green);
-    color: white;
+  .label {
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
   }
   
-  &:has-text("-") {
-    background: var(--color-red);
-    color: white;
+  .value {
+    font-weight: 700;
+    color: #007AFF;
+    font-size: 18px;
   }
 }
 
-.transactionInfo {
-  flex: 1;
-}
-
-.transactionTitle {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--color-text);
-  margin-bottom: 0.25rem;
-}
-
-.transactionDate {
-  font-size: 0.75rem;
-  color: var(--color-text-secondary);
-}
-
-.transactionAmount {
-  font-size: 0.875rem;
-  font-weight: 600;
-  
-  &:has-text("+") {
-    color: var(--color-green);
-  }
-  
-  &:has-text("-") {
-    color: var(--color-red);
-  }
-}
-
-.footer {
-  padding: 1rem 1.5rem 1.5rem;
-  border-top: 1px solid var(--color-borders);
-}
-
-.closeButton {
+.table {
   width: 100%;
-  padding: 0.75rem;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  border-collapse: collapse;
   
-  &:hover {
-    background: var(--color-primary-shade);
+  th {
+    height: 36px;
+    text-align: center;
+    vertical-align: middle;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 1px solid #E5E5E5;
+    &:nth-of-type(1){
+      width: 120px;
+    }
+  }
+  
+  td {
+    height: 50px;
+    text-align: center;
+    vertical-align: middle;
+    border-bottom: 1px solid #F1F1F1;
+    padding: 8px 12px;
+    
+    // 确保内部元素也居中
+    > div {
+      margin: 0 auto;
+    }
+  }
+  
+  tbody tr:hover {
+    background-color: #F9F9F9;
   }
 }

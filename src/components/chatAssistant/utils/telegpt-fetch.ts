@@ -21,7 +21,7 @@ export function TelegptFetch(path: string, method: 'POST' | 'GET' | 'DELETE', pa
   };
   if (userId) headers['user-id'] = userId;
   if (userName) headers['user-name'] = userName;
-  return fetch(`http://localhost:3000${path}`, {
+  return fetch(`${SERVER_API_URL}${path}`, {
     method,
     headers,
     body: JSON.stringify(params),

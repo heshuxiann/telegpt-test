@@ -1,13 +1,11 @@
 import React from '@teact';
 import { memo } from '../../../lib/teact/teact';
-import { getActions } from '../../../global';
+import { getActions, withGlobal } from '../../../global';
 
-import type { TabState } from '../../../global/types';
+import type { GlobalState, TabState } from '../../../global/types';
 
 import useLastCallback from '../../../hooks/useLastCallback';
-import useOldLang from '../../../hooks/useOldLang';
 
-import Button from '../../ui/Button';
 import Modal from '../../ui/Modal';
 
 import styles from './CreditsModal.module.scss';
@@ -16,9 +14,11 @@ export type OwnProps = {
   modal: TabState['creditsModal'];
 };
 
-const CreditsModal = ({ modal }: OwnProps) => {
+interface StateProps {
+  credits?: GlobalState['credits'];
+}
+const CreditsModal = ({ modal, credits }: OwnProps & StateProps) => {
   const { closeCreditsModal } = getActions();
-  const lang = useOldLang();
 
   const handleClose = useLastCallback(() => {
     closeCreditsModal();
@@ -28,55 +28,48 @@ const CreditsModal = ({ modal }: OwnProps) => {
     <Modal
       isOpen={Boolean(modal?.isOpen)}
       contentClassName={styles.content}
-      isSlim
+      title="Credits Detail"
+      hasCloseButton
       onClose={handleClose}
     >
-      <div className={styles.header}>
-        <h2 className={styles.title}>{lang('Credits')}</h2>
-      </div>
-
-      <div className={styles.body}>
-        <div className={styles.balanceSection}>
-          <div className={styles.balanceIcon}>⭐</div>
-          <div className={styles.balanceInfo}>
-            <div className={styles.balanceAmount}>1,250</div>
-            <div className={styles.balanceLabel}>{lang('Available Credits')}</div>
-          </div>
-        </div>
-
-        <div className={styles.historySection}>
-          <h3 className={styles.sectionTitle}>{lang('Recent Transactions')}</h3>
-          <div className={styles.transactionList}>
-            <div className={styles.transaction}>
-              <div className={styles.transactionIcon}>+</div>
-              <div className={styles.transactionInfo}>
-                <div className={styles.transactionTitle}>{lang('Daily Bonus')}</div>
-                <div className={styles.transactionDate}>Today</div>
-              </div>
-              <div className={styles.transactionAmount}>+50</div>
-            </div>
-            <div className={styles.transaction}>
-              <div className={styles.transactionIcon}>-</div>
-              <div className={styles.transactionInfo}>
-                <div className={styles.transactionTitle}>{lang('Premium Feature')}</div>
-                <div className={styles.transactionDate}>Yesterday</div>
-              </div>
-              <div className={styles.transactionAmount}>-100</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.footer}>
-        <Button
-          className={styles.closeButton}
-          onClick={handleClose}
-        >
-          {lang('Close')}
-        </Button>
-      </div>
+      <table className={styles.table} role="table" aria-label="Codes, Invitees, Credits and Time">
+        <thead className="h-[36px] bg-[#F6F6F6]">
+          <tr role="row">
+            <th role="columnheader">Detail</th>
+            <th role="columnheader">Date</th>
+            <th role="columnheader">Credits change</th>
+          </tr>
+        </thead>
+        <tbody>
+          {!credits || credits.pointsHistory?.length === 0 ? (
+            <tr>
+              <td colSpan={4} className="text-center text-[var(--color-text-secondary)] py-4">
+                No Data
+              </td>
+            </tr>
+          ) : (
+            credits.pointsHistory?.map((item: any) => {
+              return (
+                <tr role="row">
+                  <td data-label="Detail">{item.sourceDescription}</td>
+                  <td data-label="Invitees">{new Date(item.createdAt).toLocaleString()}</td>
+                  <td data-label="Credits">{item.amount}</td>
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </table>
     </Modal>
   );
 };
 
-export default memo(CreditsModal);
+export default memo(withGlobal<OwnProps>(
+  (global): StateProps => {
+    const { credits } = global;
+
+    return {
+      credits,
+    };
+  },
+)(CreditsModal));

@@ -33,3 +33,37 @@
     filter: blur(8px);
   }
 }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  
+  th {
+    height: 36px;
+    text-align: center;
+    vertical-align: middle;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 1px solid #E5E5E5;
+    &:nth-of-type(1){
+      width: 120px;
+    }
+  }
+  
+  td {
+    height: 50px;
+    text-align: center;
+    vertical-align: middle;
+    border-bottom: 1px solid #F1F1F1;
+    padding: 8px 12px;
+    
+    // 确保内部元素也居中
+    > div {
+      margin: 0 auto;
+    }
+  }
+  
+  tbody tr:hover {
+    background-color: #F9F9F9;
+  }
+}

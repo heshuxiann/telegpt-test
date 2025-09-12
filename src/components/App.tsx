@@ -19,6 +19,7 @@ import { hasEncryptedSession } from '../util/passcode';
 import { getInitialLocationHash, parseInitialLocationHash } from '../util/routing';
 import { checkSessionLocked, hasStoredSession } from '../util/sessions';
 import { updateSizes } from '../util/windowSize';
+import { setChataiStoreBuilderCurrentUserId } from './chatAssistant/store/stores';
 
 import useAppLayout from '../hooks/useAppLayout';
 import useFlag from '../hooks/useFlag';
@@ -31,7 +32,6 @@ import AppInactive from './main/AppInactive';
 import LockScreen from './main/LockScreen.async';
 import Main from './main/Main.async';
 import Transition from './ui/Transition';
-import { setChataiStoreBuilderCurrentUserId } from './chatAssistant/store/stores';
 
 import styles from './App.module.scss';
 

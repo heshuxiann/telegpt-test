@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { Message } from 'ai';
 import copy from 'copy-to-clipboard';
@@ -9,7 +8,7 @@ import {
   CopyIcon, VoiceIcon, VoiceingIcon,
 } from './icons';
 
-export const MessageActions = ({ message }: { message:Message }) => {
+export const MessageActions = ({ message }: { message: Message }) => {
   const { showNotification } = getActions();
   const { isSpeaking, speak, stop } = useSpeechPlayer(message.id);
   const handleCopy = () => {

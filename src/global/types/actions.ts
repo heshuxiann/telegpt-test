@@ -191,6 +191,15 @@ export interface ActionPayloads {
 
   openCreditsModal: WithTabId | undefined;
   closeCreditsModal: WithTabId | undefined;
+  updateCredits: {
+    totalPoints: number;
+    pointsHistory?: {
+      source: number;
+      sourceDescription: string;
+      amount: number;
+      createdAt: string;
+    }[];
+  } & WithTabId;
   openInviteFriendsModal: WithTabId | undefined;
   closeInviteFriendsModal: WithTabId | undefined;
   openInviteCodeModal: WithTabId | undefined;

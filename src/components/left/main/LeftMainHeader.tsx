@@ -53,6 +53,7 @@ import LeftSideMenuItems from './LeftSideMenuItems';
 import StatusButton from './StatusButton';
 
 import './LeftMainHeader.scss';
+import { getPointsDetail } from '../../chatAssistant/utils/telegpt-api';
 
 type OwnProps = {
   shouldHideSearch?: boolean;
@@ -125,6 +126,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
     lockScreen,
     openSettingsScreen,
     searchMessagesGlobal,
+    updateCredits,
   } = getActions();
 
   const oldLang = useOldLang();
@@ -169,25 +171,38 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
   } : undefined), [canSetPasscode]));
 
   const MainButton: FC<{ onTrigger: () => void; isOpen?: boolean }> = useMemo(() => {
-    return ({ onTrigger, isOpen }) => (
-      <Button
-        round
-        ripple={hasMenu && !isMobile}
-        size="smaller"
-        color="translucent"
-        className={isOpen ? 'active' : ''}
+    return ({ onTrigger, isOpen }) => {
+      const handleTrigger = () => {
+        onTrigger();
+        getPointsDetail().then((res) => {
+          if (res.code === 0) {
+            updateCredits({
+              totalPoints: res.data.totalPoints,
+              pointsHistory: res.data.pointsHistory,
+            });
+          }
+        });
+      };
+      return (
+        <Button
+          round
+          ripple={hasMenu && !isMobile}
+          size="smaller"
+          color="translucent"
+          className={isOpen ? 'active' : ''}
 
-        onClick={hasMenu ? onTrigger : () => onReset()}
-        ariaLabel={hasMenu ? oldLang('AccDescrOpenMenu2') : 'Return to chat list'}
-      >
-        <div className={buildClassName(
-          'animated-menu-icon',
-          !hasMenu && 'state-back',
-          shouldSkipTransition && 'no-animation',
-        )}
-        />
-      </Button>
-    );
+          onClick={hasMenu ? handleTrigger : () => onReset()}
+          ariaLabel={hasMenu ? oldLang('AccDescrOpenMenu2') : 'Return to chat list'}
+        >
+          <div className={buildClassName(
+            'animated-menu-icon',
+            !hasMenu && 'state-back',
+            shouldSkipTransition && 'no-animation',
+          )}
+          />
+        </Button>
+      )
+    };
   }, [hasMenu, isMobile, oldLang, onReset, shouldSkipTransition]);
 
   const handleSearchFocus = useLastCallback(() => {

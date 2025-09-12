@@ -54,6 +54,7 @@ import Spinner from '../../ui/Spinner';
 import Switcher from '../../ui/Switcher';
 import Toggle from '../../ui/Toggle';
 import AccountMenuItems from './AccountMenuItems';
+import Icon from '../../common/icons/Icon';
 
 type OwnProps = {
   onSelectAIKnowledge: NoneToVoidFunction;
@@ -73,7 +74,7 @@ type StateProps = {
   currentUser?: ApiUser;
   accountsTotalLimit: number;
   aiChatFolders?: boolean;
-} & Pick<GlobalState, 'currentUserId' | 'archiveSettings'>;
+} & Pick<GlobalState, 'currentUserId' | 'archiveSettings' | 'credits'>;
 
 const LeftSideMenuItems = ({
   currentUserId,
@@ -85,6 +86,7 @@ const LeftSideMenuItems = ({
   currentUser,
   accountsTotalLimit,
   aiChatFolders,
+  credits,
   onSelectArchived,
   onSelectContacts,
   onSelectSettings,
@@ -242,7 +244,14 @@ const LeftSideMenuItems = ({
       >
         <div className='pl-[1.25rem] pr-[0.75rem] w-full flex items-center justify-between'>
           <span>{oldLang('Credits')}</span>
-          <span className='text-[13px] font-semibold text-[#037EE5]'>200</span>
+          {credits?.totalPoints && (
+           <>
+             <div className='flex items-center'>
+              <span className='text-[13px] font-semibold text-[#037EE5]'>{credits?.totalPoints}</span>
+              <Icon name='arrow-right' className='mr-0' />
+             </div>
+           </>
+          )}
         </div>
       </MenuItem>
       <MenuSeparator />
@@ -389,7 +398,7 @@ export default memo(withGlobal<OwnProps>(
   (global): StateProps => {
     const tabState = selectTabState(global);
     const {
-      currentUserId, archiveSettings,
+      currentUserId, archiveSettings,credits
     } = global;
     const { animationLevel, aiChatFolders } = selectSharedSettings(global);
     const attachBots = global.attachMenu.bots;
@@ -404,6 +413,7 @@ export default memo(withGlobal<OwnProps>(
       attachBots,
       accountsTotalLimit: selectPremiumLimit(global, 'moreAccounts'),
       aiChatFolders,
+      credits
     };
   },
 )(LeftSideMenuItems));

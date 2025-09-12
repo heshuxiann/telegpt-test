@@ -1,5 +1,5 @@
-import React from '@teact';
 import type { FC } from '@teact';
+import React from '@teact';
 import { beginHeavyAnimation, memo, useEffect, useMemo, useRef } from '@teact';
 import { addExtraClass, removeExtraClass } from '@teact/teact-dom.ts';
 import { getActions, getGlobal, withGlobal } from '../../global';
@@ -103,8 +103,8 @@ type OwnProps = {
 };
 
 type StateProps = {
-  autoTranslate?:boolean;
-  autoTranslateLanguage?:string;
+  autoTranslate?: boolean;
+  autoTranslateLanguage?: string;
   isChatLoaded?: boolean;
   isChannelChat?: boolean;
   isGroupChat?: boolean;

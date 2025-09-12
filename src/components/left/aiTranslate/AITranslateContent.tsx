@@ -1,5 +1,4 @@
 import React from '@teact';
-/* eslint-disable max-len */
 import type { FC } from '../../../lib/teact/teact';
 import {
   memo,
@@ -20,7 +19,7 @@ type OwnProps = {
   isActive?: boolean;
   onReset: () => void;
 };
-type StateProps = { autoTranslate:boolean | undefined };
+type StateProps = { autoTranslate: boolean | undefined };
 
 const AITranslateContent: FC<OwnProps & StateProps> = ({
   autoTranslate,

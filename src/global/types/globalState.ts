@@ -467,6 +467,15 @@ export type GlobalState = {
     balance: ApiTonAmount;
     history: StarsTransactionHistory;
   };
+  credits?: {
+    totalPoints: number;
+    pointsHistory?: {
+      source: number;
+      sourceDescription: string;
+      amount: number;
+      createdAt: string;
+    }[];
+  };
 };
 
 export type RequiredGlobalState = GlobalState & { _: never };

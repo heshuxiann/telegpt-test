@@ -1,52 +1,70 @@
 /* eslint-disable no-null/no-null */
-import React, { memo, useCallback } from '../../../lib/teact/teact';
+import cx from 'classnames';
+import React, { memo, useCallback, useEffect, useState } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
+import copy from 'copy-to-clipboard';
 
 import type { TabState } from '../../../global/types';
 
 import LinkIcon from '../../../components/chatAssistant/assets/invite/link.svg';
 import UserGroupIcon from '../../../components/chatAssistant/assets/invite/user-group.svg';
 import HeaderBg from '../../chatAssistant/assets/share-header-bg.png';
+import { getAllInviteInfo } from '../../chatAssistant/utils/telegpt-api';
 
 import Icon from '../../common/icons/Icon';
 import Modal from '../../ui/Modal';
 
 import styles from './InviteFriendsModal.module.scss';
+import Spinner from '../../ui/Spinner';
 
 export type OwnProps = {
   modal: TabState['inviteFriendsModal'];
 };
 
+interface InviteInfo {
+  myInvitation: {
+    inviteCode: string;
+    inviterId: string;
+    invitedAt: string;
+  };
+  myInviteCodes: {
+    inviteCode: string;
+    invitedUser: string;
+    invitedUserName: string;
+    points: number;
+    invitedAt: string;
+    status: 'available' | 'used';
+  }[];
+}
+
 const InviteFriendsModal = ({ modal }: OwnProps) => {
   const { closeInviteFriendsModal } = getActions();
+  const [inviteInfo, setInviteInfo] = useState<InviteInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (modal?.isOpen) {
+      getAllInviteInfo().then((res) => {
+        if (res.code === 0) {
+          setInviteInfo(res.data);
+        }
+        setLoading(false);
+      }).catch(() => {
+        setLoading(false);
+      });
+    }
+  }, [modal?.isOpen]);
 
   const handleClose = useCallback(() => {
     closeInviteFriendsModal();
   }, [closeInviteFriendsModal]);
 
-  const myInviteCodes = [
-    {
-      inviteCode: 'xKgGFDR',
-      invitedUser: null,
-      points: 0,
-      invitedAt: null,
-      status: 'available',
-    },
-    {
-      inviteCode: 'NMuNCqO',
-      invitedUser: null,
-      points: 0,
-      invitedAt: null,
-      status: 'available',
-    },
-    {
-      inviteCode: 'LkpHYge',
-      invitedUser: null,
-      points: 0,
-      invitedAt: null,
-      status: 'available',
-    },
-  ];
+  const handleCopy = (code: string) => {
+    copy(code);
+    getActions().showNotification({
+      message: 'TextCopied',
+    });
+  }
 
   if (!modal?.isOpen) {
     return undefined;
@@ -74,7 +92,7 @@ const InviteFriendsModal = ({ modal }: OwnProps) => {
             This is your exclusive invitation code, it has already been linked to your account.
           </div>
           <div className="text-[14px] text-[var(--color-text)]">
-            <span className="font-bold">AvumE2m</span>
+            <span className="font-bold">{inviteInfo?.myInvitation.inviteCode}</span>
             <span>(Used by my account)</span>
           </div>
         </div>
@@ -88,7 +106,7 @@ const InviteFriendsModal = ({ modal }: OwnProps) => {
           <div className="text-[var(--color-text-secondary)] text-[14px]">
             Share the invitation codes below with your friends! When a new user signs up and uses your invitation code, both you and the invitee will each receive a 100 credit bonus.
           </div>
-          <table role="table" aria-label="Codes, Invitees, Credits and Time">
+          <table className={styles.table} role="table" aria-label="Codes, Invitees, Credits and Time">
             <thead className="h-[36px] bg-[#F6F6F6]">
               <tr role="row">
                 <th role="columnheader">Codes</th>
@@ -100,31 +118,41 @@ const InviteFriendsModal = ({ modal }: OwnProps) => {
 
             <tbody>
               {
-                myInviteCodes.map((item) => {
-                  return (
-                    <tr role="row">
-                      <td data-label="Codes">{item.inviteCode}</td>
-                      <td data-label="Invitees">{item.invitedUser}</td>
-                      <td data-label="Credits" data-align="right">{item.points}</td>
-                      <td data-label="Time"><span>{item.invitedAt}</span></td>
-                    </tr>
-                  );
-                })
+                loading ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-4">
+                      <Spinner />
+                    </td>
+                  </tr>
+                ) : (
+                  inviteInfo?.myInviteCodes.map((item) => {
+                    return (
+                      <tr role="row">
+                        <td data-label="Codes">
+                          <div
+                            className={cx('w-[100px] h-[36px] text-white text-[14px] flex items-center justify-center gap-[6px] rounded-[8px] bg-[#369CFF]', {
+                              'bg-[#D6D6D6]': item.status === 'used',
+                            })}
+                            onClick={() => handleCopy(item.inviteCode)}
+                          >
+                            <span>{item.inviteCode}</span>
+                            <Icon name="copy" className="cursor-pointer text-[18px]" />
+                          </div>
+                        </td>
+                        {
+                          item.status === 'used' && (
+                            <>
+                              <td data-label="Invitees">{item.invitedUserName}</td>
+                              <td data-label="Credits">{item.points}</td>
+                              <td data-label="Time">{new Date(item.invitedAt).toLocaleString()}</td>
+                            </>
+                          )
+                        }
+                      </tr>
+                    );
+                  })
+                )
               }
-
-              <tr role="row">
-                <td data-label="Codes">XYZ789</td>
-                <td data-label="Invitees">charlie@example.com</td>
-                <td data-label="Credits" data-align="right">5</td>
-                <td data-label="Time"><span>2025-09-09 09:30 GMT+8</span></td>
-              </tr>
-
-              <tr role="row">
-                <td data-label="Codes">MEET42</td>
-                <td data-label="Invitees">team@example.com</td>
-                <td data-label="Credits" data-align="right">20</td>
-                <td data-label="Time"><span>2025-09-10 15:00 America/New_York</span></td>
-              </tr>
             </tbody>
           </table>
         </div>

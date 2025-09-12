@@ -22,19 +22,20 @@ const GuidanceModal = () => {
       const cachedInvitation = localStorage.getItem('user-invitation');
       if (cachedInvitation) {
         const invitation = JSON.parse(cachedInvitation);
-        if (invitation && invitation.length > 0) {
+        if (invitation && invitation.inviteCode) {
           return; // 已有受邀信息，无需打开弹窗
         }
       }
 
       // 调用API获取受邀状态
       const invitationData = await getMyInvitation();
+      const invitationInfo = invitationData.data;
 
       // 存储到localStorage
-      localStorage.setItem('user-invitation', JSON.stringify(invitationData));
+      localStorage.setItem('user-invitation', JSON.stringify(invitationInfo));
 
       // 如果受邀信息为空，打开邀请码提交弹窗
-      if (!invitationData || !invitationData.data) {
+      if (!invitationInfo) {
         openInviteCodeModal();
       }
     } catch (error) {

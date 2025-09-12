@@ -41,3 +41,29 @@ export const getMyInviteCodes = (): Promise<any> => {
       });
   });
 };
+
+export const getAllInviteInfo = (): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    TelegptFetch('/invitation?action=get_all_invitation_info', 'GET')
+      .then((res) => res.json()).then()
+      .then((toolResults) => {
+        resolve(toolResults);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const getPointsDetail = (): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    TelegptFetch('/invitation?action=get_points_detail', 'GET')
+      .then((res) => res.json()).then()
+      .then((toolResults) => {
+        resolve(toolResults);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import React, { memo, useState } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
 
