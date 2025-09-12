@@ -66,10 +66,10 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
     }
     setIsSchedulingMeeting(true);
     const targetUserId = isUserId(chatId) ? undefined : message.senderId;
-    const scheduleMeeting = ScheduleMeeting.create({ chatId, targetUserId });
     const auth = getAuthState();
 
     const startMeeting = () => {
+      const scheduleMeeting = ScheduleMeeting.create({ chatId, targetUserId });
       scheduleMeeting.handleTargetMessage(message);
       // Reset the flag after a delay to prevent rapid clicks
       setTimeout(() => setIsSchedulingMeeting(false), 2000);

@@ -70,7 +70,7 @@ function suggestFreeTimes(
   durationMinutes = 30,
   count = 3,
 ) {
-  const now = DateTime.utc();
+  const now = DateTime.local();
   const endRange = now.plus({ days: 3 });
 
   // 转成 Interval[]
@@ -99,7 +99,22 @@ function suggestFreeTimes(
       millisecond: 0,
     });
 
+    // 确保从整点或半点开始
     let slotStart = dayStart;
+    if (cursor.hasSame(now, 'day')) {
+      // 如果是今天，需要从当前时间之后的下一个整点或半点开始
+      const currentMinute = now.minute;
+      if (currentMinute < 30) {
+        slotStart = now.set({ minute: 30, second: 0, millisecond: 0 });
+      } else {
+        slotStart = now.plus({ hours: 1 }).set({ minute: 0, second: 0, millisecond: 0 });
+      }
+      // 确保不早于工作时间开始
+      if (slotStart < dayStart) {
+        slotStart = dayStart;
+      }
+    }
+
     while (slotStart.plus({ minutes: durationMinutes }) <= dayEnd) {
       const slotEnd = slotStart.plus({ minutes: durationMinutes });
 
@@ -119,7 +134,8 @@ function suggestFreeTimes(
         }
       }
 
-      slotStart = slotStart.plus({ minutes: durationMinutes });
+      // 每次递增30分钟，确保始终在整点或半点
+      slotStart = slotStart.plus({ minutes: 30 });
     }
     cursor = cursor.plus({ days: 1 }).startOf('day');
   }
@@ -190,6 +206,12 @@ export function getMeetParamsByAITools(message: string): Promise<any> {
   });
 }
 
+function isPast(dateISOString: string): boolean {
+  const inputTime = new Date(dateISOString).getTime(); // UTC 毫秒时间戳
+  const now = Date.now(); // 当前时间（UTC 毫秒）
+  return inputTime < now;
+}
+
 interface ScheduleMeetingParams {
   chatId: string;
   targetUserId?: string | undefined;
@@ -197,6 +219,7 @@ interface ScheduleMeetingParams {
   startTime?: string[];
   duration?: number;
   timeZone?: string;
+  prevTimeZone?: string;
 }
 class ScheduleMeeting {
   private static instances = new Map<string, ScheduleMeeting>();
@@ -210,6 +233,8 @@ class ScheduleMeeting {
   private startTime: string[];
 
   private duration: number;
+
+  private prevTimeZone: string;
 
   private timeZone: string;
 
@@ -230,6 +255,7 @@ class ScheduleMeeting {
     startTime = [],
     duration = 1800,
     timeZone = '',
+    prevTimeZone = 'UTC',
   }: ScheduleMeetingParams) {
     this.chatId = chatId;
     this.targetUserId = targetUserId;
@@ -237,6 +263,7 @@ class ScheduleMeeting {
     this.timeZone = timeZone;
     this.startTime = startTime;
     this.duration = duration;
+    this.prevTimeZone = prevTimeZone;
     this.handlerRef = ({ message }) => this.handlerImMessage({ message });
 
     // 注册监听器
@@ -284,6 +311,9 @@ class ScheduleMeeting {
       this.email = email;
     }
     if (timeZone) {
+      if (this.timeZone) {
+        this.prevTimeZone = this.timeZone;
+      }
       this.timeZone = timeZone;
     }
     if (duration) {
@@ -331,13 +361,16 @@ class ScheduleMeeting {
     const text = getMessageContent(message)?.text?.text || '';
     this.messageId = message.id;
     const { email, startTime, duration, timeZone } = await getMeetParamsByAITools(text);
-    if (startTime && startTime.length) {
-      this.startTime = startTime;
+    if (startTime) {
+      this.startTime = [startTime];
     }
     if (email && email.length) {
       this.email = email;
     }
     if (timeZone) {
+      if (this.timeZone) {
+        this.prevTimeZone = this.timeZone;
+      }
       this.timeZone = timeZone;
     }
     if (duration) {
@@ -370,6 +403,18 @@ class ScheduleMeeting {
       return {
         isAvailable: false,
         suggestions: [],
+      };
+    }
+
+    const originalTimeWasPast = isPast(timeToCheck);
+
+    if (originalTimeWasPast) {
+      // 如果原始时间是过去时间，直接返回不可用并提供推荐时间
+      const myBusyTimes = await getGoogleCalendarFreeBusy();
+      const suggestions = suggestFreeTimes(myBusyTimes);
+      return {
+        isAvailable: false,
+        suggestions,
       };
     }
 
@@ -432,6 +477,9 @@ class ScheduleMeeting {
         paramHit = true;
       }
       if (timeZone) {
+        if (this.timeZone) {
+          this.prevTimeZone = this.timeZone;
+        }
         this.timeZone = timeZone;
         this.timeConfirmed = false;
         paramHit = true;
@@ -451,7 +499,7 @@ class ScheduleMeeting {
 
       // 如果通过AI工具获取到了startTime和timeZone，且还未检查过时间可用性，则检查时间是否合理
       if (this.startTime.length && this.timeZone && !this.timeConfirmed) {
-        this.startTime = [attachZoneWithTemporal(this.startTime[0], this.timeZone).utcInstant];
+        this.startTime = [attachZoneWithTemporal(this.startTime[0], this.prevTimeZone, this.timeZone).utcInstant];
         const { isAvailable, suggestions } = await this.checkTimeAvailable(this.startTime);
         if (!isAvailable) {
           this.startTime = [];
