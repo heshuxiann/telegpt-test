@@ -299,6 +299,7 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
   timeValue.textContent = formatMeetingTimeRange(
     eventData.start.dateTime,
     eventData.end.dateTime,
+    eventData.start.timeZone,
   );
   const timeZone = document.createElement('span');
   timeZone.style.cssText = `
