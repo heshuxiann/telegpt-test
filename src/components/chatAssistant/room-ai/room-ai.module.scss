@@ -2,7 +2,7 @@
   background-image: url("../assets/room-ai-bg-light.png");
   background-size: cover;
   :global(html.theme-dark) & {
-    background-image: unset;
     background-color: var(--color-background);
+    background-image: unset;
   }
 }

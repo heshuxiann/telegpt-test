@@ -119,16 +119,16 @@
     }
 
     label {
-      left: auto;
       right: 0.75rem;
+      left: auto;
     }
 
     &.with-arrow {
       &::after {
-        border-left: none;
-        border-right: 1px var(--color-text-secondary) solid;
         right: auto;
         left: 2rem;
+        border-right: 1px var(--color-text-secondary) solid;
+        border-left: none;
       }
     }
 
@@ -247,6 +247,7 @@ textarea.form-control {
   resize: none;
 
   overflow: hidden;
+
   padding-top: calc(0.8125rem - var(--border-width));
   padding-bottom: calc(1rem - var(--border-width));
 

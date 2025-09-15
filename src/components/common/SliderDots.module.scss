@@ -5,6 +5,7 @@
   --length: 50;
   --count: 8;
   --center: calc((var(--length) * var(--dot-width)) / 2);
+
   transform:
     translateX(
       calc(var(--center) - (var(--dot-width) * var(--count) / 2) - (var(--dot-width) * var(--start-from)))

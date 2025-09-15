@@ -19,10 +19,6 @@
 
   background: rgba(0, 0, 0, 0.9);
 
-  @media (max-width: 600px) {
-    background: rgba(0, 0, 0, 1);
-  }
-
   // Potential perf improvement
   &:not(.shown) {
     transform: scale(0);
@@ -74,21 +70,24 @@
   .media-viewer-head {
     position: relative;
     z-index: var(--z-media-viewer-head);
-    min-width: 0;
-    background: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0) 100%);
-    padding: 0.5rem max(1.25rem, env(safe-area-inset-left));
 
     display: flex;
     grid-area: 1 / 1 / 2 / -2;
-
     min-width: 0;
     padding: 0.5rem max(1.25rem, env(safe-area-inset-left));
-
     background: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0) 100%);
 
     & > .Transition {
       width: 100%;
       min-width: 0;
+    }
+
+    body.is-electron.is-macos & {
+      -webkit-app-region: drag;
+    }
+
+    body.is-electron.is-macos #Main:not(.is-fullscreen) & {
+      padding-left: 5rem;
     }
 
     body.is-electron.is-macos & {
@@ -105,14 +104,6 @@
       .media-viewer-close {
         margin-right: 1.5rem;
       }
-    }
-
-    body.is-electron.is-macos & {
-      -webkit-app-region: drag;
-    }
-
-    body.is-electron.is-macos #Main:not(.is-fullscreen) & {
-      padding-left: 5rem;
     }
   }
 
@@ -216,14 +207,19 @@
     -webkit-touch-callout: none;
   }
 
+  .is-protected {
+    pointer-events: none;
+    user-select: none;
+
+    -webkit-touch-callout: none;
+  }
+
   @media (max-width: 600px) {
     background: rgba(0, 0, 0, 1);
   }
 
-  .is-protected {
-    user-select: none;
-    -webkit-touch-callout: none;
-    pointer-events: none;
+  @media (max-width: 600px) {
+    background: rgba(0, 0, 0, 1);
   }
 }
 

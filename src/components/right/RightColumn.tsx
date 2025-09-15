@@ -1,5 +1,5 @@
-import React from '@teact';
 import type { FC } from '@teact';
+import React from '@teact';
 import { memo, useEffect, useRef, useState } from '@teact';
 import { getActions, withGlobal } from '../../global';
 
@@ -15,17 +15,16 @@ import {
   selectRightColumnContentKey,
   selectTabState,
 } from '../../global/selectors';
-import RoomAIWrapper from '../chatAssistant/room-ai/room-ai-wrapper';
-import { GLOBAL_SUMMARY_CHATID } from '../chatAssistant/variables';
 import { selectSharedSettings } from '../../global/selectors/sharedState.ts';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 import { resolveTransitionName } from '../../util/resolveTransitionName.ts';
+import RoomAIWrapper from '../chatAssistant/room-ai/room-ai-wrapper';
+import { GLOBAL_SUMMARY_CHATID } from '../chatAssistant/variables';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLastCallback from '../../hooks/useLastCallback';
 import useLayoutEffectWithPrevDeps from '../../hooks/useLayoutEffectWithPrevDeps';
-import useMarkScrolled from '../../hooks/useMarkScrolled/useMarkScrolled';
 import useScrollNotch from '../../hooks/useScrollNotch.ts';
 import useWindowSize from '../../hooks/window/useWindowSize';
 

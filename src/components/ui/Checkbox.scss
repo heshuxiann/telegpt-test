@@ -342,8 +342,8 @@
   &[dir="rtl"] {
     &.loading {
       .Spinner {
-        left: auto;
         right: 0.375rem;
+        left: auto;
       }
     }
 
@@ -355,35 +355,36 @@
     .Checkbox-main {
       &::before,
       &::after {
-        left: auto;
         right: 1rem;
+        left: auto;
       }
     }
   }
 
   &.nested {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
     gap: 0.3125rem;
+    align-items: center;
+    justify-content: space-between;
+
     margin-block: 0;
     padding: 0 0 0 4.1875rem;
 
     &:hover,
     &:focus-visible {
-      background-color: var(--color-chat-hover);
       border-radius: var(--border-radius-default);
+      background-color: var(--color-chat-hover);
     }
   }
 
   &.withNestedList {
-    background-color: var(--color-background);
     margin: 0;
+    background-color: var(--color-background);
 
     &:hover,
     &:focus-visible {
-      background-color: var(--color-chat-hover);
       border-radius: var(--border-radius-default);
+      background-color: var(--color-chat-hover);
     }
   }
 
@@ -403,14 +404,14 @@
   }
 
   &.avatar {
-    padding-inline-start: 3.5rem;
     margin-inline-start: 3.125rem;
+    padding-inline-start: 3.5rem;
   }
 
   .button {
-    color: var(--color-text);
     display: flex;
     gap: 0.1875rem;
+    color: var(--color-text);
   }
 
   .group-icon {
@@ -424,16 +425,16 @@
   }
 
   &.onlyInput {
-    min-height: auto;
     position: relative;
+    min-height: auto;
     padding-inline-start: 0.8125rem;
 
     .Checkbox-main {
       &::before,
       &::after {
-        left: 0;
-        right: 0;
         top: 0;
+        right: 0;
+        left: 0;
       }
     }
   }

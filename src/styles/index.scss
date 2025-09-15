@@ -98,11 +98,13 @@ body.is-electron {
 
 body.cursor-grabbing {
   --custom-cursor: grabbing;
+
   cursor: grabbing !important;
 }
 
 body.cursor-ew-resize {
   --custom-cursor: ew-resize;
+
   cursor: ew-resize !important;
 }
 
@@ -114,12 +116,12 @@ body.cursor-ew-resize {
     background: var(--color-background);
   }
 
-  @media (max-width: 600px) {
-    height: calc(var(--vh, 1vh) * 100);
-  }
-
   &.is-auth {
     background: var(--color-background);
+  }
+
+  @media (max-width: 600px) {
+    height: calc(var(--vh, 1vh) * 100);
   }
 }
 

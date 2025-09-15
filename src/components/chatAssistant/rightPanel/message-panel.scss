@@ -1,9 +1,9 @@
 .right-panel-message-item {
   .right-panel-message-actions {
-    display: none;
     position: absolute;
     right: 0;
     transform: translateY(100%);
+    display: none;
   }
   &:hover {
     .right-panel-message-actions {
@@ -15,6 +15,7 @@
 .summary-right-panel {
   animation: expandWidth 0.2s alternate ease-in-out;
 }
+
 @keyframes expandWidth {
   from {
     width: 0px;
