@@ -372,7 +372,14 @@ class ScheduleMeeting {
     if (duration) {
       this.duration = duration;
     }
-    this.handleMeetingInfoAsk();
+    if (this.startTime && this.timeZone) {
+      await this.handleTimeCheck();
+    }
+    if (this.email.length && this.startTime && this.timeZone && this.duration && this.timeConfirmed) {
+      this.scheduleAuthCheck();
+    } else {
+      this.handleMeetingInfoAsk();
+    }
   }
 
   private handlerImMessage({ message }: { message?: ApiMessage }) {
