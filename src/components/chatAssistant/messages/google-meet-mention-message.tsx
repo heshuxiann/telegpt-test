@@ -77,7 +77,7 @@ const GoogleMeetMentionMessage = ({ message }: { message: Message }) => {
         <div>
           👉 Click
           <span
-            className={cx('mx-[2px] outline-none border-none focus:outline-none focus:ring-0', {
+            className={cx('cursor-pointer mx-[2px] outline-none border-none focus:outline-none focus:ring-0', {
               'underline decoration-2': !mergeConfirmed,
             })}
             onClick={handleClick}

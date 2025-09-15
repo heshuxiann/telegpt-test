@@ -1,7 +1,3 @@
-/* eslint-disable no-null/no-null */
-/* eslint-disable teactn/no-unused-prop-types */
-/* eslint-disable react/no-unused-prop-types */
-
 import React, { memo } from '../../../lib/teact/teact';
 import { withGlobal } from '../../../global';
 

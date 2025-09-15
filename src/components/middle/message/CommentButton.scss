@@ -57,6 +57,7 @@
     position: absolute;
     right: -3rem;
     bottom: 3rem;
+
     align-items: flex-start;
 
     width: 2.25rem;
@@ -77,6 +78,7 @@
       position: absolute;
       bottom: -0.0625rem;
       left: 0;
+
       display: block;
 
       width: 100%;
@@ -147,15 +149,15 @@
     position: static;
     background-color: transparent;
 
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.08);
-      backdrop-filter: none;
-      filter: none;
-    }
-
     &::after {
       top: 1.5rem;
       bottom: auto;
+    }
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.08);
+      filter: none;
+      backdrop-filter: none;
     }
   }
 
@@ -227,17 +229,15 @@
       z-index: 3;
       overflow: hidden;
 
-      .emoji {
-        width: 1rem;
-        background-size: 1rem;
-      }
-
-      overflow: hidden;
-
       margin-inline-end: 0;
       border: 2px solid var(--color-background);
       /* stylelint-disable-next-line plugin/no-low-performance-animation-properties */
       transition: border 0.15s;
+
+      .emoji {
+        width: 1rem;
+        background-size: 1rem;
+      }
 
       .emoji {
         width: 1rem;

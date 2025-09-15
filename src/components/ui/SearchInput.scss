@@ -1,6 +1,5 @@
 .SearchInput {
   position: relative;
-
   display: flex;
   align-items: center;
 
@@ -14,10 +13,6 @@
   background-color: var(--color-chat-hover);
 
   transition: border-color 0.15s ease;
-  display: flex;
-  align-items: center;
-
-  padding-inline-end: 0.1875rem;
 
   &.with-picker-item {
     display: flex;

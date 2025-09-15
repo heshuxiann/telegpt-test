@@ -1,8 +1,5 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable no-console */
-/* eslint-disable react/jsx-no-bind */
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable max-len */
+
 import React, { useCallback, useState } from 'react';
 import { message as showMessage } from 'antd';
 
@@ -17,7 +14,7 @@ import { DrawerKey, useDrawerStore } from '../global-summary/DrawerContext';
 
 import './urgent-alert-tab.scss';
 
-const TopicItem = ({ topic, onDelete }: { topic: IUrgentTopic;onDelete: (id: string) => void }) => {
+const TopicItem = ({ topic, onDelete }: { topic: IUrgentTopic; onDelete: (id: string) => void }) => {
   const { openDrawer } = useDrawerStore();
   const handeleDeleteTopic = () => {
     onDelete(topic.id!);
@@ -58,8 +55,8 @@ const UrgentAlertTab = () => {
   const [topics, setTopics] = useState<IUrgentTopic[]>(urgent_info);
   const [ignoredIds, setIgnoredIds] = useState<string[]>(selectUrgentChatIds);
 
-  const handeleDeleteTopic = (id:string) => {
-    telegptSettings.deleteUrgentTopic(id).then((res:any) => {
+  const handeleDeleteTopic = (id: string) => {
+    telegptSettings.deleteUrgentTopic(id).then((res: any) => {
       if (res.code === 0) {
         setTopics(topics.filter((t) => t.id !== id));
       } else {

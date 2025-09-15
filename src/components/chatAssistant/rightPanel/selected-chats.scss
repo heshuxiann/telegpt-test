@@ -1,14 +1,14 @@
-.chat-picker-item{
-    .chat-picker-del{
-        display: none;
+.chat-picker-item {
+  transition: padding 0.2s ease-in-out;
+  .chat-picker-del {
+    display: none;
+  }
+  &:hover {
+    padding-right: 12px;
+    padding-left: 12px;
+    background-color: var(--color-chat-hover);
+    .chat-picker-del {
+      display: block;
     }
-    transition: padding 0.2s ease-in-out;
-    &:hover{
-        background-color: var(--color-chat-hover);
-        .chat-picker-del{
-            display: block;
-        }
-        padding-left: 12px;
-        padding-right: 12px;
-    }
+  }
 }

@@ -2,7 +2,6 @@
   position: relative;
   display: flex;
   align-items: flex-start;
-  position: relative;
 
   &.inline {
     margin-top: calc(0.5rem - 0.3125rem);
@@ -261,14 +260,10 @@
   .waveform {
     touch-action: none;
     cursor: var(--custom-cursor, pointer);
-
     display: flex;
     align-items: flex-end;
 
     margin-left: 1px;
-    touch-action: none;
-    display: flex;
-    align-items: flex-end;
   }
 
   &.non-interactive {
@@ -423,6 +418,7 @@
   &.bigger {
     .title {
       overflow: hidden;
+
       font-weight: var(--font-weight-normal);
       line-height: 1.5rem;
       text-overflow: ellipsis;

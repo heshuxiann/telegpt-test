@@ -165,7 +165,10 @@ const RoomAIInner = (props: StateProps) => {
         }, {
           id: uuidv4(),
           role: 'assistant',
-          content: JSON.stringify(response),
+          content: JSON.stringify({
+            chatId,
+            eventData: response,
+          }),
           createdAt: new Date(),
           annotations: [{
             type: 'google-event-detail',
@@ -175,7 +178,7 @@ const RoomAIInner = (props: StateProps) => {
       const mergeMesssage = [...newMessage, ...appendMessage];
       setMessages(mergeMesssage as UIMessage[]);
     }
-  }, [insertMessage, messages, setMessages]);
+  }, [chatId, insertMessage, messages, setMessages]);
 
   const updateToken = useCallback((payload: { message: Message; token: string }) => {
     const { message, token } = payload;

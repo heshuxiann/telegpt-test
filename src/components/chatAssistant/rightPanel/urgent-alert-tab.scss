@@ -1,28 +1,29 @@
-.urgent-topic-item{
-    &-actions{
-        display: none;
+.urgent-topic-item {
+  &-actions {
+    display: none;
+  }
+  &:hover {
+    .urgent-topic-item-actions {
+      display: flex;
     }
-    &:hover{
-        .urgent-topic-item-actions{
-            display: flex;
-        }
-        .urgent-topic-item-check{
-            display: none;
-        }
+    .urgent-topic-item-check {
+      display: none;
     }
+  }
 }
-.urgent-topic-edit{
-    .ant-form-item-label>label{
-        color: var(--color-text);
+
+.urgent-topic-edit {
+  .ant-form-item-label > label {
+    color: var(--color-text);
+  }
+  .ant-input {
+    color: var(--color-text);
+    background-color: var(--color-chat-hover);
+    &::placeholder {
+      color: var(--color-placeholders);
     }
-    .ant-input{
-        background-color: var(--color-chat-hover);
-        color: var(--color-text);
-        &::placeholder{
-            color: var(--color-placeholders);
-        }
-    }
-    .ant-input-outlined.ant-input-status-error:not(.ant-input-disabled){
-        background-color: var(--color-chat-hover);
-    }
+  }
+  .ant-input-outlined.ant-input-status-error:not(.ant-input-disabled) {
+    background-color: var(--color-chat-hover);
+  }
 }

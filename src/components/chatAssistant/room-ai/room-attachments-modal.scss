@@ -1,40 +1,41 @@
 .room-attachments-modal {
   .modal-content {
+    display: flex;
+    flex-direction: column;
+
     width: 100%;
     max-width: 800px;
     height: 80vh;
     max-height: 600px;
-    display: flex;
-    flex-direction: column;
     padding: 0;
   }
 
   .profile-container {
-    flex: 1;
+    overflow: hidden !important;
     display: flex;
+    flex: 1;
     flex-direction: column;
-    overflow: hidden!important;
   }
 
   .shared-media {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
     overflow: hidden;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
   }
 
   .profile-content-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
     overflow: hidden;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
   }
 
   .shared-media-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
     overflow: hidden;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
   }
 
   .shared-media-header {
@@ -43,46 +44,50 @@
   }
 
   .shared-media-transition {
-    flex: 1;
     overflow: hidden;
+    flex: 1;
   }
 
   .shared-media-list {
-    height: 100%;
     overflow-y: auto;
+    height: 100%;
   }
 }
 
-  .content {
-    &.empty-list {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 200px;
-      color: var(--color-text-secondary);
-    }
-    
-    &.media-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 0.5rem;
-    }
-    
-    &.documents-list,
-    &.links-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
+.content {
+  &.empty-list {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 200px;
+
+    color: var(--color-text-secondary);
   }
+
+  &.media-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.5rem;
+  }
+
+  &.documents-list,
+  &.links-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
 
 .story-item,
 .document-item,
 .link-item {
+  cursor: pointer;
+
   padding: 0.5rem;
   border: 1px solid var(--color-borders);
   border-radius: 8px;
-  cursor: pointer;
+
   transition: background-color 0.2s;
 
   &:hover {

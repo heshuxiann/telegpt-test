@@ -3,75 +3,83 @@
     margin: 0;
   }
 }
+
 .right-panel-chat-ai {
-  height: 100%;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  height: 100%;
   .chat-ai-output-wrapper {
-    flex: 1;
-    overflow-y: scroll;
     overflow-x: hidden;
+    overflow-y: scroll;
+    flex: 1;
   }
 }
+
 .scrollbar-none {
   scrollbar-width: none; /* Firefox */
+
   -ms-overflow-style: none; /* IE 10+ */
 }
 
 .room-ai-entry-wrapper {
+  --translate-x: 0;
+
   position: fixed;
   z-index: var(--z-scroll-down-button);
-  --translate-x: 0;
-  transition: transform var(--layer-transition), opacity 0.2s ease;
   transform: translateX(var(--translate-x));
+  transition: transform var(--layer-transition), opacity 0.2s ease;
   .Button {
     padding: 0;
   }
-  .room-ai-unread-count{
-    min-width: 1.5rem;
-    height: 1.5rem;
-    padding: 0 0.4375rem;
-    border-radius: 0.75rem;
-    font-size: 0.875rem;
-    line-height: 1.5rem;
-    font-weight: var(--font-weight-medium);
-    text-align: center;
+  .room-ai-unread-count {
+    pointer-events: none;
+
     position: absolute;
     top: -0.3125rem;
     right: -0.3125rem;
-    background-color: var(--color-green);
+
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 0.4375rem;
     border: 1px solid var(--color-background);
+    border-radius: 0.75rem;
+
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5rem;
     color: white;
-    pointer-events: none;
+    text-align: center;
+
+    background-color: var(--color-green);
   }
 }
 // Popover 自定义样式
 .room-actions-popover {
   .ant-popover-content {
     .ant-popover-inner {
-      background-color: var(--color-background)!important;
+      padding: 4px !important;
       border-radius: 8px;
+      background-color: var(--color-background) !important;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      padding: 4px!important;
-      
+
       .ant-popover-inner-content {
         padding: 0;
         color: var(--color-text);
       }
     }
-    
+
     .ant-popover-arrow {
       &::before {
-        background-color: var(--color-background);
         border: 1px solid var(--color-borders);
+        background-color: var(--color-background);
       }
     }
   }
 }
 
 @media (min-width: 1276px) {
-  #Main.right-column-open .room-ai-entry-wrapper{
+  #Main.right-column-open .room-ai-entry-wrapper {
     --translate-x: calc(-1 * var(--right-column-width));
   }
 }

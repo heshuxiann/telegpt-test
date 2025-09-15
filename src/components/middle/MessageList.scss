@@ -104,31 +104,6 @@
     opacity: 1;
     transition: opacity 0.2s ease, transform 0.2s ease;
 
-    opacity: 1;
-    transform: scale(1);
-    transition: opacity 0.2s ease, transform 0.2s ease;
-
-    &:not(.open) {
-      transform: scale(0.8);
-      opacity: 0;
-    }
-
-    body.no-message-sending-animations & {
-      opacity: 1;
-      transform: none;
-      transition: none !important;
-    }
-
-    &.is-just-added:not(.own) {
-      transform: none;
-    }
-
-    // Restore stacking context
-    // https://developer.mozilla.org/ru/docs/Web/CSS/CSS_Positioning/Understanding_z_index/The_stacking_context
-    &.open.shown {
-      transform: none;
-    }
-
     &::before {
       content: "";
 
@@ -147,6 +122,27 @@
       body.no-page-transitions & {
         transition: none !important;
       }
+    }
+
+    &:not(.open) {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+
+    body.no-message-sending-animations & {
+      transform: none;
+      opacity: 1;
+      transition: none !important;
+    }
+
+    &.is-just-added:not(.own) {
+      transform: none;
+    }
+
+    // Restore stacking context
+    // https://developer.mozilla.org/ru/docs/Web/CSS/CSS_Positioning/Understanding_z_index/The_stacking_context
+    &.open.shown {
+      transform: none;
     }
 
     &:not(.open) {
@@ -239,15 +235,12 @@
 
     --custom-emoji-size: calc(var(--message-text-size, 1rem) + 0.125rem);
 
+    --custom-emoji-size: calc(var(--message-text-size, 1rem) + 0.125rem);
+
     user-select: none;
     font-size: calc(var(--message-text-size, 1rem) - 0.0625rem);
     line-height: 1.25;
     text-align: center;
-    user-select: none;
-
-    --custom-emoji-size: calc(var(--message-text-size, 1rem) + 0.125rem);
-    font-size: calc(var(--message-text-size, 1rem) - 0.0625rem);
-    line-height: 1.25;
 
     > span {
       position: relative;
