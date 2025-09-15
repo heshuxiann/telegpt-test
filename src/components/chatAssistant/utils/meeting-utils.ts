@@ -37,7 +37,7 @@ export function formatMeetingTimeRange(
   const timeFormatter = new Intl.DateTimeFormat('en-US', {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: false,
+    hour12: true,
     timeZone, // ✅ 指定时区
   });
 
@@ -234,14 +234,11 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
   guestsTitle.textContent = 'Guests';
 
   const organizerContainer = document.createElement('div');
-  organizerContainer.style.cssText = `
-      display: flex;
-      flex-wrap: wrap;
-    `;
   const organizerEmail = document.createElement('span');
   organizerEmail.style.cssText = `
       overflow: hidden;
       word-break: break-all;
+      margin-right: 4px;
     `;
   organizerEmail.textContent = eventData.creator?.email || '';
   const organizerBadge = document.createElement('span');
@@ -251,6 +248,7 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
       line-height: 18px;
       border-radius: 4px;
       color: #3F6EFF;
+      font-size: 12px;
     `;
   organizerBadge.textContent = 'Organizer';
   organizerContainer.appendChild(organizerEmail);
@@ -360,8 +358,13 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
   footerIcon.src = SerenaPath;
   footerIcon.alt = 'Serena';
   const footerText1 = document.createElement('span');
-  footerText1.style.color = '#5E6272';
-  footerText1.textContent = 'Powered by ';
+  footerText1.style.cssText = `
+      color: #5E6272;
+      font-size: 12px;
+      font-weight: 500;
+      margin-right: 4px;
+    `;
+  footerText1.textContent = 'Powered by';
   const footerText2 = document.createElement('span');
   footerText2.style.color = '#2996FF';
   footerText2.textContent = 'telegpt.org';
@@ -375,8 +378,8 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
   if (titleSection) {
     contentElement.appendChild(titleSection);
   }
-  contentElement.appendChild(guestsSection);
   contentElement.appendChild(timeSection);
+  contentElement.appendChild(guestsSection);
   contentElement.appendChild(meetSection);
   cardElement.appendChild(contentElement);
   cardElement.appendChild(footerSection);

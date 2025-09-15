@@ -23,7 +23,7 @@ const GoogleEventDetailMessage = ({ message }: { message: Message }) => {
   useEffect(() => {
     try {
       const parsedMessage = JSON.parse(message.content);
-      setMessageContent(parsedMessage);
+      setMessageContent(parsedMessage.eventData);
     } catch (error) {
       console.error('Error parsing message content:', error);
     }
@@ -68,7 +68,7 @@ const GoogleEventDetailMessage = ({ message }: { message: Message }) => {
           <img src={MeetGuestIcon} className="w-[20px] h-[20px]" alt="" />
           <div className="flex flex-col text-[14px] gap-[4px] flex-1 overflow-hidden">
             <div className="font-semibold">Guests</div>
-            <div className="flex flex-wrap">
+            <div>
               <span className="break-all mr-[8px]">
                 {messageContent.creator.email}
               </span>
