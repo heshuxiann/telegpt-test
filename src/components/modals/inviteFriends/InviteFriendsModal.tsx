@@ -1,8 +1,8 @@
 /* eslint-disable no-null/no-null */
 import cx from 'classnames';
+import copy from 'copy-to-clipboard';
 import React, { memo, useCallback, useEffect, useState } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
-import copy from 'copy-to-clipboard';
 
 import type { TabState } from '../../../global/types';
 
@@ -13,9 +13,9 @@ import { getAllInviteInfo } from '../../chatAssistant/utils/telegpt-api';
 
 import Icon from '../../common/icons/Icon';
 import Modal from '../../ui/Modal';
+import Spinner from '../../ui/Spinner';
 
 import styles from './InviteFriendsModal.module.scss';
-import Spinner from '../../ui/Spinner';
 
 export type OwnProps = {
   modal: TabState['inviteFriendsModal'];
@@ -64,7 +64,7 @@ const InviteFriendsModal = ({ modal }: OwnProps) => {
     getActions().showNotification({
       message: 'TextCopied',
     });
-  }
+  };
 
   if (!modal?.isOpen) {
     return undefined;
@@ -107,7 +107,7 @@ const InviteFriendsModal = ({ modal }: OwnProps) => {
             Share the invitation codes below with your friends! When a new user signs up and uses your invitation code, both you and the invitee will each receive a 100 credit bonus.
           </div>
           <table className={styles.table} role="table" aria-label="Codes, Invitees, Credits and Time">
-            <thead className="h-[36px] bg-[#F6F6F6]">
+            <thead className="h-[36px] bg-[#F6F6F6] dark:bg-[var(--color-background)]">
               <tr role="row">
                 <th role="columnheader">Codes</th>
                 <th role="columnheader">Invitees</th>
@@ -139,15 +139,11 @@ const InviteFriendsModal = ({ modal }: OwnProps) => {
                             <Icon name="copy" className="cursor-pointer text-[18px]" />
                           </div>
                         </td>
-                        {
-                          item.status === 'used' && (
-                            <>
-                              <td data-label="Invitees">{item.invitedUserName}</td>
-                              <td data-label="Credits">{item.points}</td>
-                              <td data-label="Time">{new Date(item.invitedAt).toLocaleString()}</td>
-                            </>
-                          )
-                        }
+                        <td data-label="Invitees">{item.invitedUserName || ''}</td>
+                        <td data-label="Credits">{item.points || ''}</td>
+                        <td data-label="Time">
+                          {item.invitedAt ? new Date(item.invitedAt).toLocaleString() : ''}
+                        </td>
                       </tr>
                     );
                   })
