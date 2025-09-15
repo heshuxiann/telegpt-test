@@ -2,134 +2,63 @@
 /* eslint-disable no-console */
 
 import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { toBlob } from 'html-to-image';
 import { DateTime, Interval } from 'luxon';
 import { getActions, getGlobal } from '../../../global';
 
-import type { ApiMessage } from '../../../api/types';
+import type { ApiDraft, ApiMessage } from '../../../api/types';
 import type { ICreateMeetResponse } from './google-api';
-import { MAIN_THREAD_ID } from '../../../api/types/messages';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { getMessageContent, hasMessageText } from '../../../global/helpers';
-import { selectCurrentChat, selectUser } from '../../../global/selectors';
+import { selectCurrentChat } from '../../../global/selectors';
 import { extractCalendlyLinks } from './util';
-import buildAttachment from '../../middle/composer/helpers/buildAttachment';
 import { createMeetingTimeConfirmMessage } from '../room-ai/room-ai-utils';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage } from '../store/messages-store';
-import { calendlyRanges, getHitTools } from './chat-api';
+import { calendlyRanges, getHitToolsForMeeting } from './chat-api';
 import {
   createAuthConfirmModal,
   createGoogleMeet,
   getGoogleCalendarFreeBusy,
 } from './google-api';
 import { getAuthState, isTokenValid } from './google-auth';
+import { attachZoneWithTemporal, formatMeetingTimeRange, generateEventScreenshot } from './meeting-utils';
 
-import Avatar from '../component/Avatar';
+export const MEETING_INVITATION_TIP = 'I\'ll send you the meeting invitation later. [By TelyAI]';
 
-import CalendarIcon from '../assets/calendar.png';
-import GoogleMeetIcon from '../assets/google-meet.png';
-import SerenaPath from '../assets/serena.png';
-import ShareHeaderBg from '../assets/share-header-bg.png';
-import UserIcon from '../assets/user.png';
-import WriteIcon from '../assets/write.png';
-
-export const ASK_MEETING_TIME_AND_EMAIL
-  = 'Could you tell me what time would be good for you to have the meeting? Also, could I get your email address?';
-export const ASK_MEETING_TIME
-  = 'Could you tell me what time would be good for you to have the meeting?';
-export const ASK_MEETING_EMAIL = 'Could you please share your email address?';
-export const MEETING_INVITATION_TIP
-  = 'I\'ll send you the meeting invitation later.';
+export const ASK_MEETING_TIME = 'I’d like to set up a meeting with you. Could you let me know a time that works best for you? [By TelyAI]';
+export const ASK_MEETING_TIMEZONE = 'Which time zone are you currently in? [By TelyAI]';
+export const ASK_MEETING_EMAIL = 'Could you share your email address? If additional participants should be included, please provide their email addresses as well. [By TelyAI]';
+const MEETING_TIME_UNAVAILABLE = 'The time you provided is not available. Could you please suggest another time? [By TelyAI]';
 
 export type MeetingInformationSuggestType = 'time' | 'email' | 'both';
 
-export function formatMeetingTimeRange(
-  startISO: string,
-  endISO: string,
-  timeZoneVisable?: boolean,
-) {
-  const startDate = new Date(startISO);
-  const endDate = new Date(endISO);
-
-  const dayFormatter = new Intl.DateTimeFormat('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
-
-  const timeFormatter = new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: false,
-  });
-
-  const formatTime = (date: Date) => {
-    return timeFormatter.format(date).toLowerCase().replace(' ', '');
-  };
-
-  const dateStr = dayFormatter.format(startDate);
-  const startTimeStr = formatTime(startDate);
-  const endTimeStr = formatTime(endDate);
-
-  // 方式一：取时区名称
-  const timeZoneName = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-  // 方式二：取 GMT 偏移
-  // const offsetMinutes = startDate.getTimezoneOffset();
-  // const sign = offsetMinutes <= 0 ? '+' : '-';
-  // const absMinutes = Math.abs(offsetMinutes);
-  // const hours = String(Math.floor(absMinutes / 60)).padStart(2, '0');
-  // const minutes = String(absMinutes % 60).padStart(2, '0');
-  // const gmtOffset = `GMT${sign}${hours}:${minutes}`;
-
-  // 任选一种
-  const tzString = timeZoneName;
-  // const tzString = gmtOffset;
-  if (timeZoneVisable) {
-    return `${dateStr}, ${startTimeStr}-${endTimeStr} ${tzString}`;
-  } else {
-    return `${dateStr}, ${startTimeStr}-${endTimeStr}`;
-  }
-}
-
-async function getSuitableTime(calendlyUrl: string) {
-  const timeRanges = await calendlyRanges({ calendlyUrl });
-  const myBusyTimes = await getGoogleCalendarFreeBusy();
-  const availableSolts = getAvailableSlots(timeRanges, myBusyTimes);
-  return availableSolts;
-}
-
 function getAvailableSlots(
-  aFreeSlots: { start: string; end: string }[],
-  bBusySlots: { start: string; end: string }[],
+  startTimes: string[],
+  durationSeconds: number,
+  busySlots: { start: string; end: string }[],
 ) {
   const result = [];
 
-  for (const aSlot of aFreeSlots) {
-    const aStart = new Date(aSlot.start);
-    const aEnd = new Date(aSlot.end);
+  for (const startTime of startTimes) {
+    const startDate = new Date(startTime);
+    const endDate = new Date(startDate.getTime() + durationSeconds * 1000);
 
     let hasConflict = false;
 
-    for (const bSlot of bBusySlots) {
-      const bStart = new Date(bSlot.start);
-      const bEnd = new Date(bSlot.end);
+    for (const busySlot of busySlots) {
+      const busyStart = new Date(busySlot.start);
+      const busyEnd = new Date(busySlot.end);
 
       // 判断是否重叠
-      if (aStart < bEnd && aEnd > bStart) {
+      if (startDate < busyEnd && endDate > busyStart) {
         hasConflict = true;
         break;
       }
     }
 
     if (!hasConflict) {
-      result.push({
-        start: aStart.toISOString(),
-        end: aEnd.toISOString(),
-      });
+      result.push(startDate.toISOString());
     }
   }
 
@@ -141,7 +70,7 @@ function suggestFreeTimes(
   durationMinutes = 30,
   count = 3,
 ) {
-  const now = DateTime.utc();
+  const now = DateTime.local();
   const endRange = now.plus({ days: 3 });
 
   // 转成 Interval[]
@@ -170,7 +99,22 @@ function suggestFreeTimes(
       millisecond: 0,
     });
 
+    // 确保从整点或半点开始
     let slotStart = dayStart;
+    if (cursor.hasSame(now, 'day')) {
+      // 如果是今天，需要从当前时间之后的下一个整点或半点开始
+      const currentMinute = now.minute;
+      if (currentMinute < 30) {
+        slotStart = now.set({ minute: 30, second: 0, millisecond: 0 });
+      } else {
+        slotStart = now.plus({ hours: 1 }).set({ minute: 0, second: 0, millisecond: 0 });
+      }
+      // 确保不早于工作时间开始
+      if (slotStart < dayStart) {
+        slotStart = dayStart;
+      }
+    }
+
     while (slotStart.plus({ minutes: durationMinutes }) <= dayEnd) {
       const slotEnd = slotStart.plus({ minutes: durationMinutes });
 
@@ -190,7 +134,8 @@ function suggestFreeTimes(
         }
       }
 
-      slotStart = slotStart.plus({ minutes: durationMinutes });
+      // 每次递增30分钟，确保始终在整点或半点
+      slotStart = slotStart.plus({ minutes: 30 });
     }
     cursor = cursor.plus({ days: 1 }).startOf('day');
   }
@@ -200,7 +145,7 @@ function suggestFreeTimes(
 async function isTimeSlotAvailable(proposedSlot: {
   start: string;
   end: string;
-}) {
+}): Promise<{ isAvailable: boolean; suggestions?: { start: string; end: string }[] }> {
   const myBusyTimes = await getGoogleCalendarFreeBusy();
   const proposedStart = new Date(proposedSlot.start).getTime();
   const proposedEnd = new Date(proposedSlot.end).getTime();
@@ -222,23 +167,34 @@ async function isTimeSlotAvailable(proposedSlot: {
   return { isAvailable: true };
 }
 
-function getMeetParamsByAITools(message: string): Promise<any> {
+export function getMeetParamsByAITools(message: string): Promise<any> {
   return new Promise((resolve, reject) => {
-    getHitTools(message, Intl.DateTimeFormat().resolvedOptions().timeZone)
+    getHitToolsForMeeting(message)
       .then((toolResults) => {
         let email: string[] = [];
-        let date: string | null = null;
+        let startTime: string | null = null;
+        let duration: number | null = null;
+        let timeZone: string | null = null;
         if (toolResults && toolResults.length > 0) {
           toolResults.forEach((toolCall: any) => {
-            if (toolCall.toolName === 'parseTime') {
-              date = toolCall.result;
-            } else if (toolCall.toolName === 'extractEmail') {
-              email = toolCall.result || [];
+            if (toolCall.result) {
+              if (toolCall.toolName === 'parseTime') {
+                startTime = toolCall.result;
+              } else if (toolCall.toolName === 'extractEmail') {
+                email = toolCall.result || [];
+              } else if (toolCall.toolName === 'parseTimeRange') {
+                duration = toolCall.result.duration;
+                startTime = toolCall.result.start;
+              } else if (toolCall.toolName === 'extractTimeZone') {
+                timeZone = toolCall.result.timeZone;
+              }
             }
           });
           resolve({
-            date,
+            startTime,
             email,
+            duration,
+            timeZone,
           });
         } else {
           resolve({});
@@ -250,361 +206,74 @@ function getMeetParamsByAITools(message: string): Promise<any> {
   });
 }
 
-export function generateEventScreenshot(eventData: any, chatId: string) {
-  const global = getGlobal();
-  const { currentUserId } = global;
-  const currentUser = selectUser(global, currentUserId!);
-  // Create a temporary container with proper positioning
-  const container = document.createElement('div');
-  container.style.position = 'fixed';
-  container.style.top = '0';
-  container.style.left = '0';
-  container.style.transform = 'translateX(-1000000px) translateY(-1000000px)';
-  container.style.zIndex = '-9999';
-
-  // Create the main card element that will be captured
-  const cardElement = document.createElement('div');
-  cardElement.style.cssText = `
-      position: relative;
-      width: 330px;
-      box-sizing: content-box;
-      overflow: hidden;
-      background-color: white;
-      color: black;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    `;
-
-  // Create the background blur element
-  const bgElement = document.createElement('div');
-  bgElement.style.cssText = `
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      filter: blur(12px);
-      pointer-events: none;
-    `;
-  const bgImage = document.createElement('img');
-  bgImage.src = ShareHeaderBg;
-  bgImage.alt = '';
-  bgImage.style.cssText = `
-      width: 100%;
-    `;
-  bgElement.appendChild(bgImage);
-
-  // Create the content container
-  const contentElement = document.createElement('div');
-  contentElement.style.cssText = `
-      position: relative;
-      padding: 12px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    `;
-
-  // Create user info section
-  const userSection = document.createElement('div');
-  userSection.style.cssText = `
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: #979797;
-    `;
-
-  // Create avatar container for React component
-  const avatarContainer = document.createElement('div');
-  avatarContainer.style.cssText = `
-      width: 20px;
-      height: 20px;
-    `;
-
-  // Render Avatar component using React
-  const root = createRoot(avatarContainer);
-  root.render(
-    React.createElement(Avatar, {
-      className: 'w-[20px] h-[20px]',
-      peer: currentUser,
-    }),
-  );
-
-  const firstName = document.createElement('span');
-  firstName.textContent = currentUser?.firstName || 'User';
-  const lastName = document.createElement('span');
-  lastName.textContent = currentUser?.lastName || '';
-  userSection.appendChild(avatarContainer);
-  userSection.appendChild(firstName);
-  userSection.appendChild(lastName);
-  // Create card title
-  const cardTitleSection = document.createElement('div');
-  cardTitleSection.textContent = 'Meeting Invitation';
-  cardTitleSection.style.cssText = `
-      font-size: 20px;
-      font-weight: 600;
-    `;
-
-  // Create title section
-  const titleSection = document.createElement('div');
-  const titleLabel = document.createElement('div');
-  titleLabel.style.cssText = `
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    `;
-  const writeIcon = document.createElement('img');
-  writeIcon.src = WriteIcon;
-  writeIcon.style.cssText = `
-      width: 12px;
-      height: 12px;
-    `;
-  titleLabel.appendChild(writeIcon);
-  const titleText = document.createElement('span');
-  titleText.textContent = 'Title';
-  titleLabel.appendChild(titleText);
-  const titleValue = document.createElement('span');
-  titleValue.style.fontSize = '14px';
-  titleValue.textContent = eventData.summary || '';
-  titleSection.appendChild(titleLabel);
-  titleSection.appendChild(titleValue);
-
-  // Create guests section if attendees exist
-  let guestsSection: HTMLDivElement | null = null;
-  if (eventData.attendees && eventData.attendees.length > 0) {
-    guestsSection = document.createElement('div');
-    const guestsLabel = document.createElement('div');
-    guestsLabel.style.cssText = `
-        font-size: 14px;
-        font-weight: 600;
-        margin-bottom: 4px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      `;
-    const userIcon = document.createElement('img');
-    userIcon.src = UserIcon;
-    userIcon.style.cssText = `
-        width: 12px;
-        height: 12px;
-      `;
-    guestsLabel.appendChild(userIcon);
-    const guestsText = document.createElement('span');
-    guestsText.textContent = 'Guests';
-    guestsLabel.appendChild(guestsText);
-    guestsSection.appendChild(guestsLabel);
-    eventData.attendees.forEach((attendee: any) => {
-      const guestDiv = document.createElement('div');
-      guestDiv.style.fontSize = '14px';
-      guestDiv.textContent = attendee.email;
-      guestsSection!.appendChild(guestDiv);
-    });
-  }
-
-  // Create time section
-  const timeSection = document.createElement('div');
-  const timeLabel = document.createElement('div');
-  timeLabel.style.cssText = `
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    `;
-  const calendarIcon = document.createElement('img');
-  calendarIcon.src = CalendarIcon;
-  calendarIcon.style.cssText = `
-      width: 12px;
-      height: 12px;
-    `;
-  timeLabel.appendChild(calendarIcon);
-  const timeText = document.createElement('span');
-  timeText.textContent = 'Time';
-  timeLabel.appendChild(timeText);
-  const timeContainer = document.createElement('div');
-  timeContainer.style.cssText = `
-      display: flex;
-      flex-direction: column;
-    `;
-  const timeValue = document.createElement('span');
-  timeValue.style.fontSize = '14px';
-  timeValue.textContent = formatMeetingTimeRange(
-    eventData.start.dateTime,
-    eventData.end.dateTime,
-  );
-  const timeZone = document.createElement('span');
-  timeZone.style.cssText = `
-      font-size: 14px;
-      color: #979797;
-    `;
-  timeZone.textContent = eventData.start.timeZone;
-  timeContainer.appendChild(timeValue);
-  timeContainer.appendChild(timeZone);
-  timeSection.appendChild(timeLabel);
-  timeSection.appendChild(timeContainer);
-
-  // Create meet section
-  const meetSection = document.createElement('div');
-  const meetLabel = document.createElement('div');
-  meetLabel.style.cssText = `
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    `;
-  const googleMeetIcon = document.createElement('img');
-  googleMeetIcon.src = GoogleMeetIcon;
-  googleMeetIcon.style.cssText = `
-      width: 12px;
-      height: 12px;
-    `;
-  meetLabel.appendChild(googleMeetIcon);
-  const meetText = document.createElement('span');
-  meetText.textContent = 'Meeting link';
-  meetLabel.appendChild(meetText);
-  const meetValue = document.createElement('span');
-  meetValue.style.fontSize = '14px';
-  meetValue.textContent = eventData.hangoutLink || '';
-  meetSection.appendChild(meetLabel);
-  meetSection.appendChild(meetValue);
-
-  // Create footer section
-  const footerSection = document.createElement('section');
-  footerSection.style.cssText = `
-      display: flex;
-      flex-direction: row;
-      gap: 4px;
-      align-items: center;
-      justify-content: center;
-      padding: 8px;
-      font-size: 12px;
-      background-color: #F7FAFF;
-    `;
-  const footerIcon = document.createElement('img');
-  footerIcon.style.cssText = `
-      display: inline;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      margin-top: -2px;
-    `;
-  footerIcon.src = SerenaPath;
-  footerIcon.alt = 'Serena';
-  const footerText1 = document.createElement('span');
-  footerText1.textContent = 'Powered by';
-  const footerText2 = document.createElement('span');
-  footerText2.style.color = '#2996FF';
-  footerText2.textContent = 'telepgt.org';
-  footerSection.appendChild(footerIcon);
-  footerSection.appendChild(footerText1);
-  footerSection.appendChild(footerText2);
-
-  // Assemble the card
-  cardElement.appendChild(bgElement);
-  contentElement.appendChild(userSection);
-  contentElement.appendChild(cardTitleSection);
-  contentElement.appendChild(titleSection);
-  if (guestsSection) {
-    contentElement.appendChild(guestsSection);
-  }
-  contentElement.appendChild(timeSection);
-  contentElement.appendChild(meetSection);
-  cardElement.appendChild(contentElement);
-  cardElement.appendChild(footerSection);
-  container.appendChild(cardElement);
-  document.body.appendChild(container);
-
-  // Wait for DOM to render and then capture
-  setTimeout(() => {
-    toBlob(cardElement, {
-      backgroundColor: 'white',
-      width: 330,
-      pixelRatio: 2, // Higher pixel ratio for better quality
-      quality: 1, // Maximum quality
-    })
-      .then(async (blob) => {
-        if (blob) {
-          try {
-            // Create attachment from blob
-            const attachment = await buildAttachment(
-              `event-details-${chatId}.png`,
-              blob,
-            );
-
-            // Get current chat and send message with attachment
-            const currentGlobal = getGlobal();
-            const chat = selectCurrentChat(currentGlobal);
-
-            if (chat) {
-              getActions().sendMessage({
-                messageList: {
-                  chatId: chat.id,
-                  threadId: MAIN_THREAD_ID,
-                  type: 'thread',
-                },
-                attachments: [attachment],
-              });
-            }
-          } catch (error) {
-            console.error('Error sending image:', error);
-          }
-        }
-        // Clean up the temporary element
-        document.body.removeChild(container);
-      })
-      .catch((error) => {
-        console.error('Error generating screenshot:', error);
-        // Clean up the temporary element even on error
-        if (document.body.contains(container)) {
-          document.body.removeChild(container);
-        }
-      });
-  }, 200);
+function isPast(dateISOString: string): boolean {
+  const inputTime = new Date(dateISOString).getTime(); // UTC 毫秒时间戳
+  const now = Date.now(); // 当前时间（UTC 毫秒）
+  return inputTime < now;
 }
 
 interface ScheduleMeetingParams {
   chatId: string;
+  targetUserId?: string | undefined;
   email?: string[];
-  date?: { start: string; end: string }[];
-  isMeetingInitiator?: boolean;
-  hasConfirmed?: boolean;
+  startTime?: string[];
+  duration?: number;
+  timeZone?: string;
+  prevTimeZone?: string;
 }
 class ScheduleMeeting {
   private static instances = new Map<string, ScheduleMeeting>();
 
   private chatId: string;
 
-  private hasConfirmed: boolean;
+  private targetUserId: string;
 
   private email: string[];
 
-  private date: { start: string; end: string }[];
+  private startTime: string[];
 
-  public isMeetingInitiator: boolean;
+  private duration: number;
+
+  private prevTimeZone: string;
+
+  private timeZone: string;
 
   public timeout: NodeJS.Timeout | undefined = undefined;
 
   private handlerRef: ({ message }: { message: ApiMessage }) => void;
 
+  private messageId: number | undefined;
+
+  private timeConfirmed: boolean = false;
+
+  private authCheckTimeout: NodeJS.Timeout | undefined = undefined;
+
   constructor({
     chatId,
+    targetUserId = '',
     email = [],
-    date = [],
-    hasConfirmed = false,
-    isMeetingInitiator = false,
+    startTime = [],
+    duration = 1800,
+    timeZone = '',
+    prevTimeZone = 'UTC',
   }: ScheduleMeetingParams) {
     this.chatId = chatId;
+    this.targetUserId = targetUserId;
     this.email = email;
-    this.date = date;
-    this.isMeetingInitiator = isMeetingInitiator;
-    this.hasConfirmed = hasConfirmed;
+    this.timeZone = timeZone;
+    this.startTime = startTime;
+    this.duration = duration;
+    this.prevTimeZone = prevTimeZone;
     this.handlerRef = ({ message }) => this.handlerImMessage({ message });
+
+    // 注册监听器
+    eventEmitter.on(Actions.NewTextMessage, this.handlerRef);
+
+    // 超时自动清理
+    this.timeout = setTimeout(() => {
+      this.cleanup();
+      console.log('已超过五分钟未完成输入，工作流已结束。');
+    }, 1000 * 60 * 5);
   }
 
   /**
@@ -628,25 +297,86 @@ class ScheduleMeeting {
     return ScheduleMeeting.instances.get(chatId);
   }
 
-  public start(params?: { text: string; chatId: string }) {
-    // 注册监听器
-    eventEmitter.on(Actions.NewTextMessage, this.handlerRef);
+  public confirmCallback({ startTime, email, timeZone, duration, timeConfirmed = false }: {
+    startTime: string[] | null;
+    email: string[] | null;
+    timeZone: string;
+    duration: number;
+    timeConfirmed?: boolean;
+  }) {
+    if (startTime && startTime.length) {
+      this.startTime = startTime;
+    }
+    if (email && email.length) {
+      this.email = email;
+    }
+    if (timeZone) {
+      if (this.timeZone) {
+        this.prevTimeZone = this.timeZone;
+      }
+      this.timeZone = timeZone;
+    }
+    if (duration) {
+      this.duration = duration;
+    }
+    this.timeConfirmed = timeConfirmed;
+    this.handleMeetingInfoAsk();
+  }
 
-    // 超时自动清理
-    this.timeout = setTimeout(() => {
-      this.cleanup();
-      console.log('已超过五分钟未完成输入，工作流已结束。');
-    }, 1000 * 60 * 5);
-
-    if (!this.isMeetingInitiator) {
-      this.handler(params);
+  private handleMeetingInfoAsk() {
+    if (!this.startTime || this.startTime.length === 0) {
+      this.sendMessage(ASK_MEETING_TIME);
+      return;
+    } else if (!this.timeZone) {
+      this.sendMessage(ASK_MEETING_TIMEZONE);
+      return;
+    } else if (!this.email.length) {
+      this.sendMessage(ASK_MEETING_EMAIL);
+      return;
     }
   }
 
   public cleanup() {
     eventEmitter.off(Actions.NewTextMessage, this.handlerRef);
-    clearTimeout(this.timeout);
+    if (this.timeout) clearTimeout(this.timeout);
+    if (this.authCheckTimeout) clearTimeout(this.authCheckTimeout);
     ScheduleMeeting.instances.delete(this.chatId);
+  }
+
+  private resetAuthCheckTimer() {
+    if (this.authCheckTimeout) {
+      clearTimeout(this.authCheckTimeout);
+      this.authCheckTimeout = undefined;
+    }
+  }
+
+  private scheduleAuthCheck() {
+    this.resetAuthCheckTimer();
+    this.authCheckTimeout = setTimeout(() => {
+      this.handleGoogleAuthCheck();
+    }, 15000); // 15秒延迟
+  }
+
+  public async handleTargetMessage(message: ApiMessage) {
+    const text = getMessageContent(message)?.text?.text || '';
+    this.messageId = message.id;
+    const { email, startTime, duration, timeZone } = await getMeetParamsByAITools(text);
+    if (startTime) {
+      this.startTime = [startTime];
+    }
+    if (email && email.length) {
+      this.email = email;
+    }
+    if (timeZone) {
+      if (this.timeZone) {
+        this.prevTimeZone = this.timeZone;
+      }
+      this.timeZone = timeZone;
+    }
+    if (duration) {
+      this.duration = duration;
+    }
+    this.handleMeetingInfoAsk();
   }
 
   private handlerImMessage({ message }: { message?: ApiMessage }) {
@@ -654,85 +384,159 @@ class ScheduleMeeting {
     if (
       message
       && hasMessageText(message)
-      && !this.isMeetingInitiator
       && !message.isOutgoing
     ) {
+      this.messageId = message.id;
       this.handler({
         chatId: message.chatId,
+        senderId: message.senderId,
+        messageId: message.id,
         text: getMessageContent(message).text?.text || '',
       });
     }
   }
 
-  private async handler(params?: { text: string; chatId: string }) {
-    const { text, chatId } = params || {};
+  private async checkTimeAvailable(startTimes?: string[]): Promise<{ isAvailable: boolean; suggestions?: { start: string; end: string }[] }> {
+    const timeToCheck = startTimes ? startTimes[0] : (this.startTime.length > 0 ? this.startTime[0] : null);
+
+    if (!timeToCheck) {
+      return {
+        isAvailable: false,
+        suggestions: [],
+      };
+    }
+
+    const originalTimeWasPast = isPast(timeToCheck);
+
+    if (originalTimeWasPast) {
+      // 如果原始时间是过去时间，直接返回不可用并提供推荐时间
+      const myBusyTimes = await getGoogleCalendarFreeBusy();
+      const suggestions = suggestFreeTimes(myBusyTimes);
+      return {
+        isAvailable: false,
+        suggestions,
+      };
+    }
+
+    const endTime = new Date(new Date(timeToCheck).getTime() + this.duration * 1000).toISOString();
+    const dateRange = {
+      start: timeToCheck,
+      end: endTime,
+    };
+
+    const { isAvailable, suggestions } = await isTimeSlotAvailable(dateRange);
+
+    return {
+      isAvailable,
+      suggestions,
+    };
+  }
+
+  private async checkCalendlyLinks(text: string): Promise<string[]> {
+    const calendlyUrl = extractCalendlyLinks(text)?.[0];
+    if (calendlyUrl) {
+      const { times, timeZone } = await calendlyRanges({ calendlyUrl });
+      if (!this.timeZone && timeZone) {
+        this.timeZone = timeZone;
+      }
+      const myBusyTimes = await getGoogleCalendarFreeBusy();
+      const availableSolts = getAvailableSlots(times, this.duration, myBusyTimes);
+      if (availableSolts.length === 0) {
+        console.log('No available time slots found for the provided Calendly link.');
+      }
+      return availableSolts.slice(0, 3);
+    }
+    return [];
+  }
+
+  public async handler(params?: {
+    chatId: string;
+    senderId: string | undefined;
+    messageId: number | undefined;
+    text: string;
+  }) {
+    const { text, chatId, senderId, messageId } = params || {};
     if (chatId && chatId !== this.chatId) {
       return;
     }
-    if (this.email.length && this.date.length && this.hasConfirmed) {
-      this.handleGoogleAuthCheck();
+    if (this.targetUserId && senderId !== this.targetUserId) {
       return;
     }
+    if (text?.trim() === '') {
+      return;
+    }
+    this.messageId = messageId;
     try {
-      if (text && chatId === this.chatId) {
-        if (!this.date.length) {
-          const calendlyUrl = extractCalendlyLinks(text)?.[0];
-          if (calendlyUrl) {
-            const suitableDates = await getSuitableTime(calendlyUrl);
-            if (suitableDates.length === 0) {
-              console.log(
-                'No available time slots found for the provided Calendly link.',
-              );
-            }
-            this.date = suitableDates.slice(0, 3);
-          }
+      // 先获取参数
+      const { email, startTime, duration, timeZone } = await getMeetParamsByAITools(text!);
+      let paramHit = false;
+
+      // 检查是否命中任何必要参数
+      if (email && email.length > 0) {
+        this.email = this.email.concat(email);
+        paramHit = true;
+      }
+      if (timeZone) {
+        if (this.timeZone) {
+          this.prevTimeZone = this.timeZone;
         }
-        const toolCheckRes = await getMeetParamsByAITools(text);
-        if (toolCheckRes.email && toolCheckRes.email.length > 0) {
-          this.email = toolCheckRes.email;
-        }
-        if (!this.date.length && toolCheckRes.date) {
-          const dateRange = {
-            start: toolCheckRes.date,
-            end: new Date(
-              new Date(toolCheckRes.date).getTime() + 30 * 60 * 1000,
-            ).toISOString(),
-          };
-          const { isAvailable, suggestions } = await isTimeSlotAvailable(
-            dateRange,
+        this.timeZone = timeZone;
+        this.timeConfirmed = false;
+        paramHit = true;
+      }
+      if (duration) {
+        this.duration = duration;
+      }
+      if (startTime) {
+        this.startTime = [startTime];
+        this.timeConfirmed = false;
+        paramHit = true;
+      }
+      // 当任意必要条件有更新时，重置定时器
+      if (paramHit) {
+        this.resetAuthCheckTimer();
+      }
+
+      // 如果通过AI工具获取到了startTime和timeZone，且还未检查过时间可用性，则检查时间是否合理
+      if (this.startTime.length && this.timeZone && !this.timeConfirmed) {
+        this.startTime = [attachZoneWithTemporal(this.startTime[0], this.prevTimeZone, this.timeZone).utcInstant];
+        const { isAvailable, suggestions } = await this.checkTimeAvailable(this.startTime);
+        if (!isAvailable) {
+          this.startTime = [];
+          this.sendMessage(MEETING_TIME_UNAVAILABLE);
+          // 根据自己日历的时间，给出时间建议
+          await new Promise<void>((res) => {
+            void setTimeout(res, 1000);
+          });
+          this.sendMessage(
+            `Here are some available time slots you can choose from: \n ${suggestions!
+              .map(
+                (slot, index) =>
+                  `${index + 1}.${formatMeetingTimeRange(
+                    slot.start,
+                    slot.end,
+                    this.timeZone,
+                    true,
+                  )}`,
+              )
+              .join('\n')} \n [By TelyAI]`,
           );
-          if (isAvailable) {
-            this.date = [dateRange];
-            this.hasConfirmed = true; // 如果有时间回执，设置为已确认
-          } else {
-            this.sendMessage(
-              'The time you provided is not available. Could you please suggest another time?',
-            );
-            // 根据自己日历的时间，给出时间建议
-            await new Promise<void>((res) => {
-              void setTimeout(res, 1000);
-            });
-            this.sendMessage(
-              `Here are some available time slots you can choose from: \n ${suggestions!
-                .map(
-                  (slot, index) =>
-                    `${index + 1}.${formatMeetingTimeRange(
-                      slot.start,
-                      slot.end,
-                      true,
-                    )}`,
-                )
-                .join('\n')}`,
-            );
-            return;
-          }
+          return;
+        } else {
+          this.timeConfirmed = true;
         }
       }
-      // 打开小助手，用户时间回执
-      if (this.date.length > 0 && !this.hasConfirmed) {
+
+      // 尝试从Calendly链接获取可用时间
+      const availableSlots = await this.checkCalendlyLinks(text!);
+
+      // 如果有可用时间，打开小助手让用户确认时间
+      if (availableSlots && availableSlots.length > 0 && !this.timeConfirmed) {
         const meetingTimeConfirmMessage = createMeetingTimeConfirmMessage({
           chatId: this.chatId,
-          date: this.date,
+          startTime: availableSlots,
+          duration: this.duration,
+          timeZone: this.timeZone,
           email: this.email,
         });
         ChataiStores?.message?.storeMessage(
@@ -751,18 +555,14 @@ class ScheduleMeeting {
         }
         return;
       }
-      if (!this.email.length && !this.date.length) {
-        this.sendMessage(ASK_MEETING_TIME_AND_EMAIL);
-        return;
-      } else if (!this.email.length) {
-        this.sendMessage(ASK_MEETING_EMAIL);
-        return;
-      } else if (!this.date.length) {
-        this.sendMessage(ASK_MEETING_TIME);
-        return;
+
+      // 只有当命中参数时才询问下一个必要条件
+      if (paramHit) {
+        this.handleMeetingInfoAsk();
       }
-      if (this.email.length && this.date.length) {
-        this.handleGoogleAuthCheck();
+
+      if (this.email.length && this.startTime && this.timeZone && this.duration && this.timeConfirmed) {
+        this.scheduleAuthCheck();
       }
     } catch (e) {
       console.log(e);
@@ -788,11 +588,11 @@ class ScheduleMeeting {
   }
 
   public handleCreateGoogleMeet(accessToken: string) {
-    const date = this.date[0];
+    const start = this.startTime[0];
     createGoogleMeet({
-      startDate: new Date(date.start),
-      endDate: new Date(date.end),
-      selectedTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // Add timezone
+      startDate: new Date(start),
+      endDate: new Date(new Date(start).getTime() + this.duration * 1000),
+      selectedTimezone: this.timeZone,
       emails: this.email,
       googleToken: accessToken,
     })
@@ -800,9 +600,10 @@ class ScheduleMeeting {
         this.sendMessage(MEETING_INVITATION_TIP);
         if (createMeetResponse) {
           generateEventScreenshot(createMeetResponse, this.chatId);
-          this.cleanup();
         }
-        this.cleanup();
+        setTimeout(() => {
+          this.cleanup();
+        }, 3000);
       })
       .catch((err) => {
         console.log(err);
@@ -811,6 +612,19 @@ class ScheduleMeeting {
   }
 
   private sendMessage(message: string) {
+    if (this.targetUserId && this.messageId) {
+      const replyInfo = {
+        type: 'message',
+        replyToMsgId: this.messageId,
+        replyToPeerId: undefined,
+      };
+      getActions().saveReplyDraft({
+        chatId: this.chatId,
+        threadId: -1,
+        draft: { replyInfo } as ApiDraft,
+        isLocalOnly: true,
+      });
+    }
     getActions().sendMessage({
       messageList: {
         chatId: this.chatId,
@@ -819,6 +633,9 @@ class ScheduleMeeting {
       },
       text: message,
     });
+    if (this.targetUserId) {
+      getActions().clearDraft({ chatId: this.chatId, isLocalOnly: true });
+    }
   }
 }
 

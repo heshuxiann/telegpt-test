@@ -1,12 +1,12 @@
-import BigInt from "big-integer";
-import { Api as GramJs } from "../../../lib/gramjs";
-import { RPCError } from "../../../lib/gramjs/errors";
+import BigInt from 'big-integer';
+import { Api as GramJs } from '../../../lib/gramjs';
+import { RPCError } from '../../../lib/gramjs/errors';
 
 import type {
   ForwardMessagesParams,
   SendMessageParams,
   ThreadId,
-} from "../../../types";
+} from '../../../types';
 import type {
   ApiAttachment,
   ApiChat,
@@ -31,8 +31,8 @@ import type {
   ApiUserStatus,
   ApiWebPage,
   MediaContent,
-} from "../../types";
-import { MAIN_THREAD_ID, MESSAGE_DELETED } from "../../types";
+} from '../../types';
+import { MAIN_THREAD_ID, MESSAGE_DELETED } from '../../types';
 
 import {
   API_GENERAL_ID_LIMIT,
@@ -46,24 +46,24 @@ import {
   SERVER_API_URL,
   SUPPORTED_PHOTO_CONTENT_TYPES,
   SUPPORTED_VIDEO_CONTENT_TYPES,
-} from "../../../config";
-import { fetchFile } from "../../../util/files";
-import { compact, split } from "../../../util/iteratees";
-import { getMessageKey } from "../../../util/keys/messageKey";
-import { getServerTime } from "../../../util/serverTime";
-import { interpolateArray } from "../../../util/waveform";
+} from '../../../config';
+import { fetchFile } from '../../../util/files';
+import { compact, split } from '../../../util/iteratees';
+import { getMessageKey } from '../../../util/keys/messageKey';
+import { getServerTime } from '../../../util/serverTime';
+import { interpolateArray } from '../../../util/waveform';
 import {
   buildApiChatFromPreview,
   buildApiSendAsPeerId,
   buildApiSponsoredMessageReportResult,
-} from "../apiBuilders/chats";
-import { buildApiFormattedText } from "../apiBuilders/common";
+} from '../apiBuilders/chats';
+import { buildApiFormattedText } from '../apiBuilders/common';
 import {
   buildMessageMediaContent,
   buildMessageTextContent,
   buildPollFromMedia,
   buildWebPageFromMedia,
-} from "../apiBuilders/messageContent";
+} from '../apiBuilders/messageContent';
 import {
   buildApiFactCheck,
   buildApiMessage,
@@ -76,9 +76,9 @@ import {
   buildLocalMessage,
   buildPreparedInlineMessage,
   buildUploadingMedia,
-} from "../apiBuilders/messages";
-import { getApiChatIdFromMtpPeer } from "../apiBuilders/peers";
-import { buildApiUser, buildApiUserStatuses } from "../apiBuilders/users";
+} from '../apiBuilders/messages';
+import { getApiChatIdFromMtpPeer } from '../apiBuilders/peers';
+import { buildApiUser, buildApiUserStatuses } from '../apiBuilders/users';
 import {
   buildInputChannel,
   buildInputDocument,
@@ -101,30 +101,30 @@ import {
   DEFAULT_PRIMITIVES,
   generateRandomBigInt,
   getEntityTypeById,
-} from "../gramjsBuilders";
-import { deserializeBytes, resolveMessageApiChatId } from "../helpers/misc";
-import localDb from "../localDb";
-import { sendApiUpdate } from "../updates/apiUpdateEmitter";
-import { processMessageAndUpdateThreadInfo } from "../updates/entityProcessor";
+} from '../gramjsBuilders';
+import { deserializeBytes, resolveMessageApiChatId } from '../helpers/misc';
+import localDb from '../localDb';
+import { sendApiUpdate } from '../updates/apiUpdateEmitter';
+import { processMessageAndUpdateThreadInfo } from '../updates/entityProcessor';
 import {
   processAffectedHistory,
   updateChannelState,
-} from "../updates/updateManager";
-import { requestChatUpdate } from "./chats";
-import { handleGramJsUpdate, invokeRequest, uploadFile } from "./client";
+} from '../updates/updateManager';
+import { requestChatUpdate } from './chats';
+import { handleGramJsUpdate, invokeRequest, uploadFile } from './client';
 
 const FAST_SEND_TIMEOUT = 1000;
 const INPUT_WAVEFORM_LENGTH = 63;
 
 type TranslateTextParams = (
   | {
-      text: ApiFormattedText[];
-    }
+    text: ApiFormattedText[];
+  }
   | {
-      chat: ApiChat;
-      messageIds: number[];
-      text?: ApiFormattedText[];
-    }
+    chat: ApiChat;
+    messageIds: number[];
+    text?: ApiFormattedText[];
+  }
 ) & {
   toLanguageCode: string;
 };
@@ -154,12 +154,12 @@ export async function fetchMessages({
   addOffset?: number;
   limit: number;
 }) {
-  const RequestClass =
-    threadId === MAIN_THREAD_ID
+  const RequestClass
+    = threadId === MAIN_THREAD_ID
       ? GramJs.messages.GetHistory
       : isSavedDialog
-      ? GramJs.messages.GetSavedHistory
-      : GramJs.messages.GetReplies;
+        ? GramJs.messages.GetSavedHistory
+        : GramJs.messages.GetReplies;
   let result;
 
   try {
@@ -170,10 +170,10 @@ export async function fetchMessages({
         minId: DEFAULT_PRIMITIVES.INT,
         offsetDate: DEFAULT_PRIMITIVES.INT,
         peer: buildInputPeer(chat.id, chat.accessHash),
-        ...(threadId !== MAIN_THREAD_ID &&
-          !isSavedDialog && {
-            msgId: Number(threadId),
-          }),
+        ...(threadId !== MAIN_THREAD_ID
+          && !isSavedDialog && {
+          msgId: Number(threadId),
+        }),
         // Workaround for local message IDs overflowing some internal `Buffer` range check
         offsetId: offsetId
           ? Math.min(offsetId, MAX_INT_32)
@@ -185,12 +185,12 @@ export async function fetchMessages({
         shouldThrow: true,
         abortControllerChatId: chat.id,
         abortControllerThreadId: threadId,
-      }
+      },
     );
   } catch (err: any) {
-    if (err.errorMessage === "CHANNEL_PRIVATE") {
+    if (err.errorMessage === 'CHANNEL_PRIVATE') {
       sendApiUpdate({
-        "@type": "updateChat",
+        '@type': 'updateChat',
         id: chat.id,
         chat: {
           isRestricted: true,
@@ -200,9 +200,9 @@ export async function fetchMessages({
   }
 
   if (
-    !result ||
-    result instanceof GramJs.messages.MessagesNotModified ||
-    !result.messages
+    !result
+    || result instanceof GramJs.messages.MessagesNotModified
+    || !result.messages
   ) {
     return undefined;
   }
@@ -229,32 +229,32 @@ export async function fetchMessage({
   chat: ApiChat;
   messageId: number;
 }) {
-  const isChannel = getEntityTypeById(chat.id) === "channel";
+  const isChannel = getEntityTypeById(chat.id) === 'channel';
 
   let result;
   try {
     result = await invokeRequest(
       isChannel
         ? new GramJs.channels.GetMessages({
-            channel: buildInputChannel(chat.id, chat.accessHash),
-            id: [new GramJs.InputMessageID({ id: messageId })],
-          })
+          channel: buildInputChannel(chat.id, chat.accessHash),
+          id: [new GramJs.InputMessageID({ id: messageId })],
+        })
         : new GramJs.messages.GetMessages({
-            id: [new GramJs.InputMessageID({ id: messageId })],
-          }),
+          id: [new GramJs.InputMessageID({ id: messageId })],
+        }),
       {
         shouldThrow: true,
         abortControllerChatId: chat.id,
-      }
+      },
     );
   } catch (err: any) {
     const { message } = err;
 
     // When fetching messages for the bot @replies, there may be situations when the user was banned
     // in the comment group or this group was deleted
-    if (message !== "CHANNEL_PRIVATE") {
+    if (message !== 'CHANNEL_PRIVATE') {
       sendApiUpdate({
-        "@type": "error",
+        '@type': 'error',
         error: {
           message,
           isSlowMode: false,
@@ -268,7 +268,7 @@ export async function fetchMessage({
     return undefined;
   }
 
-  if ("pts" in result) {
+  if ('pts' in result) {
     updateChannelState(chat.id, result.pts);
   }
 
@@ -298,20 +298,20 @@ export async function fetchMessagesById({
   chat: ApiChat;
   messageIds: number[];
 }) {
-  const isChannel = getEntityTypeById(chat.id) === "channel";
+  const isChannel = getEntityTypeById(chat.id) === 'channel';
 
   const result = await invokeRequest(
     isChannel
       ? new GramJs.channels.GetMessages({
-          channel: buildInputChannel(chat.id, chat.accessHash),
-          id: messageIds.map((id) => new GramJs.InputMessageID({ id })),
-        })
+        channel: buildInputChannel(chat.id, chat.accessHash),
+        id: messageIds.map((id) => new GramJs.InputMessageID({ id })),
+      })
       : new GramJs.messages.GetMessages({
-          id: messageIds.map((id) => new GramJs.InputMessageID({ id })),
-        }),
+        id: messageIds.map((id) => new GramJs.InputMessageID({ id })),
+      }),
     {
       shouldThrow: true,
-    }
+    },
   );
 
   if (!result || result instanceof GramJs.messages.MessagesNotModified) {
@@ -370,11 +370,11 @@ export function sendMessageLocal(params: SendMessageParams) {
     isInvertedMedia,
     effectId,
     isPending,
-    messagePriceInStars
+    messagePriceInStars,
   );
 
   sendApiUpdate({
-    "@type": localMessage.isScheduled ? "newScheduledMessage" : "newMessage",
+    '@type': localMessage.isScheduled ? 'newScheduledMessage' : 'newMessage',
     id: localMessage.id,
     chatId: chat.id,
     message: localMessage,
@@ -388,7 +388,7 @@ export function sendMessageLocal(params: SendMessageParams) {
 export function sendApiMessage(
   params: SendMessageParams,
   localMessage: ApiMessage,
-  onProgress?: ApiOnProgress
+  onProgress?: ApiOnProgress,
 ) {
   const {
     chat,
@@ -424,13 +424,13 @@ export function sendApiMessage(
   // so in most cases this will be simply ignored
   const timeout = setTimeout(() => {
     sendApiUpdate({
-      "@type": localMessage.isScheduled
-        ? "updateScheduledMessage"
-        : "updateMessage",
+      '@type': localMessage.isScheduled
+        ? 'updateScheduledMessage'
+        : 'updateMessage',
       id: localMessage.id,
       chatId: chat.id,
       message: {
-        sendingState: "messageSendingStatePending",
+        sendingState: 'messageSendingStatePending',
       },
     });
   }, FAST_SEND_TIMEOUT);
@@ -453,7 +453,7 @@ export function sendApiMessage(
       },
       randomId,
       localMessage,
-      onProgress
+      onProgress,
     );
   }
 
@@ -521,8 +521,8 @@ export function sendApiMessage(
     } else if (webPageUrl && webPageMediaSize) {
       media = new GramJs.InputMediaWebPage({
         url: webPageUrl,
-        forceLargeMedia: webPageMediaSize === "large" ? true : undefined,
-        forceSmallMedia: webPageMediaSize === "small" ? true : undefined,
+        forceLargeMedia: webPageMediaSize === 'large' ? true : undefined,
+        forceSmallMedia: webPageMediaSize === 'small' ? true : undefined,
       });
     } else if (contact) {
       media = new GramJs.InputMediaContact({
@@ -582,7 +582,7 @@ export function sendApiMessage(
           {
             shouldThrow: true,
             shouldIgnoreUpdates: true,
-          }
+          },
         );
       } else {
         update = await invokeRequest(
@@ -593,18 +593,18 @@ export function sendApiMessage(
           {
             shouldThrow: true,
             shouldIgnoreUpdates: true,
-          }
+          },
         );
       }
 
       if (update) handleLocalMessageUpdate(localMessage, update);
     } catch (error: any) {
-      if (error.errorMessage === "PRIVACY_PREMIUM_REQUIRED") {
-        sendApiUpdate({ "@type": "updateRequestUserUpdate", id: chat.id });
+      if (error.errorMessage === 'PRIVACY_PREMIUM_REQUIRED') {
+        sendApiUpdate({ '@type': 'updateRequestUserUpdate', id: chat.id });
       }
 
       sendApiUpdate({
-        "@type": "updateMessageSendFailed",
+        '@type': 'updateMessageSendFailed',
         chatId: chat.id,
         localId: localMessage.id,
         error: error.message,
@@ -618,7 +618,7 @@ export function sendApiMessage(
 
 export async function sendMessage(
   params: SendMessageParams,
-  onProgress?: ApiOnProgress
+  onProgress?: ApiOnProgress,
 ) {
   const localMessage = params.localMessage || (await sendMessageLocal(params));
   return localMessage
@@ -663,7 +663,7 @@ function sendGroupedMedia(
   },
   randomId: GramJs.long,
   localMessage: ApiMessage,
-  onProgress?: ApiOnProgress
+  onProgress?: ApiOnProgress,
 ) {
   let groupIndex = -1;
   if (!groupedUploads[groupedId]) {
@@ -696,7 +696,7 @@ function sendGroupedMedia(
 
     const inputMedia = await fetchInputMedia(
       buildInputPeer(chat.id, chat.accessHash),
-      media
+      media,
     );
 
     await prevMediaQueue;
@@ -706,14 +706,14 @@ function sendGroupedMedia(
 
       if (DEBUG) {
         // eslint-disable-next-line no-console
-        console.warn("Failed to upload grouped media");
+        console.warn('Failed to upload grouped media');
       }
 
       return;
     }
 
-    groupedUploads[groupedId].singleMediaByIndex[groupIndex] =
-      new GramJs.InputSingleMedia({
+    groupedUploads[groupedId].singleMediaByIndex[groupIndex]
+      = new GramJs.InputSingleMedia({
         media: inputMedia,
         randomId,
         message: text,
@@ -722,8 +722,8 @@ function sendGroupedMedia(
     groupedUploads[groupedId].localMessages[randomId.toString()] = localMessage;
 
     if (
-      Object.keys(groupedUploads[groupedId].singleMediaByIndex).length <
-      groupedUploads[groupedId].counter
+      Object.keys(groupedUploads[groupedId].singleMediaByIndex).length
+      < groupedUploads[groupedId].counter
     ) {
       return;
     }
@@ -750,7 +750,7 @@ function sendGroupedMedia(
       }),
       {
         shouldIgnoreUpdates: true,
-      }
+      },
     );
 
     if (update) handleMultipleLocalMessagesUpdate(localMessages, update);
@@ -763,20 +763,20 @@ async function fetchInputMedia(
   peer: GramJs.TypeInputPeer,
   uploadedMedia:
     | GramJs.InputMediaUploadedPhoto
-    | GramJs.InputMediaUploadedDocument
+    | GramJs.InputMediaUploadedDocument,
 ) {
   const messageMedia = await invokeRequest(
     new GramJs.messages.UploadMedia({
       peer,
       media: uploadedMedia,
-    })
+    }),
   );
   const isSpoiler = uploadedMedia.spoiler;
 
   if (
-    messageMedia instanceof GramJs.MessageMediaPhoto &&
-    messageMedia.photo &&
-    messageMedia.photo instanceof GramJs.Photo
+    messageMedia instanceof GramJs.MessageMediaPhoto
+    && messageMedia.photo
+    && messageMedia.photo instanceof GramJs.Photo
   ) {
     const {
       photo: { id, accessHash, fileReference },
@@ -789,9 +789,9 @@ async function fetchInputMedia(
   }
 
   if (
-    messageMedia instanceof GramJs.MessageMediaDocument &&
-    messageMedia.document &&
-    messageMedia.document instanceof GramJs.Document
+    messageMedia instanceof GramJs.MessageMediaDocument
+    && messageMedia.document
+    && messageMedia.document instanceof GramJs.Document
   ) {
     const {
       document: { id, accessHash, fileReference },
@@ -822,14 +822,14 @@ export async function editMessage(
     attachment?: ApiAttachment;
     noWebPage?: boolean;
   },
-  onProgress?: ApiOnProgress
+  onProgress?: ApiOnProgress,
 ) {
   const isScheduled = message.date * 1000 > getServerTime() * 1000;
 
   const media = attachment && buildUploadingMedia(attachment);
 
-  const isInvertedMedia =
-    text && !attachment?.shouldSendAsFile ? message.isInvertedMedia : undefined;
+  const isInvertedMedia
+    = text && !attachment?.shouldSendAsFile ? message.isInvertedMedia : undefined;
 
   const newContent = {
     ...(media || message.content),
@@ -848,7 +848,7 @@ export async function editMessage(
   };
 
   sendApiUpdate({
-    "@type": isScheduled ? "updateScheduledMessage" : "updateMessage",
+    '@type': isScheduled ? 'updateScheduledMessage' : 'updateMessage',
     id: message.id,
     chatId: chat.id,
     message: messageUpdate,
@@ -873,7 +873,7 @@ export async function editMessage(
         ...(noWebPage && { noWebpage: noWebPage }),
         ...(isInvertedMedia && { invertMedia: isInvertedMedia }),
       }),
-      { shouldThrow: true }
+      { shouldThrow: true },
     );
   } catch (err) {
     if (DEBUG) {
@@ -884,7 +884,7 @@ export async function editMessage(
     const { message: messageErr } = err as Error;
 
     sendApiUpdate({
-      "@type": "error",
+      '@type': 'error',
       error: {
         message: messageErr,
         hasErrorKey: true,
@@ -893,7 +893,7 @@ export async function editMessage(
 
     // Rollback changes
     sendApiUpdate({
-      "@type": isScheduled ? "updateScheduledMessage" : "updateMessage",
+      '@type': isScheduled ? 'updateScheduledMessage' : 'updateMessage',
       id: message.id,
       chatId: chat.id,
       message,
@@ -916,7 +916,7 @@ export async function editTodo({
   const newContent: MediaContent = {
     ...message.content,
     todo: {
-      mediaType: "todo",
+      mediaType: 'todo',
       todo: todo.todo,
     },
   };
@@ -927,7 +927,7 @@ export async function editTodo({
   };
 
   sendApiUpdate({
-    "@type": isScheduled ? "updateScheduledMessage" : "updateMessage",
+    '@type': isScheduled ? 'updateScheduledMessage' : 'updateMessage',
     id: message.id,
     chatId: chat.id,
     message: messageUpdate,
@@ -940,7 +940,7 @@ export async function editTodo({
         peer: buildInputPeer(chat.id, chat.accessHash),
         id: message.id,
       }),
-      { shouldThrow: true }
+      { shouldThrow: true },
     );
   } catch (err) {
     if (DEBUG) {
@@ -951,7 +951,7 @@ export async function editTodo({
     const { message: messageErr } = err as Error;
 
     sendApiUpdate({
-      "@type": "error",
+      '@type': 'error',
       error: {
         message: messageErr,
         hasErrorKey: true,
@@ -960,7 +960,7 @@ export async function editTodo({
 
     // Rollback changes
     sendApiUpdate({
-      "@type": "updateMessage",
+      '@type': 'updateMessage',
       id: message.id,
       chatId: chat.id,
       message,
@@ -991,7 +991,7 @@ export async function appendTodoList({
         msgId: message.id,
         list: todoItems,
       }),
-      { shouldThrow: true }
+      { shouldThrow: true },
     );
   } catch (err) {
     if (DEBUG) {
@@ -1002,7 +1002,7 @@ export async function appendTodoList({
     const { message: messageErr } = err as Error;
 
     sendApiUpdate({
-      "@type": "error",
+      '@type': 'error',
       error: {
         message: messageErr,
         hasErrorKey: true,
@@ -1025,14 +1025,14 @@ export async function rescheduleMessage({
       peer: buildInputPeer(chat.id, chat.accessHash),
       id: message.id,
       scheduleDate: scheduledAt,
-    })
+    }),
   );
 }
 
 async function uploadMedia(
   message: ApiMessage,
   attachment: ApiAttachment,
-  onProgress: ApiOnProgress
+  onProgress: ApiOnProgress,
 ) {
   const {
     filename,
@@ -1057,7 +1057,7 @@ async function uploadMedia(
 
   const fetchAndUpload = async (
     url: string,
-    progressCallback?: (progress: number) => void
+    progressCallback?: (progress: number) => void,
   ) => {
     const file = await fetchFile(url, filename);
     return uploadFile(file, progressCallback);
@@ -1070,7 +1070,7 @@ async function uploadMedia(
     compact([
       fetchAndUpload(blobUrl, patchedOnProgress),
       shouldUploadThumb && previewBlobUrl && fetchAndUpload(previewBlobUrl),
-    ])
+    ]),
   );
 
   const attributes: GramJs.TypeDocumentAttribute[] = [
@@ -1079,8 +1079,8 @@ async function uploadMedia(
   if (!shouldSendAsFile) {
     if (quick) {
       if (
-        SUPPORTED_PHOTO_CONTENT_TYPES.has(mimeType) &&
-        mimeType !== GIF_MIME_TYPE
+        SUPPORTED_PHOTO_CONTENT_TYPES.has(mimeType)
+        && mimeType !== GIF_MIME_TYPE
       ) {
         return new GramJs.InputMediaUploadedPhoto({
           file: inputFile,
@@ -1097,7 +1097,7 @@ async function uploadMedia(
               w: width,
               h: height,
               supportsStreaming: true,
-            })
+            }),
           );
         }
       }
@@ -1110,7 +1110,7 @@ async function uploadMedia(
           duration,
           title,
           performer,
-        })
+        }),
       );
     }
 
@@ -1118,14 +1118,14 @@ async function uploadMedia(
       const { duration, waveform } = voice;
       const { data: inputWaveform } = interpolateArray(
         waveform,
-        INPUT_WAVEFORM_LENGTH
+        INPUT_WAVEFORM_LENGTH,
       );
       attributes.push(
         new GramJs.DocumentAttributeAudio({
           voice: true,
           duration,
           waveform: Buffer.from(inputWaveform),
-        })
+        }),
       );
     }
   }
@@ -1161,7 +1161,7 @@ export async function pinMessage({
       ...(isUnpin && { unpin: true }),
       ...(isOneSide && { pmOneside: true }),
       ...(isSilent && { silent: true }),
-    })
+    }),
   );
 }
 
@@ -1176,7 +1176,7 @@ export async function unpinAllMessages({
     new GramJs.messages.UnpinAllMessages({
       peer: buildInputPeer(chat.id, chat.accessHash),
       ...(threadId && { topMsgId: Number(threadId) }),
-    })
+    }),
   );
 
   if (!result) return;
@@ -1197,18 +1197,18 @@ export async function deleteMessages({
   messageIds: number[];
   shouldDeleteForAll?: boolean;
 }) {
-  const isChannel = getEntityTypeById(chat.id) === "channel";
+  const isChannel = getEntityTypeById(chat.id) === 'channel';
 
   const result = await invokeRequest(
     isChannel
       ? new GramJs.channels.DeleteMessages({
-          channel: buildInputChannel(chat.id, chat.accessHash),
-          id: messageIds,
-        })
+        channel: buildInputChannel(chat.id, chat.accessHash),
+        id: messageIds,
+      })
       : new GramJs.messages.DeleteMessages({
-          id: messageIds,
-          ...(shouldDeleteForAll && { revoke: true }),
-        })
+        id: messageIds,
+        ...(shouldDeleteForAll && { revoke: true }),
+      }),
   );
 
   if (!result) {
@@ -1218,7 +1218,7 @@ export async function deleteMessages({
   processAffectedHistory(chat, result);
 
   sendApiUpdate({
-    "@type": "deleteMessages",
+    '@type': 'deleteMessages',
     ids: messageIds,
     ...(isChannel && { chatId: chat.id }),
   });
@@ -1237,7 +1237,7 @@ export async function deleteParticipantHistory({
     new GramJs.channels.DeleteParticipantHistory({
       channel: buildInputChannel(chat.id, chat.accessHash),
       participant: buildInputPeer(peer.id, peer.accessHash),
-    })
+    }),
   );
 
   if (!result) {
@@ -1248,7 +1248,7 @@ export async function deleteParticipantHistory({
 
   if (!isRepeat) {
     sendApiUpdate({
-      "@type": "deleteParticipantHistory",
+      '@type': 'deleteParticipantHistory',
       chatId: chat.id,
       peerId: peer.id,
     });
@@ -1270,7 +1270,7 @@ export function deleteScheduledMessages({
     new GramJs.messages.DeleteScheduledMessages({
       peer: buildInputPeer(chat.id, chat.accessHash),
       id: messageIds,
-    })
+    }),
   );
 }
 
@@ -1283,26 +1283,26 @@ export async function deleteHistory({
   shouldDeleteForAll?: boolean;
   maxId?: number;
 }) {
-  const isChannel = getEntityTypeById(chat.id) === "channel";
+  const isChannel = getEntityTypeById(chat.id) === 'channel';
   const result = await invokeRequest(
     isChannel
       ? new GramJs.channels.DeleteHistory({
-          channel: buildInputChannel(chat.id, chat.accessHash),
-          maxId: maxId ?? DEFAULT_PRIMITIVES.INT,
-        })
+        channel: buildInputChannel(chat.id, chat.accessHash),
+        maxId: maxId ?? DEFAULT_PRIMITIVES.INT,
+      })
       : new GramJs.messages.DeleteHistory({
-          peer: buildInputPeer(chat.id, chat.accessHash),
-          maxId: maxId ?? DEFAULT_PRIMITIVES.INT,
-          ...(shouldDeleteForAll && { revoke: true }),
-          ...(!shouldDeleteForAll && { just_clear: true }),
-        })
+        peer: buildInputPeer(chat.id, chat.accessHash),
+        maxId: maxId ?? DEFAULT_PRIMITIVES.INT,
+        ...(shouldDeleteForAll && { revoke: true }),
+        ...(!shouldDeleteForAll && { just_clear: true }),
+      }),
   );
 
   if (!result) {
     return;
   }
 
-  if ("offset" in result) {
+  if ('offset' in result) {
     processAffectedHistory(chat, result);
 
     if (result.offset) {
@@ -1312,7 +1312,7 @@ export async function deleteHistory({
   }
 
   sendApiUpdate({
-    "@type": "deleteHistory",
+    '@type': 'deleteHistory',
     chatId: chat.id,
   });
 }
@@ -1322,7 +1322,7 @@ export async function deleteSavedHistory({ chat }: { chat: ApiChat }) {
     new GramJs.messages.DeleteSavedHistory({
       peer: buildInputPeer(chat.id, chat.accessHash),
       maxId: DEFAULT_PRIMITIVES.INT,
-    })
+    }),
   );
 
   if (!result) {
@@ -1337,7 +1337,7 @@ export async function deleteSavedHistory({ chat }: { chat: ApiChat }) {
   }
 
   sendApiUpdate({
-    "@type": "deleteSavedHistory",
+    '@type': 'deleteSavedHistory',
     chatId: chat.id,
   });
 }
@@ -1362,7 +1362,7 @@ export async function toggleSuggestedPostApproval({
       reject: reject || undefined,
       scheduleDate,
       rejectComment,
-    })
+    }),
   );
 
   return result;
@@ -1387,7 +1387,7 @@ export async function reportMessages({
         option: deserializeBytes(option),
         message: description,
       }),
-      { shouldThrow: true }
+      { shouldThrow: true },
     );
 
     if (!result) return undefined;
@@ -1421,7 +1421,7 @@ export function reportChannelSpam({
       participant: buildInputPeer(peer.id, peer.accessHash),
       channel: buildInputChannel(chat.id, chat.accessHash),
       id: messageIds,
-    })
+    }),
   );
 }
 
@@ -1438,7 +1438,7 @@ export async function sendMessageAction({
   if (!mtpAction) {
     if (DEBUG) {
       // eslint-disable-next-line no-console
-      console.warn("Unsupported message action", action);
+      console.warn('Unsupported message action', action);
     }
     return undefined;
   }
@@ -1454,7 +1454,7 @@ export async function sendMessageAction({
         shouldThrow: true,
         abortControllerChatId: peer.id,
         abortControllerThreadId: threadId,
-      }
+      },
     );
     return result;
   } catch (error) {
@@ -1472,7 +1472,7 @@ export async function markMessageListRead({
   threadId: ThreadId;
   maxId?: number;
 }) {
-  const isChannel = getEntityTypeById(chat.id) === "channel";
+  const isChannel = getEntityTypeById(chat.id) === 'channel';
 
   // Workaround for local message IDs overflowing some internal `Buffer` range check
   const fixedMaxId = Math.min(maxId, MAX_INT_32);
@@ -1481,7 +1481,7 @@ export async function markMessageListRead({
       new GramJs.channels.ReadHistory({
         channel: buildInputChannel(chat.id, chat.accessHash),
         maxId: fixedMaxId,
-      })
+      }),
     );
   } else if (isChannel) {
     await invokeRequest(
@@ -1489,14 +1489,14 @@ export async function markMessageListRead({
         peer: buildInputPeer(chat.id, chat.accessHash),
         msgId: Number(threadId),
         readMaxId: fixedMaxId,
-      })
+      }),
     );
   } else {
     const result = await invokeRequest(
       new GramJs.messages.ReadHistory({
         peer: buildInputPeer(chat.id, chat.accessHash),
         maxId: fixedMaxId,
-      })
+      }),
     );
 
     if (result) {
@@ -1508,7 +1508,7 @@ export async function markMessageListRead({
     void requestChatUpdate({ chat, noLastMessage: true });
   } else if (chat.isForum) {
     sendApiUpdate({
-      "@type": "updateTopic",
+      '@type': 'updateTopic',
       chatId: chat.id,
       topicId: Number(threadId),
     });
@@ -1522,17 +1522,17 @@ export async function markMessagesRead({
   chat: ApiChat;
   messageIds: number[];
 }) {
-  const isChannel = getEntityTypeById(chat.id) === "channel";
+  const isChannel = getEntityTypeById(chat.id) === 'channel';
 
   const result = await invokeRequest(
     isChannel
       ? new GramJs.channels.ReadMessageContents({
-          channel: buildInputChannel(chat.id, chat.accessHash),
-          id: messageIds,
-        })
+        channel: buildInputChannel(chat.id, chat.accessHash),
+        id: messageIds,
+      })
       : new GramJs.messages.ReadMessageContents({
-          id: messageIds,
-        })
+        id: messageIds,
+      }),
   );
 
   if (!result) {
@@ -1546,12 +1546,12 @@ export async function markMessagesRead({
   sendApiUpdate({
     ...(isChannel
       ? {
-          "@type": "updateChannelMessages",
-          channelId: chat.id,
-        }
+        '@type': 'updateChannelMessages',
+        channelId: chat.id,
+      }
       : {
-          "@type": "updateCommonBoxMessages",
-        }),
+        '@type': 'updateCommonBoxMessages',
+      }),
     ids: messageIds,
     messageUpdate: {
       hasUnreadMention: false,
@@ -1577,9 +1577,9 @@ export async function fetchMessageViews({
           peer: buildInputPeer(chat.id, chat.accessHash),
           id: chunkIds,
           increment: Boolean(shouldIncrement),
-        })
-      )
-    )
+        }),
+      ),
+    ),
   );
 
   if (!results || results.some((result) => !result)) return undefined;
@@ -1617,9 +1617,9 @@ export async function fetchFactChecks({
         new GramJs.messages.GetFactCheck({
           peer: buildInputPeer(chat.id, chat.accessHash),
           msgId: chunkIds,
-        })
-      )
-    )
+        }),
+      ),
+    ),
   );
 
   if (!results || results.some((result) => !result)) return undefined;
@@ -1644,7 +1644,7 @@ export function reportMessagesDelivery({
     new GramJs.messages.ReportMessagesDelivery({
       peer: buildInputPeer(chat.id, chat.accessHash),
       id: messageIds,
-    })
+    }),
   );
 }
 
@@ -1664,7 +1664,7 @@ export async function fetchDiscussionMessage({
       {
         abortControllerChatId: chat.id,
         abortControllerThreadId: messageId,
-      }
+      },
     ),
     fetchMessages({
       chat,
@@ -1725,25 +1725,25 @@ export async function searchMessagesInChat({
 }): Promise<SearchResults | undefined> {
   let filter;
   switch (type) {
-    case "media":
+    case 'media':
       filter = new GramJs.InputMessagesFilterPhotoVideo();
       break;
-    case "documents":
+    case 'documents':
       filter = new GramJs.InputMessagesFilterDocument();
       break;
-    case "links":
+    case 'links':
       filter = new GramJs.InputMessagesFilterUrl();
       break;
-    case "audio":
+    case 'audio':
       filter = new GramJs.InputMessagesFilterMusic();
       break;
-    case "voice":
+    case 'voice':
       filter = new GramJs.InputMessagesFilterRoundVoice();
       break;
-    case "profilePhoto":
+    case 'profilePhoto':
       filter = new GramJs.InputMessagesFilterChatPhotos();
       break;
-    case "text":
+    case 'text':
     default: {
       filter = new GramJs.InputMessagesFilterEmpty();
     }
@@ -1774,13 +1774,13 @@ export async function searchMessagesInChat({
     {
       abortControllerChatId: peer.id,
       abortControllerThreadId: threadId,
-    }
+    },
   );
 
   if (
-    !result ||
-    result instanceof GramJs.messages.MessagesNotModified ||
-    !result.messages
+    !result
+    || result instanceof GramJs.messages.MessagesNotModified
+    || !result.messages
   ) {
     return undefined;
   }
@@ -1791,8 +1791,8 @@ export async function searchMessagesInChat({
   let totalCount = messages.length;
   let nextOffsetId: number | undefined;
   if (
-    result instanceof GramJs.messages.MessagesSlice ||
-    result instanceof GramJs.messages.ChannelMessages
+    result instanceof GramJs.messages.MessagesSlice
+    || result instanceof GramJs.messages.ChannelMessages
   ) {
     totalCount = result.count;
 
@@ -1815,10 +1815,10 @@ export async function searchMessagesGlobal({
   offsetPeer,
   offsetId,
   limit,
-  type = "text",
+  type = 'text',
   minDate,
   maxDate,
-  context = "all",
+  context = 'all',
 }: {
   query: string;
   offsetRate?: number;
@@ -1830,7 +1830,7 @@ export async function searchMessagesGlobal({
   minDate?: number;
   maxDate?: number;
 }): Promise<SearchResults | undefined> {
-  if (type === "publicPosts") {
+  if (type === 'publicPosts') {
     return searchPublicPosts({
       query,
       offsetRate,
@@ -1842,22 +1842,22 @@ export async function searchMessagesGlobal({
 
   let filter;
   switch (type) {
-    case "media":
+    case 'media':
       filter = new GramJs.InputMessagesFilterPhotoVideo();
       break;
-    case "documents":
+    case 'documents':
       filter = new GramJs.InputMessagesFilterDocument();
       break;
-    case "links":
+    case 'links':
       filter = new GramJs.InputMessagesFilterUrl();
       break;
-    case "audio":
+    case 'audio':
       filter = new GramJs.InputMessagesFilterMusic();
       break;
-    case "voice":
+    case 'voice':
       filter = new GramJs.InputMessagesFilterRoundVoice();
       break;
-    case "text":
+    case 'text':
     default: {
       if (!query && !(maxDate && minDate)) {
         return undefined;
@@ -1867,9 +1867,9 @@ export async function searchMessagesGlobal({
     }
   }
 
-  const peer =
-    (offsetPeer && buildInputPeer(offsetPeer.id, offsetPeer.accessHash)) ||
-    new GramJs.InputPeerEmpty();
+  const peer
+    = (offsetPeer && buildInputPeer(offsetPeer.id, offsetPeer.accessHash))
+      || new GramJs.InputPeerEmpty();
 
   const result = await invokeRequest(
     new GramJs.messages.SearchGlobal({
@@ -1878,20 +1878,20 @@ export async function searchMessagesGlobal({
       offsetPeer: peer,
       offsetId: offsetId ?? DEFAULT_PRIMITIVES.INT,
       broadcastsOnly:
-        type === "channels" || context === "channels" || undefined,
-      groupsOnly: context === "groups" || undefined,
-      usersOnly: context === "users" || undefined,
+        type === 'channels' || context === 'channels' || undefined,
+      groupsOnly: context === 'groups' || undefined,
+      usersOnly: context === 'users' || undefined,
       limit,
       filter,
       minDate: minDate ?? DEFAULT_PRIMITIVES.INT,
       maxDate: maxDate ?? DEFAULT_PRIMITIVES.INT,
-    })
+    }),
   );
 
   if (
-    !result ||
-    result instanceof GramJs.messages.MessagesNotModified ||
-    !result.messages
+    !result
+    || result instanceof GramJs.messages.MessagesNotModified
+    || !result.messages
   ) {
     return undefined;
   }
@@ -1901,8 +1901,8 @@ export async function searchMessagesGlobal({
 
   let totalCount = messages.length;
   if (
-    result instanceof GramJs.messages.MessagesSlice ||
-    result instanceof GramJs.messages.ChannelMessages
+    result instanceof GramJs.messages.MessagesSlice
+    || result instanceof GramJs.messages.ChannelMessages
   ) {
     totalCount = result.count;
   } else {
@@ -1911,8 +1911,8 @@ export async function searchMessagesGlobal({
 
   const lastMessage = result.messages[result.messages.length - 1];
   const nextOffsetPeerId = resolveMessageApiChatId(lastMessage);
-  const nextOffsetRate =
-    "nextRate" in result && result.nextRate ? result.nextRate : undefined;
+  const nextOffsetRate
+    = 'nextRate' in result && result.nextRate ? result.nextRate : undefined;
   const nextOffsetId = lastMessage?.id;
 
   return {
@@ -1940,9 +1940,9 @@ export async function searchPublicPosts({
   offsetId?: number;
   limit?: number;
 }): Promise<SearchResults | undefined> {
-  const peer =
-    (offsetPeer && buildInputPeer(offsetPeer.id, offsetPeer.accessHash)) ||
-    new GramJs.InputPeerEmpty();
+  const peer
+    = (offsetPeer && buildInputPeer(offsetPeer.id, offsetPeer.accessHash))
+      || new GramJs.InputPeerEmpty();
 
   const resultFlood = await checkSearchPostsFlood(query);
 
@@ -1959,7 +1959,7 @@ export async function searchPublicPosts({
       offsetPeer: peer,
       limit: limit ?? DEFAULT_PRIMITIVES.INT,
       allowPaidStars: BigInt(resultFlood.starsAmount),
-    })
+    }),
   );
 
   if (!result || result instanceof GramJs.messages.MessagesNotModified) {
@@ -1971,8 +1971,8 @@ export async function searchPublicPosts({
 
   let totalCount = messages.length;
   if (
-    result instanceof GramJs.messages.MessagesSlice ||
-    result instanceof GramJs.messages.ChannelMessages
+    result instanceof GramJs.messages.MessagesSlice
+    || result instanceof GramJs.messages.ChannelMessages
   ) {
     totalCount = result.count;
   } else {
@@ -1981,12 +1981,12 @@ export async function searchPublicPosts({
 
   const lastMessage = result.messages[result.messages.length - 1];
   const nextOffsetPeerId = resolveMessageApiChatId(lastMessage);
-  const nextOffsetRate =
-    "nextRate" in result && result.nextRate ? result.nextRate : undefined;
+  const nextOffsetRate
+    = 'nextRate' in result && result.nextRate ? result.nextRate : undefined;
   const nextOffsetId = lastMessage?.id;
 
-  const searchFlood =
-    result instanceof GramJs.messages.MessagesSlice && result.searchFlood
+  const searchFlood
+    = result instanceof GramJs.messages.MessagesSlice && result.searchFlood
       ? buildApiSearchPostsFlood(result.searchFlood, query)
       : undefined;
 
@@ -2003,7 +2003,7 @@ export async function searchPublicPosts({
 
 export async function checkSearchPostsFlood(query?: string) {
   const result = await invokeRequest(
-    new GramJs.channels.CheckSearchPostsFlood({ query })
+    new GramJs.channels.CheckSearchPostsFlood({ query }),
   );
 
   if (!result) {
@@ -2023,7 +2023,7 @@ export async function fetchWebPagePreview({
     new GramJs.messages.GetWebPagePreview({
       message: textWithEntities.text,
       entities: textWithEntities.entities,
-    })
+    }),
   );
 
   if (!preview) return undefined;
@@ -2047,7 +2047,7 @@ export async function sendPollVote({
       peer: buildInputPeer(id, accessHash),
       msgId: messageId,
       options: options.map(deserializeBytes),
-    })
+    }),
   );
 }
 
@@ -2070,7 +2070,7 @@ export async function toggleTodoCompleted({
       msgId: messageId,
       completed: completedIds,
       incompleted: incompletedIds,
-    })
+    }),
   );
 }
 
@@ -2090,7 +2090,7 @@ export async function closePoll({
       peer: buildInputPeer(id, accessHash),
       id: messageId,
       media: buildInputPollFromExisting(poll, true),
-    })
+    }),
   );
 }
 
@@ -2118,7 +2118,7 @@ export async function loadPollOptionResults({
       limit: limit ?? DEFAULT_PRIMITIVES.INT,
       option: option ? deserializeBytes(option) : undefined,
       offset,
-    })
+    }),
   );
 
   if (!result) {
@@ -2149,7 +2149,7 @@ export async function fetchExtendedMedia({
     new GramJs.messages.GetExtendedMedia({
       peer: buildInputPeer(chat.id, chat.accessHash),
       id: ids,
-    })
+    }),
   );
 }
 
@@ -2185,7 +2185,7 @@ export function forwardMessagesLocal(params: ForwardMessagesParams) {
     localMessages.push(localMessage);
 
     sendApiUpdate({
-      "@type": localMessage.isScheduled ? "newScheduledMessage" : "newMessage",
+      '@type': localMessage.isScheduled ? 'newScheduledMessage' : 'newMessage',
       id: localMessage.id,
       chatId: toChat.id,
       message: localMessage,
@@ -2238,7 +2238,7 @@ export async function forwardApiMessages(params: ForwardMessagesParams) {
       {
         shouldThrow: true,
         shouldIgnoreUpdates: true,
-      }
+      },
     );
     const messagesForUpdate: Record<string, ApiMessage> = {};
     localMessages.forEach((message, index) => {
@@ -2248,7 +2248,7 @@ export async function forwardApiMessages(params: ForwardMessagesParams) {
   } catch (error: any) {
     Object.values(localMessages).forEach((localMessage) => {
       sendApiUpdate({
-        "@type": "updateMessageSendFailed",
+        '@type': 'updateMessageSendFailed',
         chatId: toChat.id,
         localId: localMessage.id,
         error: error.message,
@@ -2286,14 +2286,14 @@ export async function findFirstMessageIdAfterDate({
       maxId: DEFAULT_PRIMITIVES.INT,
       minId: DEFAULT_PRIMITIVES.INT,
       hash: DEFAULT_PRIMITIVES.BIGINT,
-    })
+    }),
   );
 
   if (
-    !result ||
-    result instanceof GramJs.messages.MessagesNotModified ||
-    !result.messages ||
-    !result.messages.length
+    !result
+    || result instanceof GramJs.messages.MessagesNotModified
+    || !result.messages
+    || !result.messages.length
   ) {
     return undefined;
   }
@@ -2311,13 +2311,13 @@ export async function fetchScheduledHistory({ chat }: { chat: ApiChat }) {
     }),
     {
       abortControllerChatId: id,
-    }
+    },
   );
 
   if (
-    !result ||
-    result instanceof GramJs.messages.MessagesNotModified ||
-    !result.messages
+    !result
+    || result instanceof GramJs.messages.MessagesNotModified
+    || !result.messages
   ) {
     return undefined;
   }
@@ -2342,7 +2342,7 @@ export async function sendScheduledMessages({
     new GramJs.messages.SendScheduledMessages({
       peer: buildInputPeer(id, accessHash),
       id: ids,
-    })
+    }),
   );
 }
 
@@ -2371,13 +2371,13 @@ export async function fetchPinnedMessages({
     {
       abortControllerChatId: chat.id,
       abortControllerThreadId: threadId,
-    }
+    },
   );
 
   if (
-    !result ||
-    result instanceof GramJs.messages.MessagesNotModified ||
-    !result.messages
+    !result
+    || result instanceof GramJs.messages.MessagesNotModified
+    || !result.messages
   ) {
     return undefined;
   }
@@ -2400,15 +2400,15 @@ export async function fetchSeenBy({
     new GramJs.messages.GetMessageReadParticipants({
       peer: buildInputPeer(chat.id, chat.accessHash),
       msgId: messageId,
-    })
+    }),
   );
 
   return result
     ? result.reduce((acc, readDate) => {
-        acc[readDate.userId.toString()] = readDate.date;
+      acc[readDate.userId.toString()] = readDate.date;
 
-        return acc;
-      }, {} as Record<string, number>)
+      return acc;
+    }, {} as Record<string, number>)
     : undefined;
 }
 
@@ -2427,7 +2427,7 @@ export async function fetchSendAs({
     {
       shouldIgnoreErrors: true,
       abortControllerChatId: chat.id,
-    }
+    },
   );
 
   if (!result) {
@@ -2448,7 +2448,7 @@ export function saveDefaultSendAs({
     new GramJs.messages.SaveDefaultSendAs({
       peer: buildInputPeer(chat.id, chat.accessHash),
       sendAs: buildInputPeer(sendAs.id, sendAs.accessHash),
-    })
+    }),
   );
 }
 
@@ -2456,13 +2456,13 @@ export async function fetchSponsoredMessages({ peer }: { peer: ApiPeer }) {
   const result = await invokeRequest(
     new GramJs.messages.GetSponsoredMessages({
       peer: buildInputPeer(peer.id, peer.accessHash),
-    })
+    }),
   );
 
   if (
-    !result ||
-    result instanceof GramJs.messages.SponsoredMessagesEmpty ||
-    !result.messages.length
+    !result
+    || result instanceof GramJs.messages.SponsoredMessagesEmpty
+    || !result.messages.length
   ) {
     return undefined;
   }
@@ -2480,7 +2480,7 @@ export async function viewSponsoredMessage({ random }: { random: string }) {
   await invokeRequest(
     new GramJs.messages.ViewSponsoredMessage({
       randomId: deserializeBytes(random),
-    })
+    }),
   );
 }
 
@@ -2498,7 +2498,7 @@ export function clickSponsoredMessage({
       media: isMedia || undefined,
       fullscreen: isFullscreen || undefined,
       randomId: deserializeBytes(random),
-    })
+    }),
   );
 }
 
@@ -2517,7 +2517,7 @@ export async function reportSponsoredMessage({
       }),
       {
         shouldThrow: true,
-      }
+      },
     );
 
     if (!result) {
@@ -2527,11 +2527,11 @@ export async function reportSponsoredMessage({
     return buildApiSponsoredMessageReportResult(result);
   } catch (err: unknown) {
     if (
-      err instanceof RPCError &&
-      err.errorMessage === "PREMIUM_ACCOUNT_REQUIRED"
+      err instanceof RPCError
+      && err.errorMessage === 'PREMIUM_ACCOUNT_REQUIRED'
     ) {
       return {
-        type: "premiumRequired" as const,
+        type: 'premiumRequired' as const,
       };
     }
     return undefined;
@@ -2549,7 +2549,7 @@ export async function readAllMentions({
     new GramJs.messages.ReadMentions({
       peer: buildInputPeer(chat.id, chat.accessHash),
       topMsgId: threadId ? Number(threadId) : undefined,
-    })
+    }),
   );
 
   if (!result) return;
@@ -2572,7 +2572,7 @@ export async function readAllReactions({
     new GramJs.messages.ReadReactions({
       peer: buildInputPeer(chat.id, chat.accessHash),
       topMsgId: threadId ? Number(threadId) : undefined,
-    })
+    }),
   );
 
   if (!result) return;
@@ -2608,13 +2608,13 @@ export async function fetchUnreadMentions({
       addOffset: addOffset ?? DEFAULT_PRIMITIVES.INT,
       maxId: maxId ?? DEFAULT_PRIMITIVES.INT,
       minId: minId ?? DEFAULT_PRIMITIVES.INT,
-    })
+    }),
   );
 
   if (
-    !result ||
-    result instanceof GramJs.messages.MessagesNotModified ||
-    !result.messages
+    !result
+    || result instanceof GramJs.messages.MessagesNotModified
+    || !result.messages
   ) {
     return undefined;
   }
@@ -2650,13 +2650,13 @@ export async function fetchUnreadReactions({
       addOffset: addOffset ?? DEFAULT_PRIMITIVES.INT,
       maxId: maxId ?? DEFAULT_PRIMITIVES.INT,
       minId: minId ?? DEFAULT_PRIMITIVES.INT,
-    })
+    }),
   );
 
   if (
-    !result ||
-    result instanceof GramJs.messages.MessagesNotModified ||
-    !result.messages
+    !result
+    || result instanceof GramJs.messages.MessagesNotModified
+    || !result.messages
   ) {
     return undefined;
   }
@@ -2679,13 +2679,13 @@ export async function transcribeAudio({
     new GramJs.messages.TranscribeAudio({
       msgId: messageId,
       peer: buildInputPeer(chat.id, chat.accessHash),
-    })
+    }),
   );
 
   if (!result) return undefined;
 
   sendApiUpdate({
-    "@type": "updateTranscribedAudio",
+    '@type': 'updateTranscribedAudio',
     isPending: result.pending,
     transcriptionId: result.transcriptionId.toString(),
     text: result.text,
@@ -2701,7 +2701,7 @@ export function transcribeAudioByOpenai({
   transcriptionText: string;
 }) {
   sendApiUpdate({
-    "@type": "updateTranscribedAudio",
+    '@type': 'updateTranscribedAudio',
     isPending: false,
     transcriptionId,
     text: transcriptionText,
@@ -2710,7 +2710,7 @@ export function transcribeAudioByOpenai({
 
 export async function translateText(params: TranslateTextParams) {
   let result;
-  const isMessageTranslation = "chat" in params;
+  const isMessageTranslation = 'chat' in params;
   if (isMessageTranslation) {
     const { chat, messageIds, toLanguageCode } = params;
     result = await invokeRequest(
@@ -2718,7 +2718,7 @@ export async function translateText(params: TranslateTextParams) {
         peer: buildInputPeer(chat.id, chat.accessHash),
         id: messageIds,
         toLang: toLanguageCode,
-      })
+      }),
     );
   } else {
     const { text, toLanguageCode } = params;
@@ -2726,14 +2726,14 @@ export async function translateText(params: TranslateTextParams) {
       new GramJs.messages.TranslateText({
         text: text.map((t) => buildInputTextWithEntities(t)),
         toLang: toLanguageCode,
-      })
+      }),
     );
   }
 
   if (!result) {
     if (isMessageTranslation) {
       sendApiUpdate({
-        "@type": "failedMessageTranslations",
+        '@type': 'failedMessageTranslations',
         chatId: params.chat.id,
         messageIds: params.messageIds,
         toLanguageCode: params.toLanguageCode,
@@ -2746,7 +2746,7 @@ export async function translateText(params: TranslateTextParams) {
 
   if (isMessageTranslation) {
     sendApiUpdate({
-      "@type": "updateMessageTranslations",
+      '@type': 'updateMessageTranslations',
       chatId: params.chat.id,
       messageIds: params.messageIds,
       translations: formattedText,
@@ -2758,13 +2758,13 @@ export async function translateText(params: TranslateTextParams) {
 }
 
 export const translateTextByTencentApi = (
-  data: Object
+  data: object,
 ): Promise<Array<string>> => {
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/tencent-translate`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
     })
@@ -2779,9 +2779,9 @@ export const translateTextByTencentApi = (
 };
 
 export async function translateTextByTencent(
-  params: TranslateTextParams & { userId: string; userName: string }
+  params: TranslateTextParams & { userId: string; userName: string },
 ) {
-  const isMessageTranslation = "chat" in params;
+  const isMessageTranslation = 'chat' in params;
   const { text, toLanguageCode } = params;
   const SourceTextList = text?.map((t: ApiFormattedText) => t.text);
   const result = await translateTextByTencentApi({
@@ -2798,7 +2798,7 @@ export async function translateTextByTencent(
   });
   if (isMessageTranslation) {
     sendApiUpdate({
-      "@type": "updateMessageTranslations",
+      '@type': 'updateMessageTranslations',
       chatId: params.chat.id,
       messageIds: params.messageIds,
       translations: formattedText,
@@ -2810,34 +2810,33 @@ export async function translateTextByTencent(
 
 function handleMultipleLocalMessagesUpdate(
   localMessages: Record<string, ApiMessage>,
-  update: GramJs.TypeUpdates
+  update: GramJs.TypeUpdates,
 ) {
-  if (!("updates" in update)) {
+  if (!('updates' in update)) {
     handleGramJsUpdate(update);
     return;
   }
 
   const updateMessageIds = update.updates.filter(
-    (u): u is GramJs.UpdateMessageID => u instanceof GramJs.UpdateMessageID
+    (u): u is GramJs.UpdateMessageID => u instanceof GramJs.UpdateMessageID,
   );
 
   // Server can return `UpdateNewScheduledMessage` that we currently process as video that requires processing
   updateMessageIds.forEach((updateMessageId) => {
     const updateNewScheduledMessage = update.updates.find(
       (
-        scheduledUpdate
+        scheduledUpdate,
       ): scheduledUpdate is GramJs.UpdateNewScheduledMessage => {
-        if (!(scheduledUpdate instanceof GramJs.UpdateNewScheduledMessage))
-          return false;
+        if (!(scheduledUpdate instanceof GramJs.UpdateNewScheduledMessage)) { return false; }
         return scheduledUpdate.message.id === updateMessageId.id;
-      }
+      },
     );
 
     const localMessage = localMessages[updateMessageId.randomId.toString()];
     handleLocalMessageUpdate(
       localMessage,
       updateMessageId,
-      updateNewScheduledMessage
+      updateNewScheduledMessage,
     );
   });
 
@@ -2856,21 +2855,21 @@ function handleMultipleLocalMessagesUpdate(
 function handleLocalMessageUpdate(
   localMessage: ApiMessage,
   update: GramJs.TypeUpdates | GramJs.UpdateMessageID,
-  scheduledMessageUpdate?: GramJs.UpdateNewScheduledMessage
+  scheduledMessageUpdate?: GramJs.UpdateNewScheduledMessage,
 ) {
   let messageUpdate;
   if (
-    update instanceof GramJs.UpdateShortSentMessage ||
-    update instanceof GramJs.UpdateMessageID
+    update instanceof GramJs.UpdateShortSentMessage
+    || update instanceof GramJs.UpdateMessageID
   ) {
     messageUpdate = update;
-  } else if ("updates" in update) {
+  } else if ('updates' in update) {
     messageUpdate = update.updates.find(
-      (u): u is GramJs.UpdateMessageID => u instanceof GramJs.UpdateMessageID
+      (u): u is GramJs.UpdateMessageID => u instanceof GramJs.UpdateMessageID,
     );
     scheduledMessageUpdate = update.updates.find(
       (u): u is GramJs.UpdateNewScheduledMessage =>
-        u instanceof GramJs.UpdateNewScheduledMessage
+        u instanceof GramJs.UpdateNewScheduledMessage,
     );
   }
 
@@ -2887,7 +2886,7 @@ function handleLocalMessageUpdate(
       newContent = {
         text: buildMessageTextContent(
           localMessage.content.text.text,
-          messageUpdate.entities
+          messageUpdate.entities,
         ),
       };
     }
@@ -2906,22 +2905,22 @@ function handleLocalMessageUpdate(
     const mtpMessage = buildMessageFromUpdate(
       messageUpdate.id,
       localMessage.chatId,
-      messageUpdate
+      messageUpdate,
     );
     processMessageAndUpdateThreadInfo(mtpMessage);
   }
 
-  const newScheduledMessage =
-    scheduledMessageUpdate?.message &&
-    buildApiMessage(scheduledMessageUpdate.message);
+  const newScheduledMessage
+    = scheduledMessageUpdate?.message
+      && buildApiMessage(scheduledMessageUpdate.message);
 
   // Edge case for "Send When Online"
-  const isSentBefore =
-    "date" in messageUpdate && messageUpdate.date < getServerTime();
+  const isSentBefore
+    = 'date' in messageUpdate && messageUpdate.date < getServerTime();
 
   if (newScheduledMessage?.isVideoProcessingPending) {
     sendApiUpdate({
-      "@type": "updateVideoProcessingPending",
+      '@type': 'updateVideoProcessingPending',
       chatId: localMessage.chatId,
       localId: localMessage.id,
       newScheduledMessageId: newScheduledMessage?.id,
@@ -2937,14 +2936,14 @@ function handleLocalMessageUpdate(
       }),
       id: messageUpdate.id,
       sendingState: undefined,
-      ...("date" in messageUpdate && { date: messageUpdate.date }),
+      ...('date' in messageUpdate && { date: messageUpdate.date }),
     };
 
     sendApiUpdate({
-      "@type":
+      '@type':
         localMessage.isScheduled && !isSentBefore
-          ? "updateScheduledMessageSendSucceeded"
-          : "updateMessageSendSucceeded",
+          ? 'updateScheduledMessageSendSucceeded'
+          : 'updateMessageSendSucceeded',
       chatId: localMessage.chatId,
       localId: localMessage.id,
       message: updatedMessage,
@@ -2971,7 +2970,7 @@ export async function fetchOutboxReadDate({
       peer,
       msgId: messageId,
     }),
-    { shouldThrow: true }
+    { shouldThrow: true },
   );
 
   if (!result) return undefined;
@@ -2983,10 +2982,9 @@ export async function fetchQuickReplies() {
   const result = await invokeRequest(
     new GramJs.messages.GetQuickReplies({
       hash: DEFAULT_PRIMITIVES.BIGINT,
-    })
+    }),
   );
-  if (!result || result instanceof GramJs.messages.QuickRepliesNotModified)
-    return undefined;
+  if (!result || result instanceof GramJs.messages.QuickRepliesNotModified) { return undefined; }
 
   const messages = result.messages.map(buildApiMessage).filter(Boolean);
 
@@ -3010,10 +3008,9 @@ export async function sendQuickReply({
     new GramJs.messages.GetQuickReplyMessages({
       shortcutId,
       hash: DEFAULT_PRIMITIVES.BIGINT,
-    })
+    }),
   );
-  if (!messages || messages instanceof GramJs.messages.MessagesNotModified)
-    return;
+  if (!messages || messages instanceof GramJs.messages.MessagesNotModified) { return; }
 
   const ids = messages.messages.map((m) => m.id);
   const randomIds = ids.map(generateRandomBigInt);
@@ -3027,15 +3024,15 @@ export async function sendQuickReply({
     }),
     {
       shouldIgnoreUpdates: true,
-    }
+    },
   );
 
   if (!result) return;
 
   // Hack to prevent client from thinking that those messages were local
-  if ("updates" in result) {
+  if ('updates' in result) {
     const filteredUpdates = result.updates.filter(
-      (u): u is GramJs.UpdateMessageID => !(u instanceof GramJs.UpdateMessageID)
+      (u): u is GramJs.UpdateMessageID => !(u instanceof GramJs.UpdateMessageID),
     );
     result.updates = filteredUpdates;
   }
@@ -3060,7 +3057,7 @@ export async function exportMessageLink({
       id,
       thread: shouldIncludeThread || undefined,
       grouped: shouldIncludeGrouped || undefined,
-    })
+    }),
   );
 
   return result?.link;
@@ -3077,7 +3074,7 @@ export async function fetchPreparedInlineMessage({
     new GramJs.messages.GetPreparedInlineMessage({
       bot: buildInputUser(bot.id, bot.accessHash),
       id,
-    })
+    }),
   );
   if (!result) return undefined;
 

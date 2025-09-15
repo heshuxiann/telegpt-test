@@ -195,19 +195,23 @@ export const generateRoomActionItems = async (
 
 export const createMeetingTimeConfirmMessage = ({
   chatId,
-  date,
+  startTime,
+  duration,
   email,
+  timeZone,
 }: {
   chatId: string;
-  date: { start: string; end: string }[];
+  startTime: string[];
+  duration: number;
   email: string[] | null;
+  timeZone: string;
 }): Message => {
   return {
     role: 'assistant',
     id: uuidv4(),
     createdAt: new Date(),
     content: JSON.stringify({
-      chatId, date, email, isConfirmed: false,
+      chatId, startTime, duration, email, timeZone, isConfirmed: false,
     }),
     annotations: [{
       type: 'google-meet-time-confirm',
@@ -215,7 +219,12 @@ export const createMeetingTimeConfirmMessage = ({
   };
 };
 
-export const createMeetingMentionMessage = (data: { chatId: string; messageId: number }): Message => {
+export const createMeetingMentionMessage = (data: {
+  chatId: string;
+  senderId: string | undefined;
+  messageId: number;
+  messageText: string | undefined;
+}): Message => {
   return {
     role: 'assistant',
     id: uuidv4(),

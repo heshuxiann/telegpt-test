@@ -50,6 +50,7 @@ import type {
   ApiWebPage,
   ApiWebSession,
 } from '../../api/types';
+import type { AIChatFolder } from '../../components/chatAssistant/ai-chatfolders/util';
 import type {
   AccountSettings,
   BotAppPermissions,
@@ -68,7 +69,6 @@ import type {
   TopicsInfo,
   WebPageMediaSize,
 } from '../../types';
-import type { AIChatFolder } from '../../components/chatAssistant/ai-chatfolders/util';
 import type { RegularLangFnParameters } from '../../util/localization';
 import type { SharedState } from './sharedState';
 import type { TabState } from './tabState';

@@ -8,7 +8,7 @@ import { selectBot, selectChat, selectCurrentChat } from '../../../global/select
 import { createMeetingInformationSuggestMessage } from '../room-ai/room-ai-utils';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage } from '../store/messages-store';
-import { ASK_MEETING_EMAIL, ASK_MEETING_TIME, ASK_MEETING_TIME_AND_EMAIL } from '../utils/schedule-meeting';
+import { ASK_MEETING_EMAIL, ASK_MEETING_TIME } from '../utils/schedule-meeting';
 import { userInformationCollection } from '../utils/user-information-collection';
 import { intelligentReplyTask } from './intelligent-reply-task';
 import { urgentCheckTask } from './urgent-check-task';
@@ -38,19 +38,7 @@ class ChatAIMessageQuene {
       const currentChat = selectCurrentChat(global);
       const { emails, calendlyUrls } = userInformationCollection.informations;
       if (currentChat?.id === message.chatId && !message.isOutgoing) {
-        if (messageText === ASK_MEETING_TIME_AND_EMAIL && (emails.length || calendlyUrls.length)) {
-          const suggestMessage = createMeetingInformationSuggestMessage({
-            chatId: message.chatId,
-            messageId: message.id,
-            senderId: message.senderId,
-            suggestType: 'both',
-          });
-          ChataiStores?.message?.storeMessage(
-            parseMessage2StoreMessage(currentChat.id, [suggestMessage])[0],
-          );
-          getActions().openChatAIWithInfo({ chatId: message.chatId });
-          eventEmitter.emit(Actions.AddRoomAIMessage, suggestMessage);
-        } else if (messageText === ASK_MEETING_TIME && calendlyUrls.length) {
+        if (messageText === ASK_MEETING_TIME && calendlyUrls.length) {
           const suggestMessage = createMeetingInformationSuggestMessage({
             chatId: message.chatId,
             messageId: message.id,

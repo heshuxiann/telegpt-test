@@ -157,7 +157,7 @@ export interface AccountSettings {
   translationLanguage?: string;
   doNotTranslate: string[];
   shouldPaidMessageAutoApprove: boolean;
-  autoTranslate?:boolean;
+  autoTranslate?: boolean;
   autoTranslateLanguage?: string;
 }
 

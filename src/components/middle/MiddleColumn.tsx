@@ -71,7 +71,7 @@ import { createMeetingMentionMessage } from '../chatAssistant/room-ai/room-ai-ut
 import { ChataiStores } from '../chatAssistant/store';
 import { parseMessage2StoreMessage } from '../chatAssistant/store/messages-store';
 import ScheduleMeeting, {
-  ASK_MEETING_EMAIL, ASK_MEETING_TIME, ASK_MEETING_TIME_AND_EMAIL, MEETING_INVITATION_TIP,
+  ASK_MEETING_EMAIL, ASK_MEETING_TIME, ASK_MEETING_TIMEZONE, MEETING_INVITATION_TIP,
 } from '../chatAssistant/utils/schedule-meeting';
 import { GLOBAL_SUMMARY_CHATID } from '../chatAssistant/variables';
 import { isUserId } from '../../util/entities/ids';
@@ -382,31 +382,23 @@ function MiddleColumn({
   }, [shouldLoadFullChat, chatId, isReady, loadFullChat]);
 
   const handleAnalyticsMessage = useLastCallback(({ message }: { message: ApiMessage }) => {
-    const isMeetingInitiator = message.isOutgoing;
     const messageText = message.content.text?.text;
     if (
-      messageText === ASK_MEETING_TIME_AND_EMAIL
+      messageText === ASK_MEETING_TIMEZONE
       || messageText === ASK_MEETING_TIME
       || messageText === ASK_MEETING_EMAIL
       || messageText === MEETING_INVITATION_TIP
     ) {
       return;
     }
-    // 会议发起成功，清除会议事务
-    if (messageText?.includes('Event details') && messageText.includes('Meeting Invitation')) {
-      const existingMeetTask = ScheduleMeeting.get(chatId!);
-      if (existingMeetTask) {
-        existingMeetTask.cleanup();
-      }
-      return;
-    }
-    const scheduleMeeting = ScheduleMeeting.create({ chatId: message.chatId, isMeetingInitiator });
-    if (scheduleMeeting.timeout || message.isOutgoing || scheduleMeeting.isMeetingInitiator) {
+    if (ScheduleMeeting.get(chatId!)) {
       return;
     }
     const meetingMentionMessage = createMeetingMentionMessage({
       messageId: message.id,
       chatId: message.chatId,
+      senderId: message.senderId,
+      messageText,
     });
     ChataiStores?.message?.storeMessage(parseMessage2StoreMessage(message.chatId, [meetingMentionMessage])[0]);
     // TODO: add meeting time confirm message and open ai room

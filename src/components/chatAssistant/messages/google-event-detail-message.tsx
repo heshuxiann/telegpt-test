@@ -7,7 +7,7 @@ import { toBlob } from 'html-to-image';
 import { getGlobal } from '../../../global';
 
 import { selectUser } from '../../../global/selectors';
-import { formatMeetingTimeRange } from '../utils/schedule-meeting';
+import { formatMeetingTimeRange } from '../utils/meeting-utils';
 import { FormLabel } from './google-event-create-messages';
 import MessageActionsItems from './message-actions-button';
 
