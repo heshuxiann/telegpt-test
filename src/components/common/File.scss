@@ -51,11 +51,6 @@
 
     color: white;
     clip-path: polygon(0 0, calc(100% - 1.125rem) 0, 100% 1.125rem, 100% 100%, 0 100%);
-
-    transition: clip-path 0.15s ease-in;
-
-    clip-path: polygon(0 0, calc(100% - 1.125rem) 0, 100% 1.125rem, 100% 100%, 0 100%);
-
     transition: clip-path 0.15s ease-in;
 
     &::after {
@@ -112,6 +107,7 @@
     color: #fff;
 
     opacity: 0;
+
     transition: opacity 0.25s;
   }
 

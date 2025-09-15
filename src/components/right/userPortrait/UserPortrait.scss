@@ -1,24 +1,25 @@
 .Portrait {
-  height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
   display: flex;
   flex-direction: column;
   gap: 12px;
 
-  overflow-x: hidden;
-  overflow-y: scroll;
-
+  height: 100%;
   padding: 12px;
   .empty {
-    padding: 2rem 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 2rem 0;
   }
 }
+
 .PortraitMenu .backdrop {
-  width: 24rem;
-  height: 34px;
   position: absolute;
   top: -34px;
   left: -17px;
+
+  width: 24rem;
+  height: 34px;
 }

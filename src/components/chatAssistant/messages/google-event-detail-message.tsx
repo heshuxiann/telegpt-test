@@ -7,7 +7,7 @@ import { toBlob } from 'html-to-image';
 import { getGlobal } from '../../../global';
 
 import { selectUser } from '../../../global/selectors';
-import { formatMeetingTimeRange } from '../utils/meeting-utils';
+import { formatMeetingTimeRange, formatTimeZone, generateEventScreenshot } from '../utils/meeting-utils';
 import { FormLabel } from './google-event-create-messages';
 import MessageActionsItems from './message-actions-button';
 
@@ -17,18 +17,10 @@ import SerenaPath from '../assets/serena.png';
 import ShareHeaderBg from '../assets/share-header-bg.png';
 
 const GoogleEventDetailMessage = ({ message }: { message: Message }) => {
-  const [messageContent, setMessageContent] = useState<any>(null);
   const [capturing, setCapturing] = useState(false);
-
-  useEffect(() => {
-    try {
-      const parsedMessage = JSON.parse(message.content);
-      setMessageContent(parsedMessage);
-    } catch (error) {
-      console.error('Error parsing message content:', error);
-    }
-  }, [message]);
-  if (!messageContent) {
+  const parsedMessage = JSON.parse(message.content);
+  const { eventData, chatId } = parsedMessage;
+  if (!eventData) {
     return null;
   }
 
@@ -36,28 +28,30 @@ const GoogleEventDetailMessage = ({ message }: { message: Message }) => {
     <>
       <div>
         <FormLabel lable="title" data-readable />
-        <span className="text-[14px]" data-readable>{messageContent?.summary}</span>
+        <span className="text-[14px]" data-readable>{eventData?.summary}</span>
       </div>
       <div>
         <FormLabel lable="time" data-readable />
         <div className="flex flex-col">
           <span className="text-[14px]" data-readable>
-            {formatMeetingTimeRange(messageContent.start.dateTime, messageContent.end.dateTime)}
+            {formatMeetingTimeRange(eventData.start.dateTime, eventData.end.dateTime)}
           </span>
-          <span className="text-[14px] text-[#979797]" data-readable>{messageContent.start.timeZone}</span>
+          <span className="text-[14px] text-[#979797]" data-readable>
+            {formatTimeZone(eventData.start.timeZone)}
+          </span>
         </div>
       </div>
-      {messageContent?.attendees?.length > 0 && (
+      {eventData?.attendees?.length > 0 && (
         <div>
           <FormLabel lable="guests" data-readable />
-          {messageContent?.attendees?.map((attendee: any) => (
+          {eventData?.attendees?.map((attendee: any) => (
             <div className="text-[14px]" key={attendee.email} data-readable>{attendee.email}</div>
           ))}
         </div>
       )}
       <div>
         <FormLabel lable="meet" data-readable />
-        <span className="text-[14px]" data-readable>{messageContent?.hangoutLink}</span>
+        <span className="text-[14px]" data-readable>{eventData?.hangoutLink}</span>
       </div>
     </>
   );
@@ -74,7 +68,8 @@ const GoogleEventDetailMessage = ({ message }: { message: Message }) => {
           message={message}
           // eslint-disable-next-line react/jsx-no-bind
           onClickShare={() => {
-            setCapturing(true);
+            // setCapturing(true);
+            generateEventScreenshot(eventData, chatId)
           }}
         />
       </div>

@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* eslint-disable no-null/no-null */
+
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Temporal } from '@js-temporal/polyfill';
@@ -13,12 +13,12 @@ import buildAttachment from '../../middle/composer/helpers/buildAttachment';
 
 import Avatar from '../component/Avatar';
 
-import CalendarIcon from '../assets/calendar.png';
-import GoogleMeetIcon from '../assets/google-meet.png';
+import MeetCalendarIcon from '../assets/meeting/meet-calendar-icon.png';
+import MeetGuestIcon from '../assets/meeting/meet-guest-icon.png';
+import MeetLinkIcon from '../assets/meeting/meet-link-icon.png';
+import MeetTitleIcon from '../assets/meeting/meet-title-icon.png';
 import SerenaPath from '../assets/serena.png';
 import ShareHeaderBg from '../assets/share-header-bg.png';
-import UserIcon from '../assets/user.png';
-import WriteIcon from '../assets/write.png';
 
 export function formatMeetingTimeRange(
   startISO: string,
@@ -58,6 +58,30 @@ export function formatMeetingTimeRange(
   }
 }
 
+export function formatTimeZone(tz: string, date = new Date()) {
+  // 取偏移（分钟）
+  const offsetMinutes = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    timeZoneName: 'shortOffset', // 类似 GMT+8
+  })
+    .formatToParts(date)
+    .find((p) => p.type === 'timeZoneName')?.value || '';
+
+  // 取完整时区名称
+  const longName
+    = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      timeZoneName: 'long',
+    })
+      .formatToParts(date)
+      .find((p) => p.type === 'timeZoneName')?.value || tz;
+
+  // 提取城市名
+  const city = tz.includes('/') ? tz.split('/')[1].replace('_', ' ') : tz;
+
+  return `${offsetMinutes} ${longName} - ${city}`;
+}
+
 export function generateEventScreenshot(eventData: any, chatId: string) {
   const global = getGlobal();
   const { currentUserId } = global;
@@ -75,51 +99,41 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
   cardElement.style.cssText = `
       position: relative;
       width: 330px;
-      box-sizing: content-box;
-      overflow: hidden;
+      border-radius: 20px;
       background-color: white;
       color: black;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     `;
 
-  // Create the background blur element
-  const bgElement = document.createElement('div');
-  bgElement.style.cssText = `
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      filter: blur(12px);
-      pointer-events: none;
+  // Create header section
+  const headerSection = document.createElement('div');
+  headerSection.style.cssText = `
+      height: 48px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 0 20px;
+      position: relative;
     `;
+
+  // Create background blur element
   const bgImage = document.createElement('img');
   bgImage.src = ShareHeaderBg;
   bgImage.alt = '';
   bgImage.style.cssText = `
-      width: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      filter: blur(22px);
     `;
-  bgElement.appendChild(bgImage);
+  headerSection.appendChild(bgImage);
 
-  // Create the content container
-  const contentElement = document.createElement('div');
-  contentElement.style.cssText = `
-      position: relative;
-      padding: 12px 16px;
+  // Create user info container
+  const userInfoContainer = document.createElement('div');
+  userInfoContainer.style.cssText = `
       display: flex;
-      flex-direction: column;
-      gap: 8px;
-    `;
-
-  // Create user info section
-  const userSection = document.createElement('div');
-  userSection.style.cssText = `
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-end;
       align-items: center;
       gap: 8px;
-      font-size: 12px;
-      color: #979797;
     `;
 
   // Create avatar container for React component
@@ -138,190 +152,230 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
     }),
   );
 
-  const firstName = document.createElement('span');
-  firstName.textContent = currentUser?.firstName || 'User';
-  const lastName = document.createElement('span');
-  lastName.textContent = currentUser?.lastName || '';
-  userSection.appendChild(avatarContainer);
-  userSection.appendChild(firstName);
-  userSection.appendChild(lastName);
+  const userNameSpan = document.createElement('span');
+  userNameSpan.style.color = '#979797';
+  userNameSpan.textContent = `${currentUser?.firstName || 'User'} ${currentUser?.lastName || ''}`.trim();
+
+  userInfoContainer.appendChild(avatarContainer);
+  userInfoContainer.appendChild(userNameSpan);
+  headerSection.appendChild(userInfoContainer);
+
+  // Create content container
+  const contentElement = document.createElement('div');
+  contentElement.style.cssText = `
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 0 20px;
+    `;
   // Create card title
   const cardTitleSection = document.createElement('div');
   cardTitleSection.textContent = 'Meeting Invitation';
   cardTitleSection.style.cssText = `
-      font-size: 20px;
-      font-weight: 600;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 8px;
     `;
 
   // Create title section
-  const titleSection = document.createElement('div');
-  const titleLabel = document.createElement('div');
-  titleLabel.style.cssText = `
+  // eslint-disable-next-line no-null/no-null
+  let titleSection = null;
+  if (eventData.summary && eventData.summary != 'Meeting Invitation') {
+    titleSection = document.createElement('div');
+    titleSection.style.cssText = `
+      display: flex;
+      gap: 8px;
+      background-color: #F8FAFC;
+      padding: 8px;
+      border-radius: 6px;
+    `;
+    const titleIcon = document.createElement('img');
+    titleIcon.src = MeetTitleIcon;
+    titleIcon.style.cssText = `
+      width: 20px;
+      height: 20px;
+    `;
+    const titleValue = document.createElement('span');
+    titleValue.style.cssText = `
       font-size: 14px;
       font-weight: 600;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
     `;
-  const writeIcon = document.createElement('img');
-  writeIcon.src = WriteIcon;
-  writeIcon.style.cssText = `
-      width: 12px;
-      height: 12px;
-    `;
-  titleLabel.appendChild(writeIcon);
-  const titleText = document.createElement('span');
-  titleText.textContent = 'Title';
-  titleLabel.appendChild(titleText);
-  const titleValue = document.createElement('span');
-  titleValue.style.fontSize = '14px';
-  titleValue.textContent = eventData.summary || '';
-  titleSection.appendChild(titleLabel);
-  titleSection.appendChild(titleValue);
+    titleValue.textContent = eventData.summary || '';
+    titleSection.appendChild(titleIcon);
+    titleSection.appendChild(titleValue);
+  }
 
-  // Create guests section if attendees exist
-  let guestsSection: HTMLDivElement | null = null;
+  // Create guests section
+  const guestsSection = document.createElement('div');
+  guestsSection.style.cssText = `
+      display: flex;
+      gap: 8px;
+      background-color: #F8FAFC;
+      padding: 8px;
+      border-radius: 6px;
+    `;
+  const guestIcon = document.createElement('img');
+  guestIcon.src = MeetGuestIcon;
+  guestIcon.style.cssText = `
+      width: 20px;
+      height: 20px;
+    `;
+  const guestsContainer = document.createElement('div');
+  guestsContainer.style.cssText = `
+      display: flex;
+      flex-direction: column;
+      font-size: 14px;
+      gap: 4px;
+      flex: 1;
+      overflow: hidden;
+    `;
+  const guestsTitle = document.createElement('div');
+  guestsTitle.style.fontWeight = '600';
+  guestsTitle.textContent = 'Guests';
+
+  const organizerContainer = document.createElement('div');
+  organizerContainer.style.cssText = `
+      display: flex;
+      flex-wrap: wrap;
+    `;
+  const organizerEmail = document.createElement('span');
+  organizerEmail.style.cssText = `
+      overflow: hidden;
+      word-break: break-all;
+    `;
+  organizerEmail.textContent = eventData.creator?.email || '';
+  const organizerBadge = document.createElement('span');
+  organizerBadge.style.cssText = `
+      background-color: #E9EDFF;
+      padding: 0 4px;
+      line-height: 18px;
+      border-radius: 4px;
+      color: #3F6EFF;
+    `;
+  organizerBadge.textContent = 'Organizer';
+  organizerContainer.appendChild(organizerEmail);
+  organizerContainer.appendChild(organizerBadge);
+
+  guestsContainer.appendChild(guestsTitle);
+  guestsContainer.appendChild(organizerContainer);
+
   if (eventData.attendees && eventData.attendees.length > 0) {
-    guestsSection = document.createElement('div');
-    const guestsLabel = document.createElement('div');
-    guestsLabel.style.cssText = `
-        font-size: 14px;
-        font-weight: 600;
-        margin-bottom: 4px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      `;
-    const userIcon = document.createElement('img');
-    userIcon.src = UserIcon;
-    userIcon.style.cssText = `
-        width: 12px;
-        height: 12px;
-      `;
-    guestsLabel.appendChild(userIcon);
-    const guestsText = document.createElement('span');
-    guestsText.textContent = 'Guests';
-    guestsLabel.appendChild(guestsText);
-    guestsSection.appendChild(guestsLabel);
     eventData.attendees.forEach((attendee: any) => {
       const guestDiv = document.createElement('div');
-      guestDiv.style.fontSize = '14px';
+      guestDiv.style.cssText = `
+        font-size: 14px;
+        word-break: break-all;
+      `;
       guestDiv.textContent = attendee.email;
-      guestsSection!.appendChild(guestDiv);
+      guestsContainer.appendChild(guestDiv);
     });
   }
+  guestsSection.appendChild(guestIcon);
+  guestsSection.appendChild(guestsContainer);
 
   // Create time section
   const timeSection = document.createElement('div');
-  const timeLabel = document.createElement('div');
-  timeLabel.style.cssText = `
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 4px;
+  timeSection.style.cssText = `
       display: flex;
-      align-items: center;
-      gap: 4px;
+      gap: 8px;
+      background-color: #F8FAFC;
+      padding: 8px;
+      border-radius: 6px;
     `;
   const calendarIcon = document.createElement('img');
-  calendarIcon.src = CalendarIcon;
+  calendarIcon.src = MeetCalendarIcon;
   calendarIcon.style.cssText = `
-      width: 12px;
-      height: 12px;
+      width: 20px;
+      height: 20px;
     `;
-  timeLabel.appendChild(calendarIcon);
-  const timeText = document.createElement('span');
-  timeText.textContent = 'Time';
-  timeLabel.appendChild(timeText);
   const timeContainer = document.createElement('div');
   timeContainer.style.cssText = `
       display: flex;
       flex-direction: column;
     `;
   const timeValue = document.createElement('span');
-  timeValue.style.fontSize = '14px';
+  timeValue.style.cssText = `
+      font-size: 14px;
+      font-weight: 600;
+    `;
   timeValue.textContent = formatMeetingTimeRange(
     eventData.start.dateTime,
     eventData.end.dateTime,
-    eventData.start.timeZone,
   );
   const timeZone = document.createElement('span');
   timeZone.style.cssText = `
       font-size: 14px;
       color: #979797;
     `;
-  timeZone.textContent = eventData.start.timeZone;
+  timeZone.textContent = formatTimeZone(eventData.start.timeZone);
   timeContainer.appendChild(timeValue);
   timeContainer.appendChild(timeZone);
-  timeSection.appendChild(timeLabel);
+  timeSection.appendChild(calendarIcon);
   timeSection.appendChild(timeContainer);
 
   // Create meet section
   const meetSection = document.createElement('div');
-  const meetLabel = document.createElement('div');
-  meetLabel.style.cssText = `
+  meetSection.style.cssText = `
+      display: flex;
+      gap: 8px;
+      background-color: #F8FAFC;
+      padding: 8px;
+      border-radius: 6px;
+    `;
+  const meetIcon = document.createElement('img');
+  meetIcon.src = MeetLinkIcon;
+  meetIcon.style.cssText = `
+      width: 20px;
+      height: 20px;
+    `;
+  const meetValue = document.createElement('span');
+  meetValue.style.cssText = `
       font-size: 14px;
       font-weight: 600;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
     `;
-  const googleMeetIcon = document.createElement('img');
-  googleMeetIcon.src = GoogleMeetIcon;
-  googleMeetIcon.style.cssText = `
-      width: 12px;
-      height: 12px;
-    `;
-  meetLabel.appendChild(googleMeetIcon);
-  const meetText = document.createElement('span');
-  meetText.textContent = 'Meeting link';
-  meetLabel.appendChild(meetText);
-  const meetValue = document.createElement('span');
-  meetValue.style.fontSize = '14px';
   meetValue.textContent = eventData.hangoutLink || '';
-  meetSection.appendChild(meetLabel);
+  meetSection.appendChild(meetIcon);
   meetSection.appendChild(meetValue);
 
   // Create footer section
-  const footerSection = document.createElement('section');
+  const footerSection = document.createElement('div');
   footerSection.style.cssText = `
+      height: 48px;
+      margin-top: 24px;
+      font-size: 12px;
+      font-weight: 600;
+      width: 100%;
       display: flex;
-      flex-direction: row;
-      gap: 4px;
       align-items: center;
       justify-content: center;
-      padding: 8px;
-      font-size: 12px;
       background-color: #F7FAFF;
     `;
   const footerIcon = document.createElement('img');
   footerIcon.style.cssText = `
-      display: inline;
       width: 20px;
       height: 20px;
-      border-radius: 50%;
+      margin-right: 6px;
       margin-top: -2px;
     `;
   footerIcon.src = SerenaPath;
   footerIcon.alt = 'Serena';
   const footerText1 = document.createElement('span');
-  footerText1.textContent = 'Powered by';
+  footerText1.style.color = '#5E6272';
+  footerText1.textContent = 'Powered by ';
   const footerText2 = document.createElement('span');
   footerText2.style.color = '#2996FF';
-  footerText2.textContent = 'telepgt.org';
+  footerText2.textContent = 'telegpt.org';
   footerSection.appendChild(footerIcon);
   footerSection.appendChild(footerText1);
   footerSection.appendChild(footerText2);
 
   // Assemble the card
-  cardElement.appendChild(bgElement);
-  contentElement.appendChild(userSection);
+  cardElement.appendChild(headerSection);
   contentElement.appendChild(cardTitleSection);
-  contentElement.appendChild(titleSection);
-  if (guestsSection) {
-    contentElement.appendChild(guestsSection);
+  if (titleSection) {
+    contentElement.appendChild(titleSection);
   }
+  contentElement.appendChild(guestsSection);
   contentElement.appendChild(timeSection);
   contentElement.appendChild(meetSection);
   cardElement.appendChild(contentElement);

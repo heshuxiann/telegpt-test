@@ -68,10 +68,6 @@
     }
   }
 
-  @media (max-width: 600px) {
-    padding: 0.5rem;
-  }
-
   .Button.smaller {
     width: 2.5rem;
     height: 2.5rem;
@@ -94,13 +90,17 @@
     padding: 0.5rem 0.5rem 0.5rem 4.5rem;
 
     .SearchInput {
-      margin-left: 0.5rem;
       max-width: calc(100% - 2.75rem);
+      margin-left: 0.5rem;
     }
 
     .Menu.main-menu .bubble {
       --offset-y: 100%;
       --offset-x: -4.125rem;
     }
+  }
+
+  @media (max-width: 600px) {
+    padding: 0.5rem;
   }
 }

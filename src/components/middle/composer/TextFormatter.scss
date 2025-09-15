@@ -1,7 +1,6 @@
 .TextFormatter {
   z-index: 1;
   transform: translate(-50%, -3.25rem);
-  z-index: 1;
 
   &,
   &-link-control {
@@ -76,6 +75,7 @@
       width: 1rem;
 
       opacity: 0;
+
       transition: opacity 0.2s ease;
     }
 

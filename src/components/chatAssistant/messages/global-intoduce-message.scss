@@ -1,17 +1,18 @@
-.global-summary-introduce{
+.global-summary-introduce {
   padding-top: 35px;
-  h3{
+  h3 {
     font-size: 30px;
     font-weight: 600;
-    &:nth-of-type(1){
+    &:nth-of-type(1) {
       margin-bottom: 0;
     }
   }
-  &-item{
+  &-item {
+    cursor: pointer;
+
     width: 351px;
     height: 132px;
-    border-radius: 16px;
     padding: 16px;
-    cursor: pointer;
+    border-radius: 16px;
   }
 }

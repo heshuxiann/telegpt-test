@@ -128,9 +128,9 @@
 
   &.compact {
     .bubble {
+      padding: 0.25rem 0;
       background: var(--color-background-compact-menu);
       backdrop-filter: blur(10px);
-      padding: 0.25rem 0;
 
       body.no-menu-blur & {
         background: var(--color-background);
@@ -148,13 +148,13 @@
   }
 
   .menu-loading-row {
-    margin: 0.125rem 1rem;
     width: calc(100% - 2rem);
+    margin: 0.125rem 1rem;
   }
 
   &.in-portal {
-    z-index: var(--z-portal-menu);
     position: absolute;
+    z-index: var(--z-portal-menu);
   }
 }
 
