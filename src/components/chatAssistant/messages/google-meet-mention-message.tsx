@@ -5,7 +5,7 @@ import cx from 'classnames';
 import { getGlobal } from '../../../global';
 
 import { getUserFullName } from '../../../global/helpers';
-import { selectUser } from '../../../global/selectors';
+import { selectChatMessage, selectUser } from '../../../global/selectors';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage } from '../store/messages-store';
 import { createAuthConfirmModal } from '../utils/google-api';
@@ -13,7 +13,7 @@ import { getAuthState, isTokenValid } from '../utils/google-auth';
 import ScheduleMeeting from '../utils/schedule-meeting';
 
 const GoogleMeetMentionMessage = ({ message }: { message: Message }) => {
-  const { chatId, messageId, messageText, isConfirmed } = JSON.parse(message.content) || {};
+  const { chatId, messageId, isConfirmed } = JSON.parse(message.content) || {};
   const [mergeConfirmed, setMergeConfirmed] = useState(isConfirmed);
 
   const renderName = () => {
@@ -26,10 +26,9 @@ const GoogleMeetMentionMessage = ({ message }: { message: Message }) => {
   const handleConfirm = () => {
     // TODO: get meeting info from recent message
     const scheduleMeeting = ScheduleMeeting.create({ chatId });
-    scheduleMeeting.handler({
-      chatId,
-      text: messageText,
-    });
+    const global = getGlobal();
+    const targetMessage = selectChatMessage(global, chatId, Number(messageId));
+    scheduleMeeting.handleTargetMessage(targetMessage!);
     setMergeConfirmed(true);
     message.content = JSON.stringify({
       chatId,
