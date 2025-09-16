@@ -335,7 +335,7 @@ export function mentionReply(data: object) {
 
 export function calendlyRanges(data: {
   calendlyUrl: string;
-}): Promise<{ times: string[]; timeZone: string }> {
+}): Promise<{ times: string[]; timeZone: string; email: string }> {
   const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
     fetch(`${SERVER_API_URL}/calendly-ranges`, {
@@ -353,6 +353,7 @@ export function calendlyRanges(data: {
       .then((res) => {
         const times: string[] = [];
         const timeZone = res.data.availability_timezone;
+        const email = res.data.current_user.email;
         if (res.data.days) {
           res.data.days.forEach((day: any) => {
             day.spots.forEach((spot: { start_time: string }) => {
@@ -364,6 +365,7 @@ export function calendlyRanges(data: {
         resolve({
           times,
           timeZone,
+          email,
         });
       })
       .catch((err) => {

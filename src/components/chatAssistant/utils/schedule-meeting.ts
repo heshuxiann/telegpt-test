@@ -171,7 +171,7 @@ export function getMeetParamsByAITools(message: string): Promise<any> {
   return new Promise((resolve, reject) => {
     getHitToolsForMeeting(message)
       .then((toolResults) => {
-        let email: string[] = [];
+        let email: string[] | null = null;
         let startTime: string | null = null;
         let duration: number | null = null;
         let timeZone: string | null = null;
@@ -181,7 +181,7 @@ export function getMeetParamsByAITools(message: string): Promise<any> {
               if (toolCall.toolName === 'parseTime') {
                 startTime = toolCall.result;
               } else if (toolCall.toolName === 'extractEmail') {
-                email = toolCall.result || [];
+                email = toolCall.result || null;
               } else if (toolCall.toolName === 'parseTimeRange') {
                 duration = toolCall.result.duration;
                 startTime = toolCall.result.start;
@@ -216,7 +216,7 @@ interface ScheduleMeetingParams {
   chatId: string;
   targetUserId?: string | undefined;
   email?: string[];
-  startTime?: string[];
+  startTime?: string[] | undefined;
   duration?: number;
   timeZone?: string;
 }
@@ -229,11 +229,11 @@ class ScheduleMeeting {
 
   private email: string[];
 
-  private startTime: string[];
+  private startTime: string[] | undefined;
 
   private duration: number;
 
-  private timeZone: string;
+  private timeZone: string | undefined;
 
   public timeout: NodeJS.Timeout | undefined = undefined;
 
@@ -249,9 +249,9 @@ class ScheduleMeeting {
     chatId,
     targetUserId = '',
     email = [],
-    startTime = [],
+    startTime = undefined,
     duration = 1800,
-    timeZone = '',
+    timeZone = undefined,
   }: ScheduleMeetingParams) {
     this.chatId = chatId;
     this.targetUserId = targetUserId;
@@ -292,21 +292,21 @@ class ScheduleMeeting {
     return ScheduleMeeting.instances.get(chatId);
   }
 
-  public async confirmCallback({ startTime, email, timeZone, duration, timeConfirmed = false }: {
-    startTime: string[] | null;
-    email: string[] | null;
+  public async timeConfirmCallback({ startTime, email, timeZone, duration, timeConfirmed = false }: {
+    startTime: string[] | undefined;
+    email: string[] | undefined;
     timeZone: string;
     duration: number;
     timeConfirmed?: boolean;
   }) {
+    if (timeZone && !this.timeZone) {
+      this.timeZone = timeZone;
+    }
     if (startTime && startTime.length) {
       this.startTime = startTime;
     }
     if (email && email.length) {
       this.email = email;
-    }
-    if (timeZone) {
-      this.timeZone = timeZone;
     }
     if (duration) {
       this.duration = duration;
@@ -360,14 +360,17 @@ class ScheduleMeeting {
     const text = getMessageContent(message)?.text?.text || '';
     this.messageId = message.id;
     const { email, startTime, duration, timeZone } = await getMeetParamsByAITools(text);
+    if (timeZone && !this.timeZone) {
+      this.timeZone = timeZone;
+    }
     if (startTime) {
       this.startTime = [startTime];
+      if (this.timeZone) {
+        this.startTime = [attachZoneWithTemporal(startTime, this.timeZone).utcInstant];
+      }
     }
     if (email && email.length) {
       this.email = email;
-    }
-    if (timeZone) {
-      this.timeZone = timeZone;
     }
     if (duration) {
       this.duration = duration;
@@ -400,7 +403,7 @@ class ScheduleMeeting {
   }
 
   private async checkTimeAvailable(startTimes?: string[]): Promise<{ isAvailable: boolean; suggestions?: { start: string; end: string }[] }> {
-    const timeToCheck = startTimes ? startTimes[0] : (this.startTime.length > 0 ? this.startTime[0] : null);
+    const timeToCheck = startTimes ? startTimes[0] : null;
 
     if (!timeToCheck) {
       return {
@@ -438,9 +441,12 @@ class ScheduleMeeting {
   private async checkCalendlyLinks(text: string): Promise<string[]> {
     const calendlyUrl = extractCalendlyLinks(text)?.[0];
     if (calendlyUrl) {
-      const { times, timeZone } = await calendlyRanges({ calendlyUrl });
+      const { times, timeZone, email } = await calendlyRanges({ calendlyUrl });
       if (!this.timeZone && timeZone) {
         this.timeZone = timeZone;
+      }
+      if (email) {
+        this.email.push(email);
       }
       const myBusyTimes = await getGoogleCalendarFreeBusy();
       const availableSolts = getAvailableSlots(times, this.duration, myBusyTimes);
@@ -453,9 +459,8 @@ class ScheduleMeeting {
   }
 
   private async handleTimeCheck() {
-    if (this.startTime.length && this.timeZone && !this.timeConfirmed) {
-      const parseTime = [attachZoneWithTemporal(this.startTime[0], this.timeZone).utcInstant];
-      const { isAvailable, suggestions } = await this.checkTimeAvailable(parseTime);
+    if (this.startTime && this.timeZone && !this.timeConfirmed) {
+      const { isAvailable, suggestions } = await this.checkTimeAvailable(this.startTime);
       if (!isAvailable) {
         this.startTime = [];
         this.sendMessage(MEETING_TIME_UNAVAILABLE);
@@ -492,7 +497,7 @@ class ScheduleMeeting {
         chatId: this.chatId,
         startTime: availableSlots,
         duration: this.duration,
-        timeZone: this.timeZone,
+        timeZone: this.timeZone!,
         email: this.email,
       });
       ChataiStores?.message?.storeMessage(
@@ -515,8 +520,8 @@ class ScheduleMeeting {
 
   public async handler(params?: {
     chatId: string;
-    senderId: string | undefined;
-    messageId: number | undefined;
+    senderId?: string | undefined;
+    messageId?: number | undefined;
     text: string;
   }) {
     const { text, chatId, senderId, messageId } = params || {};
@@ -533,28 +538,30 @@ class ScheduleMeeting {
     try {
       // 先获取参数
       const { email, startTime, duration, timeZone } = await getMeetParamsByAITools(text!);
-      let paramHit = false;
 
       // 检查是否命中任何必要参数
       if (email && email.length > 0) {
         this.email = this.email.concat(email);
-        paramHit = true;
       }
-      if (timeZone) {
+      if (timeZone && !this.timeZone) {
         this.timeZone = timeZone;
+        if (this.startTime) {
+          this.startTime = [attachZoneWithTemporal(this.startTime[0], timeZone).utcInstant];
+        }
         this.timeConfirmed = false;
-        paramHit = true;
       }
       if (duration) {
         this.duration = duration;
       }
       if (startTime) {
         this.startTime = [startTime];
+        if (this.timeZone) {
+          this.startTime = [attachZoneWithTemporal(startTime, this.timeZone).utcInstant];
+        }
         this.timeConfirmed = false;
-        paramHit = true;
       }
       // 当任意必要条件有更新时，重置定时器
-      if (paramHit) {
+      if (startTime || duration || timeZone || email) {
         this.resetAuthCheckTimer();
       }
 
@@ -564,7 +571,7 @@ class ScheduleMeeting {
       await this.handleCalendlyMatch(text!);
 
       // 只有当命中参数时才询问下一个必要条件
-      if (paramHit) {
+      if (startTime || duration || timeZone || email) {
         this.handleMeetingInfoAsk();
       }
 
@@ -595,11 +602,11 @@ class ScheduleMeeting {
   }
 
   public handleCreateGoogleMeet(accessToken: string) {
-    const start = attachZoneWithTemporal(this.startTime[0], this.timeZone).utcInstant;
+    const startTime = this.startTime![0];
     createGoogleMeet({
-      startDate: new Date(start),
-      endDate: new Date(new Date(start).getTime() + this.duration * 1000),
-      selectedTimezone: this.timeZone,
+      startDate: new Date(startTime),
+      endDate: new Date(new Date(startTime).getTime() + this.duration * 1000),
+      selectedTimezone: this.timeZone!,
       emails: this.email,
       googleToken: accessToken,
     })

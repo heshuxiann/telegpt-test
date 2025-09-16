@@ -1,4 +1,3 @@
-/* eslint-disable no-null/no-null */
 /* eslint-disable react/no-unescaped-entities */
 import React, { useState } from 'react';
 import type { Message } from 'ai';
@@ -11,7 +10,7 @@ import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage } from '../store/messages-store';
 import { createAuthConfirmModal } from '../utils/google-api';
 import { getAuthState, isTokenValid } from '../utils/google-auth';
-import ScheduleMeeting, { getMeetParamsByAITools } from '../utils/schedule-meeting';
+import ScheduleMeeting from '../utils/schedule-meeting';
 
 const GoogleMeetMentionMessage = ({ message }: { message: Message }) => {
   const { chatId, messageId, messageText, isConfirmed } = JSON.parse(message.content) || {};
@@ -24,15 +23,12 @@ const GoogleMeetMentionMessage = ({ message }: { message: Message }) => {
     return fullName;
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     // TODO: get meeting info from recent message
     const scheduleMeeting = ScheduleMeeting.create({ chatId });
-    const { email, startTime, duration, timeZone } = await getMeetParamsByAITools(messageText);
-    scheduleMeeting.confirmCallback({
-      startTime: startTime ? [startTime] : null,
-      email,
-      duration: duration || 1800,
-      timeZone,
+    scheduleMeeting.handler({
+      chatId,
+      text: messageText,
     });
     setMergeConfirmed(true);
     message.content = JSON.stringify({

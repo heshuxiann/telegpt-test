@@ -456,24 +456,3 @@ export function attachZoneWithTemporal(semanticUtcISOString: string, timeZone: s
     offset: zdt.offset, // e.g. "+08:00"
   };
 }
-
-// export function attachZoneWithTemporal(semanticUtcISOString: string, prevTimeZone: string, currentTimeZone: string) {
-//   // 1. 先把传入的 UTC 时间解释成 prevTimeZone 的 ZonedDateTime
-//   const instant = Temporal.Instant.from(semanticUtcISOString);
-//   const prevZdt = instant.toZonedDateTimeISO(prevTimeZone);
-
-//   // 2. 拿到 prevTimeZone 的表盘时间（PlainDateTime）
-//   const wallClock = prevZdt.toPlainDateTime();
-
-//   // 3. 把这个表盘时间重新附着到 currentTimeZone
-//   const currentZdt = wallClock.toZonedDateTime(currentTimeZone);
-
-//   return {
-//     zonedISO: currentZdt.toString(), // e.g. "2025-09-08T20:00:00+08:00[Asia/Shanghai]"
-//     utcInstant: currentZdt.toInstant().toString(), // 对应的 UTC 时间点
-//     epoch: currentZdt.epochMilliseconds,
-//     prevTimeZone,
-//     currentTimeZone,
-//     offset: currentZdt.offset,
-//   };
-// }
