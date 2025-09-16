@@ -21,25 +21,23 @@ const InviteCodeModal = ({ modal }: OwnProps) => {
   const { closeInviteCodeModal } = getActions();
   const [inviteCode, setInviteCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = () => {
     if (!inviteCode.trim()) return;
 
     setIsSubmitting(true);
     try {
-      // TODO: 调用提交邀请码的API
-      // eslint-disable-next-line no-console
-      console.log('Submitting invite code:', inviteCode);
       submitInviteCode(inviteCode).then((res) => {
         if (res.code === 0) {
-          // 提交成功后关闭弹窗
           closeInviteCodeModal();
+          setError('');
         } else {
           console.log('Failed to submit invite code:', res);
+          setError(res.error);
         }
       });
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('Failed to submit invite code:', error);
     } finally {
       setIsSubmitting(false);
@@ -73,7 +71,7 @@ const InviteCodeModal = ({ modal }: OwnProps) => {
             placeholder="Please enter the invitation code"
             className={styles.input}
           />
-
+          <div className={styles.error}>{error}</div>
           <div className={styles.actions}>
             <Button
               onClick={handleSubmit}
@@ -81,7 +79,7 @@ const InviteCodeModal = ({ modal }: OwnProps) => {
               className={styles.submitButton}
               noForcedUpperCase
             >
-              {isSubmitting ? 'Comfirm...' : 'Comfirm'}
+              {isSubmitting ? 'Confirm...' : 'Confirm'}
             </Button>
           </div>
         </div>

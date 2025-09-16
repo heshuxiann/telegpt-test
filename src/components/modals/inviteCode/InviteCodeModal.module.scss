@@ -43,7 +43,7 @@
 }
 
 .title {
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 1rem 0;
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--color-text);
@@ -62,15 +62,12 @@
 
 .input {
   width: 100%;
-  padding: 0.75rem;
   border-radius: 0.5rem;
-
   font-size: 1rem;
   color: var(--color-text);
-
   background: var(--color-background);
-
   transition: border-color 0.2s ease;
+  margin-bottom: 0;
 
   &:focus {
     border-color: var(--color-primary);
@@ -84,9 +81,10 @@
 }
 
 .error {
-  margin-top: 0.5rem;
   font-size: 0.875rem;
   color: var(--color-error);
+  height: 2rem;
+  line-height: 2rem;
 }
 
 .footer {

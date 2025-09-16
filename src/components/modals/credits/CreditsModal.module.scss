@@ -4,28 +4,6 @@
   padding: 0;
 }
 
-.totalPoints {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  background-color: #F8F9FA;
-  border-bottom: 1px solid #E5E5E5;
-  margin-bottom: 0;
-  
-  .label {
-    font-weight: 600;
-    color: #333;
-    font-size: 16px;
-  }
-  
-  .value {
-    font-weight: 700;
-    color: #007AFF;
-    font-size: 18px;
-  }
-}
-
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -35,8 +13,8 @@
     text-align: center;
     vertical-align: middle;
     font-weight: 600;
-    color: #333;
-    border-bottom: 1px solid #E5E5E5;
+    color: var(--text-color);
+    border-bottom: 1px solid var(--color-borders);
     &:nth-of-type(1){
       width: 120px;
     }
@@ -46,7 +24,7 @@
     height: 50px;
     text-align: center;
     vertical-align: middle;
-    border-bottom: 1px solid #F1F1F1;
+    border-bottom: 1px solid var(--color-borders);
     padding: 8px 12px;
     
     // 确保内部元素也居中
@@ -56,6 +34,6 @@
   }
   
   tbody tr:hover {
-    background-color: #F9F9F9;
+    background-color: var(--color-item-hover);
   }
 }

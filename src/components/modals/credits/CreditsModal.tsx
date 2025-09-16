@@ -33,7 +33,7 @@ const CreditsModal = ({ modal, credits }: OwnProps & StateProps) => {
       onClose={handleClose}
     >
       <table className={styles.table} role="table" aria-label="Codes, Invitees, Credits and Time">
-        <thead className="h-[36px] bg-[#F6F6F6]">
+        <thead className="h-[36px] bg-[#F6F6F6] dark:bg-[var(--color-background)]">
           <tr role="row">
             <th role="columnheader">Detail</th>
             <th role="columnheader">Date</th>

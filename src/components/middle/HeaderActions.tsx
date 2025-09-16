@@ -47,6 +47,7 @@ import Button from '../ui/Button';
 // import MenuItem from '../ui/MenuItem';
 // import MenuSeparator from '../ui/MenuSeparator';
 import HeaderMenuContainer from './HeaderMenuContainer.async';
+import InviteButton from '../chatAssistant/component/InviteButton.teact';
 
 interface OwnProps {
   chatId: string;
@@ -330,6 +331,7 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
       )} */}
       {!isMobile && (
         <>
+          <InviteButton />
           {canExpandActions && !shouldSendJoinRequest && (canSubscribe || shouldJoinToSend) && (
             <Button
               size="tiny"
