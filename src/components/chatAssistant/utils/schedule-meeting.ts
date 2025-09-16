@@ -22,14 +22,23 @@ import {
   getGoogleCalendarFreeBusy,
 } from './google-api';
 import { getAuthState, isTokenValid } from './google-auth';
-import { attachZoneWithTemporal, formatMeetingTimeRange, generateEventScreenshot } from './meeting-utils';
+import {
+  attachZoneWithTemporal,
+  formatMeetingTimeRange,
+  generateEventScreenshot,
+} from './meeting-utils';
 
-export const MEETING_INVITATION_TIP = 'I\'ll send you the meeting invitation later. [By TelyAI]';
+export const MEETING_INVITATION_TIP
+  = 'I\'ll send you the meeting invitation later. [By TelyAI]';
 
-export const ASK_MEETING_TIME = 'I’d like to set up a meeting with you. Could you let me know a time that works best for you? [By TelyAI]';
-export const ASK_MEETING_TIMEZONE = 'Which time zone are you currently in? [By TelyAI]';
-export const ASK_MEETING_EMAIL = 'Could you share your email address? If additional participants should be included, please provide their email addresses as well. [By TelyAI]';
-const MEETING_TIME_UNAVAILABLE = 'The time you provided is not available. Could you please suggest another time? [By TelyAI]';
+export const ASK_MEETING_TIME
+  = 'I’d like to set up a meeting with you. Could you let me know a time that works best for you? [By TelyAI]';
+export const ASK_MEETING_TIMEZONE
+  = 'Which time zone are you currently in? [By TelyAI]';
+export const ASK_MEETING_EMAIL
+  = 'Could you share your email address? If additional participants should be included, please provide their email addresses as well. [By TelyAI]';
+const MEETING_TIME_UNAVAILABLE
+  = 'The time you provided is not available. Could you please suggest another time? [By TelyAI]';
 
 export type MeetingInformationSuggestType = 'time' | 'email' | 'both';
 
@@ -107,7 +116,9 @@ function suggestFreeTimes(
       if (currentMinute < 30) {
         slotStart = now.set({ minute: 30, second: 0, millisecond: 0 });
       } else {
-        slotStart = now.plus({ hours: 1 }).set({ minute: 0, second: 0, millisecond: 0 });
+        slotStart = now
+          .plus({ hours: 1 })
+          .set({ minute: 0, second: 0, millisecond: 0 });
       }
       // 确保不早于工作时间开始
       if (slotStart < dayStart) {
@@ -145,7 +156,10 @@ function suggestFreeTimes(
 async function isTimeSlotAvailable(proposedSlot: {
   start: string;
   end: string;
-}): Promise<{ isAvailable: boolean; suggestions?: { start: string; end: string }[] }> {
+}): Promise<{
+    isAvailable: boolean;
+    suggestions?: { start: string; end: string }[];
+  }> {
   const myBusyTimes = await getGoogleCalendarFreeBusy();
   const proposedStart = new Date(proposedSlot.start).getTime();
   const proposedEnd = new Date(proposedSlot.end).getTime();
@@ -292,7 +306,13 @@ class ScheduleMeeting {
     return ScheduleMeeting.instances.get(chatId);
   }
 
-  public async timeConfirmCallback({ startTime, email, timeZone, duration, timeConfirmed = false }: {
+  public async timeConfirmCallback({
+    startTime,
+    email,
+    timeZone,
+    duration,
+    timeConfirmed = false,
+  }: {
     startTime: string[] | undefined;
     email: string[] | undefined;
     timeZone: string;
@@ -315,7 +335,13 @@ class ScheduleMeeting {
     if (!this.timeConfirmed) {
       await this.handleTimeCheck();
     }
-    if (this.email.length && this.startTime && this.timeZone && this.duration && this.timeConfirmed) {
+    if (
+      this.email.length
+      && this.startTime
+      && this.timeZone
+      && this.duration
+      && this.timeConfirmed
+    ) {
       this.scheduleAuthCheck();
     } else {
       this.handleMeetingInfoAsk();
@@ -359,14 +385,17 @@ class ScheduleMeeting {
   public async handleTargetMessage(message: ApiMessage) {
     const text = getMessageContent(message)?.text?.text || '';
     this.messageId = message.id;
-    const { email, startTime, duration, timeZone } = await getMeetParamsByAITools(text);
+    const { email, startTime, duration, timeZone }
+      = await getMeetParamsByAITools(text);
     if (timeZone && !this.timeZone) {
       this.timeZone = timeZone;
     }
     if (startTime) {
       this.startTime = [startTime];
       if (this.timeZone) {
-        this.startTime = [attachZoneWithTemporal(startTime, this.timeZone).utcInstant];
+        this.startTime = [
+          attachZoneWithTemporal(startTime, this.timeZone).utcInstant,
+        ];
       }
     }
     if (email && email.length) {
@@ -378,7 +407,13 @@ class ScheduleMeeting {
     if (this.startTime && this.timeZone) {
       await this.handleTimeCheck();
     }
-    if (this.email.length && this.startTime && this.timeZone && this.duration && this.timeConfirmed) {
+    if (
+      this.email.length
+      && this.startTime
+      && this.timeZone
+      && this.duration
+      && this.timeConfirmed
+    ) {
       this.scheduleAuthCheck();
     } else {
       this.handleMeetingInfoAsk();
@@ -387,11 +422,7 @@ class ScheduleMeeting {
 
   private handlerImMessage({ message }: { message?: ApiMessage }) {
     // 只处理对方发过来的消息
-    if (
-      message
-      && hasMessageText(message)
-      && !message.isOutgoing
-    ) {
+    if (message && hasMessageText(message) && !message.isOutgoing) {
       this.messageId = message.id;
       this.handler({
         chatId: message.chatId,
@@ -402,7 +433,12 @@ class ScheduleMeeting {
     }
   }
 
-  private async checkTimeAvailable(startTimes?: string[]): Promise<{ isAvailable: boolean; suggestions?: { start: string; end: string }[] }> {
+  private async checkTimeAvailable(
+    startTimes?: string[],
+  ): Promise<{
+      isAvailable: boolean;
+      suggestions?: { start: string; end: string }[];
+    }> {
     const timeToCheck = startTimes ? startTimes[0] : null;
 
     if (!timeToCheck) {
@@ -424,7 +460,9 @@ class ScheduleMeeting {
       };
     }
 
-    const endTime = new Date(new Date(timeToCheck).getTime() + this.duration * 1000).toISOString();
+    const endTime = new Date(
+      new Date(timeToCheck).getTime() + this.duration * 1000,
+    ).toISOString();
     const dateRange = {
       start: timeToCheck,
       end: endTime,
@@ -449,9 +487,15 @@ class ScheduleMeeting {
         this.email.push(email);
       }
       const myBusyTimes = await getGoogleCalendarFreeBusy();
-      const availableSolts = getAvailableSlots(times, this.duration, myBusyTimes);
+      const availableSolts = getAvailableSlots(
+        times,
+        this.duration,
+        myBusyTimes,
+      );
       if (availableSolts.length === 0) {
-        console.log('No available time slots found for the provided Calendly link.');
+        console.log(
+          'No available time slots found for the provided Calendly link.',
+        );
       }
       return availableSolts.slice(0, 3);
     }
@@ -460,7 +504,9 @@ class ScheduleMeeting {
 
   private async handleTimeCheck() {
     if (this.startTime && this.timeZone && !this.timeConfirmed) {
-      const { isAvailable, suggestions } = await this.checkTimeAvailable(this.startTime);
+      const { isAvailable, suggestions } = await this.checkTimeAvailable(
+        this.startTime,
+      );
       if (!isAvailable) {
         this.startTime = [];
         this.sendMessage(MEETING_TIME_UNAVAILABLE);
@@ -508,10 +554,7 @@ class ScheduleMeeting {
       const global = getGlobal();
       const currentChat = selectCurrentChat(global);
       if (currentChat && currentChat.id === this.chatId) {
-        eventEmitter.emit(
-          Actions.AddRoomAIMessage,
-          meetingTimeConfirmMessage,
-        );
+        eventEmitter.emit(Actions.AddRoomAIMessage, meetingTimeConfirmMessage);
         getActions().openChatAIWithInfo({ chatId: this.chatId });
       }
       return;
@@ -537,7 +580,8 @@ class ScheduleMeeting {
     this.messageId = messageId;
     try {
       // 先获取参数
-      const { email, startTime, duration, timeZone } = await getMeetParamsByAITools(text!);
+      const { email, startTime, duration, timeZone }
+        = await getMeetParamsByAITools(text!);
 
       // 检查是否命中任何必要参数
       if (email && email.length > 0) {
@@ -546,7 +590,9 @@ class ScheduleMeeting {
       if (timeZone && !this.timeZone) {
         this.timeZone = timeZone;
         if (this.startTime) {
-          this.startTime = [attachZoneWithTemporal(this.startTime[0], timeZone).utcInstant];
+          this.startTime = [
+            attachZoneWithTemporal(this.startTime[0], timeZone).utcInstant,
+          ];
         }
         this.timeConfirmed = false;
       }
@@ -556,7 +602,9 @@ class ScheduleMeeting {
       if (startTime) {
         this.startTime = [startTime];
         if (this.timeZone) {
-          this.startTime = [attachZoneWithTemporal(startTime, this.timeZone).utcInstant];
+          this.startTime = [
+            attachZoneWithTemporal(startTime, this.timeZone).utcInstant,
+          ];
         }
         this.timeConfirmed = false;
       }
@@ -575,7 +623,13 @@ class ScheduleMeeting {
         this.handleMeetingInfoAsk();
       }
 
-      if (this.email.length && this.startTime && this.timeZone && this.duration && this.timeConfirmed) {
+      if (
+        this.email.length
+        && this.startTime
+        && this.timeZone
+        && this.duration
+        && this.timeConfirmed
+      ) {
         this.scheduleAuthCheck();
       }
     } catch (e) {
@@ -626,29 +680,37 @@ class ScheduleMeeting {
   }
 
   private sendMessage(message: string) {
+    const { saveReplyDraft, sendMessage, clearDraft } = getActions();
     if (this.targetUserId && this.messageId) {
       const replyInfo = {
         type: 'message',
         replyToMsgId: this.messageId,
         replyToPeerId: undefined,
       };
-      getActions().saveReplyDraft({
+      saveReplyDraft({
         chatId: this.chatId,
         threadId: -1,
         draft: { replyInfo } as ApiDraft,
         isLocalOnly: true,
       });
-    }
-    getActions().sendMessage({
-      messageList: {
-        chatId: this.chatId,
-        threadId: '-1',
-        type: 'thread',
-      },
-      text: message,
-    });
-    if (this.targetUserId) {
-      getActions().clearDraft({ chatId: this.chatId, isLocalOnly: true });
+      sendMessage({
+        messageList: {
+          chatId: this.chatId,
+          threadId: -1,
+          type: 'thread',
+        },
+        text: message,
+      });
+      clearDraft({ chatId: this.chatId, isLocalOnly: true });
+    } else {
+      sendMessage({
+        messageList: {
+          chatId: this.chatId,
+          threadId: -1,
+          type: 'thread',
+        },
+        text: message,
+      });
     }
   }
 }
