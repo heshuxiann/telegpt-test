@@ -68,7 +68,7 @@ const EmailItem = ({ email, onDelete }: { email: string; onDelete: (email: strin
   return (
     <div className="flex items-center gap-[8px] py-[10px]">
       <img className="w-[24px] h-[24px] rounded-full" src={DefaultAvatar} alt="" />
-      <span className="text-[14px] text-black">{email}</span>
+      <span className="text-[14px] text-black overflow-hidden text-ellipsis">{email}</span>
       <div
         className="ml-auto cursor-pointer w-[20px] h-[20px] rounded-full text-[#979797] bg-[#F3F3F3] flex items-center justify-center"
         onClick={() => onDelete(email)}

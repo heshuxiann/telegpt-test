@@ -138,11 +138,11 @@ const GoogleMeetTimeConfirmMessage = ({ message }: { message: Message }) => {
       if (!auth || !(await isTokenValid(auth))) {
         createAuthConfirmModal({
           onOk: () => {
-            scheduleMeeting.confirmCallback(confirmParams);
+            scheduleMeeting.timeConfirmCallback(confirmParams);
           },
         });
       } else {
-        scheduleMeeting.confirmCallback(confirmParams);
+        scheduleMeeting.timeConfirmCallback(confirmParams);
       }
     }
     message.content = JSON.stringify({
