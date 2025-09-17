@@ -956,3 +956,18 @@ addCallback((global: GlobalState) => {
   prevIsScreenLocked = global.passcode.isScreenLocked;
   prevBlurredTabsCount = blurredTabsCount;
 });
+
+addActionHandler('closePayPackageModal', (global, actions, payload): ActionReturnType => {
+  const { tabId = getCurrentTabId() } = payload || {};
+
+  return updateTabState(global, {
+    payPackageModal: undefined,
+  }, tabId);
+});
+
+addActionHandler('openPayPackageModal', (global, actions, payload): ActionReturnType => {
+  const { tabId = getCurrentTabId() } = payload || {};
+  return updateTabState(global, {
+    payPackageModal: { isOpen: true },
+  }, tabId);
+});

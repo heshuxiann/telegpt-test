@@ -2865,6 +2865,9 @@ export interface ActionPayloads {
   } & WithTabId;
   closeLocationAccessModal: WithTabId | undefined;
 
+  openPayPackageModal: WithTabId | undefined;
+  closePayPackageModal: WithTabId | undefined;
+
   toggleUserEmojiStatusPermission: {
     botId: string;
     isEnabled: boolean;

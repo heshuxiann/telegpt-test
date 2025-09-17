@@ -141,7 +141,7 @@ const RoomAttachmentsModal: FC<OwnProps & StateProps> = ({
   }, []);
 
   const renderingActiveTab = activeTab > tabs.length - 1 ? tabs.length - 1 : activeTab;
-  const tabType = tabs[renderingActiveTab].type as ProfileTabType;
+  const tabType = tabs[renderingActiveTab].type;
 
   // 简化版的viewport管理，只处理media、documents、links
   const resultType = tabType === 'members' || !mediaSearchType ? tabType : mediaSearchType;
@@ -201,7 +201,7 @@ const RoomAttachmentsModal: FC<OwnProps & StateProps> = ({
 
     return captureEvents(transitionRef.current, {
       selectorToPreventScroll: '.Profile',
-      onSwipe: ((e, direction) => {
+      onSwipe: (e, direction) => {
         if (direction === SwipeDirection.Left) {
           setActiveTab(Math.min(renderingActiveTab + 1, tabs.length - 1));
           return true;
@@ -211,7 +211,7 @@ const RoomAttachmentsModal: FC<OwnProps & StateProps> = ({
         }
 
         return false;
-      }),
+      },
     });
   }, [renderingActiveTab, tabs.length]);
 
@@ -258,18 +258,18 @@ const RoomAttachmentsModal: FC<OwnProps & StateProps> = ({
         teactFastList
       >
         {resultType === 'media' ? (
-          (viewportIds as number[])!.map((id) => messagesById[id] && (
+          (viewportIds).map((id) => messagesById[id] && (
             <Media
               key={id}
               message={messagesById[id]}
               isProtected={isChatProtected || messagesById[id].isProtected}
               observeIntersection={observeIntersectionForMedia}
-              // eslint-disable-next-line react/jsx-no-bind
+
               onClick={() => handleSelectMedia(id)}
             />
           ))
         ) : resultType === 'documents' ? (
-          (viewportIds as number[])!.map((id) => messagesById[id] && (
+          (viewportIds).map((id) => messagesById[id] && (
             <Document
               key={id}
               document={getMessageDocument(messagesById[id])!}
@@ -280,19 +280,19 @@ const RoomAttachmentsModal: FC<OwnProps & StateProps> = ({
               observeIntersection={observeIntersectionForMedia}
               canAutoLoad
               autoLoadFileMaxSizeMb={SHARED_MEDIA_SLICE}
-              // eslint-disable-next-line react/jsx-no-bind
+
               onSelect={() => handleSelectMedia(id)}
             />
           ))
         ) : resultType === 'links' ? (
-          (viewportIds as number[])!.map((id) => messagesById[id] && (
+          (viewportIds).map((id) => messagesById[id] && (
             <WebLink
               key={id}
               message={messagesById[id]}
               isProtected={isChatProtected || messagesById[id].isProtected}
               onlyWebPage
               observeIntersection={observeIntersectionForMedia}
-              // eslint-disable-next-line react/jsx-no-bind
+
               onMessageClick={() => handleSelectMedia(id)}
             />
           ))

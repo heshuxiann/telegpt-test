@@ -875,6 +875,10 @@ export type TabState = {
     isOpen: boolean;
   };
 
+  payPackageModal?: {
+    isOpen: boolean;
+  };
+
   isWaitingForStarGiftUpgrade?: true;
   isWaitingForStarGiftTransfer?: true;
   insertingPeerIdMention?: string;

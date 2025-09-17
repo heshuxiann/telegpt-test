@@ -34,6 +34,7 @@ import InviteFriendsModal from './inviteFriends/InviteFriendsModal.async';
 import InviteViaLinkModal from './inviteViaLink/InviteViaLinkModal.async';
 import LocationAccessModal from './locationAccess/LocationAccessModal.async';
 import MapModal from './map/MapModal.async';
+import PayPackageModal from './membership/PayPackageModal.async';
 import OneTimeMediaModal from './oneTimeMedia/OneTimeMediaModal.async';
 import PaidReactionModal from './paidReaction/PaidReactionModal.async';
 import PreparedMessageModal from './preparedMessage/PreparedMessageModal.async';
@@ -77,6 +78,7 @@ type ModalKey = keyof Pick<TabState,
   'creditsModal' |
   'inviteCodeModal' |
   'inviteFriendsModal' |
+  'payPackageModal' |
   'starsSubscriptionModal' |
   'starsGiftModal' |
   'giftModal' |
@@ -134,6 +136,7 @@ const MODALS: ModalRegistry = {
   creditsModal: CreditsModal,
   inviteCodeModal: InviteCodeModal,
   inviteFriendsModal: InviteFriendsModal,
+  payPackageModal: PayPackageModal,
   paidReactionModal: PaidReactionModal,
   suggestMessageModal: SuggestMessageModal,
   suggestedPostApprovalModal: SuggestedPostApprovalModal,

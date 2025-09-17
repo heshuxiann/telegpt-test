@@ -1,0 +1,338 @@
+.modal {
+  :global(.modal-dialog) {
+    width: 90vw;
+    max-width: 1200px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  :global(.modal-content) {
+    padding: 0;
+  }
+}
+
+.container {
+  position: relative;
+  padding: 0;
+  background: var(--color-background);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.headerBadge {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-image: url("../../chatAssistant/assets/modal-header-bg.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  filter: blur(12px);
+  width: 475px;
+  height: 100%;
+}
+
+.header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  overflow: hidden;
+}
+
+.title {
+  position: relative;
+  z-index: 1;
+  color: var(--color-text);
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+}
+
+.closeButton {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 2;
+  width: 24px;
+  height: 24px;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+// Pricing Cards Container
+.pricingCards {
+  display: flex;
+  gap: 24px;
+  padding: 32px 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+// Base Pricing Card
+.pricingCard {
+  position: relative;
+  width: 336px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 24px;
+  padding: 32px 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  &.selected {
+    border: 2px solid #3b82f6;
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+    transform: translateY(-2px);
+  }
+}
+
+.cardPro {
+  border: 2px solid #3b82f6;
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15);
+  transform: translateY(-2px);
+
+  .upgradeButton {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+
+    &:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    }
+  }
+}
+
+// Top Content
+.topContent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.planTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.pricing {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.price {
+  font-size: 48px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1;
+}
+
+.period {
+  font-size: 18px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+// Credits Info
+.creditsInfo {
+  color: var(--color-text);
+  font-size: 16px;
+  font-weight: 500;
+}
+.creditsInfoDescription {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+// Upgrade Button
+.upgradeButton {
+  width: 272px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #369cff;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+// Bottom Info
+.botInfo {
+  flex: 1;
+}
+
+.features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 20px;
+}
+
+.listdot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #369cff;
+  flex-shrink: 0;
+  margin-top: 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.checkIcon {
+  color: #ffffff;
+}
+
+// Dark mode support
+:global(.theme-dark) {
+  .container {
+    background: var(--color-background-secondary);
+  }
+
+  .pricingCard {
+    background: var(--color-background);
+    border-color: var(--color-borders);
+  }
+
+  .planTitle {
+    color: var(--color-text);
+  }
+
+  .price {
+    color: var(--color-text);
+  }
+
+  .period {
+    color: var(--color-text-secondary);
+  }
+
+  .creditsInfo {
+    background: var(--color-background-secondary);
+    color: var(--color-text-secondary);
+  }
+
+  .upgradeButton {
+    background: var(--color-background);
+    border-color: var(--color-borders);
+    color: var(--color-text);
+
+    &:hover {
+      background: var(--color-background-secondary);
+    }
+  }
+
+  .feature {
+    color: var(--color-text-secondary);
+  }
+}
+
+// Responsive design
+@media (max-width: 1024px) {
+  .pricingCards {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .pricingCard {
+    width: 100%;
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal {
+    :global(.modal-dialog) {
+      width: 95vw;
+      max-width: none;
+    }
+  }
+
+  .container {
+    border-radius: 16px;
+  }
+
+  .header {
+    height: 80px;
+    padding: 0 16px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .closeButton {
+    top: 16px;
+    right: 16px;
+  }
+
+  .pricingCards {
+    padding: 20px 16px;
+    gap: 16px;
+  }
+
+  .pricingCard {
+    padding: 24px 20px;
+    gap: 20px;
+  }
+
+  .price {
+    font-size: 36px;
+  }
+
+  .planTitle {
+    font-size: 20px;
+  }
+}

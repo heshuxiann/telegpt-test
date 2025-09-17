@@ -17,6 +17,7 @@ import Avatar from '../../common/Avatar';
 import FullNameTitle from '../../common/FullNameTitle';
 import MenuItem from '../../ui/MenuItem';
 import MenuSeparator from '../../ui/MenuSeparator';
+import UpgradeButton from '../../chatAssistant/component/upgrade/UpgradeButton';
 
 type OwnProps = {
   currentUser: ApiUser;
@@ -102,6 +103,7 @@ const AccountMenuItems = ({
               >
                 {account.isTest && <span className="account-menu-item-test">T</span>}
                 <FullNameTitle peer={mockUser} withEmojiStatus emojiStatusSize={REM} />
+                <UpgradeButton />
               </MenuItem>
               {hasSeparator && <MenuSeparator />}
             </>

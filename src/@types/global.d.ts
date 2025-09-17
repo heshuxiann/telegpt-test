@@ -196,10 +196,10 @@ type FilesystemReadWriteOptions = {
 };
 
 declare namespace google {
-   interface Window {
+  interface Window {
     google: typeof google;
   }
-    namespace accounts.oauth2 {
+  namespace accounts.oauth2 {
     interface TokenResponse {
       access_token: string;
       expires_in: number;

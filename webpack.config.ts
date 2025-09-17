@@ -1,3 +1,4 @@
+/* eslint-disable no-null/no-null */
 import 'webpack-dev-server';
 import 'dotenv/config';
 
@@ -41,7 +42,7 @@ const CSP = `
   default-src 'self';
   font-src 'self' data:;
   connect-src 'self' wss://*.web.telegram.org blob: http: https: ${APP_ENV === 'development' ? 'wss:' : ''};
-  script-src 'self' 'wasm-unsafe-eval' https://t.me/_websync_ https://telegram.me/_websync_ http://apis.google.com https://accounts.google.com https://www.googletagmanager.com;
+  script-src 'self' 'wasm-unsafe-eval' https://t.me/_websync_ https://telegram.me/_websync_ http://apis.google.com https://accounts.google.com https://www.googletagmanager.com https://js.stripe.com;
   style-src 'self' 'unsafe-inline';
   img-src 'self' data: blob: https://ss3.4sqi.net/img/categories_v2/
   ${IS_PACKAGED_ELECTRON ? `${BASE_URL}/` : ''};
@@ -213,9 +214,9 @@ export default function createConfig(
         RELEASE_DATETIME: Date.now(),
         TELEGRAM_API_ID: undefined,
         TELEGRAM_API_HASH: undefined,
-        GOOGLE_APP_CLIENT_ID:null,
-        GOOGLE_API_KEY:null,
-        GOOGLE_APP_CLIENT_SECRET:null,
+        GOOGLE_APP_CLIENT_ID: null,
+        GOOGLE_API_KEY: null,
+        GOOGLE_APP_CLIENT_SECRET: null,
         // eslint-disable-next-line no-null/no-null
         TEST_SESSION: null,
         IS_PACKAGED_ELECTRON: false,
