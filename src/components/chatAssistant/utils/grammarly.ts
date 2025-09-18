@@ -1,8 +1,4 @@
-import { getGlobal } from '../../../global';
-
-import { SERVER_API_URL } from '../../../config';
-import { getUserFullName } from '../../../global/helpers';
-import { selectUser } from '../../../global/selectors';
+import { TelegptFetch } from './telegpt-fetch';
 
 export type GrammarlyCheckItem = {
   type?: string;
@@ -19,112 +15,61 @@ type GrammarlyCheckResponse = {
     errors: GrammarlyCheckItem[];
   };
 };
-
-function getUserInfo() {
-  const global = getGlobal();
-  const { currentUserId } = global;
-  const user = selectUser(global, currentUserId!);
-  const userName = getUserFullName(user);
-  return {
-    userId: currentUserId,
-    userName,
-  };
-}
 export const grammarlyCheck = (text: string): Promise<GrammarlyCheckResponse> => {
-  const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/grammarly-check`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text,
-        userId,
-        userName,
-      }),
-    }).then((response) => response.json())
-      .then((data) => resolve(data as GrammarlyCheckResponse))
+    TelegptFetch('/grammarly-check', 'POST', JSON.stringify({ text }))
+      .then((res) => res.json()).then()
+      .then((data) => {
+        resolve(data as GrammarlyCheckResponse);
+      })
       .catch((err) => {
         reject(err);
       });
   });
 };
 export const grammarlyShorten = (text: string): Promise<GrammarlyCheckResponse> => {
-  const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/grammarly-shorten`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text,
-        userId,
-        userName,
-      }),
-    }).then((response) => response.json())
-      .then((data) => resolve(data as GrammarlyCheckResponse))
+    TelegptFetch('/grammarly-shorten', 'POST', JSON.stringify({ text }))
+      .then((res) => res.json()).then()
+      .then((data) => {
+        resolve(data as GrammarlyCheckResponse);
+      })
       .catch((err) => {
         reject(err);
       });
   });
 };
 export const grammarlyFormal = (text: string): Promise<GrammarlyCheckResponse> => {
-  const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/grammarly-formal`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text,
-        userId,
-        userName,
-      }),
-    }).then((response) => response.json())
-      .then((data) => resolve(data as GrammarlyCheckResponse))
+    TelegptFetch('/grammarly-formal', 'POST', JSON.stringify({ text }))
+      .then((res) => res.json()).then()
+      .then((data) => {
+        resolve(data as GrammarlyCheckResponse);
+      })
       .catch((err) => {
         reject(err);
       });
   });
 };
 export const grammarlyFriendly = (text: string): Promise<GrammarlyCheckResponse> => {
-  const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/grammarly-friendly`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text,
-        userId,
-        userName,
-      }),
-    }).then((response) => response.json())
-      .then((data) => resolve(data as GrammarlyCheckResponse))
+    TelegptFetch('/grammarly-friendly', 'POST', JSON.stringify({ text }))
+      .then((res) => res.json()).then()
+      .then((data) => {
+        resolve(data as GrammarlyCheckResponse);
+      })
       .catch((err) => {
         reject(err);
       });
   });
 };
 export const grammarlyRephrase = (text: string): Promise<GrammarlyCheckResponse> => {
-  const { userId, userName } = getUserInfo();
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/grammarly-rephrase`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text,
-        userId,
-        userName,
-      }),
-    }).then((response) => response.json())
-      .then((data) => resolve(data as GrammarlyCheckResponse))
+    TelegptFetch('/grammarly-rephrase', 'POST', JSON.stringify({ text }))
+      .then((res) => res.json()).then()
+      .then((data) => {
+        resolve(data as GrammarlyCheckResponse);
+      })
       .catch((err) => {
         reject(err);
       });

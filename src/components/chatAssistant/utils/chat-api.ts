@@ -45,20 +45,9 @@ export const chatAITranslate = (data: {
   langCode: string;
   text: string;
 }): Promise<{ text: string }> => {
-  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/translate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        userName,
-        ...data,
-      }),
-    })
-      .then((res) => res.json())
+    TelegptFetch('/translate', 'POST', JSON.stringify(data))
+      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -69,20 +58,9 @@ export const chatAITranslate = (data: {
 };
 
 export const summaryMessage = (data: object) => {
-  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/summary`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        userName,
-        ...data,
-      }),
-    })
-      .then((res) => res.json())
+    TelegptFetch('/summary', 'POST', JSON.stringify(data))
+      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -93,20 +71,9 @@ export const summaryMessage = (data: object) => {
 };
 
 export const globalSummary = (data: object) => {
-  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/global-summary`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        userName,
-        ...data,
-      }),
-    })
-      .then((res) => res.json())
+    TelegptFetch('/global-summary', 'POST', JSON.stringify(data))
+      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -188,7 +155,7 @@ export const getHitToolsForMeeting = (text: string): Promise<Array<any>> => {
     ],
   };
   return new Promise((resolve, reject) => {
-    TelegptFetch('/meeting-tool', 'POST', params)
+    TelegptFetch('/meeting-tool', 'POST', JSON.stringify(params))
       .then((res) => res.json()).then()
       .then((toolResults) => {
         resolve(toolResults);
@@ -200,20 +167,9 @@ export const getHitToolsForMeeting = (text: string): Promise<Array<any>> => {
 };
 
 export function imageAISummary(data: object) {
-  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/image-summary`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        userName,
-        ...data,
-      }),
-    })
-      .then((res) => res.json())
+    TelegptFetch('/image-summary', 'POST', JSON.stringify(data))
+      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -224,20 +180,9 @@ export function imageAISummary(data: object) {
 }
 
 export function webPageAISummary(data: object) {
-  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/webpage-summary`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        userName,
-        ...data,
-      }),
-    })
-      .then((res) => res.json())
+    TelegptFetch('/webpage-summary', 'POST', JSON.stringify(data))
+      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -248,20 +193,9 @@ export function webPageAISummary(data: object) {
 }
 
 export function documentAISummary(data: object) {
-  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/document-summary`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        userName,
-        ...data,
-      }),
-    })
-      .then((res) => res.json())
+    TelegptFetch('/document-summary', 'POST', JSON.stringify(data))
+      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -272,15 +206,9 @@ export function documentAISummary(data: object) {
 }
 
 export function audioAISummary(formData: FormData) {
-  const { userId, userName } = getCurrentUserInfo();
-  formData.append('userId', userId!);
-  formData.append('userName', userName!);
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/audio-summary`, {
-      method: 'POST',
-      body: formData,
-    })
-      .then((res) => res.json())
+    TelegptFetch('/audio-summary', 'POST', formData, 'multipart/form-data')
+      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -291,15 +219,9 @@ export function audioAISummary(formData: FormData) {
 }
 
 export function audioToText(formData: FormData): Promise<{ text: string }> {
-  const { userId, userName } = getCurrentUserInfo();
-  formData.append('userId', userId!);
-  formData.append('userName', userName!);
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/audio-to-text`, {
-      method: 'POST',
-      body: formData,
-    })
-      .then((res) => res.json())
+    TelegptFetch('/audio-to-text', 'POST', formData, 'multipart/form-data')
+      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -310,20 +232,9 @@ export function audioToText(formData: FormData): Promise<{ text: string }> {
 }
 
 export function mentionReply(data: object) {
-  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/mention-reply`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        userName,
-        ...data,
-      }),
-    })
-      .then((res) => res.json())
+    TelegptFetch('/mention-reply', 'POST', JSON.stringify(data))
+      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -375,20 +286,9 @@ export function calendlyRanges(data: {
 }
 
 export function chatAIChatFolders(data: object): Promise<{ text: string }> {
-  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/classify-generate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        userName,
-        ...data,
-      }),
-    })
-      .then((res) => res.json())
+    TelegptFetch('/classify-generate', 'POST', JSON.stringify(data))
+      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -399,20 +299,9 @@ export function chatAIChatFolders(data: object): Promise<{ text: string }> {
 }
 
 export function urgentMessageCheck(data: object): Promise<any> {
-  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/urgent-message-check`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        userName,
-        ...data,
-      }),
-    })
-      .then((res) => res.json())
+    TelegptFetch('/urgent-message-check', 'POST', JSON.stringify(data))
+      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -421,3 +310,33 @@ export function urgentMessageCheck(data: object): Promise<any> {
       });
   });
 }
+
+export const translateTextByTencentApi = (
+  data: object,
+): Promise<Array<string>> => {
+  return new Promise((resolve, reject) => {
+    TelegptFetch('/tencent-translate', 'POST', JSON.stringify(data))
+      .then((res) => res.json()).then()
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const urgentVoiceCall = (
+  phone: string,
+): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    TelegptFetch(`/voice-call?phoneNumber=${phone}`, 'GET')
+      .then((res) => res.json()).then()
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};

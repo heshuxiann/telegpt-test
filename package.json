@@ -169,6 +169,7 @@
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",
     "croppie": "^2.6.5",
+    "crypto-js": "^4.2.0",
     "diff_match_patch": "^0.1.1",
     "electron-log": "^5.4.1",
     "emoji-data-ios": "git+https://github.com/korenskoy/emoji-data-ios#443f1c9d7b16a82e7ee53f7f226d7d9a9920a105",

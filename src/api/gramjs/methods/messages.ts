@@ -43,7 +43,6 @@ import {
   MESSAGE_ID_REQUIRED_ERROR,
   PINNED_MESSAGES_LIMIT,
   REACTION_UNREAD_SLICE,
-  SERVER_API_URL,
   SUPPORTED_PHOTO_CONTENT_TYPES,
   SUPPORTED_VIDEO_CONTENT_TYPES,
 } from '../../../config';
@@ -52,6 +51,7 @@ import { compact, split } from '../../../util/iteratees';
 import { getMessageKey } from '../../../util/keys/messageKey';
 import { getServerTime } from '../../../util/serverTime';
 import { interpolateArray } from '../../../util/waveform';
+import { translateTextByTencentApi } from '../../../components/chatAssistant/utils/chat-api';
 import {
   buildApiChatFromPreview,
   buildApiSendAsPeerId,
@@ -2756,27 +2756,6 @@ export async function translateText(params: TranslateTextParams) {
 
   return formattedText;
 }
-
-export const translateTextByTencentApi = (
-  data: object,
-): Promise<Array<string>> => {
-  return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/tencent-translate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((res) => {
-        resolve(res);
-      })
-      .catch((err) => {
-        reject(err);
-      });
-  });
-};
 
 export async function translateTextByTencent(
   params: TranslateTextParams & { userId: string; userName: string },

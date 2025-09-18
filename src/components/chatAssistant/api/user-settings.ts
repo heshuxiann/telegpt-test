@@ -1,9 +1,9 @@
 import bigInt from 'big-integer';
 import { getActions } from '../../../global';
 
-import { SERVER_API_URL } from '../../../config';
 import { buildApiPeerId } from '../../../api/gramjs/apiBuilders/peers';
 import { buildMtpPeerId, getEntityTypeById } from '../../../api/gramjs/gramjsBuilders';
+import { deleteSummarize, deleteUrgent, getUserSetting, updateSummarize, updateUrgent, updateUserSetting } from '../utils/telegpt-api';
 
 // Define the entity types
 type EntityType = 'user' | 'chat' | 'channel';
@@ -123,34 +123,22 @@ class TelegptSettings {
 
   getGptSettings() {
     if (!this.user_id) return;
-    fetch(`${SERVER_API_URL}/settings/personalized-settings?user_id=${this.user_id}`, {
-      method: 'GET',
-    })
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.code === 0 && res.data) {
-          this.settings = res.data;
-          localStorage.setItem('telegpt-settings', JSON.stringify(this.settings));
-          this.setGlobalSettings(res.data);
-        }
-      });
+    getUserSetting(this.user_id).then((res) => {
+      if (res.code === 0 && res.data) {
+        this.settings = res.data;
+        localStorage.setItem('telegpt-settings', JSON.stringify(this.settings));
+        this.setGlobalSettings(res.data);
+      }
+    });
   }
 
   updateGptSettings(callback?: (res: any) => void) {
-    fetch(`${SERVER_API_URL}/settings/personalized-settings?user_id=${this.user_id}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        user_id: this.user_id,
-        settings: this.settings,
-      }),
-    })
-      .then((res) => res.json())
-      .then((res) => {
-        callback?.(res);
-      });
+    updateUserSetting(this.user_id, {
+      user_id: this.user_id,
+      settings: this.settings,
+    }).then((res) => {
+      callback?.(res);
+    });
   }
 
   set userId(user_id: string) {
@@ -181,111 +169,77 @@ class TelegptSettings {
 
   updateSummarizeTemplate(template: Partial<ISummaryTemplate>) {
     return new Promise((resolve, reject) => {
-      fetch(`${SERVER_API_URL}/settings/update-summarize`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...template,
-          user_id: this.user_id,
-        }),
-      })
-        .then((res) => res.json())
-        .then((res) => {
-          if (res.code === 0 && res.data) {
-            if (template.id) {
-              this.settings.curious_info = this.settings.curious_info.map((item: any) => {
-                if (item.id === template.id) {
-                  return res.data;
-                }
-                return item;
-              });
-            } else {
-              this.settings.curious_info.push(res.data);
-            }
+      updateSummarize({
+        ...template,
+        user_id: this.user_id,
+      }).then((res) => {
+        if (res.code === 0 && res.data) {
+          if (template.id) {
+            this.settings.curious_info = this.settings.curious_info.map((item: any) => {
+              if (item.id === template.id) {
+                return res.data;
+              }
+              return item;
+            });
+          } else {
+            this.settings.curious_info.push(res.data);
           }
-          resolve(res);
-        })
-        .catch((err) => {
-          reject(err);
-        });
+        }
+        resolve(res);
+      }).catch((err) => {
+        reject(err);
+      });
     });
   }
 
   deleteSummarizeTemplate(id: string) {
     return new Promise((resolve, reject) => {
-      fetch(`${SERVER_API_URL}/settings/update-summarize?id=${id}&user_id=${this.user_id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((res) => res.json())
-        .then((res) => {
-          if (res.code === 0 && res.data) {
-            this.settings.curious_info = this.settings.curious_info.filter((item) => item.id !== id);
-          }
-          resolve(res);
-        })
-        .catch((err) => {
-          reject(err);
-        });
+      deleteSummarize(this.user_id, id).then((res) => {
+        if (res.code === 0 && res.data) {
+          this.settings.curious_info = this.settings.curious_info.filter((item) => item.id !== id);
+        }
+        resolve(res);
+      }).catch((err) => {
+        reject(err);
+      });
     });
   }
 
   updateUrgentTopic(template: Partial<IUrgentTopic>) {
     return new Promise((resolve, reject) => {
-      fetch(`${SERVER_API_URL}/settings/update-urgent`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...template,
-          user_id: this.user_id,
-        }),
-      })
-        .then((res) => res.json())
-        .then((res) => {
-          if (res.code === 0 && res.data) {
-            if (template.id) {
-              this.settings.urgent_info = this.settings.urgent_info.map((item: any) => {
-                if (item.id === template.id) {
-                  return res.data;
-                }
-                return item;
-              });
-            } else {
-              this.settings.urgent_info.push(res.data);
-            }
+      updateUrgent({
+        ...template,
+        user_id: this.user_id,
+      }).then((res) => {
+        if (res.code === 0 && res.data) {
+          if (template.id) {
+            this.settings.urgent_info = this.settings.urgent_info.map((item: any) => {
+              if (item.id === template.id) {
+                return res.data;
+              }
+              return item;
+            });
+          } else {
+            this.settings.urgent_info.push(res.data);
           }
-          resolve(res);
-        })
-        .catch((err) => {
-          reject(err);
-        });
+        }
+        resolve(res);
+      }).catch((err) => {
+        reject(err);
+      });
     });
   }
 
   deleteUrgentTopic(id: string) {
     return new Promise((resolve, reject) => {
-      fetch(`${SERVER_API_URL}/settings/update-urgent?id=${id}&user_id=${this.user_id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((res) => res.json())
-        .then((res) => {
-          if (res.code === 0 && res.data) {
-            this.settings.urgent_info = this.settings.urgent_info.filter((item) => item.id !== id);
-          }
-          resolve(res);
-        })
-        .catch((err) => {
-          reject(err);
-        });
+      deleteUrgent(this.user_id, id).then((res) => {
+        if (res.code === 0 && res.data) {
+          this.settings.urgent_info = this.settings.urgent_info.filter((item) => item.id !== id);
+        }
+        resolve(res);
+      }).catch((err) => {
+        reject(err);
+      });
     });
   }
 }

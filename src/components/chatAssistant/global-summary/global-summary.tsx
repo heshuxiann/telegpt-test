@@ -9,7 +9,6 @@ import type { Message } from 'ai';
 import { orderBy } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
-import { SERVER_API_URL } from '../../../config';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import buildClassName from '../../../util/buildClassName';
 import { globalSummaryTask } from '../ai-task/global-summary-task';
@@ -24,7 +23,7 @@ import {
   parseSummaryStoreMessage2Message,
   type SummaryStoreMessage,
 } from '../store/summary-store';
-import { getCurrentUserInfo } from '../utils/chat-api';
+import { getApihHeaders } from '../utils/telegpt-fetch';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
 import SummaryHeaderActions from './summary-header-actions';
 import { createGlobalIntroduceMessage } from './summary-utils';
@@ -40,7 +39,6 @@ import SerenaPath from '../assets/serena.png';
 
 const GlobalSummary = () => {
   const { isOpen } = useDrawerStore();
-  const { userId, userName } = getCurrentUserInfo();
   const [notificationMessage, setNotificationMessage] = useState<Message | null>(null);
   const [summaryMessages, setSummaryMessages] = useState<Message[]>([]);
   const [viewMessages, setViewMessages] = useState<Message[]>([]);
@@ -51,10 +49,11 @@ const GlobalSummary = () => {
   const {
     scrollToBottom, scrollLocked, isScrollLock,
   } = useScrollToBottom();
+  // const headers = getApihHeaders();
   const {
     messages, setMessages, append, stop, status,
   } = useChat({
-    api: `${SERVER_API_URL}/chat?userId=${userId}&userName=${userName}&platform=web`,
+    api: `http://localhost:3000/chat`,
     id: GLOBAL_SUMMARY_CHATID,
     sendExtraMessageFields: true,
   });
@@ -159,6 +158,8 @@ const GlobalSummary = () => {
       content: value,
       id: uuidv4(),
       createdAt: new Date(),
+    }, {
+      headers: getApihHeaders(),
     });
   }, [append, scrollToBottom]);
 
