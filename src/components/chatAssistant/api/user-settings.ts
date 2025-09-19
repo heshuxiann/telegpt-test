@@ -64,6 +64,13 @@ export interface IUrgentTopic {
   created_at?: string;
 }
 
+export interface SubscriptionInfo {
+  user_id: string;
+  type: string;
+  expirate: string;
+  is_expirated: boolean;
+}
+
 interface ITelegptSettings {
   [key: string]: any;
   user_id: string;
@@ -80,6 +87,10 @@ interface ITelegptSettings {
   phone: string;
   autotranslate: boolean;
   autotranslatelanguage: string;
+  subscription_info: {
+    pro: SubscriptionInfo | undefined;
+    plus: SubscriptionInfo | undefined;
+  };
 }
 const defaultSettings: ITelegptSettings = {
   user_id: '',
@@ -96,6 +107,10 @@ const defaultSettings: ITelegptSettings = {
   phone: '',
   autotranslate: false,
   autotranslatelanguage: 'en',
+  subscription_info: {
+    pro: undefined,
+    plus: undefined,
+  },
 };
 
 const POKE_RATE_MS = 600000;

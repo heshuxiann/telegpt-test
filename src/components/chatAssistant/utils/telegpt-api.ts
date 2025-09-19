@@ -145,3 +145,17 @@ export const deleteUrgent = (userId: string, tempId: string): Promise<any> => {
       });
   });
 };
+
+// 会员信息
+export const getSubscription = (): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    TelegptFetch(`/subscription`, 'GET')
+      .then((res) => res.json()).then()
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};

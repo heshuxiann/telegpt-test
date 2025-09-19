@@ -1,7 +1,10 @@
-import React, { memo, useCallback, useState } from '../../../lib/teact/teact';
+import React, { memo, useCallback, useEffect, useState } from '../../../lib/teact/teact';
 import { getActions, getGlobal } from '../../../global';
 
 import type { TabState } from '../../../global/types';
+
+import { type SubscriptionInfo, telegptSettings } from '../../chatAssistant/api/user-settings';
+import { getSubscription } from '../../chatAssistant/utils/telegpt-api';
 
 import Icon from '../../common/icons/Icon';
 import Modal from '../../ui/Modal';
@@ -67,7 +70,7 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
       'Up to 120 Schedule Meetings',
       'Priority Support',
     ],
-    buttonText: 'Upgrade to Pro',
+    buttonText: 'Upgrade',
     isSelected: true,
   },
   plus: {
@@ -76,7 +79,7 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
     period: '/month',
     creditsInfo: '120,000 Credits monthly',
     creditsInfoDescription: '120,000 extra credits first month [LIMITED TIME]',
-    buttonLink: 'https://buy.stripe.com/test_dRmfZi5TLcDy5sh9BD4Ni00',
+    buttonLink: 'https://buy.stripe.com/test_fZuaEY0zr7je1c1eVX4Ni02',
     features: [
       'Global Chat Summary (1 every 8h）',
       'Up to 2k Group Chat Summary ',
@@ -91,30 +94,59 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
       'Unlimited Schedule Meetings',
       'Priority Support',
     ],
-    buttonText: 'Upgrade to Plus',
+    buttonText: 'Upgrade',
     isSelected: false,
   },
 };
 
 const PayPackageModal = ({ modal }: OwnProps) => {
+  const { subscription_info } = telegptSettings.telegptSettings;
   const { closePayPackageModal } = getActions();
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>('pro');
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>(subscription_info.pro || subscription_info.plus ? 'plus' : 'pro');
+  const [proSubscription, setProSubscription] = useState<SubscriptionInfo | undefined>(subscription_info.pro);
+  const [plusSubscription, setPlusSubscription] = useState<SubscriptionInfo | undefined>(subscription_info.plus);
+
+  useEffect(() => {
+    if (modal?.isOpen) {
+      getSubscription().then(({ code, data }) => {
+        if (code === 0) {
+          if (data.pro) {
+            setProSubscription(data.pro);
+            setSelectedPlan('plus');
+          }
+          if (data.plus) {
+            setPlusSubscription(data.plus);
+            setSelectedPlan('plus');
+          }
+        }
+      });
+    }
+  }, [modal?.isOpen]);
 
   const handleClose = useCallback(() => {
     closePayPackageModal();
   }, [closePayPackageModal]);
 
-  const handleGetStarted = useCallback((plan: PlanType) => {
+  const handleUpgrade = useCallback((plan: PlanType) => {
     // Handle upgrade logic here
     // setSelectedPlan(plan);
     const buttonLink = PRICING_PLANS[plan].buttonLink;
-    if (plan === 'pro' || plan === 'plus') {
-      const currentUserId = getGlobal().currentUserId;
-      if (currentUserId) {
-        window.open(`${buttonLink}?client_reference_id=${currentUserId}`, '_blank');
+    const currentUserId = getGlobal().currentUserId;
+    if (!currentUserId) {
+      return;
+    }
+    if (plusSubscription && !plusSubscription.is_expirated) {
+      return;
+    }
+    if (plan === 'pro') {
+      if (proSubscription && !proSubscription.is_expirated) {
+        return;
       }
     }
-  }, []);
+    if (plan === 'pro' || plan === 'plus') {
+      window.open(`${buttonLink}?client_reference_id=${currentUserId}`, '_blank');
+    }
+  }, [plusSubscription, proSubscription]);
 
   const handlePlanSelect = useCallback((plan: PlanType) => {
     setSelectedPlan(plan);
@@ -174,7 +206,7 @@ const PayPackageModal = ({ modal }: OwnProps) => {
                     className={styles.upgradeButton}
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleGetStarted(planType);
+                      handleUpgrade(planType);
                     }}
                   >
                     <span>
@@ -185,7 +217,7 @@ const PayPackageModal = ({ modal }: OwnProps) => {
                 </div>
 
                 <div className={styles.botInfo}>
-                  <div className="text-[var(--color-text)] text-[16px] font-[500]">Features included:</div>
+                  <div className={styles.featuresTitle}>Features included:</div>
                   <ul className={styles.features}>
                     {plan.features.map((feature, index) => (
                       <li key={index} className={styles.feature}>
