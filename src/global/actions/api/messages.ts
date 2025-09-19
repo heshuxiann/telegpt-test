@@ -2719,6 +2719,7 @@ addActionHandler('translateMessagesByTencent', (global, actions, payload): Actio
   actions.markMessagesTranslationPending({ chatId, messageIds, toLanguageCode });
   const texts = messageIds.map((messageId) => {
     const message = selectChatMessage(global, chatId, messageId);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
     return message?.content.text!;
   });
   const { currentUserId } = global;

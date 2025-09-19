@@ -1,4 +1,5 @@
 import BigInt from 'big-integer';
+import CryptoJS from 'crypto-js';
 import { Api as GramJs } from '../../../lib/gramjs';
 import { RPCError } from '../../../lib/gramjs/errors';
 
@@ -43,6 +44,7 @@ import {
   MESSAGE_ID_REQUIRED_ERROR,
   PINNED_MESSAGES_LIMIT,
   REACTION_UNREAD_SLICE,
+  SERVER_API_URL,
   SUPPORTED_PHOTO_CONTENT_TYPES,
   SUPPORTED_VIDEO_CONTENT_TYPES,
 } from '../../../config';
@@ -51,7 +53,6 @@ import { compact, split } from '../../../util/iteratees';
 import { getMessageKey } from '../../../util/keys/messageKey';
 import { getServerTime } from '../../../util/serverTime';
 import { interpolateArray } from '../../../util/waveform';
-import { translateTextByTencentApi } from '../../../components/chatAssistant/utils/chat-api';
 import {
   buildApiChatFromPreview,
   buildApiSendAsPeerId,
@@ -2757,6 +2758,42 @@ export async function translateText(params: TranslateTextParams) {
   return formattedText;
 }
 
+function generateKey(userId: string) {
+  const timestamp = Date.now();
+  const raw = `${userId}:${timestamp}`;
+
+  const signature = CryptoJS.HmacSHA256(raw, 'telgpt-sha256-secret').toString(CryptoJS.enc.Hex);
+
+  return `${userId}:${timestamp}:${signature}`;
+}
+
+export const translateTextByTencentApi = (
+  data: { texts: string[] | undefined; target: string; userId: string; userName: string },
+): Promise<Array<string>> => {
+  const key = generateKey(data.userId);
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'x-auth-key': key,
+    platform: 'web',
+    version: '1.0.0',
+  };
+  if (data.userName) headers['user-name'] = data.userName;
+  return new Promise((resolve, reject) => {
+    fetch(`${SERVER_API_URL}/tencent-translate`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
 export async function translateTextByTencent(
   params: TranslateTextParams & { userId: string; userName: string },
 ) {
@@ -2806,7 +2843,7 @@ function handleMultipleLocalMessagesUpdate(
       (
         scheduledUpdate,
       ): scheduledUpdate is GramJs.UpdateNewScheduledMessage => {
-        if (!(scheduledUpdate instanceof GramJs.UpdateNewScheduledMessage)) { return false; }
+        if (!(scheduledUpdate instanceof GramJs.UpdateNewScheduledMessage)) return false;
         return scheduledUpdate.message.id === updateMessageId.id;
       },
     );
@@ -2963,7 +3000,7 @@ export async function fetchQuickReplies() {
       hash: DEFAULT_PRIMITIVES.BIGINT,
     }),
   );
-  if (!result || result instanceof GramJs.messages.QuickRepliesNotModified) { return undefined; }
+  if (!result || result instanceof GramJs.messages.QuickRepliesNotModified) return undefined;
 
   const messages = result.messages.map(buildApiMessage).filter(Boolean);
 
@@ -2989,7 +3026,7 @@ export async function sendQuickReply({
       hash: DEFAULT_PRIMITIVES.BIGINT,
     }),
   );
-  if (!messages || messages instanceof GramJs.messages.MessagesNotModified) { return; }
+  if (!messages || messages instanceof GramJs.messages.MessagesNotModified) return;
 
   const ids = messages.messages.map((m) => m.id);
   const randomIds = ids.map(generateRandomBigInt);
