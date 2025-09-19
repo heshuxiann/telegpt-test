@@ -21,7 +21,7 @@ import {
   audioSummary, canSummarize,
   checkIsUrl, documentSummary, photoSummary, videoSummary, voiceToAudioSummary, webPageSummary,
 } from '../utils/ai-analyse-message';
-import { chatAIGenerate } from '../utils/chat-api';
+import { autoReply } from '../utils/chat-api';
 import { createAuthConfirmModal } from '../utils/google-api';
 import { getAuthState, isTokenValid } from '../utils/google-auth';
 import {
@@ -94,28 +94,13 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
         eventEmitter.emit('update-input-text', bestMatch.answer);
       } else {
         eventEmitter.emit('update-input-spiner', true);
-        chatAIGenerate({
-          data: {
-            messages: [
-              {
-                role: 'system',
-                content: '你是一个多语种智能助手。接收用户消息后，自动识别其使用的语言，并用相同的语言进行自然、得体的回复。你应该理解消息的语境，确保回复简洁、友好且符合语言习惯。',
-                id: '1',
-              },
-              {
-                role: 'user',
-                content: `请回复下面的消息: ${message.content.text?.text}`,
-                id: '2',
-              },
-            ],
-          },
-          onResponse: (response) => {
-            eventEmitter.emit('update-input-text', response);
-          },
-          onFinish: () => {
-            // eslint-disable-next-line no-console
-            console.log('Finish');
-          },
+        autoReply({
+          message: message.content.text?.text,
+          message_id: message.id,
+        }).then((res) => {
+          eventEmitter.emit('update-input-text', res.data.reply);
+        }).catch(() => {
+          eventEmitter.emit('update-input-spiner', false);
         });
       }
     }

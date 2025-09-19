@@ -22,7 +22,6 @@ interface ChatProps {
   onFinish?: () => void;
 }
 export const chatAIGenerate = (props: ChatProps) => {
-  // `${SERVER_API_URL}/generate?options=${JSON.stringify({ temperature: 0.1 })}`
   const { userId, userName } = getCurrentUserInfo();
   fetch(`${SERVER_API_URL}/generate`, {
     method: 'POST',
@@ -39,6 +38,22 @@ export const chatAIGenerate = (props: ChatProps) => {
     .then((res) => {
       props.onResponse(res.text);
     });
+};
+
+export const autoReply = (data: {
+  message: string;
+  message_id?: number;
+}): Promise<{ data: { reply: string; message_id?: number } }> => {
+  return new Promise((resolve, reject) => {
+    TelegptFetch('/auto-reply', 'POST', JSON.stringify(data))
+      .then((res) => res.json()).then()
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
 };
 
 export const chatAITranslate = (data: {
@@ -84,20 +99,9 @@ export const globalSummary = (data: object) => {
 };
 
 export const getActionItems = (data: object) => {
-  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/action-items`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        userName,
-        ...data,
-      }),
-    })
-      .then((res) => res.json())
+    TelegptFetch('/action-items', 'POST', JSON.stringify(data))
+      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -127,14 +131,8 @@ export const getHitTools = (
     params.timeZone = timeZone;
   }
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/tool-check`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(params),
-    })
-      .then((res) => res.json())
+    TelegptFetch('/tool-check', 'POST', JSON.stringify(params))
+      .then((res) => res.json()).then()
       .then((toolResults) => {
         resolve(toolResults);
       })
@@ -247,20 +245,9 @@ export function mentionReply(data: object) {
 export function calendlyRanges(data: {
   calendlyUrl: string;
 }): Promise<{ times: string[]; timeZone: string; email: string }> {
-  const { userId, userName } = getCurrentUserInfo();
   return new Promise((resolve, reject) => {
-    fetch(`${SERVER_API_URL}/calendly-ranges`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        userName,
-        ...data,
-      }),
-    })
-      .then((res) => res.json())
+    TelegptFetch('/calendly-ranges', 'POST', JSON.stringify(data))
+      .then((res) => res.json()).then()
       .then((res) => {
         const times: string[] = [];
         const timeZone = res.data.availability_timezone;

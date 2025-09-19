@@ -9,6 +9,7 @@ import type { Message } from 'ai';
 import { orderBy } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
+import { SERVER_API_URL } from '../../../config';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import buildClassName from '../../../util/buildClassName';
 import { globalSummaryTask } from '../ai-task/global-summary-task';
@@ -53,7 +54,7 @@ const GlobalSummary = () => {
   const {
     messages, setMessages, append, stop, status,
   } = useChat({
-    api: `http://localhost:3000/chat`,
+    api: `${SERVER_API_URL}/chat`,
     id: GLOBAL_SUMMARY_CHATID,
     sendExtraMessageFields: true,
   });

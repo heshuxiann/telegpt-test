@@ -67,6 +67,7 @@ export function getApihHeaders() {
   const headers: Record<string, string> = {
     'x-auth-key': key,
     platform: 'web',
+    version: '1.0.0',
   };
   if (userName) headers['user-name'] = userName;
   return headers;
@@ -83,6 +84,7 @@ export function TelegptFetch(
     'Content-Type': contentType,
     'x-auth-key': key,
     platform: 'web',
+    version: '1.0.0',
   };
   if (userName) headers['user-name'] = userName;
   return fetch(`http://localhost:3000${path}`, {

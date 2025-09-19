@@ -15,6 +15,7 @@ import { Messages } from '../messages';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { getCurrentUserInfo } from '../utils/chat-api';
+import { getApihHeaders } from '../utils/telegpt-fetch';
 import { messageEmbeddingStore } from '../vector-store';
 
 import { AISearchInput } from './AISearchInput';
@@ -24,7 +25,7 @@ const GLOBAL_SEARCH_CHATID = '777889';
 export const AISearch = () => {
   const global = getGlobal();
   const { userId, userName } = getCurrentUserInfo();
-  // eslint-disable-next-line @stylistic/max-len
+
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
   const {
     scrollToBottom, scrollLocked, isScrollLock,
@@ -235,6 +236,8 @@ export const AISearch = () => {
         annotations: [{
           isAuxiliary: true,
         }],
+      }, {
+        headers: getApihHeaders(),
       });
       scrollToBottom();
     }

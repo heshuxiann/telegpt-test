@@ -23,6 +23,7 @@ import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { getCurrentUserInfo, getHitTools } from '../utils/chat-api';
 import { getAuthState, isTokenValid } from '../utils/google-auth';
+import { getApihHeaders } from '../utils/telegpt-fetch';
 import { toolsEmbeddingStore } from '../vector-store';
 import RoomActions from './room-actions';
 // import RoomAIDescription from './room-ai-des';
@@ -237,6 +238,8 @@ const RoomAIInner = (props: StateProps) => {
               content: formMessage.content,
               id: uuidv4(),
               createdAt: new Date(),
+            }, {
+              headers: getApihHeaders(),
             });
           }
         });
