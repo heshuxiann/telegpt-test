@@ -9,66 +9,56 @@ export type GrammarlyCheckItem = {
   remove_segment: boolean;
   suggestions: string[];
 };
-type GrammarlyCheckResponse = {
-  code: number;
-  data: {
-    errors: GrammarlyCheckItem[];
-  };
-};
-export const grammarlyCheck = (text: string): Promise<GrammarlyCheckResponse> => {
+
+export const grammarlyCheck = (text: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch('/grammarly-check', 'POST', JSON.stringify({ text }))
-      .then((res) => res.json()).then()
-      .then((data) => {
-        resolve(data as GrammarlyCheckResponse);
+      .then((res) => {
+        resolve(res);
       })
       .catch((err) => {
         reject(err);
       });
   });
 };
-export const grammarlyShorten = (text: string): Promise<GrammarlyCheckResponse> => {
+export const grammarlyShorten = (text: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch('/grammarly-shorten', 'POST', JSON.stringify({ text }))
-      .then((res) => res.json()).then()
-      .then((data) => {
-        resolve(data as GrammarlyCheckResponse);
+      .then((res) => {
+        resolve(res);
       })
       .catch((err) => {
         reject(err);
       });
   });
 };
-export const grammarlyFormal = (text: string): Promise<GrammarlyCheckResponse> => {
+export const grammarlyFormal = (text: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch('/grammarly-formal', 'POST', JSON.stringify({ text }))
-      .then((res) => res.json()).then()
-      .then((data) => {
-        resolve(data as GrammarlyCheckResponse);
+      .then((res) => {
+        resolve(res);
       })
       .catch((err) => {
         reject(err);
       });
   });
 };
-export const grammarlyFriendly = (text: string): Promise<GrammarlyCheckResponse> => {
+export const grammarlyFriendly = (text: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch('/grammarly-friendly', 'POST', JSON.stringify({ text }))
-      .then((res) => res.json()).then()
-      .then((data) => {
-        resolve(data as GrammarlyCheckResponse);
+      .then((res) => {
+        resolve(res);
       })
       .catch((err) => {
         reject(err);
       });
   });
 };
-export const grammarlyRephrase = (text: string): Promise<GrammarlyCheckResponse> => {
+export const grammarlyRephrase = (text: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch('/grammarly-rephrase', 'POST', JSON.stringify({ text }))
-      .then((res) => res.json()).then()
-      .then((data) => {
-        resolve(data as GrammarlyCheckResponse);
+      .then((res) => {
+        resolve(res);
       })
       .catch((err) => {
         reject(err);

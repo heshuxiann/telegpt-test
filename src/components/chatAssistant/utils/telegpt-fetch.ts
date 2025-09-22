@@ -1,10 +1,13 @@
 import CryptoJS from 'crypto-js';
 import { getGlobal } from '../../../global';
 
+import { SERVER_API_URL } from '../../../config';
 import { getUserFullName } from '../../../global/helpers';
 import { selectUser } from '../../../global/selectors';
+import { handlePaymentError } from '../../../util/paymentErrorHandler';
 
 const SECRET = 'telgpt-sha256-secret';
+
 export const getCurrentUserInfo = () => {
   const global = getGlobal();
   const { currentUserId } = global;
@@ -16,19 +19,6 @@ export const getCurrentUserInfo = () => {
   };
 };
 
-// function generateKey(userId: string) {
-//   const timestamp = Date.now(); // 毫秒级时间戳
-//   const raw = `${userId}:${timestamp}`;
-//   const signature = crypto
-//     .createHmac('sha256', SECRET)
-//     .update(raw)
-//     .digest('hex');
-
-//   return {
-//     key: `${userId}:${timestamp}:${signature}`, // 传给服务端的key
-//   };
-// }
-
 function generateKey(userId: string) {
   const timestamp = Date.now();
   const raw = `${userId}:${timestamp}`;
@@ -37,29 +27,6 @@ function generateKey(userId: string) {
 
   return `${userId}:${timestamp}:${signature}`;
 }
-
-// async function generateKey(userId: string) {
-//   const timestamp = Date.now();
-//   const raw = `${userId}:${timestamp}`;
-
-//   const enc = new TextEncoder();
-//   const keyData = enc.encode(SECRET);
-//   const msg = enc.encode(raw);
-
-//   const cryptoKey = await window.crypto.subtle.importKey(
-//     'raw',
-//     keyData,
-//     { name: 'HMAC', hash: 'SHA-256' },
-//     false,
-//     ['sign'],
-//   );
-
-//   const signatureBuffer = await window.crypto.subtle.sign('HMAC', cryptoKey, msg);
-//   const signatureArray = Array.from(new Uint8Array(signatureBuffer));
-//   const signatureHex = signatureArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-
-//   return `${userId}:${timestamp}:${signatureHex}`;
-// }
 
 export function getApihHeaders() {
   const { userId, userName } = getCurrentUserInfo();
@@ -72,6 +39,7 @@ export function getApihHeaders() {
   if (userName) headers['user-name'] = userName;
   return headers;
 }
+
 export function TelegptFetch(
   path: string,
   method: 'POST' | 'GET' | 'DELETE',
@@ -87,9 +55,13 @@ export function TelegptFetch(
     version: '1.0.0',
   };
   if (userName) headers['user-name'] = userName;
-  return fetch(`http://localhost:3000${path}`, {
+  return fetch(`${SERVER_API_URL}${path}`, {
     method,
     headers,
     body: params,
-  });
+  }).then((response) => response.json())
+    .then((res) => {
+      handlePaymentError(res);
+      return res;
+    });
 }

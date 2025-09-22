@@ -4,7 +4,6 @@ import { TelegptFetch } from './telegpt-fetch';
 export const getMyInvitation = (): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch('/invitation?action=get_my_invitation', 'GET')
-      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -21,7 +20,6 @@ export const submitInviteCode = (inviteCode: string): Promise<any> => {
   };
   return new Promise((resolve, reject) => {
     TelegptFetch('/invitation', 'POST', JSON.stringify(params))
-      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -34,7 +32,6 @@ export const submitInviteCode = (inviteCode: string): Promise<any> => {
 export const getMyInviteCodes = (): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch('/invitation?action=get_my_invite_codes', 'GET')
-      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -47,7 +44,6 @@ export const getMyInviteCodes = (): Promise<any> => {
 export const getAllInviteInfo = (): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch('/invitation?action=get_all_invitation_info', 'GET')
-      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -60,7 +56,6 @@ export const getAllInviteInfo = (): Promise<any> => {
 export const getPointsDetail = (): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch('/invitation?action=get_points_detail', 'GET')
-      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -74,7 +69,6 @@ export const getPointsDetail = (): Promise<any> => {
 export const getUserSetting = (userId: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch(`/settings/personalized-settings?user_id=${userId}`, 'GET')
-      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -87,7 +81,6 @@ export const getUserSetting = (userId: string): Promise<any> => {
 export const updateUserSetting = (userId: string, data: object): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch(`/settings/personalized-settings?user_id=${userId}`, 'POST', JSON.stringify(data))
-      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -100,7 +93,6 @@ export const updateUserSetting = (userId: string, data: object): Promise<any> =>
 export const updateSummarize = (data: object): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch('/settings/update-summarize', 'POST', JSON.stringify(data))
-      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -112,7 +104,6 @@ export const updateSummarize = (data: object): Promise<any> => {
 export const deleteSummarize = (userId: string, tempId: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch(`/settings/update-summarize?id=${tempId}&user_id=${userId}`, 'DELETE')
-      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -124,7 +115,6 @@ export const deleteSummarize = (userId: string, tempId: string): Promise<any> =>
 export const updateUrgent = (data: object): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch('/settings/update-urgent', 'POST', JSON.stringify(data))
-      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -136,7 +126,6 @@ export const updateUrgent = (data: object): Promise<any> => {
 export const deleteUrgent = (userId: string, tempId: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch(`/settings/update-urgent?id=${tempId}&user_id=${userId}`, 'DELETE')
-      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
@@ -150,7 +139,6 @@ export const deleteUrgent = (userId: string, tempId: string): Promise<any> => {
 export const getSubscription = (): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch(`/subscription`, 'GET')
-      .then((res) => res.json()).then()
       .then((res) => {
         resolve(res);
       })
