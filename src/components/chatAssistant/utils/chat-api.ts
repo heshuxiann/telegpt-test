@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
 
 import { SERVER_API_URL } from '../../../config';
@@ -126,7 +127,13 @@ export const getHitTools = (
 
 export const getHitToolsForMeeting = (text: string): Promise<Array<any>> => {
   const params = {
-    text,
+    messages: [
+      {
+        id: uuidv4(),
+        content: text,
+        role: 'user',
+      },
+    ],
   };
   return new Promise((resolve, reject) => {
     TelegptFetch('/meeting-tool', 'POST', JSON.stringify(params))

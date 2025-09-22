@@ -40,6 +40,14 @@ export function getApihHeaders() {
   return headers;
 }
 
+function objectToFormData(obj: Record<string, any>) {
+  const formData = new FormData();
+  for (const key in obj) {
+    formData.append(key, obj[key]);
+  }
+  return formData;
+}
+
 export function TelegptFetch(
   path: string,
   method: 'POST' | 'GET' | 'DELETE',
@@ -49,16 +57,24 @@ export function TelegptFetch(
   const { userId, userName } = getCurrentUserInfo();
   const key = generateKey(userId!);
   const headers: Record<string, string> = {
-    'Content-Type': contentType,
     'x-auth-key': key,
     platform: 'web',
     version: '1.0.0',
   };
   if (userName) headers['user-name'] = userName;
+  let mBody: any = undefined;
+  if (method !== 'GET' && params) {
+    if (contentType === 'application/json') {
+      headers['Content-Type'] = 'application/json';
+      mBody = params;
+    } else if (contentType === 'multipart/form-data') {
+      mBody = params instanceof FormData ? params : objectToFormData(params);
+    }
+  }
   return fetch(`${SERVER_API_URL}${path}`, {
     method,
     headers,
-    body: params,
+    body: mBody,
   }).then((response) => response.json())
     .then((res) => {
       handlePaymentError(res);
