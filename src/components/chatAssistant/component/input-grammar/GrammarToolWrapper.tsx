@@ -1,18 +1,12 @@
-/* eslint-disable max-len */
-/* eslint-disable teactn/no-unused-prop-types */
-/* eslint-disable react/no-unused-prop-types */
-/* eslint-disable @typescript-eslint/no-use-before-define */
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable no-null/no-null */
 import React, {
   useEffect, useRef,
 } from '../../../../lib/teact/teact';
 
 import type { Signal } from '../../../../util/signals';
 
-import { injectComponent } from '../../injectComponent';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import parseHtmlAsFormattedText from '../../../../util/parseHtmlAsFormattedText';
+import { injectComponent } from '../../injectComponent';
 
 import useFlag from '../../../../hooks/useFlag';
 import useVirtualBackdrop from '../../../../hooks/useVirtualBackdrop';
@@ -37,7 +31,7 @@ const GrammarToolWrapper = (props: GrammarToolWrapperProps) => {
       getHtml,
       setHtml,
       onClose: closeGrammarTool,
-    }
+    },
   });
   useEffect(() => {
     let injected: { unmount: () => void } | undefined;
@@ -48,7 +42,7 @@ const GrammarToolWrapper = (props: GrammarToolWrapperProps) => {
     return () => {
       injected?.unmount();
     };
-  }, [isGrammarToolOpen, closeGrammarTool, getHtml, setHtml]);
+  }, [isGrammarToolOpen, closeGrammarTool, getHtml, setHtml, injectMessageAI]);
 
   useEffect(
     () => (isGrammarToolOpen ? captureEscKeyListener(closeGrammarTool) : undefined),

@@ -3,37 +3,3 @@
   max-width: 90vw;
   padding: 0;
 }
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  
-  th {
-    height: 36px;
-    text-align: center;
-    vertical-align: middle;
-    font-weight: 600;
-    color: var(--text-color);
-    border-bottom: 1px solid var(--color-borders);
-    &:nth-of-type(1){
-      width: 120px;
-    }
-  }
-  
-  td {
-    height: 50px;
-    text-align: center;
-    vertical-align: middle;
-    border-bottom: 1px solid var(--color-borders);
-    padding: 8px 12px;
-    
-    // 确保内部元素也居中
-    > div {
-      margin: 0 auto;
-    }
-  }
-  
-  tbody tr:hover {
-    background-color: var(--color-item-hover);
-  }
-}

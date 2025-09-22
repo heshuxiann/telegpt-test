@@ -1,28 +1,45 @@
-import React from '@teact';
-import { memo } from '../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../global';
+import React, { memo, useEffect, useRef } from '@teact';
+import { getActions } from '../../../global';
 
-import type { GlobalState, TabState } from '../../../global/types';
+import type { TabState } from '../../../global/types';
+
+import { injectComponent } from '../../chatAssistant/injectComponent';
 
 import useLastCallback from '../../../hooks/useLastCallback';
 
 import Modal from '../../ui/Modal';
+import { CreditHistory } from './CreditHistory';
 
 import styles from './CreditsModal.module.scss';
 
 export type OwnProps = {
   modal: TabState['creditsModal'];
 };
-
-interface StateProps {
-  credits?: GlobalState['credits'];
-}
-const CreditsModal = ({ modal, credits }: OwnProps & StateProps) => {
+const CreditsModal = ({ modal }: OwnProps) => {
+  const containerRef = useRef<HTMLDivElement>();
   const { closeCreditsModal } = getActions();
+  const injectElement = injectComponent({
+    component: CreditHistory,
+  });
 
   const handleClose = useLastCallback(() => {
     closeCreditsModal();
   });
+
+  useEffect(() => {
+    let injected: { unmount: () => void } | undefined;
+    if (containerRef.current) {
+      // 类型断言确保 ref 是 HTMLElement
+      injected = injectElement(containerRef.current as HTMLElement);
+    }
+    return () => {
+      injected?.unmount();
+    };
+  }, [injectElement]);
+
+  if (!modal?.isOpen) {
+    return undefined;
+  }
 
   return (
     <Modal
@@ -32,44 +49,9 @@ const CreditsModal = ({ modal, credits }: OwnProps & StateProps) => {
       hasCloseButton
       onClose={handleClose}
     >
-      <table className={styles.table} role="table" aria-label="Codes, Invitees, Credits and Time">
-        <thead className="h-[36px] bg-[#F6F6F6] dark:bg-[var(--color-background)]">
-          <tr role="row">
-            <th role="columnheader">Detail</th>
-            <th role="columnheader">Date</th>
-            <th role="columnheader">Credits change</th>
-          </tr>
-        </thead>
-        <tbody>
-          {!credits || credits.pointsHistory?.length === 0 ? (
-            <tr>
-              <td colSpan={4} className="text-center text-[var(--color-text-secondary)] py-4">
-                No Data
-              </td>
-            </tr>
-          ) : (
-            credits.pointsHistory?.map((item: any) => {
-              return (
-                <tr role="row">
-                  <td data-label="Detail">{item.sourceDescription}</td>
-                  <td data-label="Invitees">{new Date(item.createdAt).toLocaleString()}</td>
-                  <td data-label="Credits">{item.amount}</td>
-                </tr>
-              );
-            })
-          )}
-        </tbody>
-      </table>
+      <div ref={containerRef}></div>
     </Modal>
   );
 };
 
-export default memo(withGlobal<OwnProps>(
-  (global): StateProps => {
-    const { credits } = global;
-
-    return {
-      credits,
-    };
-  },
-)(CreditsModal));
+export default memo(CreditsModal);

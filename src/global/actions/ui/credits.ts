@@ -5,15 +5,20 @@ import {
   setGlobal,
 } from '../../index';
 
-addActionHandler('updateCredits', (global, actions, payload): ActionReturnType => {
-  const { totalPoints, pointsHistory } = payload;
+addActionHandler('updateSubscriptionInfo', (global, actions, payload): ActionReturnType => {
+  const { subscriptionType,
+    creditBalance,
+    createdAt,
+    subscriptionExpiresAt } = payload;
 
   // Update global credits state
   global = {
     ...global,
-    credits: {
-      totalPoints,
-      pointsHistory: pointsHistory || global.credits?.pointsHistory,
+    subscriptionInfo: {
+      subscriptionType,
+      creditBalance,
+      createdAt,
+      subscriptionExpiresAt,
     },
   };
   setGlobal(global);

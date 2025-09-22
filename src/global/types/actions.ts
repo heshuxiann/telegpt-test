@@ -191,14 +191,11 @@ export interface ActionPayloads {
 
   openCreditsModal: WithTabId | undefined;
   closeCreditsModal: WithTabId | undefined;
-  updateCredits: {
-    totalPoints: number;
-    pointsHistory?: {
-      source: number;
-      sourceDescription: string;
-      amount: number;
-      createdAt: string;
-    }[];
+  updateSubscriptionInfo: {
+    subscriptionType: string;
+    creditBalance: number;
+    createdAt: string;
+    subscriptionExpiresAt: string;
   } & WithTabId;
   openInviteFriendsModal: WithTabId | undefined;
   closeInviteFriendsModal: WithTabId | undefined;

@@ -147,3 +147,26 @@ export const getSubscription = (): Promise<any> => {
       });
   });
 };
+// 当前会员和剩余积分详情
+export const getSubscriptionInfo = (): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    TelegptFetch(`/subscription/subscription-info`, 'GET')
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+export const getCreditHistory = (page: number): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    TelegptFetch(`/subscription/credit-history?page=${page}&pageSize=10`, 'GET')
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};

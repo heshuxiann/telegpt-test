@@ -53,7 +53,7 @@ import LeftSideMenuItems from './LeftSideMenuItems';
 import StatusButton from './StatusButton';
 
 import './LeftMainHeader.scss';
-import { getPointsDetail } from '../../chatAssistant/utils/telegpt-api';
+import { getSubscriptionInfo } from '../../chatAssistant/utils/telegpt-api';
 
 type OwnProps = {
   shouldHideSearch?: boolean;
@@ -126,7 +126,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
     lockScreen,
     openSettingsScreen,
     searchMessagesGlobal,
-    updateCredits,
+    updateSubscriptionInfo,
   } = getActions();
 
   const oldLang = useOldLang();
@@ -174,11 +174,13 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
     return ({ onTrigger, isOpen }) => {
       const handleTrigger = () => {
         onTrigger();
-        getPointsDetail().then((res) => {
+        getSubscriptionInfo().then((res) => {
           if (res.code === 0) {
-            updateCredits({
-              totalPoints: res.data.totalPoints,
-              pointsHistory: res.data.pointsHistory,
+            updateSubscriptionInfo({
+              subscriptionType: res.data.subscriptionType,
+              creditBalance: res.data.creditBalance,
+              createdAt: res.data.createdAt,
+              subscriptionExpiresAt: res.data.subscriptionExpiresAt,
             });
           }
         });
