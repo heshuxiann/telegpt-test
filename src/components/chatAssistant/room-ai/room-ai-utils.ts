@@ -293,3 +293,15 @@ export const createNewFeatureReminderMessage = (tip = 'Comming soon!'): Message 
     }],
   };
 };
+
+export const createUpgradeTipMessage = (): Message => {
+  return {
+    role: 'assistant',
+    id: uuidv4(),
+    createdAt: new Date(),
+    content: 'Upgrade to Room AI Pro to unlock more features.',
+    annotations: [{
+      type: 'upgrade-tip',
+    }],
+  };
+};

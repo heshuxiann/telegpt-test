@@ -146,6 +146,7 @@ const PayPackageModal = ({ modal }: OwnProps) => {
     if (plan === 'pro' || plan === 'plus') {
       window.open(`${buttonLink}?client_reference_id=${currentUserId}`, '_blank');
     }
+    closePayPackageModal();
   }, [plusSubscription, proSubscription]);
 
   const handlePlanSelect = useCallback((plan: PlanType) => {

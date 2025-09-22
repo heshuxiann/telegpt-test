@@ -117,23 +117,6 @@
   }
 }
 
-.cardPro {
-  border: 2px solid #3b82f6;
-  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15);
-  transform: translateY(-2px);
-
-  .upgradeButton {
-    background: #369CFF;
-    color: white;
-
-    &:hover {
-      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-      transform: translateY(-1px);
-      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-    }
-  }
-}
-
 // Top Content
 .topContent {
   display: flex;

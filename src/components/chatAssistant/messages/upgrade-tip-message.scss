@@ -1,0 +1,14 @@
+.upgrade-tip-message {
+  .headerBadge {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-image: url("../assets/modal-header-bg.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    filter: blur(12px);
+    width: 475px;
+    height: 36px;
+  }
+}

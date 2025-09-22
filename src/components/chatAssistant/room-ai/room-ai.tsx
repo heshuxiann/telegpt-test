@@ -15,22 +15,19 @@ import { SERVER_API_URL } from '../../../config';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import buildClassName from '../../../util/buildClassName';
-import { searchPortrait } from '../../../util/userPortrait';
 import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { Messages } from '../messages';
 import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
-import { getCurrentUserInfo, getHitTools } from '../utils/chat-api';
-import { getAuthState, isTokenValid } from '../utils/google-auth';
+import { getCurrentUserInfo } from '../utils/chat-api';
 import { getApihHeaders } from '../utils/telegpt-fetch';
-import { toolsEmbeddingStore } from '../vector-store';
 import RoomActions from './room-actions';
 // import RoomAIDescription from './room-ai-des';
 import { RoomAIInput } from './room-ai-input';
 import {
   createGoogleLoginMessage, createGoogleMeetingMessage,
-  createRoomDescriptionMessage, createUserPortraitMessage,
+  createRoomDescriptionMessage, createUpgradeTipMessage,
 } from './room-ai-utils';
 
 import './room-ai.scss';
@@ -58,6 +55,18 @@ const RoomAIInner = (props: StateProps) => {
     api: `${SERVER_API_URL}/chat?userId=${userId}&userName=${userName}&platform=web`,
     id: chatId,
     sendExtraMessageFields: true,
+    onError: (error) => {
+      try {
+        const data = JSON.parse(error.message);
+        if (data.code === 102 || data.code === 103) {
+          const upgradeTip = createUpgradeTipMessage();
+          setMessages((prev) => [...prev, upgradeTip]);
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('error.message is not JSON:', error.message);
+      }
+    },
   });
 
   useEffect(() => {
@@ -206,50 +215,11 @@ const RoomAIInner = (props: StateProps) => {
   }, [handleCreateCalendarSuccess, handleGoogleAuthSuccess, updateToken]);
 
   useEffect(() => {
-    if (status === 'ready' && chatId) {
+    if ((status === 'ready' || status === 'error') && chatId) {
       const msgs = parseMessage2StoreMessage(chatId, messages);
       ChataiStores.message?.storeMessages([...msgs]);
     }
   }, [messages, status, chatId]);
-
-  const toolsHitCheck = async (formMessage: Message) => {
-    getHitTools(formMessage.content).then(async (toolResults) => {
-      setIsLoading(false);
-      if (toolResults && toolResults.length > 0) {
-        toolResults.forEach(async (toolCall: any) => {
-          if (toolCall.toolName === 'checkIsCreateMeet') {
-            // TODO createMeet
-            const auth = getAuthState();
-            if (!auth || !(await isTokenValid(auth))) {
-              insertMessage(createGoogleLoginMessage());
-            } else {
-              insertMessage(createGoogleMeetingMessage());
-            }
-          } else if (toolCall.toolName === 'checkIsUserPortrait') {
-            const userName = toolCall.result?.keyword;
-            insertMessage(createUserPortraitMessage(userName));
-          } else if (toolCall.toolName === 'nullTool') {
-            // eslint-disable-next-line no-console
-            console.log('没有命中工具');
-            setMessages((prev) => prev.slice(0, prev.length - 1));
-            ChataiStores.message?.delMessage(formMessage.id);
-            append({
-              role: 'user',
-              content: formMessage.content,
-              id: uuidv4(),
-              createdAt: new Date(),
-            }, {
-              headers: getApihHeaders(),
-            });
-          }
-        });
-      }
-    }).catch((error) => {
-      setIsLoading(false);
-      // eslint-disable-next-line no-console
-      console.log(error);
-    });
-  };
 
   const handleInputSubmit = async (value: string) => {
     scrollToBottom();
@@ -259,24 +229,12 @@ const RoomAIInner = (props: StateProps) => {
       id: uuidv4(),
       createdAt: new Date(),
     };
-    setMessages((messages) => {
-      return [...messages, newMessage];
+    // setMessages((messages) => {
+    //   return [...messages, newMessage];
+    // });
+    append(newMessage, {
+      headers: getApihHeaders(),
     });
-    setIsLoading(true);
-    // local tool embending check
-    const vectorSearchResults = await toolsEmbeddingStore.similaritySearch({
-      query: value,
-      k: 10,
-    });
-    const matchs = vectorSearchResults.similarItems.filter((item: any) => item.score > 0.8);
-    if (matchs.length > 0 || searchPortrait(value)) {
-      toolsHitCheck(newMessage);
-    } else {
-      setIsLoading(false);
-      setMessages((prev) => prev.slice(0, prev.length - 1));
-      ChataiStores.message?.delMessage(newMessage.id);
-      append(newMessage);
-    }
   };
   const deleteMessage = useCallback((messageId: string) => {
     ChataiStores.message?.delMessage(messageId).then(() => {

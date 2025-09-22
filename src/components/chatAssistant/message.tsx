@@ -27,6 +27,7 @@ import RoomAIMediaMessage from './messages/room-ai-media-message';
 import ReplyMentionMessage from './messages/room-ai-reply-mention-message';
 import RoomAIUserPortraitMessage from './messages/room-ai-user-portrait';
 import RoomSummaryMessage from './messages/room-summary-message';
+import UpgradeTipMessage from './messages/upgrade-tip-message';
 // import SummaryMessage from './summary-message';
 import UrgentCheckMessage from './messages/urgent-check-message';
 // import { useScrollToBottom } from './use-scroll-to-bottom';
@@ -62,6 +63,7 @@ export enum AIMessageType {
   AIReplyMention = 'room-ai-reply-mention',
   AIMediaSummary = 'room-ai-media-summary',
   UserPortrait = 'user-portrait',
+  UpgradeTip = 'upgrade-tip',
   Default = 'default',
 }
 
@@ -199,6 +201,8 @@ const PurePreviewMessage = ({
         return <RoomAIMediaMessage message={message} />;
       case AIMessageType.UserPortrait:
         return <RoomAIUserPortraitMessage userId={message?.content} />;
+      case AIMessageType.UpgradeTip:
+        return <UpgradeTipMessage />;
       case AIMessageType.Default:
       default:
         return <DefaultMessage message={message} isLoading={isLoading} />;

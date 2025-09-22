@@ -17,6 +17,7 @@ import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { Messages } from '../messages';
 import { MultiInput } from '../multi-input';
 import { RightPanel } from '../rightPanel/right-panel';
+import { createUpgradeTipMessage } from '../room-ai/room-ai-utils';
 import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
 import {
@@ -50,13 +51,24 @@ const GlobalSummary = () => {
   const {
     scrollToBottom, scrollLocked, isScrollLock,
   } = useScrollToBottom();
-  // const headers = getApihHeaders();
   const {
     messages, setMessages, append, stop, status,
   } = useChat({
     api: `${SERVER_API_URL}/chat`,
     id: GLOBAL_SUMMARY_CHATID,
     sendExtraMessageFields: true,
+    onError: (error) => {
+      try {
+        const data = JSON.parse(error.message);
+        if (data.code === 102 || data.code === 103) {
+          const upgradeTip = createUpgradeTipMessage();
+          setMessages((prev) => [...prev, upgradeTip]);
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('error.message is not JSON:', error.message);
+      }
+    },
   });
 
   useEffect(() => {
@@ -165,7 +177,7 @@ const GlobalSummary = () => {
   }, [append, scrollToBottom]);
 
   useEffect(() => {
-    if (status === 'ready') {
+    if (status === 'ready' || status === 'error') {
       const msgs = parseMessage2SummaryStoreMessage(messages);
       ChataiStores.summary?.storeMessages(msgs);
     }

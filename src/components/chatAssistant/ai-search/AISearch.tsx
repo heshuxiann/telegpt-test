@@ -12,6 +12,7 @@ import { SERVER_API_URL } from '../../../config';
 import { selectChat, selectUser } from '../../../global/selectors';
 import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { Messages } from '../messages';
+import { createUpgradeTipMessage } from '../room-ai/room-ai-utils';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import { getCurrentUserInfo } from '../utils/chat-api';
@@ -36,6 +37,18 @@ export const AISearch = () => {
     id: GLOBAL_SEARCH_CHATID,
     api: `${SERVER_API_URL}/chat?userId=${userId}&userName=${userName}&platform=web`,
     sendExtraMessageFields: true,
+    onError: (error) => {
+      try {
+        const data = JSON.parse(error.message);
+        if (data.code === 102 || data.code === 103) {
+          const upgradeTip = createUpgradeTipMessage();
+          setMessages((prev) => [...prev, upgradeTip]);
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('error.message is not JSON:', error.message);
+      }
+    },
   });
 
   useEffect(() => {

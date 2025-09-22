@@ -1,10 +1,4 @@
-
 /* eslint-disable no-null/no-null */
-/* eslint-disable consistent-return */
-/* eslint-disable @typescript-eslint/no-use-before-define */
-/* eslint-disable max-len */
-/* eslint-disable react/jsx-no-bind */
-/* eslint-disable no-console */
 
 import React, { useState } from 'react';
 import {
@@ -38,7 +32,7 @@ function PureMultimodalInput({
   status: UseChatHelpers['status'];
   stop: () => void;
   setMessages: Dispatch<SetStateAction<Array<Message>>>;
-  handleInputSubmit: (inputValue:string)=>void;
+  handleInputSubmit: (inputValue: string) => void;
   className?: string;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -78,7 +72,6 @@ function PureMultimodalInput({
       }
     }
     // Only run once after hydration
-    // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks-static-deps/exhaustive-deps
   }, [localStorageInput]);
 
   useEffect(() => {
@@ -116,7 +109,7 @@ function PureMultimodalInput({
           className,
         )}
         rows={2}
-        autoFocus
+        // autoFocus
         onKeyDown={(event) => {
           if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();

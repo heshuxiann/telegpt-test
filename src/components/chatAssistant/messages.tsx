@@ -1,5 +1,3 @@
-
-/* eslint-disable max-len */
 /* eslint-disable no-null/no-null */
 import React, {
   memo, useRef,
@@ -46,7 +44,7 @@ function PureMessages({
     onViewportEnter,
     onViewportLeave,
   } = useMessages({
-    chatId: chatId!,
+    chatId,
     status,
   });
   if (isAtBottom) {
@@ -99,8 +97,8 @@ function PureMessages({
       {
         (
           (status === 'submitted'
-          && messages.length > 0
-          && messages[messages.length - 1].role === 'user') || isLoading
+            && messages.length > 0
+            && messages[messages.length - 1].role === 'user') || isLoading
         ) && <ThinkingMessage />
       }
       <motion.div

@@ -16,7 +16,7 @@ import { selectChatMessage } from '../../../global/selectors/messages';
 import { callApi } from '../../../api/gramjs';
 import useOldLang from '../hook/useOldLang';
 import { ArrowRightIcon, SendIcon } from '../icons';
-import { autoReply, getCurrentUserInfo } from '../utils/chat-api';
+import { autoReply } from '../utils/chat-api';
 import { cn, formatTimestamp } from '../utils/util';
 import { getBestKnowledgeMatch } from '../utils/knowledge-match';
 
@@ -30,7 +30,6 @@ import ChatAILogoPath from '../assets/cgat-ai-logo.png';
 
 const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) => {
   const global = getGlobal();
-  const { userId, userName } = getCurrentUserInfo();
   const lang = useOldLang();
   const chat = selectChat(global, chatId);
   const [message, setMessage] = useState<ApiMessage | undefined>(undefined);
@@ -38,15 +37,6 @@ const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) =
   const [replyResponse, setReplyResponse] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(undefined);
-  // const { messages, append } = useChat({
-  //   api: `${SERVER_API_URL}/chat?userId=${userId}&userName=${userName}&platform=web`,
-  //   sendExtraMessageFields: true,
-  //   initialMessages: [{
-  //     id: '0',
-  //     role: 'system',
-  //     content: languagePrompt,
-  //   }],
-  // });
   const { updateDraftReplyInfo, sendMessage, clearDraft } = getActions();
   const adjustHeight = () => {
     if (textareaRef.current) {
@@ -79,16 +69,6 @@ const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) =
     }
     // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, [chatId, messageId]);
-  // useEffect(() => {
-  //   if (messages.length > 0) {
-  //     messages.forEach((message) => {
-  //       if (message.role === 'assistant') {
-  //         setReplyResponse(message.content);
-  //         adjustHeight();
-  //       }
-  //     });
-  //   }
-  // }, [messages]);
   const handleSmaryReply = async (message: ApiMessage) => {
     if (message.content.text?.text) {
       const bestMatch = await getBestKnowledgeMatch(message.content.text.text);
@@ -105,11 +85,6 @@ const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) =
         });
       }
     }
-
-    // append({
-    //   role: 'user',
-    //   content: `请回复下面的消息: ${message.content.text?.text}`,
-    // });
   };
 
   useEffect(() => {

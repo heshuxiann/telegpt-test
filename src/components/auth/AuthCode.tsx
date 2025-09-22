@@ -1,5 +1,5 @@
-import React from '@teact';
 import type { FormEvent } from 'react';
+import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
 import {
   memo, useCallback, useEffect, useRef, useState,
