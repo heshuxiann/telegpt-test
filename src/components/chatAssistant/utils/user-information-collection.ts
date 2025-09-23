@@ -2,10 +2,10 @@ import { ChataiStores, USER_INFORMATION } from '../store/index';
 
 interface IUserInformation {
   emails: string[];
-  calendlyUrls:string[];
+  calendlyUrls: string[];
 }
 class UserInformationCollection {
-  private userInformation:IUserInformation = {
+  private userInformation: IUserInformation = {
     emails: [],
     calendlyUrls: [],
   };
@@ -22,7 +22,7 @@ class UserInformationCollection {
     });
   }
 
-  collectInformation(text:string) {
+  collectInformation(text: string) {
     const { emails, calendlyUrls } = this.userInformation;
     const emailRegex = /[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}/;
     const calendlyRegex = /https?:\/\/calendly\.com\/([\w-]+)\/(\d+)min/;

@@ -12,13 +12,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { SERVER_API_URL } from '../../../config';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import buildClassName from '../../../util/buildClassName';
-import { globalSummaryTask } from '../ai-task/global-summary-task';
 import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { Messages } from '../messages';
 import { MultiInput } from '../multi-input';
 import { RightPanel } from '../rightPanel/right-panel';
 import { createUpgradeTipMessage } from '../room-ai/room-ai-utils';
-import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
 import {
   parseMessage2SummaryStoreMessage,
@@ -146,19 +144,18 @@ const GlobalSummary = () => {
     }
   }, [getSummaryHistory]);
 
-  useEffect(() => {
-    const lastFocusTime = RoomStorage.getRoomLastFocusTime(GLOBAL_SUMMARY_CHATID);
-    // 再次聚焦间隔6小时触发一次总结
-    if (lastFocusTime && lastFocusTime < Date.now() - 1000 * 60 * 60 * 6) {
-      globalSummaryTask.initSummaryChats(false);
-    }
-    RoomStorage.updateRoomAIData(GLOBAL_SUMMARY_CHATID, 'lastFocusTime', new Date().getTime());
-  }, []);
+  // useEffect(() => {
+  //   const lastFocusTime = RoomStorage.getRoomLastFocusTime(GLOBAL_SUMMARY_CHATID);
+  //   // 再次聚焦间隔6小时触发一次总结
+  //   if (lastFocusTime && lastFocusTime < Date.now() - 1000 * 60 * 60 * 6) {
+  //     globalSummaryTask.initSummaryChats(false);
+  //   }
+  //   RoomStorage.updateRoomAIData(GLOBAL_SUMMARY_CHATID, 'lastFocusTime', new Date().getTime());
+  // }, []);
 
   const deleteMessage = useCallback((messageId: string) => {
     scrollLocked();
     ChataiStores.summary?.delMessage(messageId).then(() => {
-      // setMessages((prev) => prev.filter((message) => message.id !== messageId));
       // setSummaryMessages((prev) => prev.filter((message) => message.id !== messageId));
       setViewMessages((prev) => prev.filter((message) => message.id !== messageId));
     });

@@ -224,7 +224,22 @@ export function calendlyRanges(data: {
   return new Promise((resolve, reject) => {
     TelegptFetch('/calendly-ranges', 'POST', JSON.stringify(data))
       .then((res) => {
-        resolve(res);
+        const times: string[] = [];
+        const timeZone = res.data.availability_timezone;
+        const email = res.data.current_user.email;
+        if (res.data.days) {
+          res.data.days.forEach((day: any) => {
+            day.spots.forEach((spot: { start_time: string }) => {
+              const start = new Date(spot.start_time);
+              times.push(start.toISOString());
+            });
+          });
+        }
+        resolve({
+          times,
+          timeZone,
+          email,
+        });
       })
       .catch((err) => {
         reject(err);
