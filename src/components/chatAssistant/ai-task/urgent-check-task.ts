@@ -29,7 +29,10 @@ class UrgentCheckTask {
       clearInterval(this.timmer);
     }
     this.timmer = setInterval(() => {
-      this.checkUrgentMessage();
+      const { subscription_info } = telegptSettings.telegptSettings;
+      if ((subscription_info.pro && !subscription_info.pro.is_expirated) || (subscription_info.plus && !subscription_info.plus.is_expirated)) {
+        this.checkUrgentMessage();
+      }
     }, 1000 * 60 * 5); // 每5分钟检查一次
     this.orderedIds = getOrderedIds(ALL_FOLDER_ID) || [];
   }

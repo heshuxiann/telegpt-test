@@ -32,6 +32,7 @@ import {
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
 import { deleteStoryFromUserPortraitMessage, handleStoryToUserPortraitMessage } from '../../../util/userPortrait';
 import ChatAIMessageQuene from '../../../components/chatAssistant/ai-task/chatai-task';
+import { telegptSettings } from '../../../components/chatAssistant/api/user-settings';
 import { ChataiStores } from '../../../components/chatAssistant/store';
 import hasMeetingIntent from '../../../components/chatAssistant/utils/meeting-match';
 
@@ -343,22 +344,15 @@ function sendToAIAgent(data: ApiUpdate) {
 }
 
 async function isIntentionToScheduleMeeting(message: ApiMessage) {
-  const messageContent = message?.content?.text?.text;
-  const flag = await hasMeetingIntent(messageContent!);
-  if (flag) {
-    eventEmitter.emit(Actions.IntentionToScheduleMeeting, { message });
+  const { subscription_info } = telegptSettings.telegptSettings;
+  if ((subscription_info.pro && !subscription_info.pro.is_expirated) || (subscription_info.plus && !subscription_info.plus.is_expirated)) {
+    const messageContent = message?.content?.text?.text;
+    const flag = await hasMeetingIntent(messageContent!);
+    if (flag) {
+      eventEmitter.emit(Actions.IntentionToScheduleMeeting, { message });
+    }
   }
 }
-// async function isIntentionToScheduleMeeting(embedding: number[] | undefined, message: ApiMessage) {
-//   const vectorSearchResults = await toolsEmbeddingStore.similaritySearch({
-//     queryEmbedding: embedding,
-//     k: 10,
-//   });
-//   const matchs = vectorSearchResults.similarItems.filter((item: any) => item.score > 0.72);
-//   if (matchs.length > 0 && matchs.find((item: any) => item.id === 'schedule-meeting')) {
-//     eventEmitter.emit(Actions.IntentionToScheduleMeeting, { message });
-//   }
-// }
 
 async function sendToCurrentChatAI(data: ApiUpdate) {
   const global = getGlobal();

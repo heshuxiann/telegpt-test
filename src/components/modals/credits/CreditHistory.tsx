@@ -3,6 +3,7 @@ import type { TableColumnsType } from 'antd';
 import { Table } from 'antd';
 
 import { getCreditHistory } from '../../chatAssistant/utils/telegpt-api';
+import { formatPostgresTimestamp } from '../../chatAssistant/utils/util';
 
 interface DataType {
   key: React.Key;
@@ -35,6 +36,7 @@ export const CreditHistory = () => {
       title: 'Time',
       dataIndex: 'createdAt',
       key: 'createdAt',
+      render: (value: string) => formatPostgresTimestamp(value),
     },
   ];
   const getCreditHistoryList = async (page: number) => {

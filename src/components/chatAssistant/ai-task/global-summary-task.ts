@@ -26,55 +26,13 @@ import { globalSummary } from '../utils/chat-api';
 import { fetchChatMessageByDeadline, loadTextMessages } from '../utils/fetch-messages';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
 
-// function getAlignedExecutionTimestamp(): number | null {
-//   const date = new Date();
-//   const hour = date.getHours();
-//   const minute = date.getMinutes();
-
-//   const toTimestamp = (h: number, m: number = 0) => {
-//     const d = new Date(date);
-//     d.setHours(h, m, 0, 0);
-//     return d.getTime();
-//   };
-
-//   // 09:00 - 12:00
-//   if (hour >= 9 && hour < 12) {
-//     const minutesAligned = Math.floor(minute / 30) * 30;
-//     return toTimestamp(hour, minutesAligned);
-//   }
-
-//   // 14:00 - 17:00
-//   if (hour >= 14 && hour < 17) {
-//     const minutesAligned = Math.floor(minute / 30) * 30;
-//     return toTimestamp(hour, minutesAligned);
-//   }
-
-//   // 17:00 - 23:00 每2小时执行一次
-//   if (hour >= 17 && hour < 23) {
-//     const baseHour = Math.floor((hour - 17) / 2) * 2 + 17;
-//     return toTimestamp(baseHour, 0);
-//   }
-
-//   // 不在执行时间内
-//   return null;
-// }
-
-function getCurrentHourTimestamp() {
-  const now = new Date();
-  const hours = now.getHours();
-
-  // 计算当前小时对应的整点时间戳（分钟设为0）
-  const hourTimestamp = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, 0, 0).getTime();
-  return hourTimestamp;
-}
-
 function getSummaryInfo({
   startTime,
   endTime,
   chats,
 }: {
   startTime: number | null;
-  endTime: number | null;
+  endTime: number;
   chats: Record<string, ApiMessage[]>;
 }) {
   const summaryInfo = {
@@ -102,67 +60,45 @@ function getAllChatIds(): Promise<string[] | undefined> {
   });
 }
 
+const FREE_SUMMARY_INTERVAL = 24 * 60 * 60 * 1000;
+const VIP_SUMMARY_INTERVAL = 8 * 60 * 60 * 1000;
+
 class GlobalSummaryTask {
   private static instance: GlobalSummaryTask | undefined;
 
   private timmer: NodeJS.Timeout | undefined;
 
+  private lastSummaryTime: number = 0;
+
   initTask() {
     if (this.timmer) {
       clearInterval(this.timmer);
     }
-    const executeTask = () => {
-      const currentTime = new Date();
-      const hours = currentTime.getHours();
-      const minutes = currentTime.getMinutes();
-      // 10:00 am or 8:00 pm
-      if ((hours === 10 || hours === 20) && minutes === 0) {
-        this.initSummaryChats();
+    const executeTask = async () => {
+      const { subscription_info } = telegptSettings.telegptSettings;
+      let summaryInterval = FREE_SUMMARY_INTERVAL;
+      if ((subscription_info.pro && !subscription_info.pro.is_expirated) || (subscription_info.plus && !subscription_info.plus.is_expirated)) {
+        summaryInterval = VIP_SUMMARY_INTERVAL;
       }
-      // // 9:00 - 12:00 每30分钟执行一次
-      // if (hours >= 9 && hours < 12 && minutes % 30 === 0) {
-      //   this.initSummaryChats();
-      // }
-
-      // // 14:00 - 17:00 每30分钟执行一次
-      // if (hours >= 14 && hours < 17 && minutes % 30 === 0) {
-      //   this.initSummaryChats();
-      // }
-
-      // // 17:00 - 23:00 每2小时执行一次
-      // if (hours >= 17 && hours < 23 && (hours - 17) % 2 === 0 && minutes === 0) {
-      //   this.initSummaryChats();
-      // }
+      const currentTime = new Date().getTime();
+      let lastSummaryTime = this.lastSummaryTime;
+      if (!lastSummaryTime) {
+        lastSummaryTime = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
+      }
+      if (!lastSummaryTime) {
+        this.initFirstSummary();
+      } else if (currentTime - lastSummaryTime > summaryInterval) {
+        this.summaryMessageByDeadline(lastSummaryTime);
+      }
     };
-
     this.timmer = setInterval(executeTask, 60000);
-    eventEmitter.on(Actions.ChatAIStoreReady, () => {
-      setTimeout(() => {
-        ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME).then((lastSummaryTime) => {
-          if (!lastSummaryTime) {
-            // TODO first in and summry all groups lastest 50 messages
-            this.initFirstSummary();
-          } else if (Date.now() - lastSummaryTime > 1000 * 60 * 60 * 10) {
-            // TODO summary all unread message by deadline
-            this.summaryMessageByDeadline(lastSummaryTime);
-          }
-        });
-      }, 5000);
-    });
-  }
-
-  async initSummaryChats(useRangeTime: boolean = true) {
-    const globalSummaryLastTime: number | undefined = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME);
-    if (globalSummaryLastTime) {
-      this.summaryMessageByDeadline(globalSummaryLastTime, useRangeTime);
-    }
   }
 
   startSummary(
     chats: Record<string, ApiMessage[]>,
     summaryInfo: {
       summaryStartTime: number | null;
-      summaryEndTime: number | null;
+      summaryEndTime: number;
       summaryMessageCount: number;
       summaryChatIds: string[];
     },
@@ -220,6 +156,7 @@ class GlobalSummaryTask {
       };
       ChataiStores.summary?.storeMessage(newMessage);
       ChataiStores.general?.set(GLOBAL_SUMMARY_LAST_TIME, summaryInfo.summaryEndTime);
+      this.lastSummaryTime = summaryInfo.summaryEndTime;
       eventEmitter.emit(Actions.AddSummaryMessage, newMessage);
       RoomStorage.increaseUnreadCount(GLOBAL_SUMMARY_CHATID);
       window.Notification.requestPermission().then((permission) => {
@@ -339,7 +276,7 @@ class GlobalSummaryTask {
     }
   }
 
-  initFirstSummary = async () => {
+  async initFirstSummary() {
     const orderedIds = await getAllChatIds() || [];
     const { ignored_summary_chat_ids } = telegptSettings.telegptSettings;
     const ignoredIds = getIdsFromEntityTypes(ignored_summary_chat_ids);
@@ -361,19 +298,12 @@ class GlobalSummaryTask {
     );
   };
 
-  async summaryMessageByDeadline(deadline: number, useRangeTime: boolean = true) {
+  async summaryMessageByDeadline(deadline: number) {
     const orderedIds = await getAllChatIds() || [];
     const { ignored_summary_chat_ids } = telegptSettings.telegptSettings;
     const ignoredIds = getIdsFromEntityTypes(ignored_summary_chat_ids);
     const summaryChatIds = orderedIds.filter((id) => !ignoredIds.includes(id));
-
-    const summaryTime = getCurrentHourTimestamp();
-    // if (useRangeTime) {
-    //   summaryTime = getAlignedExecutionTimestamp() || Date.now();
-    // } else {
-    //   summaryTime = Date.now();
-    // }
-
+    const summaryTime = new Date().getTime();
     await this.processChatMessages(
       summaryChatIds,
       (chat, chatLastMessageId) => fetchChatMessageByDeadline({

@@ -247,7 +247,7 @@ const LeftSideMenuItems = ({
           {subscriptionInfo?.creditBalance && (
            <>
              <div className='flex items-center'>
-              <span className='text-[13px] font-semibold text-[#037EE5]'>{subscriptionInfo?.creditBalance}</span>
+              <span className='text-[13px] font-semibold text-[#037EE5]'>{Math.max(0, Math.round(subscriptionInfo?.creditBalance))}</span>
               <Icon name='arrow-right' className='mr-0' />
              </div>
            </>
