@@ -71,7 +71,7 @@ export function TelegptFetch(
       mBody = params instanceof FormData ? params : objectToFormData(params);
     }
   }
-  return fetch(`http://localhost:3000${path}`, {
+  return fetch(`${SERVER_API_URL}${path}`, {
     method,
     headers,
     body: mBody,
