@@ -17,6 +17,12 @@ export type OwnProps = {
 
 type PlanType = 'basic' | 'pro' | 'plus';
 
+const PLAN_ORDER: Record<PlanType, number> = {
+  basic: 1,
+  pro: 2,
+  plus: 3,
+};
+
 interface PricingPlan {
   planType: PlanType;
   title: string;
@@ -131,17 +137,18 @@ const PayPackageModal = ({ modal }: OwnProps) => {
   const handleUpgrade = useCallback((plan: PlanType) => {
     const buttonLink = PRICING_PLANS[plan].buttonLink;
     const currentUserId = getGlobal().currentUserId;
+    const currentPlan: PlanType = subscriptionInfo.subscriptionType as PlanType;
     if (!currentUserId) {
       return;
     }
-    if (subscriptionInfo && subscriptionInfo.subscriptionType !== 'free' && !subscriptionInfo.isExpirated) {
-      return;
-    }
-    if (plan === 'basic' || plan === 'pro' || plan === 'plus') {
+    if (PLAN_ORDER[plan] > PLAN_ORDER[currentPlan]) {
       window.open(`${buttonLink}?client_reference_id=${currentUserId}`, '_blank');
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn('只能升级到比当前更高的套餐');
     }
     closePayPackageModal();
-  }, [subscriptionInfo]);
+  }, [subscriptionInfo.subscriptionType]);
 
   const handlePlanSelect = useCallback((plan: PlanType) => {
     setSelectedPlan(plan);
@@ -207,7 +214,9 @@ const PayPackageModal = ({ modal }: OwnProps) => {
                     <span>
                       {subscriptionInfo.subscriptionType === planType ? 'Your current plan' : 'Upgrade'}
                     </span>
-                    <Icon name="arrow-right" />
+                    {subscriptionInfo.subscriptionType !== planType && (
+                      <Icon name="arrow-right" />
+                    )}
                   </button>
                 </div>
 
