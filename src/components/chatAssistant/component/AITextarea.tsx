@@ -1,12 +1,11 @@
-/* eslint-disable react/jsx-props-no-spreading */
-/* eslint-disable max-len */
+/* eslint-disable @stylistic/max-len */
 import * as React from 'react';
 
 import { cn } from '../utils/util';
 
 const AITextarea = React.forwardRef<
-HTMLTextAreaElement,
-React.ComponentProps<'textarea'>
+  HTMLTextAreaElement,
+  React.ComponentProps<'textarea'>
 >(({ className, ...props }, ref) => {
   return (
     <textarea

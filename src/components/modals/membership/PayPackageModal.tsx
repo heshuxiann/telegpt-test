@@ -15,9 +15,10 @@ export type OwnProps = {
   modal: TabState['payPackageModal'];
 };
 
-type PlanType = 'free' | 'basic' | 'pro' | 'plus';
+type PlanType = 'basic' | 'pro' | 'plus';
 
 interface PricingPlan {
+  planType: PlanType;
   title: string;
   price: string;
   period: string;
@@ -30,13 +31,14 @@ interface PricingPlan {
 }
 
 const PRICING_PLANS: Record<PlanType, PricingPlan> = {
-  free: {
-    title: 'Free',
-    price: '$0',
+  basic: {
+    planType: 'basic',
+    title: 'Basic',
+    price: '$4.99',
     period: '/month',
-    creditsInfo: '2,000 Credits monthly',
-    creditsInfoDescription: '2,000 extra credits first month [LIMITED TIME]',
-    buttonLink: '',
+    creditsInfo: '10,000 Credits monthly',
+    creditsInfoDescription: '10,000 extra credits first month [LIMITED TIME]',
+    buttonLink: 'https://buy.stripe.com/test_00w6oIfulavq6wl7tv4Ni04',
     features: [
       'Global Chat Summary (1 every 24h)',
       'Up to 100 Group Chat Summary ',
@@ -50,36 +52,14 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
     buttonText: 'Get Started',
     isSelected: false,
   },
-  basic: {
-    title: 'Basic',
-    price: '$4.99',
-    period: '/month',
-    creditsInfo: '10,000 Credits monthly',
-    creditsInfoDescription: '10,000 extra credits first month [LIMITED TIME]',
-    buttonLink: 'https://buy.stripe.com/test_00w6oIfulavq6wl7tv4Ni04',
-    features: [
-      'Global Chat Summary (1 every 8h）',
-      'Up to 1k Group Chat Summary',
-      'Up to 100 Images Summary',
-      'Up to 300 min Video & Voice Summary',
-      'Up to 300k-characters AI Translation',
-      'Up to 300k-characters Grammar Check',
-      'Up to 25k-pages Web & Doc Summary',
-      'Up to 2 Urgent Alert Key Topics',
-      'AI Chat Folders',
-      'Up to 120 Schedule Meetings',
-      'Priority Support',
-    ],
-    buttonText: 'Upgrade',
-    isSelected: true,
-  },
   pro: {
+    planType: 'pro',
     title: 'Pro',
-    price: '$9.9',
+    price: '$9.99',
     period: '/month',
     creditsInfo: '60,000 Credits monthly',
     creditsInfoDescription: '60,000 extra credits first month [LIMITED TIME]',
-    buttonLink: 'https://buy.stripe.com/test_dRmfZi5TLcDy5sh9BD4Ni00',
+    buttonLink: 'https://buy.stripe.com/test_dRm00keqh1YU4oddRT4Ni06',
     features: [
       'Global Chat Summary (1 every 8h）',
       'Up to 1k Group Chat Summary',
@@ -97,12 +77,13 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
     isSelected: true,
   },
   plus: {
+    planType: 'plus',
     title: 'Plus',
-    price: '$19.9',
+    price: '$19.99',
     period: '/month',
     creditsInfo: '120,000 Credits monthly',
     creditsInfoDescription: '120,000 extra credits first month [LIMITED TIME]',
-    buttonLink: 'https://buy.stripe.com/test_fZuaEY0zr7je1c1eVX4Ni02',
+    buttonLink: 'https://buy.stripe.com/test_28EdRa2HzdHC3k9g014Ni07',
     features: [
       'Global Chat Summary (1 every 8h）',
       'Up to 2k Group Chat Summary ',
@@ -124,8 +105,11 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
 
 const PayPackageModal = ({ modal }: OwnProps) => {
   const { subscription_info } = telegptSettings.telegptSettings;
+  const { subscriptionType } = subscription_info;
   const { closePayPackageModal } = getActions();
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>(subscription_info.subscription_type as PlanType);
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>(
+    subscriptionType === 'basic' ? 'pro' : subscriptionType === 'pro' ? 'plus' : subscriptionType === 'plus' ? 'plus' : 'basic',
+  );
   const [subscriptionInfo, setSubscriptionInfo] = useState(subscription_info);
 
   useEffect(() => {
@@ -133,7 +117,8 @@ const PayPackageModal = ({ modal }: OwnProps) => {
       getSubscriptionInfo().then(({ code, data }) => {
         if (code === 0) {
           setSubscriptionInfo(data);
-          setSelectedPlan(data.subscription_type);
+          const { subscriptionType } = data;
+          setSelectedPlan(subscriptionType === 'basic' ? 'pro' : subscriptionType === 'pro' ? 'plus' : subscriptionType === 'plus' ? 'plus' : 'basic');
         }
       });
     }
@@ -144,14 +129,12 @@ const PayPackageModal = ({ modal }: OwnProps) => {
   }, [closePayPackageModal]);
 
   const handleUpgrade = useCallback((plan: PlanType) => {
-    // Handle upgrade logic here
-    // setSelectedPlan(plan);
     const buttonLink = PRICING_PLANS[plan].buttonLink;
     const currentUserId = getGlobal().currentUserId;
     if (!currentUserId) {
       return;
     }
-    if (subscriptionInfo && !subscriptionInfo.is_expirated) {
+    if (subscriptionInfo && subscriptionInfo.subscriptionType !== 'free' && !subscriptionInfo.isExpirated) {
       return;
     }
     if (plan === 'basic' || plan === 'pro' || plan === 'plus') {
@@ -222,7 +205,7 @@ const PayPackageModal = ({ modal }: OwnProps) => {
                     }}
                   >
                     <span>
-                      {plan.buttonText}
+                      {subscriptionInfo.subscriptionType === planType ? 'Your current plan' : 'Upgrade'}
                     </span>
                     <Icon name="arrow-right" />
                   </button>

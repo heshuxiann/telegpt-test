@@ -65,12 +65,12 @@ export interface IUrgentTopic {
 }
 
 export interface SubscriptionInfo {
-  subscription_type: string;
-  credit_balance: number;
-  subscription_expires_at: string;
-  created_at: string;
-  updated_at: string;
-  is_expirated: boolean;
+  subscriptionType: string;
+  creditBalance: number;
+  subscriptionExpiresAt: string;
+  createdAt: string;
+  updatedAt: string;
+  isExpirated: boolean;
 }
 
 interface ITelegptSettings {
@@ -89,14 +89,7 @@ interface ITelegptSettings {
   phone: string;
   autotranslate: boolean;
   autotranslatelanguage: string;
-  subscription_info: {
-    subscription_type: string;
-    credit_balance: number;
-    subscription_expires_at: string;
-    created_at: string;
-    updated_at: string;
-    is_expirated: boolean;
-  };
+  subscription_info: SubscriptionInfo;
 }
 const defaultSettings: ITelegptSettings = {
   user_id: '',
@@ -114,12 +107,12 @@ const defaultSettings: ITelegptSettings = {
   autotranslate: false,
   autotranslatelanguage: 'en',
   subscription_info: {
-    subscription_type: 'free',
-    credit_balance: 0,
-    subscription_expires_at: '',
-    created_at: '',
-    updated_at: '',
-    is_expirated: false,
+    subscriptionType: 'free',
+    creditBalance: 0,
+    subscriptionExpiresAt: '',
+    createdAt: '',
+    updatedAt: '',
+    isExpirated: false,
   },
 };
 
@@ -155,11 +148,11 @@ class TelegptSettings {
         this.setGlobalSettings(res.data);
         if (res.data.subscription_info) {
           getActions().updateSubscriptionInfo({
-            subscriptionType: res.data.subscription_info.subscription_type,
-            creditBalance: res.data.subscription_info.credit_balance,
-            createdAt: res.data.subscription_info.created_at,
-            subscriptionExpiresAt: res.data.subscription_info.subscription_expires_at,
-            isExpirated: res.data.subscription_info.is_expirated,
+            subscriptionType: res.data.subscription_info.subscriptionType,
+            creditBalance: res.data.subscription_info.creditBalance,
+            createdAt: res.data.subscription_info.createdAt,
+            subscriptionExpiresAt: res.data.subscription_info.subscriptionExpiresAt,
+            isExpirated: res.data.subscription_info.isExpirated,
           });
         }
       }

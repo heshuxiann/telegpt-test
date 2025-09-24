@@ -2,7 +2,7 @@ import React from '@teact';
 /* eslint-disable max-len */
 import type { FC } from '../../../lib/teact/teact';
 import { memo, useEffect, useState } from '../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../global';
+import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type { ApiUser } from '../../../api/types';
 import type { UserPortraitInfo } from '../../chatAssistant/store/user-portrait-store';
@@ -34,7 +34,6 @@ export const PortraitTagColors = [
 ];
 
 const UserPortraitBaseCard: FC<StateProps & OwnProps> = ({ userId, user, onClose }) => {
-//   const { loading, userPortraitInfo } = usePortrait({ userId });
   const [portraitInfo, setPortraitInfo] = useState<UserPortraitInfo | undefined>(undefined);
 
   const getPortraitInfo = useLastCallback(async () => {
@@ -49,7 +48,13 @@ const UserPortraitBaseCard: FC<StateProps & OwnProps> = ({ userId, user, onClose
   }, [userId]);
 
   const handlePortraitClick = useLastCallback(() => {
-    getActions().openUserPortrait({ userId });
+    const subscriptionInfo = getGlobal().subscriptionInfo;
+    if (subscriptionInfo.subscriptionType === 'plus') {
+      getActions().openUserPortrait({ userId });
+    } else {
+      getActions().openPayPackageModal();
+    }
+
     onClose();
   });
 
@@ -74,15 +79,13 @@ const UserPortraitBaseCard: FC<StateProps & OwnProps> = ({ userId, user, onClose
               {portraitInfo.langs && (
                 <div>
                   <span className="font-[600]">Language: </span>
-                  {`${
-                    portraitInfo.langs?.[0]
+                  {`${portraitInfo.langs?.[0]
                       ? `${portraitInfo.langs?.[0]}(Primary)`
                       : ''
-                  } ${
-                    portraitInfo.langs?.[1]
+                    } ${portraitInfo.langs?.[1]
                       ? `, ${portraitInfo.langs?.[1]}(Secondary)`
                       : ''
-                  }`}
+                    }`}
                 </div>
               )}
               {portraitInfo?.tags && portraitInfo?.tags?.length > 0 && (

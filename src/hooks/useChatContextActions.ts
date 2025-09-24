@@ -1,5 +1,5 @@
 import { useMemo } from '../lib/teact/teact';
-import { getActions } from '../global';
+import { getActions, getGlobal } from '../global';
 
 import type { ApiChat, ApiTopic, ApiUser } from '../api/types';
 import type { MenuItemContextAction } from '../components/ui/ListItem';
@@ -84,17 +84,23 @@ const useChatContextActions = ({
       markChatMessagesRead,
       markChatUnread,
       openChatInNewTab,
-      openUserPortrait
+      openUserPortrait,
+      openPayPackageModal,
     } = getActions();
 
     const actionUserPortrait = isUserId(chat.id) ? {
       title: 'User Portrait',
       icon: 'portrait-icon',
       handler: () => {
-        openUserPortrait({
-          chatId: chat.id,
-          userId: chat.id,
-        });
+        const subscriptionInfo = getGlobal().subscriptionInfo;
+        if (subscriptionInfo.subscriptionType === 'plus') {
+          openUserPortrait({
+            chatId: chat.id,
+            userId: chat.id,
+          });
+        } else {
+          openPayPackageModal();
+        }
       },
     } : undefined;
 

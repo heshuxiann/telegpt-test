@@ -12,26 +12,11 @@ import {
 import { replaceToJSON } from '../../chatAssistant/ai-chatfolders/util';
 import { ChataiStores } from '../../chatAssistant/store';
 import { checkIsUrl } from '../../chatAssistant/utils/ai-analyse-message';
-import { chatAIGenerate } from '../../chatAssistant/utils/chat-api';
+import { chatAIGenerate, chatAIUserTags } from '../../chatAssistant/utils/chat-api';
 
 type Props = {
   userId: string;
 };
-
-const PROMPT = `
-  你是一个专业的数据分析师, 根据提供的消息内容进行分析, 并返回JSON格式数据;
-  # 格式要求
-    ## 去除所有换行符,确保 JSON 结构紧凑
-    ## 严格遵从JSON规范,确保所有的JSON数据正确
-  # 数据字段解析
-    ## langs: 根据提供的内容，判断出用的是哪种语言，如Chinese, English等; 最多给出两种，按使用频率排序
-    ## tags: 根据提供的内容，分析出用户的职业或涉及的行业, 给出最多5个标签;
-  # 返回的JSON格式示例
-    {
-      langs: ['Chinese', 'English'],
-      tags: ['Analytical Investor', 'DAO Governance'],
-    }
-`;
 
 const SUMMARY_PROMPT = `
 ## 输入字段解释
@@ -127,34 +112,22 @@ export default function usePortrait({ userId }: Props) {
       const sortedChatIds = Object.entries(chatCountByChatId)
         .sort((a, b) => b[1] - a[1])
         .map((entry) => entry[0]);
-
-      chatAIGenerate({
-        data: {
-          messages: [
-            { role: 'system', content: PROMPT },
-            {
-              role: 'user',
-              content: messages
-                ?.slice(0, 100)
-                ?.map((item) => item.content)
-                .join(' '),
-            },
-          ],
-        },
-        onResponse: (response) => {
-          const result = replaceToJSON(response);
+      chatAIUserTags({
+        messages: messages?.slice(0, 100),
+      }).then((res) => {
+        if (res.code === 0 && res.data) {
           const userObj = {
             ...userInfo,
             id: userId,
             lastMsgId: maxId,
-            langs: result?.langs,
-            tags: result?.tags,
+            langs: res.data?.langs,
+            tags: res.data?.tags,
             chatCount: Object.keys(chatCountByChatId).length,
             chatIds: sortedChatIds,
           };
           ChataiStores.userPortrait?.addUserPortrait(userObj);
           setNewUserInfo(userObj);
-        },
+        }
       });
 
       const groupMessages = groupMessagesByHalfHour(

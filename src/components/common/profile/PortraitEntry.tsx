@@ -30,14 +30,18 @@ const DotIcon = () => (
   </svg>
 );
 
-const PortraitEntry = ({ user } : { user: ApiUser }) => {
+const PortraitEntry = ({ user, subscriptionType }: { user: ApiUser; subscriptionType: string | undefined }) => {
   const oldLang = useOldLang();
-  const { openUserPortrait } = getActions();
+  const { openUserPortrait, openPayPackageModal } = getActions();
 
   const [userInfo, setUserInfo] = useState<UserPortraitInfo>();
 
   const handlePortraitClick = useLastCallback(() => {
-    openUserPortrait({ userId: user?.id! });
+    if (subscriptionType === 'plus') {
+      openUserPortrait({ userId: user?.id });
+    } else {
+      openPayPackageModal();
+    }
   });
 
   const getUserPortrait = useCallback(async (senderId: string) => {
@@ -66,7 +70,8 @@ const PortraitEntry = ({ user } : { user: ApiUser }) => {
       onClick={handlePortraitClick}
     >
       <span className="title">
-        <span className="font-[600]">{(user?.firstName || '') + (user?.lastName || '')}</span>‘s portrait
+        <span className="font-[600]">{(user?.firstName || '') + (user?.lastName || '')}</span>
+        ‘s portrait
       </span>
       {userInfo?.tags && userInfo?.tags?.length > 0 && (
         <div className="flex items-center gap-1 my-1">

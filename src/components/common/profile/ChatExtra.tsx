@@ -88,6 +88,7 @@ type StateProps = {
   isBotCanManageEmojiStatus?: boolean;
   botAppPermissions?: BotAppPermissions;
   botVerification?: ApiBotVerification;
+  subscriptionType?:string;
 };
 
 const DEFAULT_MAP_CONFIG = {
@@ -117,6 +118,7 @@ const ChatExtra: FC<OwnProps & StateProps> = ({
   isBotCanManageEmojiStatus,
   botAppPermissions,
   botVerification,
+  subscriptionType,
 }) => {
   const {
     showNotification,
@@ -359,10 +361,10 @@ const ChatExtra: FC<OwnProps & StateProps> = ({
           <span className="subtitle">{oldLang('Phone')}</span>
         </ListItem>
       )}
-      {activeUsernames && (
+      {activeUsernames  && (
         <>
           {renderUsernames(activeUsernames)}
-          {user && <PortraitEntry user={user} />}
+          {user && <PortraitEntry user={user} subscriptionType={subscriptionType} />}
         </>
       )}
       {description && Boolean(description.length) && (
@@ -487,7 +489,7 @@ const ChatExtra: FC<OwnProps & StateProps> = ({
 
 export default memo(withGlobal<OwnProps>(
   (global, { chatOrUserId, isSavedDialog }): StateProps => {
-    const { countryList: { phoneCodes: phoneCodeList } } = global;
+    const { countryList: { phoneCodes: phoneCodeList },subscriptionInfo } = global;
 
     const chat = chatOrUserId ? selectChat(global, chatOrUserId) : undefined;
     const user = chatOrUserId ? selectUser(global, chatOrUserId) : undefined;
@@ -537,6 +539,7 @@ export default memo(withGlobal<OwnProps>(
       hasMainMiniApp,
       isBotCanManageEmojiStatus: userFullInfo?.isBotCanManageEmojiStatus,
       botVerification,
+      subscriptionType:subscriptionInfo?.subscriptionType,
     };
   },
 )(ChatExtra));
