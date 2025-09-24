@@ -77,7 +77,7 @@ class GlobalSummaryTask {
     const executeTask = async () => {
       const { subscription_info } = telegptSettings.telegptSettings;
       let summaryInterval = FREE_SUMMARY_INTERVAL;
-      if ((subscription_info.subscriptionType === 'basic' || subscription_info.subscriptionType === 'plus' || subscription_info.subscriptionType === 'pro') && !subscription_info.isExpirated) {
+      if ((subscription_info.subscriptionType === 'plus' || subscription_info.subscriptionType === 'pro') && !subscription_info.isExpirated) {
         summaryInterval = VIP_SUMMARY_INTERVAL;
       }
       const currentTime = new Date().getTime();

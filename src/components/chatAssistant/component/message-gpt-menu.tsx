@@ -44,6 +44,7 @@ type StateProps = {
   canAISummarize: any;
   canSmartReply: boolean | undefined;
   canTranslate: boolean | undefined;
+  subscriptionType: string;
 };
  type OwnProps = {
    message: ApiMessage;
@@ -53,12 +54,16 @@ type StateProps = {
  };
 
 const MessageGptMenu: FC<OwnProps & StateProps> = ({
-  message, position, canScheduleMeeting, canAISummarize, canSmartReply, canTranslate,
+  message, position, canScheduleMeeting, canAISummarize, canSmartReply, canTranslate, subscriptionType,
 }) => {
   const canSerenaAI = canScheduleMeeting || canAISummarize || canSmartReply || canTranslate;
   const [isSchedulingMeeting, setIsSchedulingMeeting] = useState(false);
 
   const handleScheduleMeeting = useLastCallback(async () => {
+    if (!subscriptionType || subscriptionType === 'free' || subscriptionType === 'basic') {
+      getActions().openPayPackageModal();
+      return;
+    }
     if (isSchedulingMeeting) return;
     const chatId = message.chatId;
     if (ScheduleMeeting.get(chatId)) {
@@ -168,6 +173,8 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
   );
 };
 export default memo(withGlobal<OwnProps>((global, { message, messageListType, detectedLanguage }): StateProps => {
+  const { subscriptionInfo } = global;
+  const { subscriptionType } = subscriptionInfo;
   const isOwn = isOwnMessage(message);
   const hasTextContent = hasMessageText(message);
   const canAISummarize = canSummarize(message);
@@ -192,5 +199,6 @@ export default memo(withGlobal<OwnProps>((global, { message, messageListType, de
     canAISummarize,
     canSmartReply: !isOwn && !isPinned && !isScheduled && canReplyGlobally && canSendText && hasTextContent,
     canTranslate,
+    subscriptionType,
   };
 })(MessageGptMenu));

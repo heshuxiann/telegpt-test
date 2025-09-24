@@ -345,7 +345,7 @@ function sendToAIAgent(data: ApiUpdate) {
 
 async function isIntentionToScheduleMeeting(message: ApiMessage) {
   const { subscription_info } = telegptSettings.telegptSettings;
-  if ((subscription_info.subscriptionType === 'basic' || subscription_info.subscriptionType === 'plus' || subscription_info.subscriptionType === 'pro') && !subscription_info.isExpirated) {
+  if ((subscription_info.subscriptionType === 'plus' || subscription_info.subscriptionType === 'pro') && !subscription_info.isExpirated) {
     const messageContent = message?.content?.text?.text;
     const flag = await hasMeetingIntent(messageContent!);
     if (flag) {

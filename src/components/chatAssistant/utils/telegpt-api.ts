@@ -29,9 +29,9 @@ export const submitInviteCode = (inviteCode: string): Promise<any> => {
   });
 };
 
-export const getMyInviteCodes = (): Promise<any> => {
+export const getMyInviteCodes = (page: number): Promise<any> => {
   return new Promise((resolve, reject) => {
-    TelegptFetch('/invitation?action=get_my_invite_codes', 'GET')
+    TelegptFetch(`/invitation?action=get_my_invite_codes&page=${page}&pageSize=6`, 'GET')
       .then((res) => {
         resolve(res);
       })
@@ -44,18 +44,6 @@ export const getMyInviteCodes = (): Promise<any> => {
 export const getAllInviteInfo = (): Promise<any> => {
   return new Promise((resolve, reject) => {
     TelegptFetch('/invitation?action=get_all_invitation_info', 'GET')
-      .then((res) => {
-        resolve(res);
-      })
-      .catch((err) => {
-        reject(err);
-      });
-  });
-};
-
-export const getPointsDetail = (): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    TelegptFetch('/invitation?action=get_points_detail', 'GET')
       .then((res) => {
         resolve(res);
       })
