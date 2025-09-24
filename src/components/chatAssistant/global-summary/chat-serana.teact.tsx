@@ -50,12 +50,12 @@ const ChatSerena = (props: OwnProps & StateProps) => {
       onClick={handleClick}
       withPortalForMenu
     >
-      <img className="w-[54px] h-[54px] rounded-full mr-[12px]" src={SerenaPath} alt="Tely AI" />
+      <img className="w-[54px] h-[54px] rounded-full mr-[12px]" src={SerenaPath} alt="TelyAI" />
       <div className="info">
         <div className="info-row">
           <div className="title FullNameTitle-module__root">
             <h3 dir="auto" role="button" className="fullName FullNameTitle-module__fullName">
-              Tely AI
+              TelyAI
             </h3>
           </div>
         </div>

@@ -3,8 +3,8 @@ import { getActions, getGlobal } from '../../../global';
 
 import type { TabState } from '../../../global/types';
 
-import { type SubscriptionInfo, telegptSettings } from '../../chatAssistant/api/user-settings';
-import { getSubscription } from '../../chatAssistant/utils/telegpt-api';
+import { telegptSettings } from '../../chatAssistant/api/user-settings';
+import { getSubscriptionInfo } from '../../chatAssistant/utils/telegpt-api';
 
 import Icon from '../../common/icons/Icon';
 import Modal from '../../ui/Modal';
@@ -15,7 +15,7 @@ export type OwnProps = {
   modal: TabState['payPackageModal'];
 };
 
-type PlanType = 'free' | 'pro' | 'plus';
+type PlanType = 'free' | 'basic' | 'pro' | 'plus';
 
 interface PricingPlan {
   title: string;
@@ -34,8 +34,8 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
     title: 'Free',
     price: '$0',
     period: '/month',
-    creditsInfo: '10,000 Credits monthly',
-    creditsInfoDescription: '10,000 extra credits first month [LIMITED TIME]',
+    creditsInfo: '2,000 Credits monthly',
+    creditsInfoDescription: '2,000 extra credits first month [LIMITED TIME]',
     buttonLink: '',
     features: [
       'Global Chat Summary (1 every 24h)',
@@ -50,9 +50,32 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
     buttonText: 'Get Started',
     isSelected: false,
   },
+  basic: {
+    title: 'Basic',
+    price: '$4.99',
+    period: '/month',
+    creditsInfo: '10,000 Credits monthly',
+    creditsInfoDescription: '10,000 extra credits first month [LIMITED TIME]',
+    buttonLink: 'https://buy.stripe.com/test_00w6oIfulavq6wl7tv4Ni04',
+    features: [
+      'Global Chat Summary (1 every 8h）',
+      'Up to 1k Group Chat Summary',
+      'Up to 100 Images Summary',
+      'Up to 300 min Video & Voice Summary',
+      'Up to 300k-characters AI Translation',
+      'Up to 300k-characters Grammar Check',
+      'Up to 25k-pages Web & Doc Summary',
+      'Up to 2 Urgent Alert Key Topics',
+      'AI Chat Folders',
+      'Up to 120 Schedule Meetings',
+      'Priority Support',
+    ],
+    buttonText: 'Upgrade',
+    isSelected: true,
+  },
   pro: {
     title: 'Pro',
-    price: '$19',
+    price: '$9.9',
     period: '/month',
     creditsInfo: '60,000 Credits monthly',
     creditsInfoDescription: '60,000 extra credits first month [LIMITED TIME]',
@@ -102,22 +125,15 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
 const PayPackageModal = ({ modal }: OwnProps) => {
   const { subscription_info } = telegptSettings.telegptSettings;
   const { closePayPackageModal } = getActions();
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>(subscription_info.pro || subscription_info.plus ? 'plus' : 'pro');
-  const [proSubscription, setProSubscription] = useState<SubscriptionInfo | undefined>(subscription_info.pro);
-  const [plusSubscription, setPlusSubscription] = useState<SubscriptionInfo | undefined>(subscription_info.plus);
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>(subscription_info.subscription_type as PlanType);
+  const [subscriptionInfo, setSubscriptionInfo] = useState(subscription_info);
 
   useEffect(() => {
     if (modal?.isOpen) {
-      getSubscription().then(({ code, data }) => {
+      getSubscriptionInfo().then(({ code, data }) => {
         if (code === 0) {
-          if (data.pro) {
-            setProSubscription(data.pro);
-            setSelectedPlan('plus');
-          }
-          if (data.plus) {
-            setPlusSubscription(data.plus);
-            setSelectedPlan('plus');
-          }
+          setSubscriptionInfo(data);
+          setSelectedPlan(data.subscription_type);
         }
       });
     }
@@ -135,19 +151,14 @@ const PayPackageModal = ({ modal }: OwnProps) => {
     if (!currentUserId) {
       return;
     }
-    if (plusSubscription && !plusSubscription.is_expirated) {
+    if (subscriptionInfo && !subscriptionInfo.is_expirated) {
       return;
     }
-    if (plan === 'pro') {
-      if (proSubscription && !proSubscription.is_expirated) {
-        return;
-      }
-    }
-    if (plan === 'pro' || plan === 'plus') {
+    if (plan === 'basic' || plan === 'pro' || plan === 'plus') {
       window.open(`${buttonLink}?client_reference_id=${currentUserId}`, '_blank');
     }
     closePayPackageModal();
-  }, [plusSubscription, proSubscription]);
+  }, [subscriptionInfo]);
 
   const handlePlanSelect = useCallback((plan: PlanType) => {
     setSelectedPlan(plan);

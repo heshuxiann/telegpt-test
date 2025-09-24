@@ -196,6 +196,7 @@ export interface ActionPayloads {
     creditBalance: number;
     createdAt: string;
     subscriptionExpiresAt: string;
+    isExpirated: boolean;
   } & WithTabId;
   openInviteFriendsModal: WithTabId | undefined;
   closeInviteFriendsModal: WithTabId | undefined;

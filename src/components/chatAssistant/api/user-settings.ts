@@ -65,9 +65,11 @@ export interface IUrgentTopic {
 }
 
 export interface SubscriptionInfo {
-  user_id: string;
-  type: string;
-  expirate: string;
+  subscription_type: string;
+  credit_balance: number;
+  subscription_expires_at: string;
+  created_at: string;
+  updated_at: string;
   is_expirated: boolean;
 }
 
@@ -88,8 +90,12 @@ interface ITelegptSettings {
   autotranslate: boolean;
   autotranslatelanguage: string;
   subscription_info: {
-    pro: SubscriptionInfo | undefined;
-    plus: SubscriptionInfo | undefined;
+    subscription_type: string;
+    credit_balance: number;
+    subscription_expires_at: string;
+    created_at: string;
+    updated_at: string;
+    is_expirated: boolean;
   };
 }
 const defaultSettings: ITelegptSettings = {
@@ -108,8 +114,12 @@ const defaultSettings: ITelegptSettings = {
   autotranslate: false,
   autotranslatelanguage: 'en',
   subscription_info: {
-    pro: undefined,
-    plus: undefined,
+    subscription_type: 'free',
+    credit_balance: 0,
+    subscription_expires_at: '',
+    created_at: '',
+    updated_at: '',
+    is_expirated: false,
   },
 };
 
@@ -143,6 +153,15 @@ class TelegptSettings {
         this.settings = res.data;
         localStorage.setItem('telegpt-settings', JSON.stringify(this.settings));
         this.setGlobalSettings(res.data);
+        if (res.data.subscription_info) {
+          getActions().updateSubscriptionInfo({
+            subscriptionType: res.data.subscription_info.subscription_type,
+            creditBalance: res.data.subscription_info.credit_balance,
+            createdAt: res.data.subscription_info.created_at,
+            subscriptionExpiresAt: res.data.subscription_info.subscription_expires_at,
+            isExpirated: res.data.subscription_info.is_expirated,
+          });
+        }
       }
     });
   }

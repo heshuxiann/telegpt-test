@@ -179,7 +179,7 @@ const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) =
           <div>
             <div className="flex flex-row items-center gap-[6px]">
               <img className="w-[15px] h-[15px]" src={ChatAILogoPath} alt="MingcuteaiIcon" />
-              <span className="text-[14px] text-[#757575]">Reply suggested by Tely AI</span>
+              <span className="text-[14px] text-[#757575]">Reply suggested by TelyAI</span>
             </div>
             <div className="flex flex-row items-end gap-[12px]">
               <textarea

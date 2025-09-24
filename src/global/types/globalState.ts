@@ -472,6 +472,7 @@ export type GlobalState = {
     creditBalance: number;
     createdAt: string;
     subscriptionExpiresAt: string;
+    isExpirated: boolean;
   };
 };
 

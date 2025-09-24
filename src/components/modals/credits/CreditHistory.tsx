@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import type { TableColumnsType } from 'antd';
-import { Table } from 'antd';
+import { ConfigProvider, Table, theme } from 'antd';
+import { getGlobal } from '../../../global';
 
+import { selectTheme } from '../../../global/selectors';
 import { getCreditHistory } from '../../chatAssistant/utils/telegpt-api';
 import { formatPostgresTimestamp } from '../../chatAssistant/utils/util';
 
@@ -21,6 +23,9 @@ export const CreditHistory = () => {
   const [total, setTotal] = useState(10);
   const [creditList, setCreditList] = useState<DataType[]>([]);
   const [loading, setLoading] = useState(true);
+  const { defaultAlgorithm, darkAlgorithm } = theme;
+  const global = getGlobal();
+  const systemTheme = selectTheme(global);
   const columns: TableColumnsType<DataType> = [
     {
       title: 'Detail',
@@ -62,16 +67,22 @@ export const CreditHistory = () => {
   }, []);
 
   return (
-    <Table<DataType>
-      columns={columns}
-      dataSource={creditList}
-      loading={loading}
-      pagination={{
-        current: currentPage,
-        pageSize: 10,
-        total,
-        onChange,
-      }}
-    />
+    <ConfigProvider theme={{
+      algorithm: systemTheme === 'dark' ? darkAlgorithm : defaultAlgorithm,
+    }}
+    >
+      <Table<DataType>
+        columns={columns}
+        dataSource={creditList}
+        loading={loading}
+        pagination={{
+          showSizeChanger: false,
+          current: currentPage,
+          pageSize: 10,
+          total,
+          onChange,
+        }}
+      />
+    </ConfigProvider>
   );
 };

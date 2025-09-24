@@ -168,7 +168,7 @@ const AuthCode = ({
         <div className="text-[55px] leading-[66px] font-bold mb-[20px]">TeleGPT </div>
         <div className="text-[28px] leading-[27px] font-medium mb-[30px]">Message Smarter with AI. Achieve More.</div>
         <p className="text-[18px] text-[#666666] text-center">
-          Welcome to the official Telegpt web client. Built for speed, performance, and privacy. Your conversations remain yours — we never read or save any messages. Feel safe using it.
+          Welcome to the official TelyAI web client. Built for speed, performance, and privacy. Your conversations remain yours — we never read or save any messages. Feel safe using it.
         </p>
       </div>
       <div className="auth-form flex flex-row items-center gap-[2rem] rounded-[1rem] px-[48px] py-[26px] bg-[#FFFBFF66] max-w-[60rem] mx-auto">

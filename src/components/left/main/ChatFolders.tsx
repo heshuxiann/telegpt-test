@@ -1,6 +1,7 @@
-import React from '@teact';
+/* eslint-disable @stylistic/max-statements-per-line */
 import type { FC } from '@teact';
-import { memo, useEffect, useMemo, useRef ,useState ,useCallback} from '@teact';
+import React from '@teact';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from '@teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type { ApiChatFolder, ApiChatlistExportedInvite, ApiSession } from '../../../api/types';
@@ -23,11 +24,13 @@ import buildClassName from '../../../util/buildClassName';
 import captureEscKeyListener from '../../../util/captureEscKeyListener';
 import { captureEvents, SwipeDirection } from '../../../util/captureEvents';
 import { MEMO_EMPTY_ARRAY } from '../../../util/memo';
+import { resolveTransitionName } from '../../../util/resolveTransitionName.ts';
 import ActiveTag from '../../chatAssistant/ai-chatfolders/active-tag';
 import AIChatFoldersTip, { AIChatFolderStep } from '../../chatAssistant/ai-chatfolders/ai-chatfolders-tip';
 import PresetTagModal from '../../chatAssistant/ai-chatfolders/preset-modal';
 import { filterAITag, filterPresetTag } from '../../chatAssistant/ai-chatfolders/tag-filter';
 import { filterAIFolder } from '../../chatAssistant/ai-chatfolders/util';
+import UpgradeTip from '../../chatAssistant/component/upgrade-tip.tsx';
 import {
   ChataiStores, GLOBAL_AI_TAG, GLOBAL_AICHATFOLDERS_TIP_SHOW, GLOBAL_PRESET_TAG,
 } from '../../chatAssistant/store';
@@ -35,7 +38,6 @@ import { renderTextWithEntities } from '../../common/helpers/renderTextWithEntit
 
 import useDerivedState from '../../../hooks/useDerivedState';
 import useFlag from '../../../hooks/useFlag';
-import { resolveTransitionName } from '../../../util/resolveTransitionName.ts';
 import {
   useFolderManagerForUnreadChatsByFolder,
   useFolderManagerForUnreadCounters,
@@ -75,6 +77,7 @@ type StateProps = {
   sessions?: Record<string, ApiSession>;
   isAccountFrozen?: boolean;
   aiChatFolders?: boolean;
+  subscriptionType?: string;
 };
 
 const SAVED_MESSAGES_HOTKEY = '0';
@@ -101,6 +104,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   sessions,
   isAccountFrozen,
   aiChatFolders,
+  subscriptionType,
 }) => {
   const {
     loadChatFolders,
@@ -111,9 +115,9 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     openEditChatFolder,
     openLimitReachedModal,
     markChatMessagesRead,
-    openSettingsScreen
+    openSettingsScreen,
   } = getActions();
-   // eslint-disable-next-line no-null/no-null
+
   const transitionRef = useRef<HTMLDivElement>();
   const [shouldRenderPresetTagModal, openRenderPresetTagModal, closeRenderPresetTagModal] = useFlag();
   const [activePresetTag, setActivePresetTag] = useState<string[]>([]);
@@ -122,8 +126,6 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
 
   const [aiChatFoldersStep, setAiChatFoldersStep] = useState<AIChatFolderStep>(AIChatFolderStep.classify);
   const [aiChatFoldersloading, setAiChatFoldersLoading] = useState<boolean>(false);
-
-  
 
   const lang = useLang();
 
@@ -459,7 +461,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
   }, [aiChatFoldersloading, shouldRenderAiChatFoldersTip, aiChatFolders]);
 
   const updateAIChatFoldsLoading = useCallback(async (
-    { loading, isShowTip } : { loading: boolean; isShowTip?: boolean },
+    { loading, isShowTip }: { loading: boolean; isShowTip?: boolean },
   ) => {
     setAiChatFoldersLoading(loading);
     const tipShowRes = await ChataiStores.general?.get(GLOBAL_AICHATFOLDERS_TIP_SHOW);
@@ -484,7 +486,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     withShouldRender: true,
   });
 
-    function getFolderType() {
+  function getFolderType() {
     if (isInAllChatsFolder) {
       return 'all';
     } else if (isInPresetFolder) {
@@ -516,7 +518,7 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
         sessions={sessions}
         isAccountFrozen={isAccountFrozen}
         activeTag={shouldRenderFolders
-          ? (folderTabs![activeChatFolder]?.id === PRESET_FOLDER_ID ? activePresetTag : activeAITag) : []}
+          ? (folderTabs[activeChatFolder]?.id === PRESET_FOLDER_ID ? activePresetTag : activeAITag) : []}
       />
     );
   }
@@ -553,18 +555,18 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
         )}
       {shouldRenderFolders && shouldRenderPresetTagModal && (
         <PresetTagModal
-          activeTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? activePresetTag : activeAITag}
-          setActiveTag={folderTabs![activeChatFolder].id === PRESET_FOLDER_ID ? setActivePresetTag : setActiveAITag}
+          activeTag={folderTabs[activeChatFolder].id === PRESET_FOLDER_ID ? activePresetTag : activeAITag}
+          setActiveTag={folderTabs[activeChatFolder].id === PRESET_FOLDER_ID ? setActivePresetTag : setActiveAITag}
           isOpen={shouldRenderPresetTagModal}
           onClose={closeRenderPresetTagModal}
-          folderId={folderTabs![activeChatFolder].id}
+          folderId={folderTabs[activeChatFolder].id}
         />
       )}
       {shouldRenderFolders && (
         <ActiveTag
           folderType={getFolderType()}
-          tags={folderTabs![activeChatFolder]?.id === PRESET_FOLDER_ID ? activePresetTag : activeAITag}
-          setActiveTag={folderTabs![activeChatFolder]?.id === PRESET_FOLDER_ID ? setActivePresetTag : setActiveAITag}
+          tags={folderTabs[activeChatFolder]?.id === PRESET_FOLDER_ID ? activePresetTag : activeAITag}
+          setActiveTag={folderTabs[activeChatFolder]?.id === PRESET_FOLDER_ID ? setActivePresetTag : setActiveAITag}
         />
       )}
       <Transition
@@ -575,6 +577,9 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
       >
         {renderCurrentTab}
       </Transition>
+      {subscriptionType && (subscriptionType === 'free' || subscriptionType === 'basic') && (
+        <UpgradeTip subscriptionType={subscriptionType} />
+      )}
     </div>
   );
 };
@@ -601,6 +606,7 @@ export default memo(withGlobal<OwnProps>(
       },
       currentUserId,
       archiveSettings,
+      subscriptionInfo,
     } = global;
     let orderedFolderIds = global.chatFolders.orderedIds;
     const { shouldSkipHistoryAnimations, activeChatFolder } = selectTabState(global);
@@ -611,6 +617,7 @@ export default memo(withGlobal<OwnProps>(
       orderedFolderIds = filterAIFolder(orderedFolderIds);
     }
     const { animationLevel } = selectSharedSettings(global);
+    const subscriptionType = subscriptionInfo?.subscriptionType || 'free';
 
     return {
       chatFoldersById,
@@ -630,6 +637,7 @@ export default memo(withGlobal<OwnProps>(
       sessions,
       isAccountFrozen,
       aiChatFolders,
+      subscriptionType,
     };
   },
 )(ChatFolders));

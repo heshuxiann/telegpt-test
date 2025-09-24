@@ -181,6 +181,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
               creditBalance: res.data.creditBalance,
               createdAt: res.data.createdAt,
               subscriptionExpiresAt: res.data.subscriptionExpiresAt,
+              isExpirated: res.data.isExpirated,
             });
           }
         });

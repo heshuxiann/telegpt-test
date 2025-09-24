@@ -642,8 +642,8 @@ const RightHeader: FC<OwnProps & StateProps> = ({
         return (
           <div className="header chat-ai-header w-full flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img className="rounded-full" src={SerenaLogoPath} alt="Tely AI" />
-              <h3 className="title">{oldLang('Tely AI')}</h3>
+              <img className="rounded-full" src={SerenaLogoPath} alt="TelyAI" />
+              <h3 className="title">{oldLang('TelyAI')}</h3>
             </div>
             <DropdownMenu
               trigger={AISettingMenuButton}

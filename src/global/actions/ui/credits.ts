@@ -9,7 +9,9 @@ addActionHandler('updateSubscriptionInfo', (global, actions, payload): ActionRet
   const { subscriptionType,
     creditBalance,
     createdAt,
-    subscriptionExpiresAt } = payload;
+    subscriptionExpiresAt,
+    isExpirated,
+  } = payload;
 
   // Update global credits state
   global = {
@@ -19,6 +21,7 @@ addActionHandler('updateSubscriptionInfo', (global, actions, payload): ActionRet
       creditBalance,
       createdAt,
       subscriptionExpiresAt,
+      isExpirated,
     },
   };
   setGlobal(global);

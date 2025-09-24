@@ -229,7 +229,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
           ) : (
             <div className="flex items-center gap-2" data-readable>
               <img src={SerenaPath} className="w-[18px] h-[18px]" />
-              Tely AI
+              TelyAI
             </div>
           )}
           <div className="flex flex-col gap-[6px] mt-2" data-readable>
@@ -243,7 +243,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
         <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)]">
           <div className="font-[600] text-[16px]" data-readable>Key Highlights:</div>
           <div className="flex flex-col mt-2">
-            {summaryInfo?.map((item: any, index: number) => {
+            {summaryInfo && summaryInfo?.map((item: any, index: number) => {
               return (
                 <div className="flex flex-col" key={index}>
                   <div className="flex flex-row items-center flex-wrap">

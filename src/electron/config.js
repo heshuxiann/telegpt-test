@@ -1,11 +1,11 @@
 /* eslint-disable no-template-curly-in-string */
 const config = {
-  productName: 'TeleGPT',
+  productName: 'TelyAI',
   artifactName: '${productName}-${arch}.${ext}',
-  appId: 'org.telegpt.telegpt',
+  appId: 'org.telyai.telyai',
   extraMetadata: {
     main: './dist/electron.cjs',
-    productName: 'TeleGPT',
+    productName: 'TelyAI',
   },
   asarUnpack: [
     'build/Release/electron_drag_click.node',

@@ -8,19 +8,16 @@ import { getActions } from '../../../global';
 import type { FolderEditDispatch } from '../../../hooks/reducers/useFoldersReducer';
 import { LeftColumnContent } from '../../../types';
 
-import { PRODUCTION_URL } from '../../../config';
-import { IS_ELECTRON, IS_TOUCH_ENV } from '../../../util/browser/windowEnvironment';
-import buildClassName from '../../../util/buildClassName';
+import { IS_TOUCH_ENV } from '../../../util/browser/windowEnvironment';
 import { fireBaseAnalytics, UPDATE_DEFER_KEY } from '../../chatAssistant/utils/firebase_analytics';
 import { compareVersion } from '../../chatAssistant/utils/util';
 
 import useForumPanelRender from '../../../hooks/useForumPanelRender';
 import useLastCallback from '../../../hooks/useLastCallback';
 import useOldLang from '../../../hooks/useOldLang';
+
 // import useShowTransitionDeprecated from '../../../hooks/useShowTransitionDeprecated';
 import eventEmitter, { Actions } from '../../chatAssistant/lib/EventEmitter';
-import useShowTransitionDeprecated from '../../../hooks/useShowTransitionDeprecated';
-
 import Button from '../../ui/Button';
 import Transition from '../../ui/Transition';
 import NewChatButton from '../NewChatButton';
@@ -82,9 +79,8 @@ const LeftMain: FC<OwnProps> = ({
 
   const handleFireBaseUpdate = (payload: any) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-shadow
       const { webFireBase } = payload;
-      // eslint-disable-next-line @typescript-eslint/naming-convention
+
       const { force_update_current_version } = webFireBase;
       const [version] = JSON.parse(localStorage.getItem(UPDATE_DEFER_KEY) || '["0.0.0",0]');
       const compareRes = compareVersion(version, force_update_current_version);
@@ -165,10 +161,12 @@ const LeftMain: FC<OwnProps> = ({
   });
 
   const handleUpdateClick = useLastCallback(() => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
     fireBaseAnalytics.deferUpdate(webFireBase?.force_update_current_version!);
     // window.location.reload();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
     if (webFireBase?.force_update_store_url!) {
-      window.location.href = webFireBase?.force_update_store_url!;
+      window.location.href = webFireBase?.force_update_store_url;
     } else {
       window.location.reload();
     }

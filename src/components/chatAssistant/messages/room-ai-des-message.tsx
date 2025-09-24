@@ -41,7 +41,7 @@ const RoomAIDescriptionMessage = ({ message }:{ message:Message }) => {
       <div className="px-3 py-2 rounded-xl text-[var(--color-text)] bg-white dark:bg-[#292929]">
         <p className="text-[14px]">
           👋 Hi, welcome to 【{chat?.title}】!
-          I’m Tely AI 🤖, your smart assistant here.
+          I’m TelyAI 🤖, your smart assistant here.
         </p>
         <div className="mt-[0.5rem]">
           <h3 className="text-[14px] font-semibold">🚀 Here’s what I can help you with:</h3>

@@ -30,7 +30,7 @@ class UrgentCheckTask {
     }
     this.timmer = setInterval(() => {
       const { subscription_info } = telegptSettings.telegptSettings;
-      if ((subscription_info.pro && !subscription_info.pro.is_expirated) || (subscription_info.plus && !subscription_info.plus.is_expirated)) {
+      if ((subscription_info.subscription_type === 'basic' || subscription_info.subscription_type === 'plus' || subscription_info.subscription_type === 'pro') && !subscription_info.is_expirated) {
         this.checkUrgentMessage();
       }
     }, 1000 * 60 * 5); // 每5分钟检查一次

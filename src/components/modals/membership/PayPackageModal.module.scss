@@ -79,7 +79,7 @@
 .pricingCard {
   position: relative;
   width: 336px;
-  background: #ffffff;
+  background: var(--color-background);
   border: 1px solid #F1F2F9;
   border-radius: 24px;
   padding: 32px 24px;
@@ -96,7 +96,7 @@
   }
 
   &.selected {
-    background-color: #369cff;
+    background-color: var(--color-primary);
     box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
     transform: translateY(-2px);
     .planTitle,
@@ -229,7 +229,7 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background-color: #369cff;
+  background-color: var(--color-primary);
   flex-shrink: 0;
   margin-top: 2px;
   display: flex;
@@ -248,7 +248,6 @@
   }
 
   .pricingCard {
-    background: var(--color-background);
     border-color: var(--color-borders);
   }
 
@@ -265,12 +264,11 @@
   }
 
   .creditsInfo {
-    background: var(--color-background-secondary);
     color: var(--color-text-secondary);
   }
 
   .upgradeButton {
-    background: var(--color-background);
+    background: var(--color-primary);
     border-color: var(--color-borders);
     color: var(--color-text);
 
