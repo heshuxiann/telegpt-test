@@ -3,7 +3,6 @@ import { getActions, getGlobal } from '../../../global';
 
 import type { TabState } from '../../../global/types';
 
-import { telegptSettings } from '../../chatAssistant/api/user-settings';
 import { getSubscriptionInfo } from '../../chatAssistant/utils/telegpt-api';
 
 import Icon from '../../common/icons/Icon';
@@ -15,9 +14,11 @@ export type OwnProps = {
   modal: TabState['payPackageModal'];
 };
 
+type AllPlanType = 'free' | 'basic' | 'pro' | 'plus';
 type PlanType = 'basic' | 'pro' | 'plus';
 
-const PLAN_ORDER: Record<PlanType, number> = {
+const PLAN_ORDER: Record<AllPlanType, number> = {
+  free: 0,
   basic: 1,
   pro: 2,
   plus: 3,
@@ -110,19 +111,19 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
 };
 
 const PayPackageModal = ({ modal }: OwnProps) => {
-  const { subscription_info } = telegptSettings.telegptSettings;
-  const { subscriptionType } = subscription_info;
+  const { subscriptionInfo } = getGlobal();
+  const { subscriptionType } = subscriptionInfo;
   const { closePayPackageModal } = getActions();
   const [selectedPlan, setSelectedPlan] = useState<PlanType>(
     subscriptionType === 'basic' ? 'pro' : subscriptionType === 'pro' ? 'plus' : subscriptionType === 'plus' ? 'plus' : 'basic',
   );
-  const [subscriptionInfo, setSubscriptionInfo] = useState(subscription_info);
+  const [curSubscriptionInfo, setCurSubscriptionInfo] = useState(subscriptionInfo);
 
   useEffect(() => {
     if (modal?.isOpen) {
       getSubscriptionInfo().then(({ code, data }) => {
         if (code === 0) {
-          setSubscriptionInfo(data);
+          setCurSubscriptionInfo(data);
           const { subscriptionType } = data;
           setSelectedPlan(subscriptionType === 'basic' ? 'pro' : subscriptionType === 'pro' ? 'plus' : subscriptionType === 'plus' ? 'plus' : 'basic');
         }
@@ -137,7 +138,7 @@ const PayPackageModal = ({ modal }: OwnProps) => {
   const handleUpgrade = useCallback((plan: PlanType) => {
     const buttonLink = PRICING_PLANS[plan].buttonLink;
     const currentUserId = getGlobal().currentUserId;
-    const currentPlan: PlanType = subscriptionInfo.subscriptionType as PlanType;
+    const currentPlan: PlanType = curSubscriptionInfo.subscriptionType as PlanType;
     if (!currentUserId) {
       return;
     }
@@ -148,7 +149,7 @@ const PayPackageModal = ({ modal }: OwnProps) => {
       console.warn('只能升级到比当前更高的套餐');
     }
     closePayPackageModal();
-  }, [subscriptionInfo.subscriptionType]);
+  }, [curSubscriptionInfo.subscriptionType]);
 
   const handlePlanSelect = useCallback((plan: PlanType) => {
     setSelectedPlan(plan);
@@ -212,9 +213,9 @@ const PayPackageModal = ({ modal }: OwnProps) => {
                     }}
                   >
                     <span>
-                      {subscriptionInfo.subscriptionType === planType ? 'Your current plan' : 'Upgrade'}
+                      {curSubscriptionInfo.subscriptionType === planType ? 'Your current plan' : 'Upgrade'}
                     </span>
-                    {subscriptionInfo.subscriptionType !== planType && (
+                    {curSubscriptionInfo.subscriptionType !== planType && (
                       <Icon name="arrow-right" />
                     )}
                   </button>

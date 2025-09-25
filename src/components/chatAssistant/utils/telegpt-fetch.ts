@@ -4,7 +4,6 @@ import { getGlobal } from '../../../global';
 import { SERVER_API_URL } from '../../../config';
 import { getUserFullName } from '../../../global/helpers';
 import { selectUser } from '../../../global/selectors';
-import { handlePaymentError } from '../../../util/paymentErrorHandler';
 
 const SECRET = 'telgpt-sha256-secret';
 
@@ -77,7 +76,6 @@ export function TelegptFetch(
     body: mBody,
   }).then((response) => response.json())
     .then((res) => {
-      handlePaymentError(res);
       return res;
     });
 }

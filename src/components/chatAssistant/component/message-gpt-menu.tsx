@@ -17,6 +17,7 @@ import {
   selectRequestedMessageTranslationLanguage,
 } from '../../../global/selectors';
 import { isUserId } from '../../../util/entities/ids';
+import { checkCredisBalance } from '../../../util/paymentErrorHandler';
 import {
   audioSummary, canSummarize,
   checkIsUrl, documentSummary, photoSummary, videoSummary, voiceToAudioSummary, webPageSummary,
@@ -58,10 +59,15 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
 }) => {
   const canSerenaAI = canScheduleMeeting || canAISummarize || canSmartReply || canTranslate;
   const [isSchedulingMeeting, setIsSchedulingMeeting] = useState(false);
+  const { openPayPackageModal } = getActions();
 
   const handleScheduleMeeting = useLastCallback(async () => {
+    if (!checkCredisBalance()) {
+      openPayPackageModal();
+      return;
+    }
     if (!subscriptionType || subscriptionType === 'free' || subscriptionType === 'basic') {
-      getActions().openPayPackageModal();
+      openPayPackageModal();
       return;
     }
     if (isSchedulingMeeting) return;
@@ -90,6 +96,10 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
     }
   });
   const handleSmartReply = useLastCallback(async () => {
+    if (!checkCredisBalance()) {
+      openPayPackageModal();
+      return;
+    }
     if (message.content.text?.text) {
       getActions().updateDraftReplyInfo({
         replyToMsgId: message.id, replyToPeerId: undefined, quoteText: undefined, quoteOffset: undefined,
@@ -111,6 +121,10 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
     }
   });
   const handleSummarize = useLastCallback(() => {
+    if (!checkCredisBalance()) {
+      openPayPackageModal();
+      return;
+    }
     const {
       photo, document, webPage, voice, audio, text, video,
     } = message.content;
@@ -132,6 +146,10 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
   });
 
   const handleTranslate = useLastCallback(() => {
+    if (!checkCredisBalance()) {
+      openPayPackageModal();
+      return;
+    }
     getActions().requestMessageTranslation({
       chatId: message.chatId,
       id: message.id,

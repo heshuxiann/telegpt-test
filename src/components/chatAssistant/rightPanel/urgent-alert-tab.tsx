@@ -1,7 +1,6 @@
-/* eslint-disable no-console */
-
 import React, { useCallback, useState } from 'react';
 import { message as showMessage } from 'antd';
+import { getActions, getGlobal } from '../../../global';
 
 import type { IUrgentTopic } from '../api/user-settings';
 
@@ -35,8 +34,12 @@ const TopicItem = ({ topic, onDelete }: { topic: IUrgentTopic; onDelete: (id: st
 const AddTopic = () => {
   const { openDrawer } = useDrawerStore();
   const handleAddTopic = () => {
-    console.log('add topic');
-    openDrawer(DrawerKey.AddTopicPanel);
+    const { subscriptionInfo } = getGlobal();
+    if ((subscriptionInfo.subscriptionType === 'plus' || subscriptionInfo.subscriptionType === 'pro') && !subscriptionInfo.isExpirated) {
+      openDrawer(DrawerKey.AddTopicPanel);
+    } else {
+      getActions().openPayPackageModal();
+    }
   };
   return (
     <div

@@ -326,6 +326,14 @@ export const INITIAL_GLOBAL_STATE: GlobalState = {
   byTabId: {},
   sharedState: INITIAL_SHARED_STATE,
 
+  subscriptionInfo: {
+    subscriptionType: 'free',
+    creditBalance: 0,
+    createdAt: '',
+    subscriptionExpiresAt: '',
+    isExpirated: false,
+  },
+
   archiveSettings: {
     isMinimized: false,
     isHidden: false,

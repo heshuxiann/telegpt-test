@@ -1,11 +1,10 @@
-/* eslint-disable no-null/no-null */
-/* eslint-disable max-len */
 import React, { useEffect } from 'react';
 import type { Message } from 'ai';
 import { Popover } from 'antd';
 import { getActions } from '../../../global';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
+import { checkCredisBalance } from '../../../util/paymentErrorHandler';
 import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import {
   createNewFeatureReminderMessage, generateRoomActionItems, scheduleGoogleMeeting, summaryRoomMessage,
@@ -20,7 +19,7 @@ interface OwnProps {
   insertMessage: (message: Message) => void;
   setIsLoading: (isLoading: boolean) => void;
 }
-const RoomActions = ({ chatId, insertMessage, setIsLoading }:OwnProps) => {
+const RoomActions = ({ chatId, insertMessage, setIsLoading }: OwnProps) => {
   const { scrollToBottom } = useScrollToBottom();
 
   const handleScheduleMeeting = () => {
@@ -30,6 +29,10 @@ const RoomActions = ({ chatId, insertMessage, setIsLoading }:OwnProps) => {
   };
 
   const handleSummarize = () => {
+    if (!checkCredisBalance()) {
+      getActions().openPayPackageModal();
+      return;
+    }
     if (chatId) {
       setIsLoading(true);
       summaryRoomMessage(chatId, insertMessage, () => setIsLoading(false));
@@ -38,11 +41,19 @@ const RoomActions = ({ chatId, insertMessage, setIsLoading }:OwnProps) => {
   };
 
   const handleMediaSummarize = () => {
+    if (!checkCredisBalance()) {
+      getActions().openPayPackageModal();
+      return;
+    }
     const { openRoomAttachmentsModal } = getActions();
     openRoomAttachmentsModal();
   };
 
   const handleActionItems = () => {
+    if (!checkCredisBalance()) {
+      getActions().openPayPackageModal();
+      return;
+    }
     if (chatId) {
       setIsLoading(true);
       generateRoomActionItems(chatId, insertMessage, () => setIsLoading(false));
@@ -55,7 +66,7 @@ const RoomActions = ({ chatId, insertMessage, setIsLoading }:OwnProps) => {
     insertMessage(newFeatureMessage);
   };
 
-  const handleActions = (payload:any) => {
+  const handleActions = (payload: any) => {
     const { action } = payload;
     if (payload.chatId === chatId) {
       switch (action) {

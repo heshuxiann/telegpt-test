@@ -88,7 +88,7 @@ const InputGrammar = (props:InputGrammerProps) => {
         footer={null}
         open={errorsModalVisible}
         onCancel={closeErrorModal}
-        destroyOnClose
+        destroyOnHidden
         style={{ top: errorsModalPosition.top, left: errorsModalPosition.left } as React.CSSProperties}
       >
         <ErrorsReview

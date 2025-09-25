@@ -8,6 +8,7 @@ import type { ApiUser } from '../../../api/types';
 import type { UserPortraitInfo } from '../../chatAssistant/store/user-portrait-store';
 
 import buildClassName from '../../../util/buildClassName';
+import { checkCredisBalance } from '../../../util/paymentErrorHandler';
 import { ChataiStores } from '../../chatAssistant/store';
 
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -37,6 +38,10 @@ const PortraitEntry = ({ user, subscriptionType }: { user: ApiUser; subscription
   const [userInfo, setUserInfo] = useState<UserPortraitInfo>();
 
   const handlePortraitClick = useLastCallback(() => {
+    if (!checkCredisBalance()) {
+      openPayPackageModal();
+      return;
+    }
     if (subscriptionType === 'plus') {
       openUserPortrait({ userId: user?.id });
     } else {

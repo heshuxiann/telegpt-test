@@ -32,7 +32,6 @@ import {
 import { pause, throttleWithTickEnd } from '../../../util/schedulers';
 import { deleteStoryFromUserPortraitMessage, handleStoryToUserPortraitMessage } from '../../../util/userPortrait';
 import ChatAIMessageQuene from '../../../components/chatAssistant/ai-task/chatai-task';
-import { telegptSettings } from '../../../components/chatAssistant/api/user-settings';
 import { ChataiStores } from '../../../components/chatAssistant/store';
 import hasMeetingIntent from '../../../components/chatAssistant/utils/meeting-match';
 
@@ -344,8 +343,8 @@ function sendToAIAgent(data: ApiUpdate) {
 }
 
 async function isIntentionToScheduleMeeting(message: ApiMessage) {
-  const { subscription_info } = telegptSettings.telegptSettings;
-  if ((subscription_info.subscriptionType === 'plus' || subscription_info.subscriptionType === 'pro') && !subscription_info.isExpirated) {
+  const { subscriptionInfo } = getGlobal();
+  if ((subscriptionInfo.subscriptionType === 'plus' || subscriptionInfo.subscriptionType === 'pro') && !subscriptionInfo.isExpirated) {
     const messageContent = message?.content?.text?.text;
     const flag = await hasMeetingIntent(messageContent!);
     if (flag) {

@@ -1,11 +1,13 @@
 import React, {
   useEffect, useRef,
 } from '../../../../lib/teact/teact';
+import { getActions } from '../../../../global';
 
 import type { Signal } from '../../../../util/signals';
 
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import parseHtmlAsFormattedText from '../../../../util/parseHtmlAsFormattedText';
+import { checkCredisBalance } from '../../../../util/paymentErrorHandler';
 import { injectComponent } from '../../injectComponent';
 
 import useFlag from '../../../../hooks/useFlag';
@@ -57,6 +59,10 @@ const GrammarToolWrapper = (props: GrammarToolWrapperProps) => {
     undefined,
   );
   const handleToggleMenu = () => {
+    if (!checkCredisBalance()) {
+      getActions().openPayPackageModal();
+      return;
+    }
     if (isGrammarToolOpen) {
       closeGrammarTool();
     } else {

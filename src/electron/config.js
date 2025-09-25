@@ -59,6 +59,7 @@ const config = {
     icon: 'public/icon-electron-macos.icns',
     notarize: true,
     forceCodeSigning: true,
+    timestamp: false,
   },
   dmg: {
     background: 'public/background-electron-dmg.tiff',

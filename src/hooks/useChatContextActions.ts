@@ -11,6 +11,7 @@ import {
 import { IS_ELECTRON, IS_OPEN_IN_NEW_TAB_SUPPORTED } from '../util/browser/windowEnvironment';
 import { isUserId } from '../util/entities/ids';
 import { compact } from '../util/iteratees';
+import { checkCredisBalance } from '../util/paymentErrorHandler';
 import useLang from './useLang';
 
 const useChatContextActions = ({
@@ -92,6 +93,10 @@ const useChatContextActions = ({
       title: 'User Portrait',
       icon: 'portrait-icon',
       handler: () => {
+        if (!checkCredisBalance()) {
+          openPayPackageModal();
+          return;
+        }
         const subscriptionInfo = getGlobal().subscriptionInfo;
         if (subscriptionInfo.subscriptionType === 'plus') {
           openUserPortrait({

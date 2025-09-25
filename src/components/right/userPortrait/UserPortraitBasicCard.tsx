@@ -15,6 +15,7 @@ import { ChataiStores } from '../../chatAssistant/store';
 import useLastCallback from '../../../hooks/useLastCallback';
 
 import './UserPortrait.scss';
+import { checkCredisBalance } from '../../../util/paymentErrorHandler';
 
 type StateProps = {
   user?: ApiUser;
@@ -48,6 +49,10 @@ const UserPortraitBaseCard: FC<StateProps & OwnProps> = ({ userId, user, onClose
   }, [userId]);
 
   const handlePortraitClick = useLastCallback(() => {
+    if (!checkCredisBalance()) {
+      getActions().openPayPackageModal();
+      return;
+    }
     const subscriptionInfo = getGlobal().subscriptionInfo;
     if (subscriptionInfo.subscriptionType === 'plus') {
       getActions().openUserPortrait({ userId });
