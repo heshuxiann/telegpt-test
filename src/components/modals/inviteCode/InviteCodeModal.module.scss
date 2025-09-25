@@ -7,8 +7,7 @@
 
 .modal{
   :global(.modal-backdrop){
-    background-color: rgba(49, 49, 49, 0.4);
-    filter: blur(20px);
+    background-color: rgba(0, 0, 0, 0.5);
   }
 }
 

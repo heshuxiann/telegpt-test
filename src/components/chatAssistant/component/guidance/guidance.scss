@@ -7,6 +7,9 @@
     height: fit-content;
     padding: 0;
   }
+  .modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
 }
 
 .guidance-carousel {
@@ -17,7 +20,7 @@
   max-width: 73rem;
   border-radius: 16px;
   .slick-dots li::after {
-    background: #2996FF;
+    background: #2996ff;
   }
 }
 
@@ -82,13 +85,13 @@
   line-height: 48px;
   text-align: center;
 
-  background:
-    linear-gradient(#fff, #fff) padding-box,
+  background: linear-gradient(#fff, #fff) padding-box,
     linear-gradient(
-      145.18deg,
-      #ffaa32 5.25%,
-      #d632ff 26.51%,
-      #42efff 55.1%,
-      #4621ff 73.57%
-    ) border-box;
+        145.18deg,
+        #ffaa32 5.25%,
+        #d632ff 26.51%,
+        #42efff 55.1%,
+        #4621ff 73.57%
+      )
+      border-box;
 }

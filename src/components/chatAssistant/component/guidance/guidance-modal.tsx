@@ -16,7 +16,6 @@ const GuidanceModal = () => {
 
   const checkInvitationStatus = useLastCallback(async () => {
     const { openInviteCodeModal } = getActions();
-
     try {
       // 先从localStorage获取受邀信息
       const cachedInvitation = localStorage.getItem('user-invitation');

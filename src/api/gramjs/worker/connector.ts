@@ -357,6 +357,12 @@ async function sendToCurrentChatAI(data: ApiUpdate) {
   const global = getGlobal();
   const currentChat = selectCurrentChat(global);
   if (!currentChat) return;
+  let message;
+  if (data['@type'] === 'updateMessage') {
+    message = data.message;
+  }
+  if (!message || !message?.id) return;
+  if (currentChat?.id !== message?.chatId) return;
 
   const { realTimeAssistants } = selectSharedSettings(global);
   let realTimeAssistantById = false;
@@ -370,9 +376,7 @@ async function sendToCurrentChatAI(data: ApiUpdate) {
   }
   if (!realTimeAssistantById) return;
 
-  let message;
   if (data['@type'] === 'updateMessage') {
-    message = data.message;
     if ((message?.content?.video && !message?.content?.video?.id)
       || (message?.content?.document && !message?.content?.document?.id)
       || (message?.content?.voice && !message?.content?.voice?.id)
@@ -381,7 +385,6 @@ async function sendToCurrentChatAI(data: ApiUpdate) {
       return;
     }
   }
-  if (!message || !message?.id) return;
   if (global?.currentUserId === message?.senderId) return;
 
   if (currentChat?.id === message?.chatId) {

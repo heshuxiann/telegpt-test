@@ -2,7 +2,7 @@ import type { ApiMessage } from '../../../api/types';
 
 // eslint-disable-next-line import/no-cycle
 import {
-  audioSummary, checkIsUrl, documentSummary, replyToMention, videoSummary, voiceToAudioSummary, webPageSummary,
+  audioSummary, checkIsUrl, documentSummary, photoSummary, replyToMention, videoSummary, voiceToAudioSummary, webPageSummary,
 } from '../utils/ai-analyse-message';
 
 class RoomAIMessageListener {
@@ -17,7 +17,7 @@ class RoomAIMessageListener {
     } else if ((webPage && !text?.text) || isUrl) {
       webPageSummary(message, true);
     } else if (photo) {
-      // photoSummary(message, true);
+      photoSummary(message, true);
     } else if (voice) {
       voiceToAudioSummary(message, true);
     } else if (audio) {

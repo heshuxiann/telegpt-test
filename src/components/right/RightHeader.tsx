@@ -264,7 +264,7 @@ const RightHeader: FC<OwnProps & StateProps> = ({
     if (chatId && realTimeAssistants?.[chatId] !== undefined) {
       return realTimeAssistants[chatId];
     } else if (chatType === 'user') {
-      return true;
+      return false;
     } else {
       return false;
     }

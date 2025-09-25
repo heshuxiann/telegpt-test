@@ -48,9 +48,9 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
     buttonLink: 'https://buy.stripe.com/test_00w6oIfulavq6wl7tv4Ni04',
     features: [
       'Global Chat Summary (1 every 24h)',
-      'Up to 100 Group Chat Summary ',
-      'Up to 10 Images Summary ',
-      'Up to 5min video & Voice Summary',
+      'Up to 250 Group Chat Summary ',
+      'Up to 200 Images Summary ',
+      'Up to 60 mins video & Voice Summary',
       'Up to 10k-characters AI Translation',
       'Up to 10k-characters Grammar Check',
       'Up to 60-pages Web & Doc Summary',
@@ -70,14 +70,14 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
     features: [
       'Global Chat Summary (1 every 8h）',
       'Up to 1k Group Chat Summary',
-      'Up to 100 Images Summary',
+      'Up to 1k Images Summary',
       'Up to 300 min Video & Voice Summary',
       'Up to 300k-characters AI Translation',
       'Up to 300k-characters Grammar Check',
-      'Up to 25k-pages Web & Doc Summary',
-      'Up to 2 Urgent Alert Key Topics',
-      'AI Chat Folders',
+      'Up to 300 pages Web & Doc Summary',
       'Up to 120 Schedule Meetings',
+      'Urgent Alert',
+      'AI Chat Folders',
       'Priority Support',
     ],
     buttonText: 'Upgrade',
@@ -94,15 +94,15 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
     features: [
       'Global Chat Summary (1 every 8h）',
       'Up to 2k Group Chat Summary ',
-      'Up to 200 Images Summary ',
+      'Up to 2k Images Summary ',
       'Up to 600 min Video & Voice Summary',
       'Up to 600k-characters AI Translation',
       'Up to 600k-characters Grammar Check',
-      'Up to 50k-pages Web & Doc Summary',
-      'Up to 10 Urgent Alert Key Topics',
+      'Up to 600 pages Web & Doc Summary',
+      'Unlimited Schedule Meetings',
+      'Urgent Alert',
       'AI Chat Folders',
       'Users Portrait',
-      'Unlimited Schedule Meetings',
       'Priority Support',
     ],
     buttonText: 'Upgrade',
@@ -113,7 +113,7 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
 const PayPackageModal = ({ modal }: OwnProps) => {
   const { subscriptionInfo } = getGlobal();
   const { subscriptionType } = subscriptionInfo;
-  const { closePayPackageModal } = getActions();
+  const { closePayPackageModal, updateSubscriptionInfo } = getActions();
   const [selectedPlan, setSelectedPlan] = useState<PlanType>(
     subscriptionType === 'basic' ? 'pro' : subscriptionType === 'pro' ? 'plus' : subscriptionType === 'plus' ? 'plus' : 'basic',
   );
@@ -124,8 +124,15 @@ const PayPackageModal = ({ modal }: OwnProps) => {
       getSubscriptionInfo().then(({ code, data }) => {
         if (code === 0) {
           setCurSubscriptionInfo(data);
-          const { subscriptionType } = data;
+          const { subscriptionType, creditBalance, createdAt, subscriptionExpiresAt, isExpirated } = data;
           setSelectedPlan(subscriptionType === 'basic' ? 'pro' : subscriptionType === 'pro' ? 'plus' : subscriptionType === 'plus' ? 'plus' : 'basic');
+          updateSubscriptionInfo({
+            subscriptionType,
+            creditBalance,
+            createdAt,
+            subscriptionExpiresAt,
+            isExpirated,
+          });
         }
       });
     }
