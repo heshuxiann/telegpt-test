@@ -297,7 +297,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
         <DropdownMenu
           trigger={MainButton}
           // footer={`${APP_NAME} ${versionString}`}
-          footer={`TeleGPT ${version || ''}`}
+          footer={`TelyAI ${version || ''}`}
           className={buildClassName(
             'main-menu',
             oldLang.isRtl && 'rtl',
