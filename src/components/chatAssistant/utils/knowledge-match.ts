@@ -3,8 +3,6 @@ import { pipeline } from '@xenova/transformers';
 
 import { ChataiStores } from '../store';
 
-const sentenceEmbedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
-
 // 从知识库获取关键词列表
 async function getKnowledgeKeywords(): Promise<string[]> {
   try {
@@ -50,7 +48,7 @@ async function semanticSimilarityIntent(text: string): Promise<boolean> {
     if (keywords.length === 0) {
       return false;
     }
-
+    const sentenceEmbedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
     // 将用户输入与知识库样本转换为向量
     const userVector = await sentenceEmbedder(text);
     const userVectorArray = userVector.data;
@@ -99,7 +97,7 @@ async function getBestKnowledgeMatch(text: string): Promise<{ answer: string; sc
     if (!knowledgeList || knowledgeList.length === 0) {
       return undefined;
     }
-
+    const sentenceEmbedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
     // 将用户输入转换为向量
     const userVector = await sentenceEmbedder(text);
     const userVectorArray = userVector.data;

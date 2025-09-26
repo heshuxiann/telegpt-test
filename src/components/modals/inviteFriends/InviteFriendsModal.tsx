@@ -6,7 +6,6 @@ import type { TabState } from '../../../global/types';
 
 import LinkIcon from '../../../components/chatAssistant/assets/invite/link.svg';
 import UserGroupIcon from '../../../components/chatAssistant/assets/invite/user-group.svg';
-import HeaderBg from '../../chatAssistant/assets/share-header-bg.png';
 import { injectComponent } from '../../chatAssistant/injectComponent';
 import { getMyInvitation } from '../../chatAssistant/utils/telegpt-api';
 
@@ -73,7 +72,8 @@ const InviteFriendsModal = ({ modal }: OwnProps) => {
       className={styles.modal}
     >
       <div className={styles.header}>
-        <img src={HeaderBg} alt="" />
+        {/* <img src={HeaderBg} alt="" /> */}
+        <div className={styles.headerBadge}></div>
         <Icon className="text-[18px] cursor-pointer z-10 mt-[1rem]" name="close" onClick={handleClose} />
       </div>
       <div className={styles.content}>

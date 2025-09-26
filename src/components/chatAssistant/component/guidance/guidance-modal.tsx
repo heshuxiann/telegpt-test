@@ -18,11 +18,16 @@ const GuidanceModal = () => {
     const { openInviteCodeModal } = getActions();
     try {
       // 先从localStorage获取受邀信息
-      const cachedInvitation = localStorage.getItem('user-invitation');
+      const cachedInvitation = localStorage.getItem('user-invitation') || undefined;
       if (cachedInvitation) {
-        const invitation = JSON.parse(cachedInvitation);
-        if (invitation && invitation.inviteCode) {
-          return; // 已有受邀信息，无需打开弹窗
+        try {
+          const invitation = JSON.parse(cachedInvitation);
+          if (invitation && invitation.inviteCode) {
+            return; // 已有受邀信息，无需打开弹窗
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('Error parsing invitation:', error);
         }
       }
 

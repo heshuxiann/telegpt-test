@@ -1,7 +1,6 @@
 /* eslint-disable no-null/no-null */
 /* eslint-disable no-console */
 import { pipeline } from '@xenova/transformers';
-const sentenceEmbedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
 
 // 核心会议关键词（多语言）- 专注于会议安排的核心概念
 const GLOBAL_MEETING_KEYWORDS = {
@@ -161,7 +160,7 @@ async function getVectorWithCache(text: string) {
   if (vectorCache.has(text)) {
     return vectorCache.get(text);
   }
-
+  const sentenceEmbedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
   try {
     const vector = await sentenceEmbedder(text);
     const flatVector = Array.from(vector.data);

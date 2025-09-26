@@ -2,6 +2,7 @@
   :global(.modal-dialog) {
     width: 90vw;
     max-width: 550px;
+    overflow: hidden;
   }
 }
 
@@ -13,7 +14,7 @@
   position: absolute;
   top: 0;
   left: 0;
-
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: end;
@@ -22,14 +23,16 @@
   height: 40px;
   padding-right: 1.5rem;
   padding-left: 1.5rem;
-  img {
+  .headerBadge {
     position: absolute;
-    top: 0;
     left: 0;
-
-    width: 100%;
+    top: 0;
+    background-image: url("../../chatAssistant/assets/modal-header-bg.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    filter: blur(12px);
+    width: 475px;
     height: 100%;
-
-    filter: blur(8px);
   }
 }
