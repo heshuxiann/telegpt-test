@@ -259,6 +259,18 @@ export function chatAIUserTags(data: object): Promise<any> {
   });
 }
 
+export function chatAIUserActivities(data: object): Promise<any> {
+  return new Promise((resolve, reject) => {
+    TelegptFetch('/generate-user-activities', 'POST', JSON.stringify(data))
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}
+
 export function chatAIChatFolders(data: object): Promise<{ text: string }> {
   return new Promise((resolve, reject) => {
     TelegptFetch('/classify-generate', 'POST', JSON.stringify(data))

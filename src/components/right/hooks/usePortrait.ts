@@ -9,55 +9,13 @@ import {
   getMessageBySendId,
   groupMessagesByHalfHour,
 } from '../../../util/userPortrait';
-import { replaceToJSON } from '../../chatAssistant/ai-chatfolders/util';
 import { ChataiStores } from '../../chatAssistant/store';
 import { checkIsUrl } from '../../chatAssistant/utils/ai-analyse-message';
-import { chatAIGenerate, chatAIUserTags } from '../../chatAssistant/utils/chat-api';
+import { chatAIUserActivities, chatAIUserTags } from '../../chatAssistant/utils/chat-api';
 
 type Props = {
   userId: string;
 };
-
-const SUMMARY_PROMPT = `
-## 输入字段解释
-   - chatGroups: 聊天组
-    - chatId: 群聊ID
-    - messages: 聊天记录
-     - content: 消息内容
-   - time: 日期
-   - timeRange: 时间范围
-# 输出格式要求
-    ## 去除所有换行符,确保 JSON 结构紧凑
-    ## 严格遵从JSON规范,确保所有的JSON数据正确
-## 各模块输出要求
-  ## mainTopic(主要话题)
-  - 目标：提取各群聊的主要话题、关键数据、时间节点、观点与行动建议，形成“日报风格”的结构化摘要。
-    - title：该群聊消息的主要话题简述，需简洁、明确、贴近群内讨论核心
-    - content：只提取有实际价值的信息，包括但不限于：
-           - 行情数据、交易记录、质押金额、区块信息等
-           - 涉及数字、价格、网址、时间等要素的内容
-           - 用户的观点、经验分享、操作建议、趋势判断等
-    - content 必须剔除下列内容：
-      - 单独的短语、问候、无意义的表情或单字回复（如“来了”“哈”“好”）
-      - 无法单独体现价值的闲聊碎片
-    - 如果多条短句连贯构成有价值的观点或讨论，请合并后保留
-    - 如果某个群聊**没有任何有价值的内容**，则**完全省略该群聊，不在输出中显示**
-    - 输出格式及字段说明：
-      [
-        {
-          time: 日期, // 原样返回
-          timeRange: '时间范围', // 原样返回
-          chatGroups: [{
-            chatId: 群聊ID, // 原样返回
-            title: '8-15字核心议题',
-            summaryItems: {       // 至少1条，最多5条
-              content: 子话题：数据+行为+建议"结构'; 如无总结内容，则直接返回原信息
-              relevantMessageIds: [消息ID1, 消息ID2, ...], // 原样返回
-            }[]
-          }]
-        }
-      ]
-`;
 
 export default function usePortrait({ userId }: Props) {
   const [loading, setLoading] = useState(false);
@@ -137,18 +95,13 @@ export default function usePortrait({ userId }: Props) {
       setLoading(true);
       const global = getGlobal();
       const { autoTranslateLanguage = 'en' } = global.settings.byKey;
-      chatAIGenerate({
-        data: {
-          messages: [
-            { role: 'system', content: SUMMARY_PROMPT },
-            { role: 'system', content: `响应必须完全用以下目标语言编写:${autoTranslateLanguage},不要使用其他语言。` },
-            { role: 'user', content: JSON.stringify(groupMessages) },
-          ],
-        },
-        onResponse: (response) => {
-          const result = replaceToJSON(response);
+      chatAIUserActivities({
+        language: autoTranslateLanguage,
+        groupMessages,
+      }).then((res) => {
+        if (res.code === 0 && res.data && res.data.activities && Array.isArray(res.data.activities)) {
           const resultArr: UserPortraitMessageInfo[] = [];
-          result?.forEach((item: any) => {
+          res.data.activities?.forEach((item: any) => {
             const sourceObj = groupMessages.find((o) => o?.timeRange === item?.timeRange && o?.time === item?.time);
             const obj = {
               id: `${userId}-(${item?.time})-(${item?.timeRange})`,
@@ -174,10 +127,9 @@ export default function usePortrait({ userId }: Props) {
 
           setPortraitMessage((pre) => [...pre, ...resultArr]);
           setLoading(false);
-        },
-        onFinish: () => {
-          setLoading(false);
-        },
+        }
+      }).catch(() => {
+        setLoading(false);
       });
     }
   }, [messages, userId, userInfo]);
