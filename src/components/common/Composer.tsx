@@ -206,6 +206,7 @@ import PaymentMessageConfirmDialog from './PaymentMessageConfirmDialog';
 import ReactionAnimatedEmoji from './reactions/ReactionAnimatedEmoji';
 
 import './Composer.scss';
+import { checkCredisBalance } from '../../util/paymentErrorHandler';
 
 type ComposerType = 'messageList' | 'story';
 
@@ -727,10 +728,10 @@ const Composer: FC<OwnProps & StateProps> = ({
 
   const isEditingRef = useStateRef(Boolean(editingMessage));
 
-  const updateInlineAILoading = useLastCallback((value:boolean) => {
+  const updateInlineAILoading = useLastCallback((value: boolean) => {
     setIsInlineAILoading(value);
   });
-  const updataAIResponse = useLastCallback((text:string) => {
+  const updataAIResponse = useLastCallback((text: string) => {
     setIsInlineAILoading(false);
     setHtml(text);
   });
@@ -1274,25 +1275,28 @@ const Composer: FC<OwnProps & StateProps> = ({
     // TODO:translate text
     const { text } = parseHtmlAsFormattedText(getHtml());
     // TODO:translate text
-    const langCode = RoomStorage.getRoomTranslateLanguage(chatId);
-    if (langCode && text) {
-      setIsInlineAILoading(true);
-      try {
-        const result = await callApi('translateTextByTencent', {
-          text: [{ text }],
-          toLanguageCode: langCode,
-          userId: currentUserId!,
-          userName: getUserFullName(currentUser)!,
-        });
-        if (result && result[0].text) {
-          setHtml(result[0].text);
+    if (checkCredisBalance()) {
+      const inputTranslateOptions = RoomStorage.getRoomInputTranslateOptions(chatId);
+      if (inputTranslateOptions.autoTranslate && text) {
+        setIsInlineAILoading(true);
+        try {
+          const result = await callApi('translateTextByTencent', {
+            text: [{ text }],
+            toLanguageCode: inputTranslateOptions.translateLanguage,
+            userId: currentUserId!,
+            userName: getUserFullName(currentUser)!,
+          });
+          if (result && result[0].text) {
+            setHtml(result[0].text);
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.log(error);
         }
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log(error);
+        setIsInlineAILoading(false);
       }
-      setIsInlineAILoading(false);
     }
+
     handleSendCore(currentAttachments, isSilent, scheduledAt);
     // TODO: collect information from send message
     userInformationCollection.collectInformation(text);
@@ -1927,7 +1931,7 @@ const Composer: FC<OwnProps & StateProps> = ({
   });
 
   const handleStopEffect = useLastCallback(() => {
-    hideEffectInComposer({ });
+    hideEffectInComposer({});
   });
 
   const onSend = useMemo(() => {

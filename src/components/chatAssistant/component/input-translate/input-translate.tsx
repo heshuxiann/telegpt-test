@@ -8,34 +8,41 @@ import useFlag from '../../../../hooks/useFlag';
 
 import './input-translate.scss';
 
-import aiTranslatePath from '../../assets/ai-translate.png';
+import aiTranslatePath from '../../assets/input/translate-input.png';
 
-const InputTranslate = (props:{ chatId:string }) => {
+const InputTranslate = (props: { chatId: string }) => {
   const { chatId } = props;
   const [inputLanguageModalOpen, openInputLanguageModal, closeInputLanguageModal] = useFlag();
-  const [translateLanguage, setTranslateLanguage] = useState<string | undefined>(undefined);
+  const [inputTranslateOptions, setInputTranslateOptions] = useState({
+    translateLanguage: 'en',
+    autoTranslate: false,
+    firstTime: true,
+  });
   const [tooltipOpen, openTooltip, closeTooltip] = useFlag();
   useEffect(() => {
-    setTranslateLanguage(RoomStorage.getRoomTranslateLanguage(chatId));
+    setInputTranslateOptions(RoomStorage.getRoomInputTranslateOptions(chatId));
   }, [chatId]);
-  const updateTranslateLanguage = useCallback((langCode: string | undefined) => {
-    RoomStorage.updateRoomTranslateLanguage(chatId, langCode);
-    setTranslateLanguage(langCode);
-    if (!translateLanguage && langCode) {
+  const updateRoomInputTranslateOptions = useCallback((options: {
+    translateLanguage: string;
+    autoTranslate: boolean;
+    firstTime: boolean;
+  }) => {
+    RoomStorage.updateRoomInputTranslateOptions(chatId, options);
+    if (inputTranslateOptions.firstTime) {
       openTooltip();
       setTimeout(() => {
         closeTooltip();
       }, 5000);
     }
-  }, [chatId, translateLanguage]);
+  }, [chatId, inputTranslateOptions]);
   return (
     <div className="input-ai-actions">
       <button className="Button input-ai-actions-button" onClick={openInputLanguageModal}>
         {
-          translateLanguage
+          inputTranslateOptions.autoTranslate
             ? (
               <span className="text-[var(--color-text-secondary)] text-[14px] font-bold">
-                {translateLanguage.toUpperCase()}
+                {inputTranslateOptions.translateLanguage.toUpperCase()}
               </span>
             )
             : (
@@ -47,10 +54,10 @@ const InputTranslate = (props:{ chatId:string }) => {
         <InputTranslateTip />
       )}
       <InputLanguageModal
-        translateLanguage={translateLanguage}
+        inputTranslateOptions={inputTranslateOptions}
         isOpen={inputLanguageModalOpen}
         closeInputLanguageModal={closeInputLanguageModal}
-        updateTranslateLanguage={updateTranslateLanguage}
+        updateRoomInputTranslateOptions={updateRoomInputTranslateOptions}
       />
     </div>
   );
