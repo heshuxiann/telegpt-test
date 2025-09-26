@@ -45,7 +45,7 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
     period: '/month',
     creditsInfo: '10,000 Credits monthly',
     creditsInfoDescription: '10,000 extra credits first month [LIMITED TIME]',
-    buttonLink: 'https://buy.stripe.com/test_00w6oIfulavq6wl7tv4Ni04',
+    buttonLink: 'https://buy.stripe.com/28E8wQeqhfPK2g5g014Ni05',
     features: [
       'Global Chat Summary (1 every 24h)',
       'Up to 250 Group Chat Summary ',
@@ -66,7 +66,7 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
     period: '/month',
     creditsInfo: '60,000 Credits monthly',
     creditsInfoDescription: '60,000 extra credits first month [LIMITED TIME]',
-    buttonLink: 'https://buy.stripe.com/test_dRm00keqh1YU4oddRT4Ni06',
+    buttonLink: 'https://buy.stripe.com/28EdRa2HzdHC3k9g014Ni07',
     features: [
       'Global Chat Summary (1 every 8h）',
       'Up to 1k Group Chat Summary',
@@ -90,7 +90,7 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
     period: '/month',
     creditsInfo: '120,000 Credits monthly',
     creditsInfoDescription: '120,000 extra credits first month [LIMITED TIME]',
-    buttonLink: 'https://buy.stripe.com/test_28EdRa2HzdHC3k9g014Ni07',
+    buttonLink: 'https://buy.stripe.com/14A3cwbe5fPKcUJ4hj4Ni08',
     features: [
       'Global Chat Summary (1 every 8h）',
       'Up to 2k Group Chat Summary ',
