@@ -54,6 +54,7 @@ import { IS_OPEN_IN_NEW_TAB_SUPPORTED } from '../../../util/browser/windowEnviro
 import buildClassName from '../../../util/buildClassName';
 import { isUserId } from '../../../util/entities/ids';
 import { createLocationHash } from '../../../util/routing';
+import RoomStorage from '../../chatAssistant/room-storage';
 
 import useSelectorSignal from '../../../hooks/data/useSelectorSignal';
 import useAppLayout from '../../../hooks/useAppLayout';
@@ -206,6 +207,9 @@ const Chat: FC<OwnProps & StateProps> = ({
   const getIsForumPanelClosed = useSelectorSignal(selectIsForumPanelClosed);
 
   const handleClick = useLastCallback(() => {
+    // 记录点击事件到 RoomStorage
+    RoomStorage.incrementClickCount(chatId);
+
     const noForumTopicPanel = isMobile && isForumAsMessages;
     if (isMobile) {
       setShouldCloseRightColumn({ value: true });

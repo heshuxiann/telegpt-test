@@ -82,6 +82,81 @@ class RoomStorage {
     }
   }
 
+  // 用户参与度数据存储方法
+  public static getUserEngagementData(chatId: string): {
+    messageCount: number;
+    stayDuration: number;
+    clickCount: number;
+    lastActiveTime: number;
+  } {
+    const defaultData = {
+      messageCount: 0,
+      stayDuration: 0,
+      clickCount: 0,
+      lastActiveTime: 0,
+    };
+    const roomAIData = localStorage.getItem('room-ai-data');
+    return roomAIData ? JSON.parse(roomAIData)?.[chatId]?.engagementData || defaultData : defaultData;
+  }
+
+  public static updateUserEngagementData(chatId: string, data: {
+    messageCount?: number;
+    stayDuration?: number;
+    clickCount?: number;
+    lastActiveTime?: number;
+  }) {
+    const currentData = this.getUserEngagementData(chatId);
+    const updatedData = {
+      ...currentData,
+      ...data,
+      lastActiveTime: data.lastActiveTime || Date.now(),
+    };
+    this.updateRoomAIData(chatId, 'engagementData', updatedData);
+  }
+
+  public static incrementMessageCount(chatId: string) {
+    const currentData = this.getUserEngagementData(chatId);
+    this.updateUserEngagementData(chatId, {
+      messageCount: currentData.messageCount + 1,
+    });
+  }
+
+  public static incrementClickCount(chatId: string) {
+    const currentData = this.getUserEngagementData(chatId);
+    this.updateUserEngagementData(chatId, {
+      clickCount: currentData.clickCount + 1,
+    });
+  }
+
+  public static addStayDuration(chatId: string, duration: number) {
+    const currentData = this.getUserEngagementData(chatId);
+    this.updateUserEngagementData(chatId, {
+      stayDuration: currentData.stayDuration + duration,
+    });
+  }
+
+  // 获取所有聊天的参与度数据，用于计算权重
+  public static getAllEngagementData(): Record<string, {
+    messageCount: number;
+    stayDuration: number;
+    clickCount: number;
+    lastActiveTime: number;
+  }> {
+    const roomAIData = localStorage.getItem('room-ai-data');
+    if (!roomAIData) return {};
+
+    const parsedData = JSON.parse(roomAIData);
+    const result: Record<string, any> = {};
+
+    Object.keys(parsedData).forEach((chatId) => {
+      if (parsedData[chatId]?.engagementData) {
+        result[chatId] = parsedData[chatId].engagementData;
+      }
+    });
+
+    return result;
+  }
+
   public static increaseUnreadCount(chatId: string) {
     const count = this.getRoomAIUnreadCount(chatId) + 1;
     this.updateRoomAIData(chatId, 'unreadCount', count);

@@ -30,5 +30,6 @@ export interface SharedSettings {
   shouldWarnAboutSvg?: boolean;
   shouldSkipWebAppCloseConfirmation: boolean;
   aiChatFolders?: boolean;
-  realTimeAssistants?: { [key:string]: boolean };
+  enableChatSorting?: boolean;
+  realTimeAssistants?: Record<string, boolean>;
 }
