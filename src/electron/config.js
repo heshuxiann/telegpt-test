@@ -34,9 +34,9 @@ const config = {
   ],
   publish: {
     provider: 'github',
-    owner: 'Aquaverse',
+    owner: 'JsonSuCoder',
     repo: 'ai-tg-web',
-    releaseType: 'draft',
+    releaseType: 'release',
   },
   win: {
     target: {
