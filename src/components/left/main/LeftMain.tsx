@@ -8,8 +8,7 @@ import { getActions } from '../../../global';
 import type { FolderEditDispatch } from '../../../hooks/reducers/useFoldersReducer';
 import { LeftColumnContent } from '../../../types';
 
-import { PRODUCTION_URL } from '../../../config';
-import { IS_ELECTRON, IS_TOUCH_ENV } from '../../../util/browser/windowEnvironment';
+import { IS_TOUCH_ENV } from '../../../util/browser/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
 
 import useForumPanelRender from '../../../hooks/useForumPanelRender';
@@ -36,7 +35,7 @@ type OwnProps = {
   contactsFilter: string;
   shouldSkipTransition?: boolean;
   foldersDispatch: FolderEditDispatch;
-  isAppUpdateAvailable?: boolean;
+  // isAppUpdateAvailable?: boolean;
   isElectronUpdateAvailable?: boolean;
   isForumPanelOpen?: boolean;
   isClosingSearch?: boolean;
@@ -59,7 +58,7 @@ const LeftMain: FC<OwnProps> = ({
   contactsFilter,
   shouldSkipTransition,
   foldersDispatch,
-  isAppUpdateAvailable,
+  // isAppUpdateAvailable,
   isElectronUpdateAvailable,
   isForumPanelOpen,
   onSearchQuery,
@@ -69,38 +68,6 @@ const LeftMain: FC<OwnProps> = ({
 }) => {
   const { closeForumPanel, openLeftColumnContent } = getActions();
   const [isNewChatButtonShown, setIsNewChatButtonShown] = useState(IS_TOUCH_ENV);
-  const [isElectronAutoUpdateEnabled, setIsElectronAutoUpdateEnabled] = useState(false);
-  // const [shouldRenderUpdateButton, setShouldRenderUpdateButton] = useState(false);
-  // const [webFireBase, setWebFireBase] = useState<{
-  //   force_update_required: boolean;
-  //   force_update_current_version: string;
-  //   force_update_store_url: string;
-  // }>();
-
-  // const handleFireBaseUpdate = (payload: any) => {
-  //   try {
-  //     const { webFireBase } = payload;
-
-  //     const { force_update_current_version } = webFireBase;
-  //     const [version] = JSON.parse(localStorage.getItem(UPDATE_DEFER_KEY) || '["0.0.0",0]');
-  //     const compareRes = compareVersion(version, force_update_current_version);
-  //     if (compareRes === -1) {
-  //       setShouldRenderUpdateButton(true);
-  //       setWebFireBase(webFireBase);
-  //     }
-  //   } catch (e) {
-  //     // eslint-disable-next-line no-console
-  //     console.log(e);
-  //   }
-  // };
-
-  useEffect(() => {
-    window.electron?.getIsAutoUpdateEnabled().then(setIsElectronAutoUpdateEnabled);
-    // eventEmitter.on(Actions.UpdateFirebaseConfig, handleFireBaseUpdate);
-    // return () => {
-    //   eventEmitter.off(Actions.UpdateFirebaseConfig, handleFireBaseUpdate);
-    // };
-  }, []);
 
   const {
     shouldRenderForumPanel, handleForumPanelAnimationEnd,
@@ -112,7 +79,7 @@ const LeftMain: FC<OwnProps> = ({
   const {
     shouldRender: shouldRenderUpdateButton,
     transitionClassNames: updateButtonClassNames,
-  } = useShowTransitionDeprecated(isAppUpdateAvailable || isElectronUpdateAvailable);
+  } = useShowTransitionDeprecated(isElectronUpdateAvailable);
 
   const isMouseInside = useRef(false);
 
@@ -170,9 +137,7 @@ const LeftMain: FC<OwnProps> = ({
     //   window.location.reload();
     // }
 
-    if (IS_ELECTRON && !isElectronAutoUpdateEnabled) {
-      window.open(`${PRODUCTION_URL}/get`, '_blank', 'noopener');
-    } else if (isElectronUpdateAvailable) {
+    if (isElectronUpdateAvailable) {
       window.electron?.installUpdate();
     } else {
       window.location.reload();

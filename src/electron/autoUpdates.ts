@@ -1,21 +1,16 @@
 import {
+  app,
   BrowserWindow, ipcMain,
 } from 'electron';
+import log from 'electron-log';
 import type { UpdateInfo } from 'electron-updater';
 import { autoUpdater } from 'electron-updater';
-import { initializeApp } from 'firebase/app';
-import {
-  fetchAndActivate,
-  getRemoteConfig,
-  getValue,
-} from 'firebase/remote-config';
 
 import type { WindowState } from './windowState';
 import { ElectronAction, ElectronEvent } from '../types/electron';
 
+import { SERVER_API_URL } from '../config';
 import { pause } from '../util/schedulers';
-import { UPDATE_DEFER_KEY } from '../components/chatAssistant/utils/firebase_analytics';
-import { compareVersion } from '../components/chatAssistant/utils/util';
 import {
   forceQuit, IS_MAC_OS, IS_PREVIEW, IS_WINDOWS, store,
 } from './utils';
@@ -24,40 +19,76 @@ export const AUTO_UPDATE_SETTING_KEY = 'autoUpdate';
 
 const CHECK_UPDATE_INTERVAL = 5 * 60 * 1000;
 
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: 'AIzaSyDRc-Q0RzBJ6PnN88XQSlfJIy5JiA4Eamo',
-  authDomain: 'im-copilot.firebaseapp.com',
-  projectId: 'im-copilot',
-  storageBucket: 'im-copilot.firebasestorage.app',
-  messagingSenderId: '496967575175',
-  appId: '1:496967575175:web:07741a144cc34882153a22',
-  measurementId: 'G-PTEQ411L8P',
-};
-
 let isUpdateCheckStarted = false;
-let remoteConfig: any;
 
 export default function setupAutoUpdates(state: WindowState) {
   if (isUpdateCheckStarted) {
+    log.info('Auto-update already initialized, skipping setup');
     return;
   }
+
+  log.info('Initializing auto-update system...');
+  log.info('Current app version: 0.0.15');
 
   isUpdateCheckStarted = true;
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
+  // autoUpdater.forceDevUpdateConfig = true;
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  remoteConfig = getRemoteConfig(app);
-  remoteConfig.settings = {
-    minimumFetchIntervalMillis: 0,
-    fetchTimeoutMillis: 60000,
-  };
+  // Set up auto-updater event listeners with logging
+  autoUpdater.on('checking-for-update', () => {
+    log.info('Checking for updates...');
+  });
+
+  autoUpdater.on('update-available', (info: UpdateInfo) => {
+    log.info('Update available:', {
+      version: info.version,
+      releaseDate: info.releaseDate,
+      downloadedPercent: 0,
+    });
+  });
+
+  autoUpdater.on('update-not-available', (info: UpdateInfo) => {
+    log.info('Update not available. Current version is up-to-date:', {
+      version: info.version,
+    });
+  });
+
+  autoUpdater.on('download-progress', (progressObj) => {
+    log.info('Download progress:', {
+      bytesPerSecond: progressObj.bytesPerSecond,
+      percent: Math.round(progressObj.percent),
+      transferred: progressObj.transferred,
+      total: progressObj.total,
+    });
+  });
+
+  autoUpdater.on('update-downloaded', (info: UpdateInfo) => {
+    log.info('Update downloaded successfully:', {
+      version: info.version,
+      releaseDate: info.releaseDate,
+    });
+
+    BrowserWindow.getAllWindows().forEach((window) => {
+      window.webContents.send(ElectronEvent.UPDATE_AVAILABLE, info);
+    });
+  });
+
+  autoUpdater.on('error', (error: Error) => {
+    log.error('Auto-updater error:', {
+      message: error.message,
+      stack: error.stack,
+    });
+
+    BrowserWindow.getAllWindows().forEach((window) => {
+      window.webContents.send(ElectronEvent.UPDATE_ERROR, error);
+    });
+  });
 
   checkForUpdates();
 
   ipcMain.handle(ElectronAction.INSTALL_UPDATE, () => {
+    log.info('Installing update and restarting application...');
     state.saveLastUrlHash();
 
     if (IS_MAC_OS || IS_WINDOWS) {
@@ -66,18 +97,6 @@ export default function setupAutoUpdates(state: WindowState) {
 
     return autoUpdater.quitAndInstall();
   });
-
-  autoUpdater.on('error', (error: Error) => {
-    BrowserWindow.getAllWindows().forEach((window) => {
-      window.webContents.send(ElectronEvent.UPDATE_ERROR, error);
-    });
-  });
-
-  autoUpdater.on('update-downloaded', (info: UpdateInfo) => {
-    BrowserWindow.getAllWindows().forEach((window) => {
-      window.webContents.send(ElectronEvent.UPDATE_AVAILABLE, info);
-    });
-  });
 }
 
 export function getIsAutoUpdateEnabled() {
@@ -85,46 +104,70 @@ export function getIsAutoUpdateEnabled() {
 }
 
 async function checkForUpdates(): Promise<void> {
-  // eslint-disable-next-line no-console
-  console.log('Checking for updates...', getIsAutoUpdateEnabled());
+  log.info('Starting update check loop...');
+  log.info(`Update check interval: ${(CHECK_UPDATE_INTERVAL / 1000 / 60).toString()} minutes`);
+
   while (true) {
     if (await shouldPerformAutoUpdate()) {
       if (getIsAutoUpdateEnabled()) {
-        autoUpdater.checkForUpdates();
+        log.info('Triggering update check...');
+        try {
+          await autoUpdater.checkForUpdates();
+        } catch (error) {
+          log.error('Error during update check:', error);
+        }
       } else {
+        log.info('Auto-update disabled, sending mock update available event');
         BrowserWindow.getAllWindows().forEach((window) => {
           window.webContents.send(ElectronEvent.UPDATE_AVAILABLE);
         });
       }
     }
-
+    log.info(`Waiting ${(CHECK_UPDATE_INTERVAL / 1000 / 60).toString()} minutes before next update check...`);
     await pause(CHECK_UPDATE_INTERVAL);
   }
 }
 
 function shouldPerformAutoUpdate(): Promise<boolean> {
   return new Promise((resolve) => {
-    fetchAndActivate(remoteConfig)
-      .then(() => {
-        const configKey = 'web_force_update_config';
-        const webFireBase = getValue(remoteConfig, configKey).asString();
-        if (webFireBase) {
-          try {
-            const { force_update_current_version } = JSON.parse(webFireBase);
-            const [version] = JSON.parse(localStorage.getItem(UPDATE_DEFER_KEY) || '["0.0.0",0]');
-            const compareRes = compareVersion(version, force_update_current_version);
-            // eslint-disable-next-line no-console
-            console.log('版本比对', compareRes);
-            resolve(compareRes === -1);
-          } catch (e) {
-            resolve(false);
-          }
+    fetch(`${SERVER_API_URL}/app-version?${Date.now()}`).then((res) => res.json()).then((res) => {
+      log.info(`get app-version res: ${JSON.stringify(res)}`);
+      if (res.code === 0) {
+        const webVersion = res.data.web.version;
+        const currentVersion = app.getVersion();
+        log.info('app newVersion:', webVersion);
+        log.info('app currentVersion:', currentVersion);
+        const compareRes = compareVersion(currentVersion, webVersion);
+        if (compareRes === -1) {
+          resolve(true);
         } else {
           resolve(false);
         }
-      })
-      .catch(() => {
-        resolve(false);
-      });
+      }
+    }).catch(() => resolve(false));
   });
+}
+
+function compareVersion(version1: any, version2: any) {
+  const arr1 = version1.split('.');
+  const arr2 = version2.split('.');
+  const len = Math.max(arr1.length, arr2.length);
+
+  while (arr1.length < len) {
+    arr1.push('0');
+  }
+  while (arr2.length < len) {
+    arr2.push('0');
+  }
+
+  for (let i = 0; i < len; i++) {
+    const num1 = parseInt(arr1[i] || 0, 10);
+    const num2 = parseInt(arr2[i] || 0, 10);
+    if (num1 > num2) {
+      return 1; // version1 > version2
+    } else if (num1 < num2) {
+      return -1; // version1 < version2
+    }
+  }
+  return 0; // version1 == version2
 }

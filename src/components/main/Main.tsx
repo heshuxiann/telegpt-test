@@ -43,7 +43,6 @@ import updateIcon from '../../util/updateIcon';
 import GuidanceModal from '../chatAssistant/component/guidance/guidance-modal';
 import RoomAttachmentsModal from '../chatAssistant/room-ai/room-attachments-modal';
 
-import useInterval from '../../hooks/schedulers/useInterval';
 import useTimeout from '../../hooks/schedulers/useTimeout';
 import useAppLayout from '../../hooks/useAppLayout';
 import useForceUpdate from '../../hooks/useForceUpdate';
@@ -150,7 +149,7 @@ type StateProps = {
   isRoomAttachmentsModalOpen?: boolean;
 };
 
-const APP_OUTDATED_TIMEOUT_MS = 5 * 60 * 1000; // 5 min
+// const APP_OUTDATED_TIMEOUT_MS = 5 * 60 * 1000; // 5 min
 const CALL_BUNDLE_LOADING_DELAY_MS = 5000; // 5 sec
 
 let DEBUG_isLogged = false;
@@ -293,7 +292,7 @@ const Main = ({
     }
   }, [isDesktop, isLeftColumnOpen, isMiddleColumnOpen, isMobile, toggleLeftColumn]);
 
-  useInterval(checkAppVersion, isMasterTab ? APP_OUTDATED_TIMEOUT_MS : undefined, true);
+  // useInterval(checkAppVersion, isMasterTab ? APP_OUTDATED_TIMEOUT_MS : undefined, true);
 
   useEffect(() => {
     if (!IS_ELECTRON) {

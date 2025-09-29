@@ -127,6 +127,7 @@ export function createWindow(url?: string) {
 
   window.webContents.once('dom-ready', async () => {
     processDeeplink();
+    setupAutoUpdates(windowState);
 
     if (IS_PRODUCTION) {
       setupAutoUpdates(windowState);
