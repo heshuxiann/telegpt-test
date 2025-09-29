@@ -30,6 +30,7 @@ import { IS_MULTIACCOUNT_SUPPORTED } from '../../../util/browser/globalEnvironme
 import { IS_ELECTRON } from '../../../util/browser/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
 import buildStyle from '../../../util/buildStyle';
+import { updateFolderManager, forceResortFolder } from '../../../util/folderManager';
 import { getPromptInstall } from '../../../util/installPrompt';
 import { switchPermanentWebVersion } from '../../../util/permanentWebVersion';
 import { AIChatFolderStep } from '../../chatAssistant/ai-chatfolders/ai-chatfolders-tip';
@@ -74,6 +75,7 @@ type StateProps = {
   currentUser?: ApiUser;
   accountsTotalLimit: number;
   aiChatFolders?: boolean;
+  enableChatSorting?: boolean;
 } & Pick<GlobalState, 'currentUserId' | 'archiveSettings' | 'subscriptionInfo'>;
 
 const LeftSideMenuItems = ({
@@ -86,6 +88,7 @@ const LeftSideMenuItems = ({
   currentUser,
   accountsTotalLimit,
   aiChatFolders,
+  enableChatSorting,
   subscriptionInfo,
   onSelectArchived,
   onSelectContacts,
@@ -177,6 +180,19 @@ const LeftSideMenuItems = ({
   });
 
   const [aiChatFoldersLoading, setAiChatFoldersLoading] = useState<boolean>(false);
+
+  const handleSwitchChatSorting = useLastCallback((e: React.SyntheticEvent<HTMLElement>) => {
+    e.stopPropagation();
+    const isEnabled = !enableChatSorting;
+    console.log('切换聊天排序开关:', isEnabled);
+    setSharedSettingOption({ enableChatSorting: isEnabled });
+    // 立即强制重新排序主文件夹
+    setTimeout(() => {
+      console.log('强制重新排序主文件夹');
+      forceResortFolder(0); // 0 是主文件夹的 ID
+    }, 0);
+  });
+
   const handleSwitchAIChatFolders = useLastCallback(async (e: React.SyntheticEvent<HTMLElement>) => {
     if (aiChatFoldersLoading) return;
     e.stopPropagation();
@@ -239,18 +255,18 @@ const LeftSideMenuItems = ({
           <MenuSeparator />
         </>
       )}
-       <MenuItem
+      <MenuItem
         onClick={handleCreditsClick}
       >
         <div className='pl-[1.25rem] pr-[0.75rem] w-full flex items-center justify-between'>
           <span>{oldLang('Credits')}</span>
           {subscriptionInfo?.creditBalance && (
-           <>
-             <div className='flex items-center'>
-              <span className='text-[13px] font-semibold text-[#037EE5]'>{Math.max(0, Math.round(subscriptionInfo?.creditBalance))}</span>
-              <Icon name='arrow-right' className='mr-0' />
-             </div>
-           </>
+            <>
+              <div className='flex items-center'>
+                <span className='text-[13px] font-semibold text-[#037EE5]'>{Math.max(0, Math.round(subscriptionInfo?.creditBalance))}</span>
+                <Icon name='arrow-right' className='mr-0' />
+              </div>
+            </>
           )}
         </div>
       </MenuItem>
@@ -293,6 +309,17 @@ const LeftSideMenuItems = ({
             color={theme === 'dark' ? 'white' : 'black'}
           />
         )}
+      </MenuItem>
+      <MenuItem
+        icon="sort"
+        onClick={handleSwitchChatSorting}
+      >
+        <span className="menu-item-name">{oldLang('Chat Sorting')}</span>
+        <Switcher
+          label=""
+          checked={enableChatSorting === true}
+          noAnimation
+        />
       </MenuItem>
       <MenuItem
         icon="saved-messages"
@@ -398,9 +425,9 @@ export default memo(withGlobal<OwnProps>(
   (global): StateProps => {
     const tabState = selectTabState(global);
     const {
-      currentUserId, archiveSettings,subscriptionInfo
+      currentUserId, archiveSettings, subscriptionInfo
     } = global;
-    const { animationLevel, aiChatFolders } = selectSharedSettings(global);
+    const { animationLevel, aiChatFolders, enableChatSorting } = selectSharedSettings(global);
     const attachBots = global.attachMenu.bots;
 
     return {
@@ -413,6 +440,7 @@ export default memo(withGlobal<OwnProps>(
       attachBots,
       accountsTotalLimit: selectPremiumLimit(global, 'moreAccounts'),
       aiChatFolders,
+      enableChatSorting,
       subscriptionInfo
     };
   },
