@@ -17,7 +17,7 @@ import GrammarTool from './GrammarTool';
 
 import './GrammarToolWrapper.scss';
 
-import GrammerInput from '../../assets/grammar-input.png';
+import GrammerInput from '../../assets/input/grammar-input.png';
 
 interface GrammarToolWrapperProps {
   getHtml: Signal<string>;

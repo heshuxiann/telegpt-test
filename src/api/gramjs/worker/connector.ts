@@ -365,15 +365,7 @@ async function sendToCurrentChatAI(data: ApiUpdate) {
   if (currentChat?.id !== message?.chatId) return;
 
   const { realTimeAssistants } = selectSharedSettings(global);
-  let realTimeAssistantById = false;
-  const chatType = isUserId(currentChat?.id) ? 'user' : 'chat';
-  if (realTimeAssistants?.[currentChat?.id] !== undefined) {
-    realTimeAssistantById = realTimeAssistants?.[currentChat?.id];
-  } else if (chatType === 'user') {
-    realTimeAssistantById = true;
-  } else {
-    realTimeAssistantById = false;
-  }
+  const realTimeAssistantById = realTimeAssistants?.[currentChat?.id] ? realTimeAssistants?.[currentChat?.id] : false;
   if (!realTimeAssistantById) return;
 
   if (data['@type'] === 'updateMessage') {

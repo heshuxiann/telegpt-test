@@ -10,9 +10,12 @@ import renderText from '../../../common/helpers/renderText';
 import useLastCallback from '../../../../hooks/useLastCallback';
 import useOldLang from '../../../../hooks/useOldLang';
 
+import Icon from '../../../common/icons/Icon';
+import Button from '../../../ui/Button';
 import InputText from '../../../ui/InputText';
 import ListItem from '../../../ui/ListItem';
 import Modal from '../../../ui/Modal';
+import Switcher from '../../../ui/Switcher';
 
 import styles from './input-language.module.scss';
 
@@ -24,26 +27,59 @@ type LanguageItem = {
 
 export type OwnProps = {
   isOpen?: boolean;
-  translateLanguage: string | undefined;
+  inputTranslateOptions: {
+    translateLanguage: string;
+    autoTranslate: boolean;
+    firstTime: boolean;
+  };
   closeInputLanguageModal: () => void;
-  updateTranslateLanguage: (langCode: string | undefined) => void;
+  updateRoomInputTranslateOptions: (options: {
+    translateLanguage: string;
+    autoTranslate: boolean;
+    firstTime: boolean;
+  }) => void;
+};
+
+const InputLanguageHeader = ({ onClose, inputTranslateOptions, handleAutoTranslateChange }: {
+  onClose: () => void;
+  inputTranslateOptions: OwnProps['inputTranslateOptions'];
+  handleAutoTranslateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) => {
+  return (
+    <div className="modal-header">
+      <Button
+        round
+        color="translucent"
+        size="smaller"
+        ariaLabel="Close"
+        onClick={onClose}
+      >
+        <Icon name="close" />
+      </Button>
+      <div className="modal-title pr-[4px] h-[44px] flex items-center justify-between">
+        <span>Language</span>
+        <Switcher
+          label="Toggle Chat Translate"
+          checked={inputTranslateOptions.autoTranslate}
+          onChange={handleAutoTranslateChange}
+        />
+      </div>
+    </div>
+  );
 };
 
 const InputLanguageModal: FC<OwnProps> = ({
   isOpen,
-  translateLanguage,
+  inputTranslateOptions,
   closeInputLanguageModal,
-  updateTranslateLanguage,
+  updateRoomInputTranslateOptions,
 }) => {
   const [search, setSearch] = useState('');
   const lang = useOldLang();
   const handleSelect = useLastCallback((langCode: string) => {
-    if (langCode === translateLanguage) {
-      updateTranslateLanguage(undefined);
-    } else {
-      updateTranslateLanguage(langCode);
-    }
-
+    inputTranslateOptions.translateLanguage = langCode;
+    inputTranslateOptions.firstTime = false;
+    updateRoomInputTranslateOptions(inputTranslateOptions);
     closeInputLanguageModal();
   });
 
@@ -51,8 +87,14 @@ const InputLanguageModal: FC<OwnProps> = ({
     setSearch(e.target.value);
   });
 
+  const handleAutoTranslateChange = useLastCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    inputTranslateOptions.autoTranslate = e.target.checked;
+    inputTranslateOptions.firstTime = false;
+    updateRoomInputTranslateOptions(inputTranslateOptions);
+  });
+
   const translateLanguages = useMemo(() => SUPPORTED_TRANSLATION_LANGUAGES.map((langCode: string) => {
-    const translatedNames = new Intl.DisplayNames([translateLanguage || 'en'], { type: 'language' });
+    const translatedNames = new Intl.DisplayNames([inputTranslateOptions.translateLanguage || 'en'], { type: 'language' });
     const translatedName = translatedNames.of(langCode)!;
 
     const originalNames = new Intl.DisplayNames([langCode], { type: 'language' });
@@ -63,7 +105,7 @@ const InputLanguageModal: FC<OwnProps> = ({
       translatedName,
       originalName,
     } satisfies LanguageItem;
-  }), [translateLanguage]);
+  }), [inputTranslateOptions]);
 
   useEffect(() => {
     if (!isOpen) setSearch('');
@@ -87,7 +129,13 @@ const InputLanguageModal: FC<OwnProps> = ({
       isSlim
       isOpen={isOpen}
       hasCloseButton
-      title={lang('Language')}
+      header={(
+        <InputLanguageHeader
+          onClose={closeInputLanguageModal}
+          inputTranslateOptions={inputTranslateOptions}
+          handleAutoTranslateChange={handleAutoTranslateChange}
+        />
+      )}
       onClose={closeInputLanguageModal}
     >
       <InputText
@@ -102,12 +150,11 @@ const InputLanguageModal: FC<OwnProps> = ({
           <ListItem
             key={langCode}
             className={buildClassName(styles.listItem, 'no-icon')}
-            secondaryIcon={translateLanguage === langCode ? 'check' : undefined}
-            disabled={translateLanguage === langCode}
+            secondaryIcon={inputTranslateOptions.translateLanguage === langCode ? 'check' : undefined}
+            disabled={inputTranslateOptions.translateLanguage === langCode}
             multiline
             narrow
             allowDisabledClick
-            // eslint-disable-next-line react/jsx-no-bind
             onClick={() => handleSelect(langCode)}
           >
             <span className={buildClassName('title', styles.title)}>

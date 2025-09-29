@@ -40,22 +40,35 @@ class RoomStorage {
     return roomAIData ? JSON.parse(roomAIData)?.[chatId]?.summaryState || false : false;
   }
 
-  public static getRoomTranslateLanguage(chatId: string) {
+  public static getRoomInputTranslateOptions(chatId: string): {
+    translateLanguage: string;
+    autoTranslate: boolean;
+    firstTime: boolean;
+  } {
+    const defaultOptions = {
+      translateLanguage: 'en',
+      autoTranslate: false,
+      firstTime: true,
+    };
     const roomAIData = localStorage.getItem('room-ai-data');
-    return roomAIData ? JSON.parse(roomAIData)?.[chatId]?.translateLanguage || '' : '';
+    return roomAIData ? JSON.parse(roomAIData)?.[chatId]?.inputTranslateOptions || defaultOptions : defaultOptions;
   }
 
-  public static updateRoomTranslateLanguage(chatId: string, language: string | undefined) {
+  public static updateRoomInputTranslateOptions(chatId: string, options: {
+    translateLanguage: string;
+    autoTranslate: boolean;
+    firstTime: boolean;
+  }) {
     const roomAIData = localStorage.getItem('room-ai-data');
     const data = roomAIData ? JSON.parse(roomAIData) : {};
     data[chatId] = {
       ...data[chatId],
-      translateLanguage: language,
+      inputTranslateOptions: options,
     };
     localStorage.setItem('room-ai-data', JSON.stringify(data));
   }
 
-  public static updateRoomAIData(chatId: string, type:string, value:any) {
+  public static updateRoomAIData(chatId: string, type: string, value: any) {
     const roomAIData = localStorage.getItem('room-ai-data');
     const parsedData = roomAIData ? JSON.parse(roomAIData) : {};
     const currentData = parsedData[chatId] || {};
@@ -107,7 +120,7 @@ class RoomStorage {
         summaryMessage({
           messages: formateMessages,
           language: new Intl.DisplayNames([autoTranslateLanguage], { type: 'language' }).of(autoTranslateLanguage),
-        }).then((res:any) => {
+        }).then((res: any) => {
           const content = {
             ...res.data,
             summaryInfo,

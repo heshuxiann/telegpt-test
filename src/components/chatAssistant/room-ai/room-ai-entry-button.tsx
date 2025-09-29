@@ -1,21 +1,17 @@
-
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable max-len */
 import React, {
   useCallback, useEffect, useRef, useState,
 } from 'react';
 import type { DotLottie } from '@lottiefiles/dotlottie-react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import { getActions } from '../../../global';
+import { getActions, getGlobal } from '../../../global';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
+import { selectSharedSettings } from '../../../global/selectors/sharedState';
 import RoomStorage from '../room-storage';
 
-// import Button from '../../ui/Button';
 import './room-ai.scss';
 
 import { serenaWaitUrl, serenaWorkUrl } from '../assets/lottieData/index';
-// import SerenaLogoPath from '../assets/serena.png';
 
 interface OwnProps {
   chatId: string;
@@ -42,12 +38,12 @@ const RoomAIEntryButton = (props: OwnProps) => {
     RoomStorage.updateRoomAIData(chatId, 'unreadCount', 0);
     setUnreadCount(0);
   }, [chatId, openChatAIWithInfo]);
-  const updateUnreadCount = useCallback((param:{ chatId:string; count:number }) => {
+  const updateUnreadCount = useCallback((param: { chatId: string; count: number }) => {
     if (param.chatId === chatId) {
       setUnreadCount(param.count);
     }
   }, [chatId]);
-  const updateSummaryState = useCallback((param:{ chatId:string; state:boolean }) => {
+  const updateSummaryState = useCallback((param: { chatId: string; state: boolean }) => {
     if (param.chatId === chatId) {
       setIsSummary(param.state);
     }
@@ -58,24 +54,35 @@ const RoomAIEntryButton = (props: OwnProps) => {
     }
   }, [dotLottie, isSummary]);
 
+  const handleAutoSummary = useCallback(() => {
+    const global = getGlobal();
+    const { realTimeAssistants } = selectSharedSettings(global);
+    const realTimeAssistantById = realTimeAssistants?.[chatId] ? realTimeAssistants?.[chatId] : false;
+    if (realTimeAssistantById) {
+      RoomStorage.summary(chatId);
+    }
+  }, [chatId]);
+
   useEffect(() => {
     const interval = setInterval(intervalAnimate, 10000);
     return () => clearInterval(interval);
-  }, [chatId, intervalAnimate]); useEffect(() => {
+  }, [chatId, intervalAnimate]);
+
+  useEffect(() => {
     eventEmitter.on(Actions.UpdateRoomAIUnreadCount, updateUnreadCount);
     eventEmitter.on(Actions.UpdateRoomAISummaryState, updateSummaryState);
     const count = RoomStorage.getRoomAIUnreadCount(chatId);
     const summaryState = RoomStorage.getRoomAISummaryState(chatId);
     setUnreadCount(count);
     setIsSummary(summaryState);
-    RoomStorage.summary(chatId);
+    handleAutoSummary();
     return () => {
       eventEmitter.off(Actions.UpdateRoomAIUnreadCount, updateUnreadCount);
       eventEmitter.off(Actions.UpdateRoomAISummaryState, updateSummaryState);
     };
-  }, [chatId, updateSummaryState, updateUnreadCount]);
+  }, [chatId, handleAutoSummary, updateSummaryState, updateUnreadCount]);
 
-  const dotLottieRefCallback = useCallback((dotLottie:DotLottie) => {
+  const dotLottieRefCallback = useCallback((dotLottie: DotLottie) => {
     setDotLottie(dotLottie);
   }, []);
 
