@@ -1,6 +1,6 @@
 import {
   app,
-  BrowserWindow, ipcMain,
+  BrowserWindow, ipcMain, net,
 } from 'electron';
 import log from 'electron-log';
 import type { UpdateInfo } from 'electron-updater';
@@ -128,23 +128,49 @@ async function checkForUpdates(): Promise<void> {
   }
 }
 
-function shouldPerformAutoUpdate(): Promise<boolean> {
+export function shouldPerformAutoUpdate(): Promise<boolean> {
+  log.info('Checking if auto-update should be performed...', SERVER_API_URL);
   return new Promise((resolve) => {
-    fetch(`${SERVER_API_URL}/app-version?${Date.now()}`).then((res) => res.json()).then((res) => {
-      log.info(`get app-version res: ${JSON.stringify(res)}`);
-      if (res.code === 0) {
-        const webVersion = res.data.web.version;
-        const currentVersion = app.getVersion();
-        log.info('app newVersion:', webVersion);
-        log.info('app currentVersion:', currentVersion);
-        const compareRes = compareVersion(currentVersion, webVersion);
-        if (compareRes === -1) {
-          resolve(true);
-        } else {
+    const request = net.request(`${SERVER_API_URL}/app-version`);
+
+    request.on('response', (response) => {
+      let data = '';
+
+      response.on('data', (chunk) => {
+        data += chunk.toString();
+      });
+
+      response.on('end', () => {
+        try {
+          const res = JSON.parse(data);
+          log.info(`get app-version res: ${JSON.stringify(res)}`);
+          if (res.code === 0) {
+            const webVersion = res.data.web.version;
+            const currentVersion = app.getVersion();
+            log.info('app newVersion:', webVersion);
+            log.info('app currentVersion:', currentVersion);
+            const compareRes = compareVersion(currentVersion, webVersion);
+            if (compareRes === -1) {
+              resolve(true);
+            } else {
+              resolve(false);
+            }
+          } else {
+            resolve(false);
+          }
+        } catch (parseError) {
+          log.error('JSON parse error:', parseError);
           resolve(false);
         }
-      }
-    }).catch(() => resolve(false));
+      });
+    });
+
+    request.on('error', (err) => {
+      log.error('checkUpdate error:', err);
+      resolve(false);
+    });
+
+    request.end();
   });
 }
 

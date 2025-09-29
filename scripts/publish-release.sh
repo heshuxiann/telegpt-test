@@ -15,7 +15,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # 配置
-REPO="JsonSuCoder/ai-tg-web"
+REPO="Aquaverse/telegpt-web-app"
 DIST_DIR="dist-electron"
 
 # 获取参数

@@ -34,8 +34,8 @@ const config = {
   ],
   publish: {
     provider: 'github',
-    owner: 'JsonSuCoder',
-    repo: 'ai-tg-web',
+    owner: 'Aquaverse',
+    repo: 'telegpt-web-app',
     releaseType: 'release',
   },
   win: {
