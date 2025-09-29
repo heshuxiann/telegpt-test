@@ -1,7 +1,7 @@
-import React from '@teact';
 import type {
-  ElementRef
+  ElementRef,
 } from '@teact';
+import React from '@teact';
 import {
   memo, useEffect, useMemo, useState,
 } from '@teact';
@@ -15,16 +15,16 @@ import { type AnimationLevel, LeftColumnContent, SettingsScreens } from '../../t
 import {
   selectCurrentChat, selectIsCurrentUserFrozen, selectIsForumPanelOpen, selectTabState,
 } from '../../global/selectors';
+import { selectSharedSettings } from '../../global/selectors/sharedState.ts';
 import {
   IS_APP, IS_FIREFOX, IS_MAC_OS, IS_TOUCH_ENV,
 } from '../../util/browser/windowEnvironment';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
+import { resolveTransitionName } from '../../util/resolveTransitionName.ts';
+import { debounce } from '../../util/schedulers';
 import { captureControlledSwipe } from '../../util/swipeController';
 import AIKnowledge from './aiKnowledge/AIKnowledge.async';
 import AITranslate from './aiTranslate/AITranslate.async';
-import { selectSharedSettings } from '../../global/selectors/sharedState.ts';
-import { resolveTransitionName } from '../../util/resolveTransitionName.ts';
-import { debounce } from '../../util/schedulers';
 
 import useFoldersReducer from '../../hooks/reducers/useFoldersReducer';
 import { useHotkeys } from '../../hooks/useHotkeys';
@@ -72,11 +72,11 @@ enum ContentType {
   Settings,
   Archived,
   NewGroup,
-  // eslint-disable-next-line no-shadow
+
   NewChannel,
-  // eslint-disable-next-line @typescript-eslint/no-shadow
+
   AIKnowledge,
-  // eslint-disable-next-line @typescript-eslint/no-shadow
+
   AITranslate,
 }
 
@@ -292,33 +292,9 @@ function LeftColumn({
         case SettingsScreens.PrivacyPhoneP2PDeniedContacts:
           openSettingsScreen({ screen: SettingsScreens.PrivacyPhoneP2P });
           return;
-        case SettingsScreens.PrivacyBioAllowedContacts:
-        case SettingsScreens.PrivacyBioDeniedContacts:
-          openSettingsScreen({ screen: SettingsScreens.PrivacyBio });
-          return;
-        case SettingsScreens.PrivacyBirthdayAllowedContacts:
-        case SettingsScreens.PrivacyBirthdayDeniedContacts:
-          openSettingsScreen({ screen: SettingsScreens.PrivacyBirthday });
-          return;
-        case SettingsScreens.PrivacyGiftsAllowedContacts:
-        case SettingsScreens.PrivacyGiftsDeniedContacts:
-          openSettingsScreen({ screen: SettingsScreens.PrivacyGifts });
-          return;
-        case SettingsScreens.PrivacyPhoneCallAllowedContacts:
-        case SettingsScreens.PrivacyPhoneCallDeniedContacts:
-          openSettingsScreen({ screen: SettingsScreens.PrivacyPhoneCall });
-          return;
-        case SettingsScreens.PrivacyPhoneP2PAllowedContacts:
-        case SettingsScreens.PrivacyPhoneP2PDeniedContacts:
-          openSettingsScreen({ screen: SettingsScreens.PrivacyPhoneP2P });
-          return;
         case SettingsScreens.PrivacyForwardingAllowedContacts:
         case SettingsScreens.PrivacyForwardingDeniedContacts:
           openSettingsScreen({ screen: SettingsScreens.PrivacyForwarding });
-          return;
-        case SettingsScreens.PrivacyVoiceMessagesAllowedContacts:
-        case SettingsScreens.PrivacyVoiceMessagesDeniedContacts:
-          openSettingsScreen({ screen: SettingsScreens.PrivacyVoiceMessages });
           return;
         case SettingsScreens.PrivacyVoiceMessagesAllowedContacts:
         case SettingsScreens.PrivacyVoiceMessagesDeniedContacts:
