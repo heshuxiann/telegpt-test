@@ -1,6 +1,6 @@
 {
   "name": "TelyAI",
-  "version": "0.0.18",
+  "version": "0.0.17",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -20,6 +20,9 @@
     "electron:package:no-sign": "CSC_IDENTITY_AUTO_DISCOVERY=false ENV=production npm run electron:package",
     "electron:package:staging": "ENV=staging npm run electron:package -- -p never",
     "electron:release:production": "ENV=production npm run electron:package -- -p always",
+    "electron:generate-latest": "./scripts/generate-latest-yml.sh",
+    "electron:publish": "./scripts/publish-release.sh",
+    "electron:publish:full": "npm run electron:package:no-sign && npm run electron:generate-latest && npm run electron:publish",
     "telegraph:update_changelog": "node ./dev/telegraphChangelog.js",
     "check": "tsc && stylelint \"**/*.{css,scss}\" && eslint",
     "check:fix": "stylelint \"**/*.{css,scss}\" --fix && eslint --fix",

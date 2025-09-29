@@ -62,7 +62,7 @@ export function createWindow(url?: string) {
     title: getAppTitle(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
-      devTools: !IS_PRODUCTION,
+      // devTools: !IS_PRODUCTION,
     },
     ...(IS_MAC_OS && {
       titleBarStyle: 'hidden',
@@ -161,6 +161,7 @@ function loadWindowUrl(window: BrowserWindow, url?: string, hash?: string): void
   } else {
     window.loadURL(`file://${__dirname}/index.html${hash}`);
   }
+  window.webContents.openDevTools();
   // if (url && checkIsWebContentsUrlAllowed(url)) {
   //   window.loadURL(url);
   // } else if (!app.isPackaged) {
