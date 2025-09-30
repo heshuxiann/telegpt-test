@@ -19,7 +19,7 @@
     "electron:package": "npm run electron:build && npx rimraf dist-electron && cross-env CSC_DEBUG=1 CSC_ARGS=--timestamp=none electron-builder build --win --mac --config src/electron/config.js",
     "electron:package:no-sign": "CSC_IDENTITY_AUTO_DISCOVERY=false ENV=production npm run electron:package",
     "electron:package:staging": "ENV=staging npm run electron:package -- -p never",
-    "electron:release:production": "ENV=production npm run electron:package -- -p always",
+    "electron:release:production": "ENV=production npm run electron:package",
     "electron:generate-latest": "./scripts/generate-latest-yml.sh",
     "electron:publish": "./scripts/publish-release.sh",
     "electron:publish:full": "npm run electron:package:no-sign && npm run electron:generate-latest && npm run electron:publish",
