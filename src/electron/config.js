@@ -44,6 +44,8 @@ const config = {
       arch: ['x64'],
     },
     icon: 'public/icon-electron-windows.ico',
+    verifyUpdateCodeSignature: false,
+    sign: false,
   },
   nsis: {
     oneClick: false,

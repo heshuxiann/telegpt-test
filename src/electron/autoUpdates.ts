@@ -33,7 +33,6 @@ export default function setupAutoUpdates(state: WindowState) {
   isUpdateCheckStarted = true;
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
-  // autoUpdater.forceDevUpdateConfig = true;
 
   // Set up auto-updater event listeners with logging
   autoUpdater.on('checking-for-update', () => {
