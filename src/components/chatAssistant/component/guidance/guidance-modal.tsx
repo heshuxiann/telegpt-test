@@ -17,20 +17,6 @@ const GuidanceModal = () => {
   const checkInvitationStatus = useLastCallback(async () => {
     const { openInviteCodeModal } = getActions();
     try {
-      // 先从localStorage获取受邀信息
-      const cachedInvitation = localStorage.getItem('user-invitation') || undefined;
-      if (cachedInvitation) {
-        try {
-          const invitation = JSON.parse(cachedInvitation);
-          if (invitation && invitation.inviteCode) {
-            return; // 已有受邀信息，无需打开弹窗
-          }
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.error('Error parsing invitation:', error);
-        }
-      }
-
       // 调用API获取受邀状态
       const invitationData = await getMyInvitation();
       const invitationInfo = invitationData.data;

@@ -103,7 +103,7 @@ const AccountMenuItems = ({
               >
                 {account.isTest && <span className="account-menu-item-test">T</span>}
                 <FullNameTitle peer={mockUser} withEmojiStatus emojiStatusSize={REM} />
-                <UpgradeButton />
+                {account.userId === currentUser.id && <UpgradeButton />}
               </MenuItem>
               {hasSeparator && <MenuSeparator />}
             </>
