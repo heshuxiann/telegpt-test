@@ -47,13 +47,13 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
     creditsInfoDescription: '10,000 extra credits first month [LIMITED TIME]',
     buttonLink: 'https://buy.stripe.com/28E8wQeqhfPK2g5g014Ni05',
     features: [
-      'Global Chat Summary (1 every 24h)',
-      'Up to 250 Group Chat Summary ',
-      'Up to 200 Images Summary ',
-      'Up to 60 mins video & Voice Summary',
-      'Up to 10k-characters AI Translation',
-      'Up to 10k-characters Grammar Check',
-      'Up to 60-pages Web & Doc Summary',
+      '1 daily Global Chat Summary',
+      '250 Group Chat Summary ',
+      '200 Images Summary ',
+      '60 mins video & Voice Summary',
+      '10k-characters AI Translation',
+      '10k-characters Grammar Check',
+      '60-pages Web & Doc Summary',
       'AI Chat Folders',
     ],
     buttonText: 'Get Started',
@@ -68,14 +68,14 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
     creditsInfoDescription: '60,000 extra credits first month [LIMITED TIME]',
     buttonLink: 'https://buy.stripe.com/28EdRa2HzdHC3k9g014Ni07',
     features: [
-      'Global Chat Summary (1 every 8h）',
-      'Up to 1k Group Chat Summary',
-      'Up to 1k Images Summary',
-      'Up to 300 min Video & Voice Summary',
-      'Up to 300k-characters AI Translation',
-      'Up to 300k-characters Grammar Check',
-      'Up to 300 pages Web & Doc Summary',
-      'Up to 120 Schedule Meetings',
+      '3 daily Global Chat Summary',
+      '1k Group Chat Summary',
+      '1k Images Summary',
+      '300 min Video & Voice Summary',
+      '300k-characters AI Translation',
+      '300k-characters Grammar Check',
+      '300 pages Web & Doc Summary',
+      '120 Schedule Meetings',
       'Urgent Alert',
       'AI Chat Folders',
       'Priority Support',
@@ -92,13 +92,13 @@ const PRICING_PLANS: Record<PlanType, PricingPlan> = {
     creditsInfoDescription: '120,000 extra credits first month [LIMITED TIME]',
     buttonLink: 'https://buy.stripe.com/14A3cwbe5fPKcUJ4hj4Ni08',
     features: [
-      'Global Chat Summary (1 every 8h）',
-      'Up to 2k Group Chat Summary ',
-      'Up to 2k Images Summary ',
-      'Up to 600 min Video & Voice Summary',
-      'Up to 600k-characters AI Translation',
-      'Up to 600k-characters Grammar Check',
-      'Up to 600 pages Web & Doc Summary',
+      '3 daily Global Chat Summary',
+      '2k Group Chat Summary ',
+      '2k Images Summary ',
+      '600 min Video & Voice Summary',
+      '600k-characters AI Translation',
+      '600k-characters Grammar Check',
+      '600 pages Web & Doc Summary',
       'Unlimited Schedule Meetings',
       'Urgent Alert',
       'AI Chat Folders',
@@ -229,7 +229,6 @@ const PayPackageModal = ({ modal }: OwnProps) => {
                 </div>
 
                 <div className={styles.botInfo}>
-                  <div className={styles.featuresTitle}>Features included:</div>
                   <ul className={styles.features}>
                     {plan.features.map((feature, index) => (
                       <li key={index} className={styles.feature}>

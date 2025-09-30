@@ -69,20 +69,22 @@
 // Pricing Cards Container
 .pricingCards {
   display: flex;
-  gap: 24px;
-  padding: 32px 24px;
+  gap: 14px;
+  padding: 12px;
   justify-content: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 // Base Pricing Card
 .pricingCard {
   position: relative;
-  width: 336px;
+  flex: 1;
+  min-width: 270px;
+  max-width: 330px;
   background: var(--color-background);
   border: 1px solid #F1F2F9;
   border-radius: 24px;
-  padding: 32px 24px;
+  padding: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
@@ -121,7 +123,7 @@
 .topContent {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 
 .cardHeader {
@@ -171,13 +173,13 @@
 }
 .creditsInfoDescription {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 500;
 }
 
 // Upgrade Button
 .upgradeButton {
-  width: 272px;
+  width: 100%;
   height: 48px;
   display: flex;
   align-items: center;
@@ -189,6 +191,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  margin: 0 auto;
 
   &:hover {
     transform: translateY(-1px);
@@ -198,13 +201,6 @@
 // Bottom Info
 .botInfo {
   flex: 1;
-}
-
-.featuresTitle {
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--color-text);
-  margin-bottom: 20px;
 }
 
 .features {
@@ -279,7 +275,7 @@
 }
 
 // Responsive design
-@media (max-width: 1024px) {
+@media (max-width: 480px) {
   .pricingCards {
     flex-direction: column;
     align-items: center;
@@ -289,50 +285,5 @@
   .pricingCard {
     width: 100%;
     max-width: 400px;
-  }
-}
-
-@media (max-width: 768px) {
-  .modal {
-    :global(.modal-dialog) {
-      width: 95vw;
-      max-width: none;
-    }
-  }
-
-  .container {
-    border-radius: 16px;
-  }
-
-  .header {
-    height: 80px;
-    padding: 0 16px;
-  }
-
-  .title {
-    font-size: 20px;
-  }
-
-  .closeButton {
-    top: 16px;
-    right: 16px;
-  }
-
-  .pricingCards {
-    padding: 20px 16px;
-    gap: 16px;
-  }
-
-  .pricingCard {
-    padding: 24px 20px;
-    gap: 20px;
-  }
-
-  .price {
-    font-size: 36px;
-  }
-
-  .planTitle {
-    font-size: 20px;
   }
 }
