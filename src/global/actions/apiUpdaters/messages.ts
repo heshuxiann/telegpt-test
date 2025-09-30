@@ -515,6 +515,11 @@ addActionHandler('apiUpdate', (global, actions, update): ActionReturnType => {
         }
       }
 
+      // 统计消息发送数据
+      import('../../../components/chatAssistant/room-storage').then((RoomStorage) => {
+        RoomStorage.default.incrementMessageCount(chatId);
+      });
+
       setGlobal(global);
 
       break;

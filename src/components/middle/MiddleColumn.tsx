@@ -117,6 +117,7 @@ import MiddleSearch from './search/MiddleSearch.async';
 
 import './MiddleColumn.scss';
 import styles from './MiddleColumn.module.scss';
+import RoomStorage from '../chatAssistant/room-storage/index.tsx';
 
 interface OwnProps {
   leftColumnRef: ElementRef<HTMLDivElement>;
@@ -327,6 +328,24 @@ function MiddleColumn({
   useSyncEffect(() => {
     setDropAreaState(DropAreaState.None);
     setIsNotchShown(undefined);
+  }, [chatId]);
+
+  // Track chat stay duration for analytics
+  useEffect(() => {
+    let enterTime: number | undefined;
+    
+    if (chatId) {
+      // Record enter time when entering a chat
+      enterTime = Date.now();
+    }
+
+    return () => {
+      // Record stay duration when leaving a chat
+      if (chatId && enterTime) {
+        const stayDuration = Date.now() - enterTime;
+        RoomStorage.addStayDuration(chatId, stayDuration);
+      }
+    };
   }, [chatId]);
 
   // Fix for mobile virtual keyboard

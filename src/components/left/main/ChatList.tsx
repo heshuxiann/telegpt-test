@@ -11,13 +11,6 @@ import type { FolderEditDispatch } from '../../../hooks/reducers/useFoldersReduc
 import type { SettingsScreens } from '../../../types';
 import { LeftColumnContent } from '../../../types';
 
-import { IS_APP, IS_MAC_OS } from '../../../util/browser/windowEnvironment';
-import buildClassName from '../../../util/buildClassName';
-import { getOrderKey, getPinnedChatsCount } from '../../../util/folderManager';
-import { getServerTime } from '../../../util/serverTime';
-import ChatSerena from '../../chatAssistant/global-summary/chat-serana.teact';
-import { GLOBAL_SUMMARY_CHATID } from '../../chatAssistant/variables';
-
 import {
   AI_FOLDER_ID,
   ALL_FOLDER_ID,
@@ -30,6 +23,12 @@ import {
   SAVED_FOLDER_ID,
   UNREAD_FOLDER_ID,
 } from '../../../config';
+import { IS_APP, IS_MAC_OS } from '../../../util/browser/windowEnvironment';
+import buildClassName from '../../../util/buildClassName';
+import { getOrderKey, getPinnedChatsCount } from '../../../util/folderManager';
+import { getServerTime } from '../../../util/serverTime';
+import ChatSerena from '../../chatAssistant/global-summary/chat-serana.teact';
+import { GLOBAL_SUMMARY_CHATID } from '../../chatAssistant/variables';
 
 import usePeerStoriesPolling from '../../../hooks/polling/usePeerStoriesPolling';
 import useTopOverscroll from '../../../hooks/scroll/useTopOverscroll';
@@ -240,7 +239,7 @@ const ChatList: FC<OwnProps> = ({
     const pinnedCount = getPinnedChatsCount(resolvedFolderId) || 0;
 
     return viewportIds!.map((id, i) => {
-      const isPinned = viewportOffset + i < pinnedCount;
+      const isPinned = viewportOffset + i < pinnedCount + 1;
       const offsetTop = unconfirmedSessionHeight + archiveHeight + frozenNotificationHeight
         + (viewportOffset + i) * CHAT_HEIGHT_PX;
 
