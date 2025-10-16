@@ -9,12 +9,10 @@ import type { FolderEditDispatch } from '../../../hooks/reducers/useFoldersReduc
 import { LeftColumnContent } from '../../../types';
 
 import { IS_TOUCH_ENV } from '../../../util/browser/windowEnvironment';
-import buildClassName from '../../../util/buildClassName';
 
 import useForumPanelRender from '../../../hooks/useForumPanelRender';
 import useLastCallback from '../../../hooks/useLastCallback';
 import useOldLang from '../../../hooks/useOldLang';
-import useShowTransitionDeprecated from '../../../hooks/useShowTransitionDeprecated';
 
 // import useShowTransitionDeprecated from '../../../hooks/useShowTransitionDeprecated';
 import Button from '../../ui/Button';
@@ -76,10 +74,10 @@ const LeftMain: FC<OwnProps> = ({
   const isForumPanelRendered = isForumPanelOpen && content === LeftColumnContent.ChatList;
   const isForumPanelVisible = isForumPanelRendered && isAnimationStarted;
 
-  const {
-    shouldRender: shouldRenderUpdateButton,
-    transitionClassNames: updateButtonClassNames,
-  } = useShowTransitionDeprecated(isElectronUpdateAvailable);
+  // const {
+  //   shouldRender: shouldRenderUpdateButton,
+  //   transitionClassNames: updateButtonClassNames,
+  // } = useShowTransitionDeprecated(isElectronUpdateAvailable);
 
   const isMouseInside = useRef(false);
 
@@ -136,7 +134,6 @@ const LeftMain: FC<OwnProps> = ({
     // } else {
     //   window.location.reload();
     // }
-
     if (isElectronUpdateAvailable) {
       window.electron?.installUpdate();
     } else {
@@ -227,11 +224,11 @@ const LeftMain: FC<OwnProps> = ({
           }
         }}
       </Transition>
-      {shouldRenderUpdateButton && (
+      {isElectronUpdateAvailable && (
         <Button
           fluid
           badge
-          className={buildClassName('btn-update', updateButtonClassNames)}
+          className="btn-update"
           onClick={handleUpdateClick}
         >
           {lang('lng_update_telegpt')}

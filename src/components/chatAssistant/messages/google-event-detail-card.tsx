@@ -90,7 +90,7 @@ const GoogleEventDetailMessage = ({ message }: { message: Message }) => {
       <div className="h-[48px] mt-[24px] text-[12px] font-semibold w-full flex items-center justify-center bg-[#F7FAFF]">
         <img src={SerenaPath} className="w-[20px] h-[20px] mr-[6px] mt-[-2px]" alt="" />
         <span className="text-[#5E6272]">Powered by </span>
-        <span className="text-[#2996FF]">telegpt.org</span>
+        <span className="text-[#2996FF]">telyai.org</span>
       </div>
     </div>
   );

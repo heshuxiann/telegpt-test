@@ -368,7 +368,7 @@ export function generateEventScreenshot(eventData: any, chatId: string) {
   footerText1.textContent = 'Powered by';
   const footerText2 = document.createElement('span');
   footerText2.style.color = '#2996FF';
-  footerText2.textContent = 'telegpt.org';
+  footerText2.textContent = 'telyai.org';
   footerSection.appendChild(footerIcon);
   footerSection.appendChild(footerText1);
   footerSection.appendChild(footerText2);

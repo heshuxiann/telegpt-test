@@ -110,7 +110,7 @@ function ShareCard({
         })
           .then((blob) => {
             // return 123;
-            const file = new File([blob!], 'telegpt.org.png', { type: 'image/png' });
+            const file = new File([blob!], 'telyai.org.png', { type: 'image/png' });
             // @ts-ignore
             globalThis?.p__handleFileSelect?.([file], true);
             captureCallback();

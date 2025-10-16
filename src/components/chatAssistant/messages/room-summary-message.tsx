@@ -340,7 +340,7 @@ function ShareCard({
           quality: 1, // Maximum quality
         })
           .then((blob) => {
-            const file = new File([blob!], 'telegpt.org.png', { type: 'image/png' });
+            const file = new File([blob!], 'telyai.org.png', { type: 'image/png' });
             // @ts-ignore
             globalThis?.p__handleFileSelect?.([file], true);
             captureCallback();

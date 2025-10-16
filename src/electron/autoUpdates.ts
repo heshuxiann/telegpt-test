@@ -108,18 +108,11 @@ async function checkForUpdates(): Promise<void> {
 
   while (true) {
     if (await shouldPerformAutoUpdate()) {
-      if (getIsAutoUpdateEnabled()) {
-        log.info('Triggering update check...');
-        try {
-          await autoUpdater.checkForUpdates();
-        } catch (error) {
-          log.error('Error during update check:', error);
-        }
-      } else {
-        log.info('Auto-update disabled, sending mock update available event');
-        BrowserWindow.getAllWindows().forEach((window) => {
-          window.webContents.send(ElectronEvent.UPDATE_AVAILABLE);
-        });
+      log.info('Triggering update check...');
+      try {
+        await autoUpdater.checkForUpdates();
+      } catch (error) {
+        log.error('Error during update check:', error);
       }
     }
     log.info(`Waiting ${(CHECK_UPDATE_INTERVAL / 1000 / 60).toString()} minutes before next update check...`);

@@ -146,21 +146,14 @@ export function createWindow(url?: string) {
 }
 
 function loadWindowUrl(window: BrowserWindow, url?: string, hash?: string): void {
-  // window.loadURL(`http://localhost:1234${hash}`);
-  // if (IS_PRODUCTION) {
-  //   window.loadURL(`${process.env.BASE_URL}`);
-  // } else {
-  //   window.loadURL(`http://localhost:1234${hash}`);
-  //   window.webContents.openDevTools();
-  // }
   if (url && checkIsWebContentsUrlAllowed(url)) {
     window.loadURL(url);
   } else if (!app.isPackaged) {
     window.loadURL(`http://localhost:1234${hash}`);
-    window.webContents.openDevTools();
   } else {
     window.loadURL(`file://${__dirname}/index.html${hash}`);
   }
+  // window.webContents.openDevTools();
   // if (url && checkIsWebContentsUrlAllowed(url)) {
   //   window.loadURL(url);
   // } else if (!app.isPackaged) {
