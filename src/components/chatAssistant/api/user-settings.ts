@@ -2,8 +2,18 @@ import bigInt from 'big-integer';
 import { getActions } from '../../../global';
 
 import { buildApiPeerId } from '../../../api/gramjs/apiBuilders/peers';
-import { buildMtpPeerId, getEntityTypeById } from '../../../api/gramjs/gramjsBuilders';
-import { deleteSummarize, deleteUrgent, getUserSetting, updateSummarize, updateUrgent, updateUserSetting } from '../utils/telegpt-api';
+import {
+  buildMtpPeerId,
+  getEntityTypeById,
+} from '../../../api/gramjs/gramjsBuilders';
+import {
+  deleteSummarize,
+  deleteUrgent,
+  getUserSetting,
+  updateSummarize,
+  updateUrgent,
+  updateUserSetting,
+} from '../utils/telegpt-api';
 
 // Define the entity types
 type EntityType = 'user' | 'chat' | 'channel';
@@ -34,16 +44,20 @@ export const buildEntityTypeFromIds = (ids: string[]) => {
   return entityTypes;
 };
 
-export const getIdsFromEntityTypes = (entityTypes: { id: number; type: number }[]) => {
-  const ids = entityTypes.map((item) => {
-    if (typeof item === 'object') {
-      const entityType = NUMBER_TO_ENTITY_TYPE[item.type];
-      const id = buildApiPeerId(bigInt(item.id), entityType);
-      return id;
-    } else {
-      return false;
-    }
-  }).filter(Boolean);
+export const getIdsFromEntityTypes = (
+  entityTypes: { id: number; type: number }[],
+) => {
+  const ids = entityTypes
+    .map((item) => {
+      if (typeof item === 'object') {
+        const entityType = NUMBER_TO_ENTITY_TYPE[item.type];
+        const id = buildApiPeerId(bigInt(item.id), entityType);
+        return id;
+      } else {
+        return false;
+      }
+    })
+    .filter(Boolean);
   return ids;
 };
 
@@ -90,6 +104,7 @@ interface ITelegptSettings {
   autotranslate: boolean;
   autotranslatelanguage: string;
   subscription_info: SubscriptionInfo;
+  globalsummarytemplate: string;
 }
 const defaultSettings: ITelegptSettings = {
   user_id: '',
@@ -114,6 +129,7 @@ const defaultSettings: ITelegptSettings = {
     updatedAt: '',
     isExpirated: false,
   },
+  globalsummarytemplate: 'summary-by-chat',
 };
 
 const POKE_RATE_MS = 600000;
@@ -151,7 +167,8 @@ class TelegptSettings {
             subscriptionType: res.data.subscription_info.subscriptionType,
             creditBalance: res.data.subscription_info.creditBalance,
             createdAt: res.data.subscription_info.createdAt,
-            subscriptionExpiresAt: res.data.subscription_info.subscriptionExpiresAt,
+            subscriptionExpiresAt:
+              res.data.subscription_info.subscriptionExpiresAt,
             isExpirated: res.data.subscription_info.isExpirated,
           });
         }
@@ -159,12 +176,16 @@ class TelegptSettings {
     });
   }
 
-  updateGptSettings(callback?: (res: any) => void) {
+  updateGptSettings(settings: ITelegptSettings, callback?: (res: any) => void) {
     updateUserSetting(this.user_id, {
       user_id: this.user_id,
-      settings: this.settings,
+      settings,
     }).then((res) => {
       callback?.(res);
+      if (res.code === 0) {
+        localStorage.setItem('telegpt-settings', JSON.stringify(this.settings));
+        this.setGlobalSettings(settings);
+      }
     });
   }
 
@@ -177,21 +198,26 @@ class TelegptSettings {
     return this.settings;
   }
 
-  setSettingOption(newSettings: Partial<ITelegptSettings>, callback?: (res: any) => void) {
-    this.settings = {
+  setSettingOption(
+    newSettings: Partial<ITelegptSettings>,
+    callback?: (res: any) => void,
+  ) {
+    const settings = {
       ...this.settings,
       ...newSettings,
     };
-    localStorage.setItem('telegpt-settings', JSON.stringify(this.settings));
-    this.setGlobalSettings(newSettings);
-    this.updateGptSettings(callback);
+    this.updateGptSettings(settings, callback);
   }
 
   setGlobalSettings(newSettings: Partial<ITelegptSettings>) {
     const { autotranslate, autotranslatelanguage } = newSettings;
     getActions().setSettingOption({ autoTranslate: autotranslate || false });
-    getActions().setSettingOption({ autoTranslateLanguage: autotranslatelanguage || 'en' });
-    getActions().setSettingOption({ translationLanguage: autotranslatelanguage || 'en' });
+    getActions().setSettingOption({
+      autoTranslateLanguage: autotranslatelanguage || 'en',
+    });
+    getActions().setSettingOption({
+      translationLanguage: autotranslatelanguage || 'en',
+    });
   }
 
   updateSummarizeTemplate(template: Partial<ISummaryTemplate>) {
@@ -199,36 +225,44 @@ class TelegptSettings {
       updateSummarize({
         ...template,
         user_id: this.user_id,
-      }).then((res) => {
-        if (res.code === 0 && res.data) {
-          if (template.id) {
-            this.settings.curious_info = this.settings.curious_info.map((item: any) => {
-              if (item.id === template.id) {
-                return res.data;
-              }
-              return item;
-            });
-          } else {
-            this.settings.curious_info.push(res.data);
+      })
+        .then((res) => {
+          if (res.code === 0 && res.data) {
+            if (template.id) {
+              this.settings.curious_info = this.settings.curious_info.map(
+                (item: any) => {
+                  if (item.id === template.id) {
+                    return res.data;
+                  }
+                  return item;
+                },
+              );
+            } else {
+              this.settings.curious_info.push(res.data);
+            }
           }
-        }
-        resolve(res);
-      }).catch((err) => {
-        reject(err);
-      });
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
     });
   }
 
   deleteSummarizeTemplate(id: string) {
     return new Promise((resolve, reject) => {
-      deleteSummarize(this.user_id, id).then((res) => {
-        if (res.code === 0 && res.data) {
-          this.settings.curious_info = this.settings.curious_info.filter((item) => item.id !== id);
-        }
-        resolve(res);
-      }).catch((err) => {
-        reject(err);
-      });
+      deleteSummarize(this.user_id, id)
+        .then((res) => {
+          if (res.code === 0 && res.data) {
+            this.settings.curious_info = this.settings.curious_info.filter(
+              (item) => item.id !== id,
+            );
+          }
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
     });
   }
 
@@ -237,36 +271,44 @@ class TelegptSettings {
       updateUrgent({
         ...template,
         user_id: this.user_id,
-      }).then((res) => {
-        if (res.code === 0 && res.data) {
-          if (template.id) {
-            this.settings.urgent_info = this.settings.urgent_info.map((item: any) => {
-              if (item.id === template.id) {
-                return res.data;
-              }
-              return item;
-            });
-          } else {
-            this.settings.urgent_info.push(res.data);
+      })
+        .then((res) => {
+          if (res.code === 0 && res.data) {
+            if (template.id) {
+              this.settings.urgent_info = this.settings.urgent_info.map(
+                (item: any) => {
+                  if (item.id === template.id) {
+                    return res.data;
+                  }
+                  return item;
+                },
+              );
+            } else {
+              this.settings.urgent_info.push(res.data);
+            }
           }
-        }
-        resolve(res);
-      }).catch((err) => {
-        reject(err);
-      });
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
     });
   }
 
   deleteUrgentTopic(id: string) {
     return new Promise((resolve, reject) => {
-      deleteUrgent(this.user_id, id).then((res) => {
-        if (res.code === 0 && res.data) {
-          this.settings.urgent_info = this.settings.urgent_info.filter((item) => item.id !== id);
-        }
-        resolve(res);
-      }).catch((err) => {
-        reject(err);
-      });
+      deleteUrgent(this.user_id, id)
+        .then((res) => {
+          if (res.code === 0 && res.data) {
+            this.settings.urgent_info = this.settings.urgent_info.filter(
+              (item) => item.id !== id,
+            );
+          }
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
     });
   }
 }

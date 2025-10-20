@@ -184,7 +184,6 @@ const LeftSideMenuItems = ({
   const handleSwitchChatSorting = useLastCallback((e: React.SyntheticEvent<HTMLElement>) => {
     e.stopPropagation();
     const isEnabled = !enableChatSorting;
-    console.log('切换聊天排序开关:', isEnabled);
     setSharedSettingOption({ enableChatSorting: isEnabled });
     // 立即强制重新排序主文件夹
     setTimeout(() => {

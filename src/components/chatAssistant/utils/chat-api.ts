@@ -4,6 +4,7 @@ import { getGlobal } from '../../../global';
 import { SERVER_API_URL } from '../../../config';
 import { getUserFullName } from '../../../global/helpers';
 import { selectUser } from '../../../global/selectors';
+import { telegptSettings } from '../api/user-settings';
 import { TelegptFetch } from './telegpt-fetch';
 export const getCurrentUserInfo = () => {
   const global = getGlobal();
@@ -83,8 +84,13 @@ export const summaryMessage = (data: object) => {
 };
 
 export const globalSummary = (data: object) => {
+  const { globalsummarytemplate } = telegptSettings.telegptSettings;
+  let url = '/global-summary';
+  if (globalsummarytemplate === 'summary-by-topic') {
+    url = '/global-summary-topic';
+  }
   return new Promise((resolve, reject) => {
-    TelegptFetch('/global-summary', 'POST', JSON.stringify(data))
+    TelegptFetch(url, 'POST', JSON.stringify(data))
       .then((res) => {
         resolve(res);
       })
