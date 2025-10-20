@@ -31,10 +31,10 @@ export function getApihHeaders() {
   const { userId, userName } = getCurrentUserInfo();
   const key = generateKey(userId!);
   const headers: Record<string, string> = {
-    'x-auth-key': key,
     platform: 'web',
     version: '1.0.0',
   };
+  if (userId) headers['x-auth-key'] = key;
   if (userName) headers['user-name'] = userName;
   return headers;
 }
@@ -56,10 +56,10 @@ export function TelegptFetch(
   const { userId, userName } = getCurrentUserInfo();
   const key = generateKey(userId!);
   const headers: Record<string, string> = {
-    'x-auth-key': key,
     platform: 'web',
     version: '1.0.0',
   };
+  if (userId) headers['x-auth-key'] = key;
   if (userName) headers['user-name'] = userName;
   let mBody: any = undefined;
   if (method !== 'GET' && params) {

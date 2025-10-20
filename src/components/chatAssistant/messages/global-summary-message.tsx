@@ -325,7 +325,7 @@ const SummaryGarbageItem = ({ garBageItem }: { garBageItem: ISummaryGarbageItem 
         onClick={() => { showMessageDetail(chatId, relevantMessageIds); }}
       >
         <ChatAvatar chatId={chatId} size={44} />
-        <div>
+        <div className="flex flex-col justify-center">
           <p className="text-[16px] font-semibold leading-[20px] mb-[4px]">{chatRoomName}</p>
           <div className="flex justify-start gap-[4px]">
             {level === 'high' ? (
@@ -404,7 +404,7 @@ const SummaryInfoContent = ({ summaryInfo }: { summaryInfo: ISummaryInfo }) => {
               <span data-readable data-readable-inline>{formatTimestampRange(summaryInfo?.summaryStartTime, summaryInfo?.summaryEndTime)}</span>
             </div>
           </p>
-          <p className="flex items-center gap-[8px] flex-nowrap ml-[20px]">
+          <p className="flex items-center gap-[8px] flex-nowrap !ml-[20px]">
             <img className="w-[16px] h-[16px]" src={MessageIcon} alt="" />
             <div className="flex items-center gap-[4px]">
               <span className="font-bold text-[14px]" data-readable data-readable-inline>Messages:</span>
@@ -415,7 +415,7 @@ const SummaryInfoContent = ({ summaryInfo }: { summaryInfo: ISummaryInfo }) => {
           </p>
         </div>
         {summaryInfo?.summaryChatIds ? (
-          <div className="flex items-center gap-[8px]">
+          <div className="flex items-center gap-[8px] mt-[10px]">
             <img className="w-[16px] h-[16px]" src={UserIcon} alt="" />
             <span className="font-bold text-[14px]">Groups/friends: </span>
             <div className="flex items-center">

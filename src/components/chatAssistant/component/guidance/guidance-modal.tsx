@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from '../../../../lib/teact/teact';
-import { getActions } from '../../../../global';
+import { getActions, getGlobal } from '../../../../global';
 
 import { getMyInvitation } from '../../utils/telegpt-api';
 import GuidanceWrapper from './guidance-wrapper';
@@ -15,6 +15,14 @@ const GuidanceModal = () => {
   const [isFirstIn, setIsFirstIn] = useState<boolean>(!telegptGuidance);
 
   const checkInvitationStatus = useLastCallback(async () => {
+    const global = getGlobal();
+    const { currentUserId } = global;
+    if (!currentUserId) {
+      setTimeout(() => {
+        checkInvitationStatus();
+      }, 2000);
+      return;
+    }
     const { openInviteCodeModal } = getActions();
     try {
       // 调用API获取受邀状态
@@ -31,8 +39,10 @@ const GuidanceModal = () => {
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Failed to check invitation status:', error);
-      // 如果API调用失败，也打开邀请码弹窗
-      openInviteCodeModal();
+      // 如果API调用失败，10s后重试
+      setTimeout(() => {
+        checkInvitationStatus();
+      }, 10000);
     }
   });
 
