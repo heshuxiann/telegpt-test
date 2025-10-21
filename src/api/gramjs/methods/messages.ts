@@ -2810,7 +2810,7 @@ export async function translateTextByTencent(
   if (!result) return undefined;
 
   const formattedText = result.map((r) => {
-    return { text: r, entities: [] };
+    return { text: r, entities: text?.find((item) => item.text === r)?.entities || [] };
   });
   if (isMessageTranslation) {
     sendApiUpdate({

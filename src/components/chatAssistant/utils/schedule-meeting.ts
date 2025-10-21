@@ -31,6 +31,8 @@ import {
 export const MEETING_INVITATION_TIP
   = 'I\'ll send you the meeting invitation later. [By TelyAI]';
 
+export const SCHEDULE_MEETING_ERROR_MSG = 'Something went wrong. Please try again later.';
+
 export const ASK_MEETING_TIME
   = 'I’d like to set up a meeting with you. Could you let me know a time that works best for you? [By TelyAI]';
 export const ASK_MEETING_TIMEZONE
@@ -675,6 +677,7 @@ class ScheduleMeeting {
       })
       .catch((err) => {
         console.log(err);
+        this.sendMessage(SCHEDULE_MEETING_ERROR_MSG);
         this.cleanup();
       });
   }
