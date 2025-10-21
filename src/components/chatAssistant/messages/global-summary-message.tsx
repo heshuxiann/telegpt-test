@@ -4,10 +4,10 @@
 /* eslint-disable max-len */
 import React, { useCallback, useEffect, useState } from 'react';
 import type { Message } from 'ai';
-import { Dropdown, Popover } from 'antd';
+import { ConfigProvider, Dropdown, Popover, theme } from 'antd';
 import { getActions, getGlobal } from '../../../global';
 
-import { selectChat, selectUser } from '../../../global/selectors';
+import { selectChat, selectTheme, selectUser } from '../../../global/selectors';
 import { buildEntityTypeFromIds, getIdsFromEntityTypes, telegptSettings } from '../api/user-settings';
 import { cn, formatTimestamp } from '../utils/util';
 import MessageActionsItems from './message-actions-button';
@@ -232,7 +232,7 @@ const SummaryTopicItem = ({ chatId, topicItem }: {
   return (
     <ErrorBoundary>
       <ul className="list-disc pl-[18px] text-[16px] list-inside">
-        {topicItem.map((summaryItem: any) => {
+        {topicItem.map((summaryItem: any, index) => {
           const { content, relevantMessageIds } = summaryItem;
           if (!content) return null;
           return (
@@ -241,6 +241,7 @@ const SummaryTopicItem = ({ chatId, topicItem }: {
               className="cursor-pointer text-[15px] break-words"
               onClick={() => showMessageDetail(chatId, relevantMessageIds)}
               data-readable
+              key={index}
             >
               {content}
             </li>
@@ -263,7 +264,7 @@ const TopicSummaryItem = ({ topicItems }: {
   return (
     <ErrorBoundary>
       <ul className="list-disc pl-[18px] text-[16px] list-inside">
-        {topicItems.map((summaryItem) => {
+        {topicItems.map((summaryItem, index) => {
           const { content, relevantChats } = summaryItem;
           if (!content) return null;
           return (
@@ -272,6 +273,7 @@ const TopicSummaryItem = ({ topicItems }: {
               className="cursor-pointer text-[15px] break-words"
               onClick={() => showMessageDetail(relevantChats)}
               data-readable
+              key={index}
             >
               {content}
             </li>
@@ -344,6 +346,8 @@ const SummaryGarbageItem = ({ garBageItem }: { garBageItem: ISummaryGarbageItem 
 const SummaryInfoContent = ({ summaryInfo }: { summaryInfo: ISummaryInfo }) => {
   const { globalsummarytemplate } = telegptSettings.telegptSettings;
   const { showNotification } = getActions();
+  const global = getGlobal();
+  const themeKey = selectTheme(global);
   const handleSummaryTempChange = (temp: string) => {
     telegptSettings.setSettingOption({
       globalsummarytemplate: temp,
@@ -351,12 +355,12 @@ const SummaryInfoContent = ({ summaryInfo }: { summaryInfo: ISummaryInfo }) => {
     if (temp === 'summary-by-chat') {
       showNotification({
         message: 'Summaries will be organized by chat next time.',
-        icon:'message-succeeded'
+        icon: 'message-succeeded'
       });
     } else {
       showNotification({
         message: 'Summaries will be organized by topic next time.',
-        icon:'message-succeeded'
+        icon: 'message-succeeded'
       });
     }
   }
@@ -371,29 +375,31 @@ const SummaryInfoContent = ({ summaryInfo }: { summaryInfo: ISummaryInfo }) => {
               <p className="text-[14px] text-[#A8A6AC]">{formatTimestamp(summaryInfo.summaryEndTime)}</p>
             ) : null}
           </div>
-          <Dropdown
-            trigger={['click']}
-            placement='bottomRight'
-            className='ml-auto'
-            menu={{
-              items: [
-                {
-                  key: 'summary-by-chat',
-                  label: 'Summarize by Chats',
+          <ConfigProvider theme={{ algorithm: themeKey === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
+            <Dropdown
+              trigger={['click']}
+              placement='bottomRight'
+              className='ml-auto'
+              menu={{
+                items: [
+                  {
+                    key: 'summary-by-chat',
+                    label: 'Summarize by Chats',
+                  },
+                  {
+                    key: 'summary-by-topic',
+                    label: 'Summarize by Topics',
+                  },
+                ],
+                selectable: true,
+                defaultSelectedKeys: [globalsummarytemplate],
+                onClick: (key) => {
+                  handleSummaryTempChange(key.key);
                 },
-                {
-                  key: 'summary-by-topic',
-                  label: 'Summarize by Topics',
-                },
-              ],
-              selectable: true,
-              defaultSelectedKeys: [globalsummarytemplate],
-              onClick: (key) => {
-                handleSummaryTempChange(key.key);
-              },
-            }}>
-            <Icon name="more" className='text-[#5E6272] text-[24px] rotate-90' />
-          </Dropdown>
+              }}>
+              <Icon name="more" className='text-[var(--color-text-secondary)] text-[24px] rotate-90' />
+            </Dropdown>
+          </ConfigProvider>
         </div>
         <p className="text-[22px] font-bold mb-[16px]" data-readable>Chat Summary</p>
         <div className="flex items-center flex-wrap">
@@ -422,7 +428,7 @@ const SummaryInfoContent = ({ summaryInfo }: { summaryInfo: ISummaryInfo }) => {
               {summaryInfo.summaryChatIds.slice(0, 10).map((id: string, index: number) => {
                 return (
                   <ChatAvatar
-                    style={{ zIndex: `${String(summaryInfo.summaryChatIds.length - index)};` }}
+                    style={{ zIndex: `${String(summaryInfo.summaryChatIds.length - index)}` }}
                     chatId={id}
                     size={24}
                     classNames="summary-avatar-group !border-solid-[2px] !border-white ml-[-4px]"
@@ -502,7 +508,7 @@ const MainSummaryByChatContent = ({
           {
             summaryTopic.map((item, index) => {
               return (
-                <div>
+                <div key={index}>
                   <div className="flex items-center justify-between gap-[8px]">
                     {ignoredIds.includes(item.chatId) ? (
                       <div className="flex items-center gap-[8px]">
@@ -534,9 +540,9 @@ const MainSummaryByChatContent = ({
                     )}
                     {
                       item.customTopics.length > 0 && (
-                        item.customTopics.map((customTopic) => {
+                        item.customTopics.map((customTopic, index) => {
                           return (
-                            <li>
+                            <li key={index}>
                               <span className="text-[16px] font-bold" data-readable>{customTopic.topicName}</span>
                               <SummaryTopicItem chatId={item.chatId} topicItem={customTopic.summaryItems} />
                             </li>
@@ -558,7 +564,7 @@ const MainSummaryByChatContent = ({
             <span className="text-[18px] font-bold" data-readable>Actions Items</span>
             <img className="w-[16px] h-[16px]" src={ActionsIcon} alt="" />
           </p>
-          {pendingMatters.map((item) => (<SummaryPenddingItem pendingItem={item} />))}
+          {pendingMatters.map((item) => (<SummaryPenddingItem pendingItem={item} key={item.chatId} />))}
         </div>
       )}
       {/* action buttons  */}
@@ -600,7 +606,7 @@ const MainSummaryByTopicContent = ({
             <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
           </p>
           {topics.map((topic, index) => (
-            <div>
+            <div key={index}>
               <div className="flex items-center justify-between gap-[8px]">
                 <div className="flex items-center gap-[8px]">
                   <p className="text-[16px] font-bold" data-readable>{index + 1}.{topic.topicName || 'Untitled Topic'}</p>
@@ -615,7 +621,7 @@ const MainSummaryByTopicContent = ({
                   </div>
                 </div>
               </div>
-              <TopicSummaryItem topicItems={topic.summaryItems} />
+              <TopicSummaryItem topicItems={topic.summaryItems} key={index} />
             </div>
           ))}
         </div>
@@ -626,7 +632,7 @@ const MainSummaryByTopicContent = ({
             <span className="text-[18px] font-bold" data-readable>Actions Items</span>
             <img className="w-[16px] h-[16px]" src={ActionsIcon} alt="" />
           </p>
-          {pendingMatters.map((item) => (<SummaryPenddingItem pendingItem={item} />))}
+          {pendingMatters.map((item) => (<SummaryPenddingItem pendingItem={item} key={item.chatId} />))}
         </div>
       )}
       <MessageActionsItems
@@ -705,7 +711,7 @@ const SummaryContent = ({
               </div>
             </p>
           </div>
-          {garbageMessage.map((item) => (<SummaryGarbageItem garBageItem={item} />))}
+          {garbageMessage.map((item) => (<SummaryGarbageItem garBageItem={item} key={item.chatId} />))}
         </div>
       )}
     </>

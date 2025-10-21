@@ -1,6 +1,3 @@
-/* eslint-disable react/jsx-no-bind */
-/* eslint-disable no-null/no-null */
-/* eslint-disable max-len */
 import React, {
   useCallback, useMemo, useState,
 } from 'react';
@@ -23,19 +20,19 @@ const SummaryItem = ({
   template, selectedTemp, handleSelect, onDelete,
 }: {
   template: ISummaryTemplate;
-  selectedTemp:string[];
+  selectedTemp: string[];
   onDelete: (id: string) => void;
-  handleSelect:(id: string) => void;
+  handleSelect: (id: string) => void;
 }) => {
   const { openDrawer } = useDrawerStore();
   const global = getGlobal();
   const { currentUserId } = global;
-  const handeleDeleteTopic = (e:React.MouseEvent<HTMLDivElement>) => {
+  const handeleDeleteTopic = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     onDelete(template.id!);
   };
-  const handleEditTopic = (e:React.MouseEvent<HTMLDivElement>) => {
+  const handleEditTopic = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     openDrawer(DrawerKey.CustomizationPrompt, template);
@@ -78,7 +75,6 @@ const AddSummaryTemplate = () => {
 };
 
 const SummarizeTab = () => {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   const { curious_info, ignored_summary_chat_ids, curious_id } = telegptSettings.telegptSettings;
   const ignoredChatIds = getIdsFromEntityTypes(ignored_summary_chat_ids);
   const [summaryTemplate, setSummaryTemplate] = useState<ISummaryTemplate[]>(curious_info);
@@ -125,7 +121,7 @@ const SummarizeTab = () => {
       });
     }
     // TODO: delete summary template
-    telegptSettings.deleteSummarizeTemplate(id).then((res:any) => {
+    telegptSettings.deleteSummarizeTemplate(id).then((res: any) => {
       if (res.code === 0) {
         const newSummaryTemplate = summaryTemplate.filter((item) => item.id !== id);
         setSummaryTemplate(newSummaryTemplate);
@@ -165,7 +161,7 @@ const SummarizeTab = () => {
         <div className="flex flex-col gap-[10px]">
           {summaryTemplate.map((item) => {
             return (
-              <SummaryItem template={item} onDelete={handleDelete} selectedTemp={selectedTemp} handleSelect={handleTemplateSelect} />
+              <SummaryItem key={item.id} template={item} onDelete={handleDelete} selectedTemp={selectedTemp} handleSelect={handleTemplateSelect} />
             );
           })}
           {summaryTemplate.length < 10 && (

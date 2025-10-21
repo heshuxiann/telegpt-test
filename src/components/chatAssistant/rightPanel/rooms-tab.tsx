@@ -75,6 +75,7 @@ export const RoomsTab = (props: Props) => {
 
     function getTitle() {
       if (customPeer) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
         return (customPeer as CustomPeer)?.title || lang((customPeer as CustomPeer)?.titleKey!);
       }
 
@@ -89,7 +90,7 @@ export const RoomsTab = (props: Props) => {
     const specialTitle = getTitle();
 
     return (
-      <div className="chat-picker-item flex-1 flex flex-row items-center gap-[12px] py-[10px] rounded-[12px]">
+      <div className="chat-picker-item flex-1 flex flex-row items-center gap-[12px] py-[10px] rounded-[12px]" key={id}>
         <Avatar
           peer={peer}
           isSavedMessages={isSelf}

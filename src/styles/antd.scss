@@ -15,3 +15,16 @@
 .ant-modal-confirm-title {
   color: var(--color-text) !important;
 }
+
+.ant-dropdown-menu {
+  background-color: var(--color-background-compact-menu)!important;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0.25rem 0.5rem 0.125rem var(--color-default-shadow);
+  .ant-dropdown-menu-item{
+    color: var(--color-text)!important;
+  }
+  .ant-dropdown-menu-item-selected{
+    background-color: var(--color-chat-active)!important;
+    color: var(--color-white)!important;
+  }
+}

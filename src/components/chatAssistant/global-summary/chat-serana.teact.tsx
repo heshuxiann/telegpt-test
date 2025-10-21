@@ -2,7 +2,7 @@
 import React, { memo } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
-import { selectCurrentChat } from '../../../global/selectors';
+import { selectCurrentMessageList } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import { useGlobalSummaryBadge } from '../hook/useGlobalSummaryBadge';
 import RoomStorage from '../room-storage';
@@ -76,8 +76,10 @@ const ChatSerena = (props: OwnProps & StateProps) => {
 
 export default memo(withGlobal(
   (global) => {
-    const chat = selectCurrentChat(global);
-    const isSelected = GLOBAL_SUMMARY_CHATID === chat?.id;
+    const {
+      chatId: currentChatId,
+    } = selectCurrentMessageList(global) || {};
+    const isSelected = GLOBAL_SUMMARY_CHATID === currentChatId;
     return {
       isSelected,
     };
