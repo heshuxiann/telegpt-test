@@ -256,6 +256,7 @@ const AttachmentModal: FC<OwnProps & StateProps> = ({
     isMentionTooltipOpen,
     closeMentionTooltip,
     insertMention,
+    insertMentionsBatch,
     mentionFilteredUsers,
   } = useMentionTooltip(
     Boolean(isReady && isForCurrentMessageList && renderingIsOpen),
@@ -685,6 +686,7 @@ const AttachmentModal: FC<OwnProps & StateProps> = ({
             isOpen={isMentionTooltipOpen}
             filteredUsers={mentionFilteredUsers}
             onInsertUserName={insertMention}
+            onInsertUsersAll={insertMentionsBatch}
             onClose={closeMentionTooltip}
           />
           <EmojiTooltip

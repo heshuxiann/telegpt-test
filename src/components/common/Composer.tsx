@@ -803,6 +803,7 @@ const Composer: FC<OwnProps & StateProps> = ({
     isMentionTooltipOpen,
     closeMentionTooltip,
     insertMention,
+    insertMentionsBatch,
     mentionFilteredUsers,
   } = useMentionTooltip(
     Boolean(isInMessageList && isReady && isForCurrentMessageList && !hasAttachments),
@@ -2034,6 +2035,7 @@ const Composer: FC<OwnProps & StateProps> = ({
         isOpen={isMentionTooltipOpen}
         filteredUsers={mentionFilteredUsers}
         onInsertUserName={insertMention}
+        onInsertUsersAll={insertMentionsBatch}
         onClose={closeMentionTooltip}
       />
       <ChatCommandTooltip

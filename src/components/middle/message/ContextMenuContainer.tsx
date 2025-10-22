@@ -123,7 +123,7 @@ type StateProps = {
   canReschedule?: boolean;
   canReply?: boolean;
   canSmartReply?: boolean;
-  canScheduleMeeting?:boolean;
+  canScheduleMeeting?: boolean;
   canPin?: boolean;
   canShowReactionsCount?: boolean;
   canBuyPremium?: boolean;

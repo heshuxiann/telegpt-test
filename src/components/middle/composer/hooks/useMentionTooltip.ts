@@ -144,12 +144,68 @@ export default function useMentionTooltip(
     setFilteredUsers(undefined);
   });
 
+  // Batch insert multiple mentions in a single DOM update
+  const insertMentionsBatch = useLastCallback((peers: ApiPeer[], forceFocusFirst = true) => {
+    if (!peers || !peers.length) return;
+
+    const parts: string[] = [];
+    for (const peer of peers) {
+      if (!peer.hasUsername && !getPeerTitle(lang, peer)) {
+        continue;
+      }
+      const mainUsername = getMainUsername(peer);
+      const userFirstOrLastName = getPeerTitle(lang, peer) || '';
+      const htmlToInsert = mainUsername
+        ? `@${mainUsername}`
+        : `<a
+            class="text-entity-link"
+            data-entity-type="${ApiMessageEntityTypes.MentionName}"
+            data-user-id="${peer.id}"
+            contenteditable="false"
+            dir="auto"
+          >${userFirstOrLastName}</a>`;
+      parts.push(htmlToInsert);
+    }
+
+    if (!parts.length) return;
+    const combined = parts.join('&nbsp;');
+
+    const inputEl = inputRef.current!;
+    const htmlBeforeSelection = getHtmlBeforeSelection(inputEl);
+    const fixedHtmlBeforeSelection = cleanWebkitNewLines(htmlBeforeSelection);
+    const atIndex = fixedHtmlBeforeSelection.lastIndexOf('@');
+
+    if (atIndex !== -1) {
+      const prefix = fixedHtmlBeforeSelection.substr(0, atIndex);
+      const htmlAfterSelection = cleanWebkitNewLines(inputEl.innerHTML).substring(fixedHtmlBeforeSelection.length);
+      setHtml(`${prefix}${combined}&nbsp;${htmlAfterSelection}`);
+
+      requestNextMutation(() => {
+        focusEditableElement(inputEl, forceFocusFirst);
+        const newCaretPosition = (prefix + combined).length + 1;
+        setCaretPosition(inputEl, newCaretPosition);
+      });
+    } else {
+      const currentHtml = cleanWebkitNewLines(inputEl.innerHTML);
+      setHtml(`${currentHtml}${combined}&nbsp;`);
+
+      requestNextMutation(() => {
+        focusEditableElement(inputEl, forceFocusFirst);
+        const newCaretPosition = (currentHtml + combined).length + 1;
+        setCaretPosition(inputEl, newCaretPosition);
+      });
+    }
+
+    setFilteredUsers(undefined);
+  });
+
   useEffect(unmarkManuallyClosed, [unmarkManuallyClosed, getHtml]);
 
   return {
     isMentionTooltipOpen: Boolean(filteredUsers?.length && !isManuallyClosed),
     closeMentionTooltip: markManuallyClosed,
     insertMention,
+    insertMentionsBatch,
     mentionFilteredUsers: filteredUsers,
   };
 }
