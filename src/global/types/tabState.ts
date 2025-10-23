@@ -403,6 +403,7 @@ export type TabState = {
     withMyScore?: boolean;
     noAuthors?: boolean;
     noCaptions?: boolean;
+    copyForward?: boolean;
   };
 
   pollResults: {

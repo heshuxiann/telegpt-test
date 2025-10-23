@@ -246,39 +246,41 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
     updateDraftReplyInfo,
     setEditingId,
     pinMessage,
-    openForwardMenu,
-    openReplyMenu,
-    faveSticker,
-    unfaveSticker,
-    toggleMessageSelection,
-    sendScheduledMessages,
-    rescheduleMessage,
-    downloadMedia,
-    cancelMediaDownload,
-    loadSeenBy,
     openSeenByModal,
     openReactorListModal,
-    loadFullChat,
-    loadReactors,
-    copyMessagesByIds,
-    saveGif,
+    loadSeenBy,
+    loadOutboxReadDate,
+    openMessageReactionPicker,
+    openPaidReactionModal,
+    openPremiumModal,
+    faveSticker,
+    unfaveSticker,
+    downloadMedia,
+    cancelMediaDownload,
+    toggleMessageSelection,
+    toggleReaction,
+    sendScheduledMessages,
+    rescheduleMessage,
+    openForwardMenu,
+    openDeleteMessageModal,
+    reportMessages,
     loadStickers,
+    copyMessageLink,
+    copyMessagesByIds,
     cancelPollVote,
     closePoll,
-    toggleReaction,
     requestMessageTranslation,
     showOriginalMessage,
     openChatLanguageModal,
-    openMessageReactionPicker,
-    openPremiumModal,
-    loadOutboxReadDate,
-    copyMessageLink,
-    openDeleteMessageModal,
+    saveGif,
     addLocalPaidReaction,
-    openPaidReactionModal,
-    reportMessages,
-    openTodoListModal,
     showNotification,
+    openTodoListModal,
+    openReplyMenu,
+    loadFullChat,
+    loadReactors,
+    setForwardCopyForward,
+    setForwardNoAuthors,
   } = getActions();
 
   const oldLang = useOldLang();
@@ -500,6 +502,20 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
     } else {
       openForwardMenu({ fromChatId: message.chatId, messageIds: [message.id] });
     }
+  });
+
+  const handleCopyForward = useLastCallback(() => {
+    closeMenu();
+    if (album?.messages) {
+      const messageIds = album.messages.map(({ id }) => id);
+      openForwardMenu({ fromChatId: message.chatId, messageIds });
+    } else {
+      openForwardMenu({ fromChatId: message.chatId, messageIds: [message.id] });
+    }
+    setForwardNoAuthors({
+      noAuthors: true,
+    });
+    setForwardCopyForward({ copyForward: true });
   });
 
   const handleFaveSticker = useLastCallback(() => {
@@ -748,6 +764,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         onUnpin={handleUnpin}
         onForward={handleForward}
         onDelete={handleDelete}
+        onCopyForward={handleCopyForward}
         onReport={handleReport}
         onFaveSticker={handleFaveSticker}
         onUnfaveSticker={handleUnfaveSticker}

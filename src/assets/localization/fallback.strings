@@ -1380,6 +1380,9 @@
 "ShowCaption" = "Show Caption";
 "ConversationForwardOptionsHideCaption" = "Hide Captions";
 "HideCaption" = "Hide Caption";
+"CopyForwardEnable" = "Forward as copy";
+"CopyForwardDisable" = "Forward as original";
+"CopyForwardDescription" = "Forward as copy enabled";
 "ChangeRecipient" = "Change Recipient";
 "DragToSortAria" = "Drag to sort";
 "MenuReportBug" = "Report a Bug";

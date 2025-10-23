@@ -1176,6 +1176,9 @@ export interface LangPair {
   'ShowCaption': undefined;
   'ConversationForwardOptionsHideCaption': undefined;
   'HideCaption': undefined;
+  'CopyForwardEnable': undefined;
+  'CopyForwardDisable': undefined;
+  'CopyForwardDescription': undefined;
   'ChangeRecipient': undefined;
   'DragToSortAria': undefined;
   'MenuReportBug': undefined;
@@ -1335,7 +1338,6 @@ export interface LangPair {
   'SearchTabVoice': undefined;
   'SearchTabMessages': undefined;
   'SearchTabPublicPosts': undefined;
-  'SearchTabAI': undefined;
   'StarsTransactionsAll': undefined;
   'StarsTransactionsIncoming': undefined;
   'StarsTransactionsOutgoing': undefined;

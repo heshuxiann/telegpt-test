@@ -1974,6 +1974,9 @@ export interface ActionPayloads {
   setForwardNoCaptions: {
     noCaptions: boolean;
   } & WithTabId;
+  setForwardCopyForward: {
+    copyForward: boolean;
+  } & WithTabId;
   exitForwardMode: WithTabId | undefined;
   changeRecipient: WithTabId | undefined;
   forwardToSavedMessages: WithTabId | undefined;

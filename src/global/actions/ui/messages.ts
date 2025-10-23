@@ -596,6 +596,17 @@ addActionHandler('setForwardNoCaptions', (global, actions, payload): ActionRetur
   }, tabId);
 });
 
+addActionHandler('setForwardCopyForward', (global, actions, payload): ActionReturnType => {
+  const { copyForward, tabId = getCurrentTabId() } = payload;
+  const tabState = selectTabState(global, tabId);
+  return updateTabState(global, {
+    forwardMessages: {
+      ...tabState.forwardMessages,
+      copyForward,
+    },
+  }, tabId);
+});
+
 addActionHandler('exitForwardMode', (global, actions, payload): ActionReturnType => {
   const { tabId = getCurrentTabId() } = payload || {};
 

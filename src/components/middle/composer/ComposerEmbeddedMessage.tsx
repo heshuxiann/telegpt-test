@@ -58,6 +58,7 @@ type StateProps = {
   noAuthors?: boolean;
   noCaptions?: boolean;
   forwardsHaveCaptions?: boolean;
+  copyForward?: boolean;
   isCurrentUserPremium?: boolean;
   isContextMenuDisabled?: boolean;
   isReplyToDiscussion?: boolean;
@@ -92,6 +93,7 @@ const ComposerEmbeddedMessage: FC<OwnProps & StateProps> = ({
   noAuthors,
   noCaptions,
   forwardsHaveCaptions,
+  copyForward,
   shouldForceShowEditing,
   isCurrentUserPremium,
   isContextMenuDisabled,
@@ -120,6 +122,7 @@ const ComposerEmbeddedMessage: FC<OwnProps & StateProps> = ({
     exitForwardMode,
     setShouldPreventComposerAnimation,
     openSuggestMessageModal,
+    setForwardCopyForward,
   } = getActions();
   const ref = useRef<HTMLDivElement>();
   const oldLang = useOldLang();
@@ -311,7 +314,8 @@ const ComposerEmbeddedMessage: FC<OwnProps & StateProps> = ({
           composerForwardSenders={forwardSenders}
           customText={customText}
           title={(editingId && !isShowingReply) ? oldLang('EditMessage')
-            : noAuthors ? oldLang('HiddenSendersNameDescription') : undefined}
+            : noAuthors ? oldLang('HiddenSendersNameDescription')
+            : copyForward ? oldLang('CopyForwardDescription') : undefined}
           onClick={handleMessageClick}
           senderChat={senderChat}
         />
@@ -380,6 +384,21 @@ const ComposerEmbeddedMessage: FC<OwnProps & StateProps> = ({
                   </>
                 )}
                 <MenuSeparator />
+                <MenuItem
+                  icon={copyForward ? 'message-succeeded' : undefined}
+                  customIcon={!copyForward ? <Icon name="placeholder" /> : undefined}
+                  onClick={() => setForwardCopyForward({ copyForward: true })}
+                >
+                  {oldLang('CopyForwardEnable')}
+                </MenuItem>
+                <MenuItem
+                  icon={!copyForward ? 'message-succeeded' : undefined}
+                  customIcon={copyForward ? <Icon name="placeholder" /> : undefined}
+                  onClick={() => setForwardCopyForward({ copyForward: false })}
+                >
+                  {oldLang('CopyForwardDisable')}
+                </MenuItem>
+                <MenuSeparator />
                 <MenuItem icon="replace" onClick={handleForwardToAnotherChatClick}>
                   {oldLang('ForwardAnotherChat')}
                 </MenuItem>
@@ -427,7 +446,7 @@ export default memo(withGlobal<OwnProps>(
   }): StateProps => {
     const {
       forwardMessages: {
-        fromChatId, toChatId, messageIds: forwardMessageIds, noAuthors, noCaptions,
+        fromChatId, toChatId, messageIds: forwardMessageIds, noAuthors, noCaptions, copyForward,
       },
       isShareMessageModalShown: isModalShown,
       shouldPreventComposerAnimation,
@@ -508,6 +527,7 @@ export default memo(withGlobal<OwnProps>(
       noAuthors,
       noCaptions,
       forwardsHaveCaptions,
+      copyForward,
       isCurrentUserPremium: selectIsCurrentUserPremium(global),
       isContextMenuDisabled,
       isReplyToDiscussion,

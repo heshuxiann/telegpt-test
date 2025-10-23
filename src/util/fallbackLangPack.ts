@@ -515,4 +515,8 @@ export default {
   FullDateTimeFormat: '%@, %@',
   ProfileOpenAppTerms: 'Terms of Service for Mini Apps',
   ProfileBotOpenAppInfoLink: 'https://telegram.org/tos/mini-apps',
+  // Copy-forward feature
+  CopyForwardEnable: 'Forward as copy',
+  CopyForwardDisable: 'Forward as original',
+  CopyForwardDescription: 'Forward as copy enabled',
 } as ApiOldLangPack;
