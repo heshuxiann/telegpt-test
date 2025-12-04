@@ -5,12 +5,16 @@ import {
 import { getActions, withGlobal } from '../../global';
 
 import type { GlobalState } from '../../global/types';
+import type { ThemeKey } from '../../types';
 
 import { STRICTERDOM_ENABLED } from '../../config';
 import { disableStrict, enableStrict } from '../../lib/fasterdom/stricterdom';
+import { selectTheme } from '../../global/selectors';
 import { selectSharedSettings } from '../../global/selectors/sharedState';
 import buildClassName from '../../util/buildClassName';
 import { oldSetLanguage } from '../../util/oldLangProvider';
+import AuthBgUrl from '../chatAssistant/assets/guidance/auth-bg.png';
+import AuthBgBlackUrl from '../chatAssistant/assets/guidance/auth-bg-black.png';
 import TeleGptLogo from '../chatAssistant/assets/serena.png';
 import { LOCAL_TGS_URLS } from '../common/helpers/animatedAssets';
 import { navigateBack } from './helpers/backNavigation';
@@ -35,6 +39,7 @@ type StateProps =
   Pick<GlobalState, 'connectionState' | 'authState' | 'authQrCode'>
   & {
     language?: string;
+    theme: ThemeKey;
   };
 
 const DATA_PREFIX = 'tg://login?token=';
@@ -56,6 +61,7 @@ const AuthCode = ({
   authState,
   authQrCode,
   language,
+  theme,
 }: StateProps) => {
   const {
     returnToAuthPhoneNumber,
@@ -157,7 +163,12 @@ const AuthCode = ({
   const isAuthReady = authState === 'authorizationStateWaitQrCode';
 
   return (
-    <div id="auth-qr-form" className="custom-scroll pt-[5vh]">
+    <div
+      id="auth-qr-form"
+      className="custom-scroll pt-[5vh]"
+      style={`background-image: url(${theme === 'dark' ? AuthBgBlackUrl : AuthBgUrl
+      });`}
+    >
       {hasActiveAccount && (
         <Button size="smaller" round color="translucent" className="auth-close" onClick={handleBackNavigation}>
           <Icon name="close" />
@@ -167,11 +178,11 @@ const AuthCode = ({
         <img src={TeleGptLogo} alt="" className="w-[104px] h-[100px] mb-[36px]" />
         <div className="text-[55px] leading-[66px] font-bold mb-[20px]">TelyAI </div>
         <div className="text-[28px] leading-[27px] font-medium mb-[30px]">Message Smarter with AI. Achieve More.</div>
-        <p className="text-[18px] text-[#666666] text-center">
+        <p className="text-[18px] text-[#666666] dark:text-[#979797] text-center">
           Welcome to the official TelyAI web client. Built for speed, performance, and privacy. Your conversations remain yours — we never read or save any messages. Feel safe using it.
         </p>
       </div>
-      <div className="auth-form flex flex-row items-center gap-[2rem] rounded-[1rem] px-[48px] py-[26px] bg-[#FFFBFF66] max-w-[60rem] mx-auto">
+      <div className="auth-form flex flex-row items-center gap-[2rem] rounded-[1rem] px-[48px] py-[26px] bg-[#FFFBFF66] dark:bg-[#FFFFFF10] max-w-[60rem] mx-auto">
         <div className="qr-outer">
           <div
             className={buildClassName('qr-inner', transitionClassNames)}
@@ -225,6 +236,7 @@ export default memo(withGlobal(
       authState,
       authQrCode,
       language,
+      theme: selectTheme(global),
     };
   },
 )(AuthCode));
