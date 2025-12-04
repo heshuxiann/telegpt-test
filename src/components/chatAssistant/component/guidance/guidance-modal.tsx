@@ -26,15 +26,20 @@ const GuidanceModal = () => {
     const { openInviteCodeModal } = getActions();
     try {
       // 调用API获取受邀状态
-      const invitationData = await getMyInvitation();
-      const invitationInfo = invitationData.data;
-
-      // 存储到localStorage
-      localStorage.setItem('user-invitation', JSON.stringify(invitationInfo));
-
-      // 如果受邀信息为空，打开邀请码提交弹窗
-      if (!invitationInfo) {
-        openInviteCodeModal();
+      const response = await getMyInvitation();
+      if (response.code === 0) {
+        const invitationInfo = response.data;
+        // 存储到localStorage
+        localStorage.setItem('user-invitation', JSON.stringify(invitationInfo));
+        // 如果受邀信息为空，打开邀请码提交弹窗
+        if (!invitationInfo) {
+          openInviteCodeModal();
+        }
+      } else {
+        setTimeout(() => {
+          checkInvitationStatus();
+        }, 20000);
+        return;
       }
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -42,7 +47,7 @@ const GuidanceModal = () => {
       // 如果API调用失败，10s后重试
       setTimeout(() => {
         checkInvitationStatus();
-      }, 10000);
+      }, 20000);
     }
   });
 
