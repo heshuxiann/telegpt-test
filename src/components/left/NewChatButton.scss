@@ -2,10 +2,9 @@
   position: absolute;
   z-index: var(--z-chat-float-button);
   right: 1rem;
-  bottom: 1rem;
-
+  bottom: 3.5rem;
   visibility: hidden;
-  // transform: translateY(5rem);
+  transform: translateY(5rem);
 
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 
@@ -26,6 +25,7 @@
 
   &.revealed {
     transform: translateY(0);
+    visibility: visible;
   }
 
   > .Button {

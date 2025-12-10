@@ -2,9 +2,12 @@
 import React from 'react';
 import { memo, useMemo } from 'react';
 import type { Message } from 'ai';
+import { Popover } from 'antd';
 import cx from 'classnames';
+import copy from 'copy-to-clipboard';
 import equal from 'fast-deep-equal';
 import { AnimatePresence, motion } from 'framer-motion';
+import { getActions } from '../../global';
 
 import { cn } from '../../lib/utils';
 // import AISearchSugesstionsMessage from './messages/ai-search-sugesstion-message';
@@ -32,7 +35,7 @@ import UpgradeTipMessage from './messages/upgrade-tip-message';
 import UrgentCheckMessage from './messages/urgent-check-message';
 // import { useScrollToBottom } from './use-scroll-to-bottom';
 import { UserSearchMessage } from './messages/user-search-message';
-import { LoadingIcon } from './icons';
+import { CopyIcon, LoadingIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { MessageReasoning } from './message-reasoning';
@@ -71,6 +74,13 @@ const DefaultMessage = ({ message, isLoading }: {
   message: Message;
   isLoading: boolean;
 }) => {
+  const { showNotification } = getActions();
+  const handleCopy = () => {
+    copy(message.content);
+    showNotification({
+      message: 'TextCopied',
+    });
+  };
   return (
     <motion.div
       className="w-full px-[12px] group/message"
@@ -99,19 +109,39 @@ const DefaultMessage = ({ message, isLoading }: {
           )}
 
           {(message.content || message.reasoning) && (
+
             <div className="flex flex-row gap-2 items-start w-full">
-              <div
-                className={cn('w-auto flex flex-col gap-4 bg-white text-[var(--color-text)] px-3 py-2 rounded-xl dark:bg-[#292929]', {
-                  '!bg-[#E8D7FF] text-black ml-auto':
+              {message.role === 'user' ? (
+                <Popover
+                  placement="topRight"
+                  content={(
+                    <div className="w-[24px] h-[24px] text-[#676B74] cursor-pointer" onClick={handleCopy}>
+                      <CopyIcon size={24} />
+                    </div>
+                  )}
+                >
+                  <div
+                    className={cn('w-auto flex flex-col gap-4 bg-[#E8D7FF] text-[var(--color-text)] px-3 py-2 rounded-xl ml-auto dark:bg-[#292929]')}
+                  >
+                    <Markdown>{message.content}</Markdown>
+                  </div>
+                </Popover>
+              ) : (
+                <div
+                  className={cn('w-auto flex flex-col gap-4 bg-white text-[var(--color-text)] px-3 py-2 rounded-xl dark:bg-[#292929]', {
+                    '!bg-[#E8D7FF] text-black ml-auto':
                       message.role === 'user',
-                })}
-              >
-                <Markdown>{message.content}</Markdown>
-                {message.role !== 'user' && (
-                  <MessageActions message={message} />
-                )}
-              </div>
+                  })}
+                >
+                  <Markdown>{message.content}</Markdown>
+                  {message.role !== 'user' && (
+                    <MessageActions message={message} />
+                  )}
+                </div>
+              )}
+
             </div>
+
           )}
         </div>
       </div>

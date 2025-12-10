@@ -433,6 +433,7 @@ const SummaryInfoContent = ({ summaryInfo }: { summaryInfo: ISummaryInfo }) => {
                     size={24}
                     classNames="summary-avatar-group !border-solid-[2px] !border-white ml-[-4px]"
                     key={id}
+                    tooltip
                   />
                 );
               })}
@@ -613,7 +614,7 @@ const MainSummaryByTopicContent = ({
                   {/* 关联的群组/好友头像 */}
                   <div className="flex items-center">
                     {topic.relatedChatIds?.slice(0, 6).map((id) => (
-                      <ChatAvatar size={20} chatId={id} key={`${topic.topicName}-${id}`} />
+                      <ChatAvatar size={20} chatId={id} key={`${topic.topicName}-${id}`} tooltip />
                     ))}
                     {topic.relatedChatIds && topic.relatedChatIds.length > 6 ? (
                       <div className="ml-[4px] text-[12px] text-[var(--color-text-secondary)]">{topic.relatedChatIds.length - 6}+</div>

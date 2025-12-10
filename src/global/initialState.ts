@@ -15,6 +15,7 @@ import {
   MACOS_DEFAULT_MESSAGE_TEXT_SIZE_PX,
 } from '../config';
 import { IS_IOS, IS_MAC_OS } from '../util/browser/windowEnvironment';
+import { getSystemTheme } from '../util/systemTheme';
 
 export const INITIAL_PERFORMANCE_STATE_MAX: PerformanceType = {
   animatedEmoji: true,
@@ -72,7 +73,7 @@ export const INITIAL_PERFORMANCE_STATE_MIN: PerformanceType = {
 
 export const INITIAL_SHARED_STATE: SharedState = {
   settings: {
-    theme: 'light',
+    theme: getSystemTheme(),
     shouldUseSystemTheme: true,
     messageTextSize: IS_IOS
       ? IOS_DEFAULT_MESSAGE_TEXT_SIZE_PX
