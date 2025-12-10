@@ -37,11 +37,13 @@ import { IS_ANDROID, IS_ELECTRON, IS_WAVE_TRANSFORM_SUPPORTED } from '../../util
 import buildClassName from '../../util/buildClassName';
 import { waitForTransitionEnd } from '../../util/cssAnimationEndListeners';
 import { processDeepLink } from '../../util/deeplink';
+import { getCurrentTabId } from '../../util/establishMultitabRole';
 import { Bundles, loadBundle } from '../../util/moduleLoader';
 import { parseInitialLocationHash, parseLocationHash } from '../../util/routing';
 import updateIcon from '../../util/updateIcon';
 import GuidanceModal from '../chatAssistant/component/guidance/guidance-modal';
 import RoomAttachmentsModal from '../chatAssistant/room-ai/room-attachments-modal';
+import { GLOBAL_SUMMARY_CHATID } from '../chatAssistant/variables';
 
 import useTimeout from '../../hooks/schedulers/useTimeout';
 import useAppLayout from '../../hooks/useAppLayout';
@@ -452,6 +454,18 @@ const Main = ({
       threadId: parsedLocationHash.threadId,
       type: parsedLocationHash.type,
     });
+  }, [currentUserId]);
+
+  // Default open summary chat when entering Main after login (no deep link)
+  useEffect(() => {
+    const global = getGlobal();
+    const parsed = parseLocationHash(global.currentUserId);
+    if (parsed) return;
+
+    const currentList = selectCurrentMessageList(global, getCurrentTabId());
+    if (!currentList || currentList.chatId !== GLOBAL_SUMMARY_CHATID) {
+      getActions().openChat({ id: GLOBAL_SUMMARY_CHATID, shouldReplaceHistory: true });
+    }
   }, [currentUserId]);
 
   // Restore Transition slide class after async rendering
