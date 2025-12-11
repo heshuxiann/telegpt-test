@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable no-null/no-null */
 import React from 'react';
 import {
@@ -203,25 +202,7 @@ const RoomAIInner = (props: StateProps) => {
     insertMessage(createGoogleMeetingMessage());
   }, [insertMessage]);
 
-  useEffect(() => {
-    eventEmitter.on(Actions.CreateCalendarSuccess, handleCreateCalendarSuccess);
-    eventEmitter.on(Actions.UpdateGoogleToken, updateToken);
-    eventEmitter.on(Actions.GoogleAuthSuccess, handleGoogleAuthSuccess);
-    return () => {
-      eventEmitter.off(Actions.CreateCalendarSuccess, handleCreateCalendarSuccess);
-      eventEmitter.off(Actions.UpdateGoogleToken, updateToken);
-      eventEmitter.off(Actions.GoogleAuthSuccess, handleGoogleAuthSuccess);
-    };
-  }, [handleCreateCalendarSuccess, handleGoogleAuthSuccess, updateToken]);
-
-  useEffect(() => {
-    if ((status === 'ready' || status === 'error') && chatId) {
-      const msgs = parseMessage2StoreMessage(chatId, messages);
-      ChataiStores.message?.storeMessages([...msgs]);
-    }
-  }, [messages, status, chatId]);
-
-  const handleInputSubmit = async (value: string) => {
+  const handleInputSubmit = useCallback((value: string) => {
     scrollToBottom();
     const newMessage: Message = {
       role: 'user',
@@ -235,7 +216,28 @@ const RoomAIInner = (props: StateProps) => {
     append(newMessage, {
       headers: getApihHeaders(),
     });
-  };
+  }, [append, scrollToBottom]);
+
+  useEffect(() => {
+    eventEmitter.on(Actions.CreateCalendarSuccess, handleCreateCalendarSuccess);
+    eventEmitter.on(Actions.UpdateGoogleToken, updateToken);
+    eventEmitter.on(Actions.GoogleAuthSuccess, handleGoogleAuthSuccess);
+    eventEmitter.on(Actions.AskRoomAI, handleInputSubmit);
+    return () => {
+      eventEmitter.off(Actions.CreateCalendarSuccess, handleCreateCalendarSuccess);
+      eventEmitter.off(Actions.UpdateGoogleToken, updateToken);
+      eventEmitter.off(Actions.GoogleAuthSuccess, handleGoogleAuthSuccess);
+      eventEmitter.off(Actions.AskRoomAI, handleInputSubmit);
+    };
+  }, [handleCreateCalendarSuccess, handleGoogleAuthSuccess, handleInputSubmit, updateToken]);
+
+  useEffect(() => {
+    if ((status === 'ready' || status === 'error') && chatId) {
+      const msgs = parseMessage2StoreMessage(chatId, messages);
+      ChataiStores.message?.storeMessages([...msgs]);
+    }
+  }, [messages, status, chatId]);
+
   const deleteMessage = useCallback((messageId: string) => {
     ChataiStores.message?.delMessage(messageId).then(() => {
       setMessages((prev) => prev.filter((message) => message.id !== messageId));

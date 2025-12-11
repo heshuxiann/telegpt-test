@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import type { SummaryStoreMessage } from '../store/summary-store';
 
-export const createIntroduceMeetingMessage = ():SummaryStoreMessage => {
+export const createIntroduceMeetingMessage = (): SummaryStoreMessage => {
   return {
     timestamp: new Date().getTime(),
     content: '',
@@ -14,7 +14,7 @@ export const createIntroduceMeetingMessage = ():SummaryStoreMessage => {
     }],
   };
 };
-export const createIntroduceSummaryMessage = ():SummaryStoreMessage => {
+export const createIntroduceSummaryMessage = (): SummaryStoreMessage => {
   return {
     timestamp: new Date().getTime(),
     content: '',
@@ -26,7 +26,7 @@ export const createIntroduceSummaryMessage = ():SummaryStoreMessage => {
     }],
   };
 };
-export const createIntroduceTranslationMessage = ():SummaryStoreMessage => {
+export const createIntroduceTranslationMessage = (): SummaryStoreMessage => {
   return {
     timestamp: new Date().getTime(),
     content: '',
@@ -38,7 +38,7 @@ export const createIntroduceTranslationMessage = ():SummaryStoreMessage => {
     }],
   };
 };
-export const createIntroduceActionsMessage = ():SummaryStoreMessage => {
+export const createIntroduceActionsMessage = (): SummaryStoreMessage => {
   return {
     timestamp: new Date().getTime(),
     content: '',
@@ -51,7 +51,7 @@ export const createIntroduceActionsMessage = ():SummaryStoreMessage => {
   };
 };
 
-export const createGlobalIntroduceMessage = ():SummaryStoreMessage => {
+export const createGlobalIntroduceMessage = (): SummaryStoreMessage => {
   return {
     timestamp: new Date().getTime(),
     content: '',

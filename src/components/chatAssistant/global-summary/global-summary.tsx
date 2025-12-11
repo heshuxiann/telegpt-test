@@ -1,18 +1,19 @@
 /* eslint-disable no-null/no-null */
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   memo,
   useCallback, useEffect, useState,
 } from 'react';
 import { useChat } from '@ai-sdk/react';
 import type { Message } from 'ai';
-import { orderBy } from 'lodash';
+import { orderBy, uniqBy } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
 import { SERVER_API_URL } from '../../../config';
-import eventEmitter, { Actions } from '../lib/EventEmitter';
+import { Actions } from '../lib/EventEmitter';
 import buildClassName from '../../../util/buildClassName';
 import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
+import { useEventListener } from '../hook/useEventBus';
 import { Messages } from '../messages';
 import { MultiInput } from '../multi-input';
 import { RightPanel } from '../rightPanel/right-panel';
@@ -39,6 +40,7 @@ import SerenaPath from '../assets/serena.png';
 
 const GlobalSummary = () => {
   const { isOpen } = useDrawerStore();
+  const apiHeaders = useRef(getApihHeaders());
   const [notificationMessage, setNotificationMessage] = useState<Message | null>(null);
   const [summaryMessages, setSummaryMessages] = useState<Message[]>([]);
   const [viewMessages, setViewMessages] = useState<Message[]>([]);
@@ -71,7 +73,10 @@ const GlobalSummary = () => {
 
   useEffect(() => {
     const sorted = orderBy(
-      [...messages, ...summaryMessages],
+      uniqBy(
+        [...messages, ...summaryMessages],
+        (item: Message) => item.id,
+      ),
       [(item: Message) => new Date(item.createdAt as Date).getTime()],
       ['asc'],
     );
@@ -101,16 +106,16 @@ const GlobalSummary = () => {
     });
   }, [pageInfo?.lastTime, scrollLocked, setSummaryMessages]);
 
-  const handleAddSummaryMessage = useCallback((message: SummaryStoreMessage) => {
+  const handleAddSummaryMessage = (message: SummaryStoreMessage) => {
     setSummaryMessages((prev) => [...prev, message]);
-  }, [setSummaryMessages]);
+  };
 
-  const handleAddUrgentMessage = useCallback((message: SummaryStoreMessage) => {
+  const handleAddUrgentMessage = (message: SummaryStoreMessage) => {
     setSummaryMessages((prev) => [...prev, message]);
     setNotificationMessage(message);
-  }, [setSummaryMessages]);
+  };
 
-  const getSummaryHistory = useCallback(() => {
+  const getSummaryHistory = () => {
     ChataiStores.summary?.getMessages(undefined, 30)?.then((res) => {
       if (res.messages.length > 0) {
         const localChatAiMessages = parseSummaryStoreMessage2Message(res.messages);
@@ -118,31 +123,14 @@ const GlobalSummary = () => {
       } else {
         const globalIntroduce = createGlobalIntroduceMessage();
         setSummaryMessages([globalIntroduce]);
+        ChataiStores.summary?.storeMessages([globalIntroduce]);
       }
       setPageInfo({
         lastTime: res.lastTime,
         hasMore: res.hasMore,
       });
     });
-  }, [setSummaryMessages]);
-
-  useEffect(() => {
-    eventEmitter.on(Actions.AddUrgentMessage, handleAddUrgentMessage);
-    eventEmitter.on(Actions.AddSummaryMessage, handleAddSummaryMessage);
-    eventEmitter.on(Actions.ChatAIStoreReady, getSummaryHistory);
-    return () => {
-      eventEmitter.off(Actions.AddUrgentMessage, handleAddUrgentMessage);
-      eventEmitter.off(Actions.AddSummaryMessage, handleAddSummaryMessage);
-      eventEmitter.off(Actions.ChatAIStoreReady, getSummaryHistory);
-      setViewMessages([]);
-    };
-  }, [getSummaryHistory, handleAddSummaryMessage, handleAddUrgentMessage]);
-
-  useEffect(() => {
-    if (ChataiStores.summary) {
-      getSummaryHistory();
-    }
-  }, [getSummaryHistory]);
+  };
 
   // useEffect(() => {
   //   const lastFocusTime = RoomStorage.getRoomLastFocusTime(GLOBAL_SUMMARY_CHATID);
@@ -161,7 +149,7 @@ const GlobalSummary = () => {
     });
   }, [scrollLocked]);
 
-  const handleInputSubmit = useCallback((value: string) => {
+  const handleInputSubmit = (value: string) => {
     scrollToBottom();
     append({
       role: 'user',
@@ -169,9 +157,18 @@ const GlobalSummary = () => {
       id: uuidv4(),
       createdAt: new Date(),
     }, {
-      headers: getApihHeaders(),
+      headers: apiHeaders.current,
     });
-  }, [append, scrollToBottom]);
+  };
+
+  useEventListener(Actions.AskGlobalAI, handleInputSubmit);
+  useEventListener(Actions.AddUrgentMessage, handleAddUrgentMessage);
+  useEventListener(Actions.AddSummaryMessage, handleAddSummaryMessage);
+  useEventListener(Actions.ChatAIStoreReady, getSummaryHistory);
+
+  useEffect(() => {
+    getSummaryHistory();
+  }, []);
 
   useEffect(() => {
     if (status === 'ready' || status === 'error') {
@@ -179,6 +176,7 @@ const GlobalSummary = () => {
       ChataiStores.summary?.storeMessages(msgs);
     }
   }, [messages, status]);
+
   const className = buildClassName(
     styles.globaSummaryBg,
     'flex flex-col w-full h-full',

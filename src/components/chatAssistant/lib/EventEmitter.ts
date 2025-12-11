@@ -9,6 +9,7 @@ export enum Actions {
   NewTextMessage = 'NewTextMessage',
   AddUrgentMessage = 'AddUrgentMessage',
   AddSummaryMessage = 'AddSummaryMessage',
+  AskGlobalAI = 'AskGlobalAI',
   // summary chats
   UpdateSummaryChats = 'UpdateSummaryChats',
   // google
@@ -21,6 +22,7 @@ export enum Actions {
   UpdateRoomAISummaryState = 'UpdateRoomAISummaryState',
   IntentionToScheduleMeeting = 'IntentionToScheduleMeeting',
   RoomAIActions = 'RoomAIActions',
+  AskRoomAI = 'AskRoomAI',
   // ai chat folds
   UpdateAIChatFoldersApplying = 'UpdateAIChatFoldersApplying',
   UpdateSettingAIChatFoldersLoading = 'UpdateSettingAIChatFoldersLoading',

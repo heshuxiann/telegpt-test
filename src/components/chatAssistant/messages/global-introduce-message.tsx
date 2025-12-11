@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import React from 'react';
 import { getGlobal } from '../../../global';
 
@@ -43,9 +42,17 @@ export const GlobalIntroduceMessage = () => {
     eventEmitter.emit(Actions.AddSummaryMessage, message);
     scrollToBottom();
   };
+  const handleSendMessage = (value: string) => {
+    eventEmitter.emit(Actions.AskGlobalAI, value);
+  };
   return (
     <div className="global-summary-introduce">
-      <h3>Hi {[currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(' ')} 👋</h3>
+      <h3>
+        Hi
+        {[currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(' ')}
+        {' '}
+        👋
+      </h3>
       <h3>How can I help you today！</h3>
       <div className="rounded-[16px] p-[15px] grid grid-cols-2 gap-[12px] w-[743px] mt-[10px] mb-[20px] bg-[var(--color-background)]">
         <div
@@ -94,16 +101,19 @@ export const GlobalIntroduceMessage = () => {
         </div>
       </div>
       <div>
-        <h5 className="text-[16px] font-normal mb-[16px]"> You can also ask me like this</h5>
+        <h5 className="text-[16px] font-normal !mb-[12px]"> You can also ask me like this</h5>
         <div className="flex flex-row flex-wrap gap-[12px]">
-          <div className="p-[8px] rounded-[16px] text-[14px] text-[var(--color-text)] bg-[var(--color-background)]">
-            Summarize unread messages
+          <div
+            className="cursor-pointer p-[8px] rounded-[16px] text-[14px] text-[var(--color-text)] bg-[var(--color-background)]"
+            onClick={() => handleSendMessage('What’s new today?')}
+          >
+            What’s new today?
           </div>
-          <div className="p-[8px] rounded-[16px] text-[14px] text-[var(--color-text)] bg-[var(--color-background)]">
-            What are the most discussed crypto today?
-          </div>
-          <div className="p-[8px] rounded-[16px] text-[14px] text-[var(--color-text)] bg-[var(--color-background)]">
-            Help me schedule a meeting for 10 AM tomorrow
+          <div
+            className="cursor-pointer p-[8px] rounded-[16px] text-[14px] text-[var(--color-text)] bg-[var(--color-background)]"
+            onClick={() => handleSendMessage('Summarize today’s crypto market highlights.')}
+          >
+            Summarize today’s crypto market highlights.
           </div>
         </div>
       </div>
