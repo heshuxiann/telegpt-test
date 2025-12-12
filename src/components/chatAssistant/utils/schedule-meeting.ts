@@ -5,7 +5,7 @@ import React from 'react';
 import { DateTime, Interval } from 'luxon';
 import { getActions, getGlobal, getPromiseActions } from '../../../global';
 
-import type { ApiDraft, ApiMessage } from '../../../api/types';
+import type { ApiMessage } from '../../../api/types';
 import type { ICreateMeetResponse } from './google-api';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
@@ -346,19 +346,19 @@ class ScheduleMeeting {
     ) {
       this.scheduleAuthCheck();
     } else {
-      await this.handleMeetingInfoAsk();
+      this.handleMeetingInfoAsk();
     }
   }
 
-  private async handleMeetingInfoAsk() {
+  private handleMeetingInfoAsk() {
     if (!this.startTime || this.startTime.length === 0) {
-      await this.sendMessage(ASK_MEETING_TIME);
+      this.sendMessage(ASK_MEETING_TIME);
       return;
     } else if (!this.timeZone) {
-      await this.sendMessage(ASK_MEETING_TIMEZONE);
+      this.sendMessage(ASK_MEETING_TIMEZONE);
       return;
     } else if (!this.email.length) {
-      await this.sendMessage(ASK_MEETING_EMAIL);
+      this.sendMessage(ASK_MEETING_EMAIL);
       return;
     }
   }
@@ -418,7 +418,7 @@ class ScheduleMeeting {
     ) {
       this.scheduleAuthCheck();
     } else {
-      await this.handleMeetingInfoAsk();
+      this.handleMeetingInfoAsk();
     }
   }
 
@@ -511,12 +511,12 @@ class ScheduleMeeting {
       );
       if (!isAvailable) {
         this.startTime = [];
-        await this.sendMessage(MEETING_TIME_UNAVAILABLE);
+        this.sendMessage(MEETING_TIME_UNAVAILABLE);
         // 根据自己日历的时间，给出时间建议
         await new Promise<void>((res) => {
           void setTimeout(res, 1000);
         });
-        await this.sendMessage(
+        this.sendMessage(
           `Here are some available time slots you can choose from: \n ${suggestions!
             .map(
               (slot, index) =>
@@ -527,8 +527,7 @@ class ScheduleMeeting {
                   true,
                 )}`,
             )
-            .join('\n')}
-          [By TelyAI]`,
+            .join('\n')} \n [By TelyAI]`,
         );
         return;
       } else {
@@ -623,7 +622,7 @@ class ScheduleMeeting {
 
       // 只有当命中参数时才询问下一个必要条件
       if (startTime || duration || timeZone || email) {
-        await this.handleMeetingInfoAsk();
+        this.handleMeetingInfoAsk();
       }
 
       if (
@@ -642,7 +641,6 @@ class ScheduleMeeting {
   }
 
   private async handleGoogleAuthCheck() {
-    this.cleanup();
     const auth = getAuthState();
     if (!auth || !(await isTokenValid(auth))) {
       createAuthConfirmModal({
@@ -672,9 +670,7 @@ class ScheduleMeeting {
         if (createMeetResponse) {
           generateEventScreenshot(createMeetResponse, this.chatId);
         }
-        setTimeout(() => {
-          this.cleanup();
-        }, 3000);
+        this.cleanup();
       })
       .catch(async (err) => {
         console.log(err);
@@ -684,28 +680,21 @@ class ScheduleMeeting {
   }
 
   private async sendMessage(message: string) {
-    const { saveReplyDraft, sendMessage, clearDraft } = getPromiseActions();
+    const { sendMessage, sendMessageWithReplyInfo } = getPromiseActions();
     if (this.targetUserId && this.messageId) {
-      const replyInfo = {
-        type: 'message',
-        replyToMsgId: this.messageId,
-        replyToPeerId: undefined,
-      };
-      await saveReplyDraft({
-        chatId: this.chatId,
-        threadId: -1,
-        draft: { replyInfo } as ApiDraft,
-        isLocalOnly: true,
-      });
-      await sendMessage({
+      await sendMessageWithReplyInfo({
         messageList: {
           chatId: this.chatId,
           threadId: -1,
           type: 'thread',
         },
         text: message,
+        replyInfo: {
+          type: 'message',
+          replyToMsgId: this.messageId,
+          replyToPeerId: undefined,
+        },
       });
-      await clearDraft({ chatId: this.chatId, isLocalOnly: true });
     } else {
       await sendMessage({
         messageList: {

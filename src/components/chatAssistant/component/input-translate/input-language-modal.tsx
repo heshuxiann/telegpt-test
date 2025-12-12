@@ -10,12 +10,9 @@ import renderText from '../../../common/helpers/renderText';
 import useLastCallback from '../../../../hooks/useLastCallback';
 import useOldLang from '../../../../hooks/useOldLang';
 
-import Icon from '../../../common/icons/Icon';
-import Button from '../../../ui/Button';
 import InputText from '../../../ui/InputText';
 import ListItem from '../../../ui/ListItem';
 import Modal from '../../../ui/Modal';
-import Switcher from '../../../ui/Switcher';
 
 import styles from './input-language.module.scss';
 
@@ -40,34 +37,6 @@ export type OwnProps = {
   }) => void;
 };
 
-const InputLanguageHeader = ({ onClose, inputTranslateOptions, handleAutoTranslateChange }: {
-  onClose: () => void;
-  inputTranslateOptions: OwnProps['inputTranslateOptions'];
-  handleAutoTranslateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}) => {
-  return (
-    <div className="modal-header">
-      <Button
-        round
-        color="translucent"
-        size="smaller"
-        ariaLabel="Close"
-        onClick={onClose}
-      >
-        <Icon name="close" />
-      </Button>
-      <div className="modal-title pr-[4px] h-[44px] flex items-center justify-between">
-        <span>Language</span>
-        <Switcher
-          label="Toggle Chat Translate"
-          checked={inputTranslateOptions.autoTranslate}
-          onChange={handleAutoTranslateChange}
-        />
-      </div>
-    </div>
-  );
-};
-
 const InputLanguageModal: FC<OwnProps> = ({
   isOpen,
   inputTranslateOptions,
@@ -89,12 +58,6 @@ const InputLanguageModal: FC<OwnProps> = ({
 
   const handleSearch = useLastCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
-  });
-
-  const handleAutoTranslateChange = useLastCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    inputTranslateOptions.autoTranslate = e.target.checked;
-    inputTranslateOptions.firstTime = false;
-    updateRoomInputTranslateOptions(inputTranslateOptions);
   });
 
   const translateLanguages = useMemo(() => SUPPORTED_TRANSLATION_LANGUAGES.map((langCode: string) => {
@@ -132,14 +95,8 @@ const InputLanguageModal: FC<OwnProps> = ({
       className={styles.root}
       isSlim
       isOpen={isOpen}
+      title="Language"
       hasCloseButton
-      header={(
-        <InputLanguageHeader
-          onClose={closeInputLanguageModal}
-          inputTranslateOptions={inputTranslateOptions}
-          handleAutoTranslateChange={handleAutoTranslateChange}
-        />
-      )}
       onClose={closeInputLanguageModal}
     >
       <InputText

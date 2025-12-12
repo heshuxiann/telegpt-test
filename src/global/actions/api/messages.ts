@@ -552,6 +552,31 @@ addActionHandler('sendMessage', async (global, actions, payload): Promise<void> 
   if (localMessages?.length) sendMessagesWithNotification(global, localMessages);
 });
 
+addActionHandler('sendMessageWithReplyInfo', async (global, actions, payload): Promise<void> => {
+  const { messageList, replyInfo, text } = payload;
+  const { chatId, threadId } = messageList || {};
+  const chat = selectChat(global, chatId!)!;
+  const threadInfo = selectThreadInfo(global, chatId!, threadId!);
+  const lastMessageId = threadId === MAIN_THREAD_ID
+    ? selectChatLastMessageId(global, chatId!) : threadInfo?.lastMessageId;
+  const params: SendMessageParams = {
+    messageList,
+    text,
+    isSilent: false,
+    shouldUpdateStickerSetOrder: true,
+    isForwarding: false,
+    chat,
+    replyInfo: {
+      ...replyInfo,
+      quoteOffset: -1,
+    } as ApiInputMessageReplyInfo,
+    lastMessageId,
+    isStoryReply: false,
+    wasDrafted: true,
+  };
+  await sendMessageOrReduceLocal(global, params, []);
+});
+
 addActionHandler('sendInviteMessages', async (global, actions, payload): Promise<void> => {
   const { chatId, userIds, tabId = getCurrentTabId() } = payload;
   const chatFullInfo = selectChatFullInfo(global, chatId);
@@ -699,7 +724,7 @@ addActionHandler('saveReplyDraft', (global, actions, payload): ActionReturnType 
     chatId, threadId, draft, isLocalOnly,
   } = payload;
 
-  return saveDraft({
+  saveDraft({
     global, chatId, threadId, draft, isLocalOnly,
   });
 });

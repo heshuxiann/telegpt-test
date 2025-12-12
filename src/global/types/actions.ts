@@ -499,6 +499,7 @@ export interface ActionPayloads {
     onError?: NoneToVoidFunction;
   } & WithTabId;
   sendMessage: Partial<SendMessageParams> & WithTabId;
+  sendMessageWithReplyInfo: Partial<SendMessageParams> & WithTabId;
   sendMessages: {
     sendParams: SendMessageParams[];
   };
