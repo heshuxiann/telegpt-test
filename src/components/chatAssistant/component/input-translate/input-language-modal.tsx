@@ -80,6 +80,10 @@ const InputLanguageModal: FC<OwnProps> = ({
     inputTranslateOptions.translateLanguage = langCode;
     inputTranslateOptions.firstTime = false;
     updateRoomInputTranslateOptions(inputTranslateOptions);
+    // 打开自动翻译开关
+    inputTranslateOptions.autoTranslate = true;
+    inputTranslateOptions.firstTime = false;
+    updateRoomInputTranslateOptions(inputTranslateOptions);
     closeInputLanguageModal();
   });
 

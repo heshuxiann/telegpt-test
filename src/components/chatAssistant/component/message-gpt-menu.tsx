@@ -14,6 +14,7 @@ import {
 import {
   selectAllowedMessageActionsSlow, selectCanTranslateMessage, selectChat, selectChatFullInfo, selectCurrentMessageList,
   selectMessageTranslations,
+  selectRequestedChatTranslationLanguage,
   selectRequestedMessageTranslationLanguage,
 } from '../../../global/selectors';
 import { isUserId } from '../../../util/entities/ids';
@@ -45,6 +46,7 @@ type StateProps = {
   canAISummarize: any;
   canSmartReply: boolean | undefined;
   canTranslate: boolean | undefined;
+  canShowOriginal: boolean | undefined;
   subscriptionType: string;
 };
  type OwnProps = {
@@ -55,11 +57,11 @@ type StateProps = {
  };
 
 const MessageGptMenu: FC<OwnProps & StateProps> = ({
-  message, position, canScheduleMeeting, canAISummarize, canSmartReply, canTranslate, subscriptionType,
+  message, position, canScheduleMeeting, canAISummarize, canSmartReply, canTranslate, canShowOriginal, subscriptionType,
 }) => {
   const canSerenaAI = canScheduleMeeting || canAISummarize || canSmartReply || canTranslate;
   const [isSchedulingMeeting, setIsSchedulingMeeting] = useState(false);
-  const { openPayPackageModal } = getActions();
+  const { openPayPackageModal, updateDraftReplyInfo, openChatAIWithInfo, requestMessageTranslation, showOriginalMessage } = getActions();
 
   const handleScheduleMeeting = useLastCallback(async () => {
     if (!checkCredisBalance()) {
@@ -101,7 +103,7 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
       return;
     }
     if (message.content.text?.text) {
-      getActions().updateDraftReplyInfo({
+      updateDraftReplyInfo({
         replyToMsgId: message.id, replyToPeerId: undefined, quoteText: undefined, quoteOffset: undefined,
       });
       const bestMatch = await getBestKnowledgeMatch(message.content.text.text);
@@ -129,7 +131,7 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
       photo, document, webPage, voice, audio, text, video,
     } = message.content;
     const isUrl = checkIsUrl(text?.text);
-    getActions().openChatAIWithInfo({ chatId: message.chatId });
+    openChatAIWithInfo({ chatId: message.chatId });
     if (photo) {
       photoSummary(message);
     } else if ((webPage && !text?.text) || isUrl) {
@@ -150,7 +152,14 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
       openPayPackageModal();
       return;
     }
-    getActions().requestMessageTranslation({
+    requestMessageTranslation({
+      chatId: message.chatId,
+      id: message.id,
+    });
+  });
+
+  const handleShowOriginal = useLastCallback(() => {
+    showOriginalMessage({
       chatId: message.chatId,
       id: message.id,
     });
@@ -161,13 +170,18 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
   }
 
   return (
-    <div className={cx('message-gpt-menu', position === 'top' ? 'top-[-32px]' : 'bottom-[-32px]')}>
+    <div className={cx('message-gpt-menu z-100', position === 'top' ? 'top-[-32px]' : 'bottom-[-32px]')}>
       <div className="message-gpt-menu-inner">
         <div className={cx('!cursor-auto', menuItemClass)}>
           <img className="w-[20px] h-[20px] mt-[-4px]" src={SerenaPath} alt="" />
         </div>
         {canTranslate && (
           <div className={menuItemClass} onClick={handleTranslate} title="Translate">
+            <AITranslateIcon size={16} />
+          </div>
+        )}
+        {canShowOriginal && (
+          <div className={menuItemClass} onClick={handleShowOriginal} title="Show original">
             <AITranslateIcon size={16} />
           </div>
         )}
@@ -210,13 +224,16 @@ export default memo(withGlobal<OwnProps>((global, { message, messageListType, de
   const hasTranslation = translationRequestLanguage
     ? Boolean(selectMessageTranslations(global, message.chatId, translationRequestLanguage)[message.id]?.text)
     : undefined;
+  const isChatTranslated = selectRequestedChatTranslationLanguage(global, message.chatId);
   const canTranslate = !hasTranslation && selectCanTranslateMessage(global, message, detectedLanguage);
+  const canShowOriginal = hasTranslation && !isChatTranslated;
   return {
     message,
     canScheduleMeeting: !isOwn && hasTextContent,
     canAISummarize,
     canSmartReply: !isOwn && !isPinned && !isScheduled && canReplyGlobally && canSendText && hasTextContent,
     canTranslate,
+    canShowOriginal,
     subscriptionType,
   };
 })(MessageGptMenu));
