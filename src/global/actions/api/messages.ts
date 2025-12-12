@@ -699,7 +699,7 @@ addActionHandler('saveReplyDraft', (global, actions, payload): ActionReturnType 
     chatId, threadId, draft, isLocalOnly,
   } = payload;
 
-  saveDraft({
+  return saveDraft({
     global, chatId, threadId, draft, isLocalOnly,
   });
 });

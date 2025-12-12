@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { DateTime, Interval } from 'luxon';
-import { getActions, getGlobal } from '../../../global';
+import { getActions, getGlobal, getPromiseActions } from '../../../global';
 
 import type { ApiDraft, ApiMessage } from '../../../api/types';
 import type { ICreateMeetResponse } from './google-api';
@@ -346,19 +346,19 @@ class ScheduleMeeting {
     ) {
       this.scheduleAuthCheck();
     } else {
-      this.handleMeetingInfoAsk();
+      await this.handleMeetingInfoAsk();
     }
   }
 
-  private handleMeetingInfoAsk() {
+  private async handleMeetingInfoAsk() {
     if (!this.startTime || this.startTime.length === 0) {
-      this.sendMessage(ASK_MEETING_TIME);
+      await this.sendMessage(ASK_MEETING_TIME);
       return;
     } else if (!this.timeZone) {
-      this.sendMessage(ASK_MEETING_TIMEZONE);
+      await this.sendMessage(ASK_MEETING_TIMEZONE);
       return;
     } else if (!this.email.length) {
-      this.sendMessage(ASK_MEETING_EMAIL);
+      await this.sendMessage(ASK_MEETING_EMAIL);
       return;
     }
   }
@@ -418,7 +418,7 @@ class ScheduleMeeting {
     ) {
       this.scheduleAuthCheck();
     } else {
-      this.handleMeetingInfoAsk();
+      await this.handleMeetingInfoAsk();
     }
   }
 
@@ -511,12 +511,12 @@ class ScheduleMeeting {
       );
       if (!isAvailable) {
         this.startTime = [];
-        this.sendMessage(MEETING_TIME_UNAVAILABLE);
+        await this.sendMessage(MEETING_TIME_UNAVAILABLE);
         // 根据自己日历的时间，给出时间建议
         await new Promise<void>((res) => {
           void setTimeout(res, 1000);
         });
-        this.sendMessage(
+        await this.sendMessage(
           `Here are some available time slots you can choose from: \n ${suggestions!
             .map(
               (slot, index) =>
@@ -527,7 +527,8 @@ class ScheduleMeeting {
                   true,
                 )}`,
             )
-            .join('\n')} \n [By TelyAI]`,
+            .join('\n')}
+          [By TelyAI]`,
         );
         return;
       } else {
@@ -622,7 +623,7 @@ class ScheduleMeeting {
 
       // 只有当命中参数时才询问下一个必要条件
       if (startTime || duration || timeZone || email) {
-        this.handleMeetingInfoAsk();
+        await this.handleMeetingInfoAsk();
       }
 
       if (
@@ -666,8 +667,8 @@ class ScheduleMeeting {
       emails: this.email,
       googleToken: accessToken,
     })
-      .then((createMeetResponse: ICreateMeetResponse) => {
-        this.sendMessage(MEETING_INVITATION_TIP);
+      .then(async (createMeetResponse: ICreateMeetResponse) => {
+        await this.sendMessage(MEETING_INVITATION_TIP);
         if (createMeetResponse) {
           generateEventScreenshot(createMeetResponse, this.chatId);
         }
@@ -675,28 +676,28 @@ class ScheduleMeeting {
           this.cleanup();
         }, 3000);
       })
-      .catch((err) => {
+      .catch(async (err) => {
         console.log(err);
-        this.sendMessage(SCHEDULE_MEETING_ERROR_MSG);
+        await this.sendMessage(SCHEDULE_MEETING_ERROR_MSG);
         this.cleanup();
       });
   }
 
-  private sendMessage(message: string) {
-    const { saveReplyDraft, sendMessage, clearDraft } = getActions();
+  private async sendMessage(message: string) {
+    const { saveReplyDraft, sendMessage, clearDraft } = getPromiseActions();
     if (this.targetUserId && this.messageId) {
       const replyInfo = {
         type: 'message',
         replyToMsgId: this.messageId,
         replyToPeerId: undefined,
       };
-      saveReplyDraft({
+      await saveReplyDraft({
         chatId: this.chatId,
         threadId: -1,
         draft: { replyInfo } as ApiDraft,
         isLocalOnly: true,
       });
-      sendMessage({
+      await sendMessage({
         messageList: {
           chatId: this.chatId,
           threadId: -1,
@@ -704,9 +705,9 @@ class ScheduleMeeting {
         },
         text: message,
       });
-      clearDraft({ chatId: this.chatId, isLocalOnly: true });
+      await clearDraft({ chatId: this.chatId, isLocalOnly: true });
     } else {
-      sendMessage({
+      await sendMessage({
         messageList: {
           chatId: this.chatId,
           threadId: -1,
