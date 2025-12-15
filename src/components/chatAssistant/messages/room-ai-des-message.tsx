@@ -49,7 +49,7 @@ const RoomAIDescriptionMessage = ({ message }: { message: Message }) => {
           】!
           I’m TelyAI 🤖, your smart assistant here.
         </p>
-        <div className="mt-[0.5rem]">
+        <div className="mt-[1rem]">
           <h3 className="text-[14px] font-semibold">🚀 Here’s what I can help you with:</h3>
           <div className="flex flex-row flex-wrap gap-[8px] mt-[0.5rem]">
             <div className={actionItemClassName} onClick={handleSummarize}>
@@ -69,10 +69,10 @@ const RoomAIDescriptionMessage = ({ message }: { message: Message }) => {
             </div>
           </div>
         </div>
-        <div className="mt-[0.5rem]">
-          <h3 className="text-[14px] font-semibold">📍 You can ask me things like:</h3>
+        <div className="mt-[1rem]">
+          <h3 className="text-[14px] font-semibold !mb-[10px]">📍 You can ask me things like:</h3>
           <ul className="list-disc pl-[24px] text-[14px] text-[var(--color-text)]">
-            <li className='cursor-pointer' onClick={() => handleSendMessage('What’s new today?')}>What’s new today?</li>
+            <li className='cursor-pointer mb-[10px]' onClick={() => handleSendMessage('What’s new today?')}>What’s new today?</li>
             <li className='cursor-pointer' onClick={() => handleSendMessage('Summarize today’s crypto market highlights.')}>
               Summarize today’s crypto market highlights.
             </li>
