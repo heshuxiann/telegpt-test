@@ -6,7 +6,7 @@ import useSWR from 'swr';
 type ScrollFlag = ScrollBehavior | false;
 
 export function useScrollToBottom() {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(undefined);
   const endRef = useRef<HTMLDivElement>(null);
 
   const { data: isScrollLock = false, mutate: setIsScrollLock } = useSWR(
