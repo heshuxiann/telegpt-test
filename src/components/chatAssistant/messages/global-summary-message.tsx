@@ -403,19 +403,23 @@ const SummaryInfoContent = ({ summaryInfo }: { summaryInfo: ISummaryInfo }) => {
         </div>
         <p className="text-[22px] font-bold mb-[16px]" data-readable>Chat Summary</p>
         <div className="flex items-center flex-wrap">
-          <p className="flex items-center gap-[8px] flex-nowrap">
-            <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
-            <div className="flex items-center gap-[4px]">
-              <span className="mr-[4px] font-bold text-[14px]" data-readable data-readable-inline>Time range:</span>
-              <span data-readable data-readable-inline>{formatTimestampRange(summaryInfo?.summaryStartTime, summaryInfo?.summaryEndTime)}</span>
+          <p className="flex items-start gap-[8px] flex-nowrap">
+            <div className='h-[22px] flex items-center'>
+              <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
+            </div>
+            <div className="flex items-center flex-wrap gap-[4px]">
+              <span className="font-bold text-[14px] leading-[22px] whitespace-nowrap" data-readable data-readable-inline>Time range:</span>
+              <span className='leading-[22px] text-[14px]' data-readable data-readable-inline>{formatTimestampRange(summaryInfo?.summaryStartTime, summaryInfo?.summaryEndTime)}</span>
             </div>
           </p>
-          <p className="flex items-center gap-[8px] flex-nowrap !ml-[20px]">
-            <img className="w-[16px] h-[16px]" src={MessageIcon} alt="" />
+          <p className="flex items-center gap-[8px] flex-nowrap">
+            <div className='h-[22px] flex items-center'>
+               <img className="w-[16px] h-[16px]" src={MessageIcon} alt="" />
+            </div>
             <div className="flex items-center gap-[4px]">
               <span className="font-bold text-[14px]" data-readable data-readable-inline>Messages:</span>
               {summaryInfo?.summaryMessageCount ? (
-                <span data-readable data-readable-inline>{summaryInfo?.summaryMessageCount}</span>
+                <span className='leading-[22px] text-[14px]' data-readable data-readable-inline>{summaryInfo?.summaryMessageCount}</span>
               ) : null}
             </div>
           </p>
