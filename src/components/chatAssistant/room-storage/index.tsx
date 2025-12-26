@@ -40,34 +40,6 @@ class RoomStorage {
     return roomAIData ? JSON.parse(roomAIData)?.[chatId]?.summaryState || false : false;
   }
 
-  public static getRoomInputTranslateOptions(chatId: string): {
-    translateLanguage: string;
-    autoTranslate: boolean;
-    firstTime: boolean;
-  } {
-    const defaultOptions = {
-      translateLanguage: 'en',
-      autoTranslate: false,
-      firstTime: true,
-    };
-    const roomAIData = localStorage.getItem('room-ai-data');
-    return roomAIData ? JSON.parse(roomAIData)?.[chatId]?.inputTranslateOptions || defaultOptions : defaultOptions;
-  }
-
-  public static updateRoomInputTranslateOptions(chatId: string, options: {
-    translateLanguage: string;
-    autoTranslate: boolean;
-    firstTime: boolean;
-  }) {
-    const roomAIData = localStorage.getItem('room-ai-data');
-    const data = roomAIData ? JSON.parse(roomAIData) : {};
-    data[chatId] = {
-      ...data[chatId],
-      inputTranslateOptions: options,
-    };
-    localStorage.setItem('room-ai-data', JSON.stringify(data));
-  }
-
   public static updateRoomAIData(chatId: string, type: string, value: any) {
     const roomAIData = localStorage.getItem('room-ai-data');
     const parsedData = roomAIData ? JSON.parse(roomAIData) : {};

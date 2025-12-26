@@ -11,11 +11,11 @@ import Button from '../../ui/Button';
 type OwnProps = {
   onReset: () => void;
 };
-const AITranslateHeader: FC<OwnProps> = ({ onReset }) => {
+const TelyAILanguageHeader: FC<OwnProps> = ({ onReset }) => {
   const oldLang = useOldLang();
 
   function renderHeaderContent() {
-    return <h3>{oldLang('AI Translate')}</h3>;
+    return <h3>{oldLang('TelyAI Language')}</h3>;
   }
   return (
     <div className="left-header">
@@ -33,4 +33,4 @@ const AITranslateHeader: FC<OwnProps> = ({ onReset }) => {
   );
 };
 
-export default memo(AITranslateHeader);
+export default memo(TelyAILanguageHeader);

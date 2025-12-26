@@ -130,7 +130,6 @@ import { getServerTime } from '../../util/serverTime';
 import windowSize from '../../util/windowSize';
 import { callApi } from '../../api/gramjs';
 import InputTranslate from '../chatAssistant/component/input-translate/input-translate';
-import RoomStorage from '../chatAssistant/room-storage';
 import { userInformationCollection } from '../chatAssistant/utils/user-information-collection';
 import applyIosAutoCapitalizationFix from '../middle/composer/helpers/applyIosAutoCapitalizationFix';
 import buildAttachment, { prepareAttachmentsToSend } from '../middle/composer/helpers/buildAttachment';
@@ -207,6 +206,8 @@ import ReactionAnimatedEmoji from './reactions/ReactionAnimatedEmoji';
 
 import './Composer.scss';
 import { checkCredisBalance } from '../../util/paymentErrorHandler';
+import ComposerTranslatededMessage from '../middle/composer/ComposerTranslatededMessage';
+import { RoomInputTranslateOptions } from '../chatAssistant/utils/room-input-translate';
 
 type ComposerType = 'messageList' | 'story';
 
@@ -319,6 +320,7 @@ type StateProps =
     isAppConfigLoaded?: boolean;
     insertingPeerIdMention?: string;
     pollMaxAnswers?: number;
+    inputTranslateOptions: RoomInputTranslateOptions;
   };
 
 enum MainButtonState {
@@ -447,6 +449,7 @@ const Composer: FC<OwnProps & StateProps> = ({
   onFocus,
   onBlur,
   onForward,
+  inputTranslateOptions
 }) => {
   const {
     sendMessage,
@@ -1275,28 +1278,6 @@ const Composer: FC<OwnProps & StateProps> = ({
     }
     // TODO:translate text
     const { text } = parseHtmlAsFormattedText(getHtml());
-    // TODO:translate text
-    if (checkCredisBalance()) {
-      const inputTranslateOptions = RoomStorage.getRoomInputTranslateOptions(chatId);
-      if (inputTranslateOptions.autoTranslate && text) {
-        setIsInlineAILoading(true);
-        try {
-          const result = await callApi('translateTextByTencent', {
-            text: [{ text }],
-            toLanguageCode: inputTranslateOptions.translateLanguage,
-            userId: currentUserId!,
-            userName: getUserFullName(currentUser)!,
-          });
-          if (result && result[0].text) {
-            setHtml(result[0].text);
-          }
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.log(error);
-        }
-        setIsInlineAILoading(false);
-      }
-    }
 
     handleSendCore(currentAttachments, isSilent, scheduledAt);
     // TODO: collect information from send message
@@ -1770,6 +1751,7 @@ const Composer: FC<OwnProps & StateProps> = ({
   } = useShowTransitionDeprecated(isReactionSelectorOpen);
   const areVoiceMessagesNotAllowed = mainButtonState === MainButtonState.Record
     && (!canAttachMedia || !canSendVoiceByPrivacy || !canSendVoices);
+  const areAutoTranslate = inputTranslateOptions?.autoTranslate && mainButtonState === MainButtonState.Send;
 
   const mainButtonHandler = useLastCallback(() => {
     switch (mainButtonState) {
@@ -1777,6 +1759,7 @@ const Composer: FC<OwnProps & StateProps> = ({
         onForward?.();
         break;
       case MainButtonState.Send:
+        if (areAutoTranslate) return;
         handleSendWithConfirmation();
         break;
       case MainButtonState.Record: {
@@ -2079,6 +2062,7 @@ const Composer: FC<OwnProps & StateProps> = ({
             </g>
           </svg>
         )}
+        {inputTranslateOptions?.autoTranslate && hasText && <ComposerTranslatededMessage chatId={chatId} getHtml={getHtml} onUpdate={setHtml} onSend={onSend} />}
         {isInMessageList && (
           <>
             <InlineBotTooltip
@@ -2424,7 +2408,7 @@ const Composer: FC<OwnProps & StateProps> = ({
           !isReady && 'not-ready',
           activeVoiceRecording && 'recording',
         )}
-        disabled={areVoiceMessagesNotAllowed}
+        disabled={areVoiceMessagesNotAllowed || areAutoTranslate}
         allowDisabledClick
         noFastClick
         ariaLabel={oldLang(sendButtonAriaLabel)}
@@ -2603,6 +2587,8 @@ export default memo(withGlobal<OwnProps>(
 
     const webPagePreview = tabState.webPagePreviewId ? selectWebPage(global, tabState.webPagePreviewId) : undefined;
 
+    const inputTranslateOptions = global.roomInputTranslateOptions[chatId];
+
     return {
       availableReactions: global.reactions.availableReactions,
       topReactions: type === 'story' ? global.reactions.topReactions : undefined,
@@ -2694,6 +2680,7 @@ export default memo(withGlobal<OwnProps>(
       isAppConfigLoaded,
       insertingPeerIdMention,
       pollMaxAnswers: appConfig?.pollMaxAnswers,
+      inputTranslateOptions
     };
   },
 )(Composer));

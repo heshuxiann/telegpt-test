@@ -103,8 +103,8 @@ type OwnProps = {
 };
 
 type StateProps = {
-  autoTranslate?: boolean;
-  autoTranslateLanguage?: string;
+  // autoTranslate?: boolean;
+  // autoTranslateLanguage?: string;
   isChatLoaded?: boolean;
   isChannelChat?: boolean;
   isGroupChat?: boolean;
@@ -176,8 +176,8 @@ const MessageList: FC<OwnProps & StateProps> = ({
   chatId,
   threadId,
   type,
-  autoTranslate,
-  autoTranslateLanguage,
+  // autoTranslate,
+  // autoTranslateLanguage,
   isChatLoaded,
   isForum,
   isChannelChat,
@@ -222,16 +222,16 @@ const MessageList: FC<OwnProps & StateProps> = ({
   hasCustomGreeting,
   monoforumChannelId,
   isAppConfigLoaded,
-  // canTranslate,
-  // translationLanguage,
-  // shouldAutoTranslate,
+  canTranslate,
+  translationLanguage,
+  shouldAutoTranslate,
   onIntersectPinnedMessage,
   onScrollDownToggle,
   onNotchToggle,
 }) => {
   const {
     loadViewportMessages, setScrollOffset, loadSponsoredMessages, loadMessageReactions, copyMessagesByIds,
-    loadMessageViews, loadPeerStoriesByIds, loadFactChecks, requestMessageTranslation,
+    loadMessageViews, loadPeerStoriesByIds, loadFactChecks, requestMessageTranslation, requestChatTranslation,
   } = getActions();
 
   const containerRef = useRef<HTMLDivElement>();
@@ -295,17 +295,17 @@ const MessageList: FC<OwnProps & StateProps> = ({
   }, [focusingId]);
 
   // Enable auto translation for the chat if it's available
-  // useEffect(() => {
-  //   if (!shouldAutoTranslate || !canTranslate) return;
-  //   requestChatTranslation({ chatId, toLanguageCode: translationLanguage });
-  // }, [shouldAutoTranslate, canTranslate, translationLanguage, chatId]);
-
   useEffect(() => {
-    if (!autoTranslate) return;
-    messageIds?.forEach((messageId) => {
-      requestMessageTranslation({ chatId, id: messageId, toLanguageCode: autoTranslateLanguage });
-    });
-  }, [autoTranslate, autoTranslateLanguage, chatId, messageIds]);
+    if (!shouldAutoTranslate || !canTranslate) return;
+    requestChatTranslation({ chatId, toLanguageCode: translationLanguage });
+  }, [shouldAutoTranslate, canTranslate, translationLanguage, chatId]);
+
+  // useEffect(() => {
+  //   if (!autoTranslate) return;
+  //   messageIds?.forEach((messageId) => {
+  //     requestMessageTranslation({ chatId, id: messageId, toLanguageCode: autoTranslateLanguage });
+  //   });
+  // }, [autoTranslate, autoTranslateLanguage, chatId, messageIds]);
 
   useNativeCopySelectedMessages(copyMessagesByIds);
 
@@ -825,7 +825,7 @@ const MessageList: FC<OwnProps & StateProps> = ({
 
 export default memo(withGlobal<OwnProps>(
   (global, { chatId, threadId, type }): StateProps => {
-    const { autoTranslate, autoTranslateLanguage } = global.settings.byKey;
+    // const { autoTranslate, autoTranslateLanguage } = global.settings.byKey;
     const currentUserId = global.currentUserId!;
     const chat = selectChat(global, chatId);
     const userFullInfo = selectUserFullInfo(global, chatId);
@@ -879,8 +879,8 @@ export default memo(withGlobal<OwnProps>(
     const translationLanguage = selectTranslationLanguage(global);
 
     return {
-      autoTranslate,
-      autoTranslateLanguage,
+      // autoTranslate,
+      // autoTranslateLanguage,
       areAdsEnabled,
       isChatLoaded: true,
       isRestricted,

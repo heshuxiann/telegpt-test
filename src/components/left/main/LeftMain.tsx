@@ -113,7 +113,7 @@ const LeftMain: FC<OwnProps> = ({
   });
 
   const handleSelectAITranslate = useLastCallback(() => {
-    openLeftColumnContent({ contentKey: LeftColumnContent.AITranslate });
+    openLeftColumnContent({ contentKey: LeftColumnContent.TelyAILanguage });
   });
 
   const handleSelectContacts = useLastCallback(() => {

@@ -161,7 +161,7 @@ class TelegptSettings {
       if (res.code === 0 && res.data) {
         this.settings = res.data;
         localStorage.setItem('telegpt-settings', JSON.stringify(this.settings));
-        this.setGlobalSettings(res.data);
+        // this.setGlobalSettings(res.data);
         if (res.data.subscription_info) {
           getActions().updateSubscriptionInfo({
             subscriptionType: res.data.subscription_info.subscriptionType,
@@ -184,7 +184,7 @@ class TelegptSettings {
       callback?.(res);
       if (res.code === 0) {
         localStorage.setItem('telegpt-settings', JSON.stringify(this.settings));
-        this.setGlobalSettings(settings);
+        // this.setGlobalSettings(settings);
       }
     });
   }
@@ -210,14 +210,14 @@ class TelegptSettings {
   }
 
   setGlobalSettings(newSettings: Partial<ITelegptSettings>) {
-    const { autotranslate, autotranslatelanguage } = newSettings;
-    getActions().setSettingOption({ autoTranslate: autotranslate || false });
-    getActions().setSettingOption({
-      autoTranslateLanguage: autotranslatelanguage || 'en',
-    });
-    getActions().setSettingOption({
-      translationLanguage: autotranslatelanguage || 'en',
-    });
+    // const { autotranslate, autotranslatelanguage } = newSettings;
+    // getActions().setSettingOption({ autoTranslate: autotranslate || false });
+    // getActions().setSettingOption({
+    //   autoTranslateLanguage: autotranslatelanguage || 'en',
+    // });
+    // getActions().setSettingOption({
+    //   translationLanguage: autotranslatelanguage || 'en',
+    // });
   }
 
   updateSummarizeTemplate(template: Partial<ISummaryTemplate>) {

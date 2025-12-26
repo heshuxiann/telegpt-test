@@ -213,6 +213,8 @@ function unsafeMigrateCache(cached: GlobalState, initialState: GlobalState) {
     ...cached.chatFolders,
   };
 
+  cached.roomInputTranslateOptions = initialState.roomInputTranslateOptions;
+
   if (cached.appConfig && !cached.appConfig.limits) {
     cached.appConfig.limits = DEFAULT_LIMITS;
   }

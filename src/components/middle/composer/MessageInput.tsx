@@ -1,6 +1,6 @@
 import type { ChangeEvent } from 'react';
-import React from '@teact';
 import type { ElementRef, FC, TeactNode } from '@teact';
+import React from '@teact';
 import {
   getIsHeavyAnimating,
   memo, useEffect, useLayoutEffect,
@@ -14,6 +14,7 @@ import type {
   IAnchorPosition, MessageListType, ThreadId,
 } from '../../../types';
 import type { Signal } from '../../../util/signals';
+import type { RoomInputTranslateOptions } from '../../chatAssistant/utils/room-input-translate';
 
 import { EDITABLE_INPUT_ID } from '../../../config';
 import { requestForcedReflow, requestMutation } from '../../../lib/fasterdom/fasterdom';
@@ -28,6 +29,7 @@ import { getIsDirectTextInputDisabled } from '../../../util/directInputManager';
 import parseEmojiOnlyString from '../../../util/emoji/parseEmojiOnlyString';
 import focusEditableElement from '../../../util/focusEditableElement';
 import { debounce, fastRaf } from '../../../util/schedulers';
+import { emitEventTeact } from '../../chatAssistant/hook/useEventBusTeact';
 import renderText from '../../common/helpers/renderText';
 import { isSelectionInsideInput } from './helpers/selection';
 
@@ -38,13 +40,11 @@ import useLastCallback from '../../../hooks/useLastCallback';
 import useOldLang from '../../../hooks/useOldLang';
 import useInputCustomEmojis from './hooks/useInputCustomEmojis';
 
+import InputGrammarWrapper from '../../chatAssistant/component/input-grammar/InputGrammarWrapper';
 import Icon from '../../common/icons/Icon';
 import Button from '../../ui/Button';
 import TextTimer from '../../ui/TextTimer';
 import TextFormatter from './TextFormatter.async';
-import InputGrammarWrapper from '../../chatAssistant/component/input-grammar/InputGrammarWrapper';
-
-// eslint-disable-next-line import/no-relative-packages
 
 const CONTEXT_MENU_CLOSE_DELAY_MS = 100;
 // Focus slows down animation, also it breaks transition layout in Chrome
@@ -91,6 +91,7 @@ type StateProps = {
   isSelectModeActive?: boolean;
   messageSendKeyCombo?: SharedSettings['messageSendKeyCombo'];
   canPlayAnimatedEmojis: boolean;
+  inputTranslateOptions: RoomInputTranslateOptions;
 };
 
 const MAX_ATTACHMENT_MODAL_INPUT_HEIGHT = 160;
@@ -151,6 +152,7 @@ const MessageInput: FC<OwnProps & StateProps> = ({
   onBlur,
   isNeedPremium,
   messageListType,
+  inputTranslateOptions,
 }) => {
   const {
     editLastMessage,
@@ -412,6 +414,10 @@ const MessageInput: FC<OwnProps & StateProps> = ({
         e.preventDefault();
 
         closeTextFormatter();
+        if (inputTranslateOptions?.autoTranslate) {
+          emitEventTeact('actions:sendMessage');
+          return;
+        }
         onSend();
       }
     } else if (!isComposing && e.key === 'ArrowUp' && !html && !e.metaKey && !e.ctrlKey && !e.altKey) {
@@ -652,12 +658,14 @@ const MessageInput: FC<OwnProps & StateProps> = ({
 export default memo(withGlobal<OwnProps>(
   (global, { chatId, threadId }: OwnProps): StateProps => {
     const { messageSendKeyCombo } = selectSharedSettings(global);
+    const inputTranslateOptions = global.roomInputTranslateOptions[chatId];
 
     return {
       messageSendKeyCombo,
       replyInfo: chatId && threadId ? selectDraft(global, chatId, threadId)?.replyInfo : undefined,
       isSelectModeActive: selectIsInSelectMode(global),
       canPlayAnimatedEmojis: selectCanPlayAnimatedEmojis(global),
+      inputTranslateOptions,
     };
   },
 )(MessageInput));

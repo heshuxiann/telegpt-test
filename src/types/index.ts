@@ -273,7 +273,7 @@ export type StickerSetOrReactionsSetOrRecent = Pick<ApiStickerSet, (
 export enum LeftColumnContent {
   ChatList,
   AIKonwledge,
-  AITranslate,
+  TelyAILanguage,
   GlobalSearch,
   Settings,
   Contacts,

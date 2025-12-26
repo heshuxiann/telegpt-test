@@ -201,6 +201,8 @@ export const INITIAL_GLOBAL_STATE: GlobalState = {
     nextAiChatFolders: [],
   },
 
+  roomInputTranslateOptions: {},
+
   fileUploads: {
     byMessageKey: {},
   },

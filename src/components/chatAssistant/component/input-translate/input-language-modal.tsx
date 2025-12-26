@@ -3,6 +3,8 @@ import React, {
   useEffect, useMemo, useState,
 } from '../../../../lib/teact/teact';
 
+import type { RoomInputTranslateOptions } from '../../utils/room-input-translate';
+
 import { SUPPORTED_TRANSLATION_LANGUAGES } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 import renderText from '../../../common/helpers/renderText';
@@ -24,17 +26,9 @@ type LanguageItem = {
 
 export type OwnProps = {
   isOpen?: boolean;
-  inputTranslateOptions: {
-    translateLanguage: string;
-    autoTranslate: boolean;
-    firstTime: boolean;
-  };
+  inputTranslateOptions: RoomInputTranslateOptions;
   closeInputLanguageModal: () => void;
-  updateRoomInputTranslateOptions: (options: {
-    translateLanguage: string;
-    autoTranslate: boolean;
-    firstTime: boolean;
-  }) => void;
+  updateRoomInputTranslateOptions: (options: RoomInputTranslateOptions) => void;
 };
 
 const InputLanguageModal: FC<OwnProps> = ({
@@ -45,12 +39,11 @@ const InputLanguageModal: FC<OwnProps> = ({
 }) => {
   const [search, setSearch] = useState('');
   const lang = useOldLang();
-  const handleSelect = useLastCallback((langCode: string) => {
+  const handleSelect = useLastCallback((langCode: string, translatedName: string) => {
     inputTranslateOptions.translateLanguage = langCode;
     inputTranslateOptions.firstTime = false;
+    inputTranslateOptions.translateLanguageName = translatedName;
     updateRoomInputTranslateOptions(inputTranslateOptions);
-    // 打开自动翻译开关
-    inputTranslateOptions.autoTranslate = true;
     inputTranslateOptions.firstTime = false;
     updateRoomInputTranslateOptions(inputTranslateOptions);
     closeInputLanguageModal();
@@ -116,7 +109,7 @@ const InputLanguageModal: FC<OwnProps> = ({
             multiline
             narrow
             allowDisabledClick
-            onClick={() => handleSelect(langCode)}
+            onClick={() => handleSelect(langCode, originalName)}
           >
             <span className={buildClassName('title', styles.title)}>
               {renderText(originalName, ['highlight'], { highlight: search })}

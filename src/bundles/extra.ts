@@ -61,7 +61,7 @@ export { default as CollectibleInfoModal } from '../components/modals/collectibl
 export { default as LeftSearch } from '../components/left/search/LeftSearch';
 export { default as Settings } from '../components/left/settings/Settings';
 export { default as AIKnowledge } from '../components/left/aiKnowledge/AIKnowledge';
-export { default as AITranslate } from '../components/left/aiTranslate/AITranslate';
+export { default as TelyAILanguage } from '../components/left/TelyAILanguage/TelyAILanguage';
 export { default as ContactList } from '../components/left/main/ContactList';
 export { default as NewChat } from '../components/left/newChat/NewChat';
 export { default as ArchivedChats } from '../components/left/ArchivedChats';

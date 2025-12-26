@@ -43,11 +43,13 @@ import useOldLang from '../../hooks/useOldLang';
 
 import Icon from '../common/icons/Icon';
 import Button from '../ui/Button';
-// import DropdownMenu from '../ui/DropdownMenu';
-// import MenuItem from '../ui/MenuItem';
-// import MenuSeparator from '../ui/MenuSeparator';
+import DropdownMenu from '../ui/DropdownMenu';
+import MenuItem from '../ui/MenuItem';
+import MenuSeparator from '../ui/MenuSeparator';
 import HeaderMenuContainer from './HeaderMenuContainer.async';
 import InviteButton from '../chatAssistant/component/InviteButton.teact';
+import AITranslateIcon from '../chatAssistant/assets/input/translate-input.png';
+import AITranslateActiveIcon from '../chatAssistant/assets/ai-translate.png';
 
 interface OwnProps {
   chatId: string;
@@ -122,12 +124,12 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
   shouldJoinToSend,
   shouldSendJoinRequest,
   noAnimation,
-  // canTranslate,
-  // isTranslating,
-  // translationLanguage,
-  // language,
-  // detectedChatLanguage,
-  // doNotTranslate,
+  canTranslate,
+  isTranslating,
+  translationLanguage,
+  language,
+  detectedChatLanguage,
+  doNotTranslate,
   onTopicSearch,
   isAccountFrozen,
 }) => {
@@ -140,10 +142,10 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     requestNextManagementScreen,
     showNotification,
     openChat,
-    // requestChatTranslation,
-    // togglePeerTranslations,
-    // openChatLanguageModal,
-    // setSettingOption,
+    requestChatTranslation,
+    togglePeerTranslations,
+    openChatLanguageModal,
+    setSettingOption,
     unblockUser,
     setViewForumAsMessages,
     // openFrozenAccountModal,
@@ -188,14 +190,14 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     unblockUser({ userId: chatId });
   });
 
-  // const handleTranslateClick = useLastCallback(() => {
-  //   if (isTranslating) {
-  //     requestChatTranslation({ chatId, toLanguageCode: undefined });
-  //     return;
-  //   }
+  const handleTranslateClick = useLastCallback(() => {
+    if (isTranslating) {
+      requestChatTranslation({ chatId, toLanguageCode: undefined });
+      return;
+    }
 
-  //   requestChatTranslation({ chatId, toLanguageCode: translationLanguage });
-  // });
+    requestChatTranslation({ chatId, toLanguageCode: translationLanguage });
+  });
 
   const handleJoinRequestsClick = useLastCallback(() => {
     requestNextManagementScreen({ screen: ManagementScreens.JoinRequests });
@@ -244,74 +246,86 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     handleSearchClick();
   });
 
-  // const getTextWithLanguage = useLastCallback((langKey: string, langCode: string) => {
-  //   const simplified = langCode.split('-')[0];
-  //   const translationKey = `TranslateLanguage${simplified.toUpperCase()}`;
-  //   const name = lang(translationKey);
-  //   if (name !== translationKey) {
-  //     return lang(langKey, name);
-  //   }
+  const getTextWithLanguage = useLastCallback((langKey: string, langCode: string) => {
+    const simplified = langCode.split('-')[0];
+    const translationKey = `TranslateLanguage${simplified.toUpperCase()}`;
+    const name = lang(translationKey);
+    if (name !== translationKey) {
+      return lang(langKey, name);
+    }
 
-  //   const translatedNames = new Intl.DisplayNames([language], { type: 'language' });
-  //   const translatedName = translatedNames.of(langCode)!;
-  //   return lang(`${langKey}Other`, translatedName);
-  // });
+    const translatedNames = new Intl.DisplayNames([language], { type: 'language' });
+    const translatedName = translatedNames.of(langCode)!;
+    return lang(`${langKey}Other`, translatedName);
+  });
 
-  // const buttonText = useMemo(() => {
-  //   if (isTranslating) return lang('ShowOriginalButton');
+  const translationKey = useMemo(() => {
+    if (translationLanguage && isTranslating) {
+      const simplified = translationLanguage.split('-')[0];
+      const translationKey = simplified.toUpperCase();
+      return translationKey;
+    }
+    return null;
+  }, [translationLanguage, isTranslating])
 
-  //   return getTextWithLanguage('TranslateToButton', translationLanguage);
-  // }, [translationLanguage, getTextWithLanguage, isTranslating, lang]);
+  const buttonText = useMemo(() => {
+    if (isTranslating) return lang('ShowOriginalButton');
 
-  // const doNotTranslateText = useMemo(() => {
-  //   if (!detectedChatLanguage) return undefined;
+    return getTextWithLanguage('TranslateToButton', translationLanguage);
+  }, [translationLanguage, getTextWithLanguage, isTranslating, lang]);
 
-  //   return getTextWithLanguage('DoNotTranslateLanguage', detectedChatLanguage);
-  // }, [getTextWithLanguage, detectedChatLanguage]);
+  const doNotTranslateText = useMemo(() => {
+    if (!detectedChatLanguage) return undefined;
 
-  // const handleHide = useLastCallback(() => {
-  //   togglePeerTranslations({ chatId, isEnabled: false });
-  //   requestChatTranslation({ chatId, toLanguageCode: undefined });
-  // });
+    return getTextWithLanguage('DoNotTranslateLanguage', detectedChatLanguage);
+  }, [getTextWithLanguage, detectedChatLanguage]);
 
-  // const handleChangeLanguage = useLastCallback(() => {
-  //   openChatLanguageModal({ chatId });
-  // });
+  const handleHide = useLastCallback(() => {
+    togglePeerTranslations({ chatId, isEnabled: false });
+    requestChatTranslation({ chatId, toLanguageCode: undefined });
+  });
 
-  // const handleDoNotTranslate = useLastCallback(() => {
-  //   if (!detectedChatLanguage) return;
+  const handleChangeLanguage = useLastCallback(() => {
+    openChatLanguageModal({ chatId });
+  });
 
-  //   setSettingOption({
-  //     doNotTranslate: [...doNotTranslate, detectedChatLanguage],
-  //   });
-  //   requestChatTranslation({ chatId, toLanguageCode: undefined });
+  const handleDoNotTranslate = useLastCallback(() => {
+    if (!detectedChatLanguage) return;
 
-  //   showNotification({ message: getTextWithLanguage('AddedToDoNotTranslate', detectedChatLanguage) });
-  // });
+    setSettingOption({
+      doNotTranslate: [...doNotTranslate, detectedChatLanguage],
+    });
+    requestChatTranslation({ chatId, toLanguageCode: undefined });
+
+    showNotification({ message: getTextWithLanguage('AddedToDoNotTranslate', detectedChatLanguage) });
+  });
 
   useHotkeys(useMemo(() => ({
     'Mod+F': handleHotkeySearchClick,
   }), []));
 
-  // const MoreMenuButton: FC<{ onTrigger: () => void; isOpen?: boolean }> = useMemo(() => {
-  //   return ({ onTrigger, isOpen }) => (
-  //     <Button
-  //       round
-  //       ripple={isRightColumnShown}
-  //       color="translucent"
-  //       size="smaller"
-  //       className={isOpen ? 'active' : ''}
-  //       onClick={onTrigger}
-  //       ariaLabel={lang('TranslateMessage')}
-  //     >
-  //       <Icon name="language" />
-  //     </Button>
-  //   );
-  // }, [isRightColumnShown, lang]);
+  const MoreMenuButton: FC<{ onTrigger: () => void; isOpen?: boolean }> = useMemo(() => {
+    return ({ onTrigger, isOpen }) => (
+      <Button
+        round={!Boolean(translationKey)}
+        ripple={isRightColumnShown}
+        color="translucent"
+        size={translationKey ? "tiny" : "smaller"}
+        className={isOpen ? 'active' : ''}
+        onClick={onTrigger}
+        ariaLabel={lang('TranslateMessage')}
+      >
+        {/* <Icon name="language" /> */}
+        <img src={Boolean(translationKey) ? AITranslateActiveIcon : AITranslateIcon} className='w-[24px] h-[24px]' />
+        {Boolean(translationKey) ? <span className='text-14px font-semibold'>{translationKey}</span> : ""}
+      </Button>
+    );
+  }, [isRightColumnShown, translationKey, lang]);
 
   return (
     <div className="HeaderActions">
-      {/* {!isForForum && canTranslate && (
+      <InviteButton />
+      {!isForForum && (
         <DropdownMenu
           className="stickers-more-menu with-menu-transitions"
           trigger={MoreMenuButton}
@@ -323,15 +337,14 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
           <MenuItem icon="replace" onClick={handleChangeLanguage}>
             {lang('Chat.Translate.Menu.To')}
           </MenuItem>
-          <MenuSeparator />
+          {/* <MenuSeparator />
           {detectedChatLanguage
             && <MenuItem icon="hand-stop" onClick={handleDoNotTranslate}>{doNotTranslateText}</MenuItem>}
-          <MenuItem icon="close-circle" onClick={handleHide}>{lang('Hide')}</MenuItem>
+          <MenuItem icon="close-circle" onClick={handleHide}>{lang('Hide')}</MenuItem> */}
         </DropdownMenu>
-      )} */}
+      )}
       {!isMobile && (
         <>
-          <InviteButton />
           {canExpandActions && !shouldSendJoinRequest && (canSubscribe || shouldJoinToSend) && (
             <Button
               size="tiny"

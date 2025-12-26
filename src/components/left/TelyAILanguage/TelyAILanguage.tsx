@@ -6,24 +6,24 @@ import type { FC } from '../../../lib/teact/teact';
 import { memo } from '../../../lib/teact/teact';
 
 import Transition from '../../ui/Transition';
-import AITranslateContent from './AITranslateContent';
-import AITranslateHeader from './AITranslateHeader';
+import TelyAILanguageContent from './TelyAILanguageContent';
+import TelyAILanguageHeader from './TelyAILanguageHeader';
 
 export type OwnProps = {
   onReset: (forceReturnToChatList?: true | Event) => void;
 };
-const AITranslate:FC<OwnProps> = ({ onReset }) => {
+const TelyAILanguage:FC<OwnProps> = ({ onReset }) => {
   function renderCurrentSection() {
     return (
       <>
-        <AITranslateHeader onReset={onReset} />
-        <AITranslateContent onReset={onReset} />
+        <TelyAILanguageHeader onReset={onReset} />
+        <TelyAILanguageContent onReset={onReset} />
       </>
     );
   }
   return (
     <Transition
-      id="AiTranslate"
+      id="TelyAILanguageSelector"
       name='fade'
       activeKey={0}
       renderCount={1}
@@ -35,4 +35,4 @@ const AITranslate:FC<OwnProps> = ({ onReset }) => {
   );
 };
 
-export default memo(AITranslate);
+export default memo(TelyAILanguage);

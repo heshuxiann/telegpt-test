@@ -24,7 +24,6 @@ import { resolveTransitionName } from '../../util/resolveTransitionName.ts';
 import { debounce } from '../../util/schedulers';
 import { captureControlledSwipe } from '../../util/swipeController';
 import AIKnowledge from './aiKnowledge/AIKnowledge.async';
-import AITranslate from './aiTranslate/AITranslate.async';
 
 import useFoldersReducer from '../../hooks/reducers/useFoldersReducer';
 import { useHotkeys } from '../../hooks/useHotkeys';
@@ -38,6 +37,7 @@ import ArchivedChats from './ArchivedChats.async';
 import LeftMain from './main/LeftMain';
 import NewChat from './newChat/NewChat.async';
 import Settings from './settings/Settings.async';
+import TelyAILanguage from './TelyAILanguage/TelyAILanguage.async.tsx';
 
 import './LeftColumn.scss';
 
@@ -77,7 +77,7 @@ enum ContentType {
 
   AIKnowledge,
 
-  AITranslate,
+  TelyAILanguage,
 }
 
 const RENDER_COUNT = Object.keys(ContentType).length / 2;
@@ -147,8 +147,8 @@ function LeftColumn({
     case LeftColumnContent.AIKonwledge:
       contentType = ContentType.AIKnowledge;
       break;
-    case LeftColumnContent.AITranslate:
-      contentType = ContentType.AITranslate;
+    case LeftColumnContent.TelyAILanguage:
+      contentType = ContentType.TelyAILanguage;
       break;
   }
 
@@ -547,9 +547,9 @@ function LeftColumn({
         return (
           <AIKnowledge onReset={handleReset} />
         );
-      case ContentType.AITranslate:
+      case ContentType.TelyAILanguage:
         return (
-          <AITranslate onReset={handleReset} />
+          <TelyAILanguage onReset={handleReset} />
         );
       default:
         return (

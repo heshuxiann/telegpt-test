@@ -285,6 +285,13 @@ export type GlobalState = {
     nextAiChatFolders: AIChatFolder[];
   };
 
+  roomInputTranslateOptions: Record<string, {
+    translateLanguage: string;
+    translateLanguageName: string;
+    autoTranslate: boolean;
+    firstTime: boolean;
+  }>;
+
   phoneCall?: ApiPhoneCall;
 
   fileUploads: {

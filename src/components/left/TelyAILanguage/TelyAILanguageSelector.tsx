@@ -15,7 +15,7 @@ import useOldLang from '../../../hooks/useOldLang';
 
 import ItemPicker, { type ItemPickerOption } from '../../common/pickers/ItemPicker';
 
-import styles from './AutoTranslateLanguage.module.scss';
+import styles from './TelyAILanguageSelector.module.scss';
 
 // https://fasttext.cc/docs/en/language-identification.html
 const LOCAL_SUPPORTED_DETECTION_LANGUAGES = [

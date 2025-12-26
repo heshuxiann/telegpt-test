@@ -32,7 +32,7 @@ export enum Actions {
 class EventEmitter {
   private static instance: EventEmitter;
 
-  private events: { [key: string]: ((...args: any[]) => void)[] | undefined };
+  private events: Record<string, ((...args: any[]) => void)[] | undefined>;
 
   constructor() {
     this.events = {};

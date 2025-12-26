@@ -280,7 +280,7 @@ const LeftSideMenuItems = ({
         customIcon={<img className="icon" src={AITranslateIcon} alt="ai-translate" style={buildStyle('width: 24px;height: 24px;max-width: 24px;')} />}
         onClick={onSelectAITranslate}
       >
-        {oldLang('AI Translate')}
+        {oldLang('TelyAI Language')}
       </MenuItem>
       <MenuItem
         customIcon={<img className="icon" src={InviteGiftIcon} alt="ai-translate" style={buildStyle('width: 24px;height: 24px;max-width: 24px;')} />}

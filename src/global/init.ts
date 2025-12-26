@@ -39,6 +39,18 @@ addActionHandler('init', (global, actions, payload): ActionReturnType => {
   initialTabState.audioPlayer.isPlaybackRateActive = global.audioPlayer.isLastPlaybackRateActive;
   initialTabState.mediaViewer.playbackRate = global.mediaViewer.lastPlaybackRate;
 
+  // roomInputTranslateOptions
+  const roomInputTranslateOptions = localStorage.getItem('room-input-translate-config');
+  if (roomInputTranslateOptions) {
+    try {
+      const options = JSON.parse(roomInputTranslateOptions);
+      global.roomInputTranslateOptions = options;
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+    }
+  }
+
   global = {
     ...global,
     byTabId: {

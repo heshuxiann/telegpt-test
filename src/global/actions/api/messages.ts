@@ -85,6 +85,7 @@ import {
   removeOutlyingList,
   removeRequestedMessageTranslation,
   removeUnreadMentions,
+  replaceSettings,
   // replaceSettings,
   replaceThreadParam,
   replaceUserStatuses,
@@ -2683,9 +2684,9 @@ addActionHandler('requestMessageTranslation', (global, actions, payload): Action
   } = payload;
 
   global = updateRequestedMessageTranslation(global, chatId, id, toLanguageCode, tabId);
-  // global = replaceSettings(global, {
-  //   translationLanguage: toLanguageCode,
-  // });
+  global = replaceSettings(global, {
+    translationLanguage: toLanguageCode,
+  });
 
   return global;
 });
