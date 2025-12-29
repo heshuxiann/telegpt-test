@@ -324,7 +324,7 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
 
   return (
     <div className="HeaderActions">
-      <InviteButton />
+      {!isForForum && <InviteButton />}
       {!isForForum && (
         <DropdownMenu
           className="stickers-more-menu with-menu-transitions"

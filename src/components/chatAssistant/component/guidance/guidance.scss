@@ -10,88 +10,70 @@
   .modal-backdrop {
     background-color: rgba(0, 0, 0, 0.5);
   }
-}
+  .guidance-bubble {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    transform: translate(-100%, 40%);
 
-.guidance-carousel {
-  overflow: hidden;
+    aspect-ratio: 209 / 287;
+    width: min(20vw, 20vh);
+    max-width: 209px;
 
-  aspect-ratio: 1056/542;
-  width: 75vw;
-  max-width: 73rem;
-  border-radius: 16px;
-  .slick-dots li::after {
-    background: #2996ff;
+    background-image: url("../../assets/guidance/guidance-bubble.png");
+    background-repeat: no-repeat;
+    background-size: contain;
   }
-}
+  .guidance-carousel {
+    overflow: hidden;
+    aspect-ratio: 1056/542;
+    width: 75vw;
+    max-width: 73rem;
+    border-radius: 16px;
+    .slick-dots li::after {
+      background: #2996ff;
+    }
+  }
 
-.guidance-summary {
-  background-image: url("../../assets/guidance/guidance-summary.png");
-}
+  .guidance-carousel-item {
+    position: relative;
 
-.guidance-translation {
-  background-image: url("../../assets/guidance/guidance-translation.png");
-}
+    aspect-ratio: 1056/542;
+    width: 75vw;
+    min-width: 50rem;
+    max-width: 73rem;
+    border-radius: 16px;
 
-.guidance-meeting {
-  background-image: url("../../assets/guidance/guidance-meeting.png");
-}
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
 
-.guidance-actions {
-  background-image: url("../../assets/guidance/guidance-actions.png");
-}
+  .guidance-carousel-next {
+    cursor: pointer;
 
-.guidance-bubble {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  transform: translate(-100%, 40%);
+    position: absolute;
+    bottom: 40px;
+    left: 50px;
 
-  aspect-ratio: 209 / 287;
-  width: min(20vw, 20vh);
-  max-width: 209px;
+    width: 120px;
+    height: 54px;
+    border: 3px solid transparent;
+    border-radius: 27px;
 
-  background-image: url("../../assets/guidance/guidance-bubble.png");
-  background-repeat: no-repeat;
-  background-size: contain;
-}
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 48px;
+    text-align: center;
+    color: black;
 
-.guidance-carousel-item {
-  position: relative;
-
-  aspect-ratio: 1056/542;
-  width: 75vw;
-  min-width: 50rem;
-  max-width: 73rem;
-  border-radius: 16px;
-
-  background-repeat: no-repeat;
-  background-size: cover;
-}
-
-.guidance-carousel-next {
-  cursor: pointer;
-
-  position: absolute;
-  bottom: 40px;
-  left: 50px;
-
-  width: 120px;
-  height: 54px;
-  border: 3px solid transparent;
-  border-radius: 27px;
-
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 48px;
-  text-align: center;
-
-  background: linear-gradient(#fff, #fff) padding-box,
-    linear-gradient(
-        145.18deg,
-        #ffaa32 5.25%,
-        #d632ff 26.51%,
-        #42efff 55.1%,
-        #4621ff 73.57%
-      )
-      border-box;
+    background: linear-gradient(#fff, #fff) padding-box,
+      linear-gradient(
+          145.18deg,
+          #ffaa32 5.25%,
+          #d632ff 26.51%,
+          #42efff 55.1%,
+          #4621ff 73.57%
+        )
+        border-box;
+  }
 }

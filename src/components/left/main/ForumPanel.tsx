@@ -255,6 +255,7 @@ const ForumPanel: FC<OwnProps & StateProps> = ({
               isForForum
               isMobile={isMobile}
               onTopicSearch={onTopicSearch}
+              showInviteButton={false}
             />
           )}
       </div>

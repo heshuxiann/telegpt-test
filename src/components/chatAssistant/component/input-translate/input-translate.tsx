@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from '../../../../lib/teact/teact';
+import React, { memo, useCallback, useEffect } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { RoomInputTranslateOptions } from '../../utils/room-input-translate';
@@ -29,17 +29,12 @@ interface StateProps {
 }
 const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions }: OwnProps & StateProps) => {
   const [inputLanguageModalOpen, openInputLanguageModal, closeInputLanguageModal] = useFlag();
-  const [tooltipOpen, openTooltip, closeTooltip] = useFlag();
+
   const [languageMenuOpen, openLanguageMenu, closeLanguageMenu] = useFlag();
+  const [tooltipOpen, openTooltip, closeTooltip] = useFlag();
   const updateRoomInputTranslateConfig = useCallback((options: RoomInputTranslateOptions) => {
     updateRoomInputTranslateOptions(chatId, options);
-    if (inputTranslateOptions.firstTime) {
-      openTooltip();
-      setTimeout(() => {
-        closeTooltip();
-      }, 5000);
-    }
-  }, [chatId, inputTranslateOptions]);
+  }, [chatId]);
 
   const handleConfirm = useCallback(() => {
     updateRoomInputTranslateConfig({ ...inputTranslateOptions, autoTranslate: true });
@@ -50,6 +45,19 @@ const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions }:
     updateRoomInputTranslateConfig({ ...inputTranslateOptions, autoTranslate: false });
     getActions().showNotification({ message: 'Input translation is turned off' });
   };
+  useEffect(() => {
+    if (!inputTranslateOptions.firstTime) return;
+    openTooltip();
+
+    const timer = setTimeout(() => {
+      closeTooltip();
+      updateRoomInputTranslateConfig({ ...inputTranslateOptions, firstTime: false });
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [inputTranslateOptions, closeTooltip, openTooltip, chatId, updateRoomInputTranslateConfig]);
   return (
     <div className="input-ai-actions">
       {
@@ -62,7 +70,13 @@ const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions }:
             </button>
           )
           : (
-            <button className="Button input-ai-actions-button" onClick={openLanguageMenu}>
+            <button
+              className="Button input-ai-actions-button"
+              onClick={() => {
+                openLanguageMenu();
+                closeTooltip();
+              }}
+            >
               <img src={aiTranslatePath} alt="Chat AI Logo" />
             </button>
           )

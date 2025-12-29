@@ -89,7 +89,7 @@ export const INITIAL_SHARED_STATE: SharedState = {
     canDisplayChatInTitle: true,
     shouldAllowHttpTransport: true,
     shouldWarnAboutSvg: true,
-    enableChatSorting: true,
+    enableChatSorting: false,
   },
   isInitial: true,
 };

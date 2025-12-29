@@ -1,19 +1,41 @@
-import React from '@teact';
-import { memo } from '../../../../lib/teact/teact';
-import { getActions } from '../../../../global';
+import React, { useMemo } from '@teact';
+import { getActions, withGlobal } from '../../../../global';
 
 import './UpgradeButton.scss';
-const UpgradeButton = () => {
+
+interface StateProps {
+  subscriptionInfo: any;
+}
+const UpgradeButton = ({ subscriptionInfo }: StateProps) => {
   const handleUpgrade = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     getActions().openPayPackageModal();
   };
+  const subscriptionType = useMemo(() => {
+    switch (subscriptionInfo?.subscriptionType) {
+      case 'basic':
+        return 'Basic';
+      case 'pro':
+        return 'Pro';
+      case 'plus':
+        return 'Plus';
+      default:
+        return 'Upgrade';
+    }
+  }, [subscriptionInfo]);
   return (
     <div className="upgrade-button" onClick={handleUpgrade}>
-      Upgrade
+      {subscriptionType}
     </div>
   );
 };
 
-export default memo(UpgradeButton);
+export default withGlobal(
+  (global): StateProps => {
+    const subscriptionInfo = global.subscriptionInfo;
+    return {
+      subscriptionInfo,
+    };
+  },
+)(UpgradeButton);

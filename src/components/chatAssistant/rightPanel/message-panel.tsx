@@ -91,7 +91,7 @@ const Message = ({ chatId, messageId }: { chatId: string; messageId: number }) =
     if (textareaRef.current) {
       adjustHeight();
     }
-  }, []);
+  }, [replyResponse]);
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setReplyResponse(e.target.value);
     adjustHeight();
