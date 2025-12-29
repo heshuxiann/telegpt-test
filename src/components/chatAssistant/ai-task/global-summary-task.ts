@@ -70,25 +70,26 @@ class GlobalSummaryTask {
 
   private lastSummaryTime: number = 0;
 
-  initTask() {
+  async initTask() {
     if (this.timmer) {
       clearInterval(this.timmer);
     }
-    const executeTask = async () => {
+    this.lastSummaryTime = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
+    const executeTask = () => {
       const { subscriptionInfo } = getGlobal();
       let summaryInterval = FREE_SUMMARY_INTERVAL;
       if ((subscriptionInfo.subscriptionType === 'plus' || subscriptionInfo.subscriptionType === 'pro') && !subscriptionInfo.isExpirated) {
         summaryInterval = VIP_SUMMARY_INTERVAL;
       }
       const currentTime = new Date().getTime();
-      let lastSummaryTime = this.lastSummaryTime;
-      if (!lastSummaryTime) {
-        lastSummaryTime = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
-      }
-      if (!lastSummaryTime) {
+      // let lastSummaryTime = this.lastSummaryTime;
+      // if (!lastSummaryTime) {
+      //   lastSummaryTime = await ChataiStores.general?.get(GLOBAL_SUMMARY_LAST_TIME) || 0;
+      // }
+      if (!this.lastSummaryTime) {
         this.initFirstSummary();
-      } else if (currentTime - lastSummaryTime > summaryInterval) {
-        this.summaryMessageByDeadline(lastSummaryTime);
+      } else if (currentTime - this.lastSummaryTime > summaryInterval) {
+        this.summaryMessageByDeadline(this.lastSummaryTime);
       }
     };
     this.timmer = setInterval(executeTask, 60000);

@@ -1,6 +1,6 @@
 import eventEmitter, { Actions } from '../lib/EventEmitter';
-import { aiChatFoldersTask } from '../ai-task/ai-chatfolders-task';
 import { telegptSettings } from '../api/user-settings';
+import { initChatAI } from '../utils/init';
 import { userInformationCollection } from '../utils/user-information-collection';
 import AIChatFoldersStore from './ai-chatfolders-store';
 import ChataiStoreManager from './chatai-store';
@@ -47,8 +47,8 @@ export async function initChataiStores(_currentUserId: string) {
   // init local user info
   userInformationCollection.initLocalInformation();
 
-  // init ai chat folders task
-  aiChatFoldersTask.initTask();
+  // init ai chat task
+  initChatAI();
 
   (window as any).downloadAllSummarys = () => {
     ChataiStores.message?.getAllMessages().then((res) => {
