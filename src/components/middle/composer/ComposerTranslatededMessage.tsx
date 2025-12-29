@@ -112,7 +112,10 @@ const ComposerTranslatededMessage = ({ chatId, currentUserId, currentUser, getHt
   return (
     <div className="ComposerTranslatededMessage px-[0.75rem] py-[10px] flex gap-[10px]">
       <div className="px-[14px] py-[12px] bg-[var(--color-peer-bg-2)] rounded-[14px] flex-1 w-full overflow-hidden">
-        <div className="text-[12px] text-[var(--color-text-secondary)]">Translated to English</div>
+        <div className="text-[12px] text-[var(--color-text-secondary)] flex items-center gap-[4px]">
+          <span>Translated to</span>
+          <span>{inputTranslateOptions.translateLanguageName}</span>
+        </div>
         <div className="relative w-fit min-w-[32px] max-w-full">
           <div className={cn('absolute w-full h-full z-[-1]', { 'text-loading': isTranslate })}></div>
           {/* <div className="text-[14px] text-[var(--color-text)] break-words">{translateResult}</div> */}

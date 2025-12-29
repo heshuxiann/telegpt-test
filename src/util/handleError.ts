@@ -15,7 +15,7 @@ if (DEBUG) {
     }
     showError = true;
     if (error) {
-      window.alert(getErrorMessage(error));
+      // window.alert(getErrorMessage(error));
       error = undefined;
     }
   });
@@ -29,7 +29,7 @@ if (DEBUG) {
 
 const throttleError = throttle((err) => {
   if (showError) {
-    window.alert(getErrorMessage(err));
+    // window.alert(getErrorMessage(err));
   } else {
     error = err;
   }
