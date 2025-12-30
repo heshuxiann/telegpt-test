@@ -101,7 +101,7 @@ interface ITelegptSettings {
   block_chat_ids: string[];
   chat_ids: string[];
   phone: string;
-  telyailanguage: string;
+  autotranslatelanguage: string;
   subscription_info: SubscriptionInfo;
   globalsummarytemplate: string;
 }
@@ -118,7 +118,7 @@ const defaultSettings: ITelegptSettings = {
   block_chat_ids: [],
   chat_ids: [],
   phone: '',
-  telyailanguage: 'en',
+  autotranslatelanguage: 'en',
   subscription_info: {
     subscriptionType: 'free',
     creditBalance: 0,
@@ -208,9 +208,9 @@ class TelegptSettings {
   }
 
   setGlobalSettings(newSettings: Partial<ITelegptSettings>) {
-    const { telyailanguage } = newSettings;
+    const { autotranslatelanguage } = newSettings;
     getActions().setSettingOption({
-      telyAiLanguage: telyailanguage || 'en',
+      telyAiLanguage: autotranslatelanguage || 'en',
     });
   }
 

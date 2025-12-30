@@ -85,7 +85,7 @@ const TelyAILanguageSelector: FC<StateProps> = ({ telyAiLanguage }) => {
       telyAiLanguage: newSelectedIds,
     });
     telegptSettings.setSettingOption({
-      telyailanguage: newSelectedIds,
+      autotranslatelanguage: newSelectedIds,
     });
   });
 
