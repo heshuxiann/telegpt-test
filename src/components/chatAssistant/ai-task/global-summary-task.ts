@@ -105,7 +105,7 @@ class GlobalSummaryTask {
     },
   ) {
     const global = getGlobal();
-    const { autoTranslateLanguage = 'en' } = global.settings.byKey;
+    const { telyAiLanguage = 'en' } = global.settings.byKey;
     if (!Object.keys(chats).length) return;
     const summaryChats: any[] = [];
     Object.keys(chats).forEach((chatId) => {
@@ -137,7 +137,7 @@ class GlobalSummaryTask {
     const customTopics = this.getCustomTopic();
     globalSummary({
       messages: summaryChats,
-      language: new Intl.DisplayNames([autoTranslateLanguage], { type: 'language' }).of(autoTranslateLanguage),
+      language: new Intl.DisplayNames([telyAiLanguage], { type: 'language' }).of(telyAiLanguage),
       customTopics,
     }).then((res: any) => {
       const content = {

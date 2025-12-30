@@ -1525,10 +1525,10 @@ function сheckMessageSendingDenied(message: ApiMessage, options: IAllowedAttach
 export function selectCanTranslateMessage<T extends GlobalState>(
   global: T, message: ApiMessage, detectedLanguage?: string, ...[tabId = getCurrentTabId()]: TabArgs<T>
 ) {
-  const { canTranslate: isTranslationEnabled, doNotTranslate, autoTranslateLanguage } = global.settings.byKey;
+  const { canTranslate: isTranslationEnabled, doNotTranslate, telyAiLanguage } = global.settings.byKey;
 
   // eslint-disable-next-line max-len
-  const canTranslateLanguage = !detectedLanguage || (!doNotTranslate.includes(detectedLanguage) && detectedLanguage !== autoTranslateLanguage);
+  const canTranslateLanguage = !detectedLanguage || (!doNotTranslate.includes(detectedLanguage) && detectedLanguage !== telyAiLanguage);
 
   const isTranslatable = isMessageTranslatable(message, true);
 

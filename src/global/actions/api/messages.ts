@@ -1591,7 +1591,7 @@ addActionHandler('transcribeAudio', async (global, actions, payload): Promise<vo
 
 addActionHandler('transcribeAudioByOpenai', async (global, actions, payload): Promise<void> => {
   const { messageId, chatId } = payload;
-  const { autoTranslateLanguage = 'en' } = global.settings.byKey;
+  const { telyAiLanguage = 'en' } = global.settings.byKey;
   const message = selectChatMessage(global, chatId, messageId);
 
   const chat = selectChat(global, chatId);
@@ -1623,7 +1623,7 @@ addActionHandler('transcribeAudioByOpenai', async (global, actions, payload): Pr
     blob,
     'audio.ogg',
   );
-  formData.append('language', autoTranslateLanguage);
+  formData.append('language', telyAiLanguage);
 
   const result = await audioToText(formData);
 

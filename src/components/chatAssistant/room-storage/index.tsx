@@ -136,7 +136,7 @@ class RoomStorage {
   }
 
   public static async summary(chatId: string) {
-    const { autoTranslateLanguage = 'en' } = this.global.settings.byKey;
+    const { telyAiLanguage = 'en' } = this.global.settings.byKey;
     const lastFocusTime = this.getRoomLastFocusTime(chatId);
     const lastSummaryId = this.getRoomLastSummaryId(chatId);
     const unreadCount = this.getRoomUnreadCount(chatId);
@@ -166,7 +166,7 @@ class RoomStorage {
         };
         summaryMessage({
           messages: formateMessages,
-          language: new Intl.DisplayNames([autoTranslateLanguage], { type: 'language' }).of(autoTranslateLanguage),
+          language: new Intl.DisplayNames([telyAiLanguage], { type: 'language' }).of(telyAiLanguage),
         }).then((res: any) => {
           const content = {
             ...res.data,

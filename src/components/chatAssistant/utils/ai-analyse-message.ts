@@ -621,11 +621,11 @@ async function sendErrorMessage(
 
 export function getAutoTransLang() {
   const global = getGlobal();
-  const { autoTranslateLanguage = "en" } = global.settings.byKey;
+  const { telyAiLanguage = "en" } = global.settings.byKey;
 
   return (
-    new Intl.DisplayNames([autoTranslateLanguage], { type: "language" }).of(
-      autoTranslateLanguage
+    new Intl.DisplayNames([telyAiLanguage], { type: "language" }).of(
+      telyAiLanguage
     ) || "en"
   );
 }

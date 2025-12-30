@@ -64,11 +64,11 @@ class UrgentCheckTask {
       };
     });
     const global = getGlobal();
-    const { autoTranslateLanguage = 'en' } = global.settings.byKey;
+    const { telyAiLanguage = 'en' } = global.settings.byKey;
     urgentMessageCheck({
       messages,
       urgentTopics: urgent_info,
-      language: new Intl.DisplayNames([autoTranslateLanguage], { type: 'language' }).of(autoTranslateLanguage),
+      language: new Intl.DisplayNames([telyAiLanguage], { type: 'language' }).of(telyAiLanguage),
     }).then((res) => {
       console.log('urgent check response', res);
       const matchs = res?.data || [];

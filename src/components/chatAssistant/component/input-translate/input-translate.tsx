@@ -50,7 +50,6 @@ const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions, t
   useEffect(() => {
     if (!inputTranslateOptions.firstTime) return;
     openTooltip();
-
     const timer = setTimeout(() => {
       closeTooltip();
       updateRoomInputTranslateConfig({ ...inputTranslateOptions, firstTime: false });

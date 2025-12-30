@@ -103,8 +103,6 @@ type OwnProps = {
 };
 
 type StateProps = {
-  // autoTranslate?: boolean;
-  // autoTranslateLanguage?: string;
   isChatLoaded?: boolean;
   isChannelChat?: boolean;
   isGroupChat?: boolean;
@@ -176,8 +174,6 @@ const MessageList: FC<OwnProps & StateProps> = ({
   chatId,
   threadId,
   type,
-  // autoTranslate,
-  // autoTranslateLanguage,
   isChatLoaded,
   isForum,
   isChannelChat,
@@ -231,7 +227,7 @@ const MessageList: FC<OwnProps & StateProps> = ({
 }) => {
   const {
     loadViewportMessages, setScrollOffset, loadSponsoredMessages, loadMessageReactions, copyMessagesByIds,
-    loadMessageViews, loadPeerStoriesByIds, loadFactChecks, requestMessageTranslation, requestChatTranslation,
+    loadMessageViews, loadPeerStoriesByIds, loadFactChecks, requestChatTranslation,
   } = getActions();
 
   const containerRef = useRef<HTMLDivElement>();
@@ -825,7 +821,6 @@ const MessageList: FC<OwnProps & StateProps> = ({
 
 export default memo(withGlobal<OwnProps>(
   (global, { chatId, threadId, type }): StateProps => {
-    // const { autoTranslate, autoTranslateLanguage } = global.settings.byKey;
     const currentUserId = global.currentUserId!;
     const chat = selectChat(global, chatId);
     const userFullInfo = selectUserFullInfo(global, chatId);
@@ -879,8 +874,6 @@ export default memo(withGlobal<OwnProps>(
     const translationLanguage = selectTranslationLanguage(global);
 
     return {
-      // autoTranslate,
-      // autoTranslateLanguage,
       areAdsEnabled,
       isChatLoaded: true,
       isRestricted,

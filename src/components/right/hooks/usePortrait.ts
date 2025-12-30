@@ -94,9 +94,9 @@ export default function usePortrait({ userId }: Props) {
       if (groupMessages.length === 0) return;
       setLoading(true);
       const global = getGlobal();
-      const { autoTranslateLanguage = 'en' } = global.settings.byKey;
+      const { telyAiLanguage = 'en' } = global.settings.byKey;
       chatAIUserActivities({
-        language: autoTranslateLanguage,
+        language: telyAiLanguage,
         groupMessages,
       }).then((res) => {
         if (res.code === 0 && res.data && res.data.activities && Array.isArray(res.data.activities)) {

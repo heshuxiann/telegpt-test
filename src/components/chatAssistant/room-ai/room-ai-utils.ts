@@ -63,7 +63,7 @@ export const summaryRoomMessage = async (
   callback?: () => void,
 ) => {
   const global = getGlobal();
-  const { autoTranslateLanguage = 'en' } = global.settings.byKey;
+  const { telyAiLanguage = 'en' } = global.settings.byKey;
   const chat = selectChat(global, chatId);
   const lastMessageId = selectChatLastMessageId(global, chatId, 'all') || 0;
   if (chat) {
@@ -95,7 +95,7 @@ export const summaryRoomMessage = async (
     };
     summaryMessage({
       messages: formateMessages,
-      language: new Intl.DisplayNames([autoTranslateLanguage], { type: 'language' }).of(autoTranslateLanguage),
+      language: new Intl.DisplayNames([telyAiLanguage], { type: 'language' }).of(telyAiLanguage),
     }).then((res: any) => {
       const content = {
         ...res.data,
@@ -134,7 +134,7 @@ export const generateRoomActionItems = async (
   callback?: () => void,
 ) => {
   const global = getGlobal();
-  const { autoTranslateLanguage } = global.settings.byKey;
+  const { telyAiLanguage } = global.settings.byKey;
   const chat = selectChat(global, chatId);
   const lastMessageId = selectChatLastMessageId(global, chatId) || 0;
   if (chat) {
@@ -168,7 +168,7 @@ export const generateRoomActionItems = async (
     };
     getActionItems({
       messages: formateMessages,
-      language: autoTranslateLanguage,
+      language: telyAiLanguage,
     }).then((res: any) => {
       const content = {
         ...res.data,

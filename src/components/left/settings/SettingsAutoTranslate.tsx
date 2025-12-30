@@ -49,18 +49,18 @@ type OwnProps = {
   onReset: () => void;
 };
 
-type StateProps = { autoTranslateLanguage:string | undefined };
+type StateProps = { telyAiLanguage: string | undefined };
 
 const SettingsAutoTranslate: FC<OwnProps & StateProps> = ({
   isActive,
-  autoTranslateLanguage,
+  telyAiLanguage,
   onReset,
 }) => {
   const { setSettingOption } = getActions();
 
   const lang = useOldLang();
   const language = lang.code || 'en';
-  const [displayedOptions, setDisplayedOptions] = useState<string | undefined>(autoTranslateLanguage);
+  const [displayedOptions, setDisplayedOptions] = useState<string | undefined>(telyAiLanguage);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const displayedOptionList: ItemPickerOption[] = useMemo(() => {
@@ -93,17 +93,17 @@ const SettingsAutoTranslate: FC<OwnProps & StateProps> = ({
 
   useEffectWithPrevDeps(([prevIsActive, prevLanguage]) => {
     if (prevIsActive === isActive && prevLanguage === language) return;
-    setDisplayedOptions(autoTranslateLanguage || language);
-  }, [isActive, autoTranslateLanguage, language]);
+    setDisplayedOptions(telyAiLanguage || language);
+  }, [isActive, telyAiLanguage, language]);
 
   const handleChange = useLastCallback((newSelectedIds: string) => {
     setDisplayedOptions(newSelectedIds);
     setSettingOption({
-      autoTranslateLanguage: newSelectedIds,
+      telyAiLanguage: newSelectedIds,
       translationLanguage: newSelectedIds,
     });
     telegptSettings.setSettingOption({
-      autotranslatelanguage: newSelectedIds,
+      telyAiLanguage: newSelectedIds,
     });
   });
 
@@ -136,11 +136,11 @@ const SettingsAutoTranslate: FC<OwnProps & StateProps> = ({
 export default memo(withGlobal<OwnProps>(
   (global): StateProps => {
     const {
-      autoTranslateLanguage,
+      telyAiLanguage,
     } = global.settings.byKey;
 
     return {
-      autoTranslateLanguage,
+      telyAiLanguage,
     };
   },
 )(SettingsAutoTranslate));

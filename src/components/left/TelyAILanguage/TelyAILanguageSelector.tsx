@@ -43,12 +43,12 @@ const SUPPORTED_LANGUAGES = SUPPORTED_TRANSLATION_LANGUAGES.filter((lang: string
   LOCAL_SUPPORTED_DETECTION_LANGUAGES.includes(lang)
 ));
 
-type StateProps = { autoTranslateLanguage:string | undefined };
-const AutoTranslateLanguage: FC<StateProps> = ({ autoTranslateLanguage }) => {
+type StateProps = { telyAiLanguage: string | undefined };
+const TelyAILanguageSelector: FC<StateProps> = ({ telyAiLanguage }) => {
   const { setSettingOption } = getActions();
   const lang = useOldLang();
   const language = lang.code || 'en';
-  const [displayedOptions, setDisplayedOptions] = useState<string | undefined>(autoTranslateLanguage);
+  const [displayedOptions, setDisplayedOptions] = useState<string | undefined>(telyAiLanguage);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const displayedOptionList: ItemPickerOption[] = useMemo(() => {
     const options = SUPPORTED_LANGUAGES.map((langCode: string) => {
@@ -81,11 +81,11 @@ const AutoTranslateLanguage: FC<StateProps> = ({ autoTranslateLanguage }) => {
   const handleChange = useLastCallback((newSelectedIds: string) => {
     setDisplayedOptions(newSelectedIds);
     setSettingOption({
-      autoTranslateLanguage: newSelectedIds,
-      translationLanguage: newSelectedIds,
+      // translationLanguage: newSelectedIds,
+      telyAiLanguage: newSelectedIds,
     });
     telegptSettings.setSettingOption({
-      autotranslatelanguage: newSelectedIds,
+      telyailanguage: newSelectedIds,
     });
   });
 
@@ -113,11 +113,11 @@ const AutoTranslateLanguage: FC<StateProps> = ({ autoTranslateLanguage }) => {
 export default memo(withGlobal(
   (global): StateProps => {
     const {
-      autoTranslateLanguage,
+      telyAiLanguage,
     } = global.settings.byKey;
 
     return {
-      autoTranslateLanguage,
+      telyAiLanguage,
     };
   },
-)(AutoTranslateLanguage));
+)(TelyAILanguageSelector));

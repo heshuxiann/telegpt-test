@@ -99,10 +99,10 @@ export function getMessageCopyOptions(
     const global = getGlobal();
     const { id: messageId, chatId } = message;
     const chatTranslations = selectChatTranslations(global, chatId);
-    const { autoTranslateLanguage } = global.settings.byKey;
+    const { telyAiLanguage } = global.settings.byKey;
     const messageTranslation
-      = autoTranslateLanguage && messageId
-        ? chatTranslations?.byLangCode[autoTranslateLanguage]?.[messageId]
+      = telyAiLanguage && messageId
+        ? chatTranslations?.byLangCode[telyAiLanguage]?.[messageId]
         : undefined;
     const { isPending, text: translatedText } = messageTranslation || {};
     if (translatedText && !isPending) {

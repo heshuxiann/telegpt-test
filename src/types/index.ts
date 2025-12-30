@@ -157,8 +157,7 @@ export interface AccountSettings {
   translationLanguage?: string;
   doNotTranslate: string[];
   shouldPaidMessageAutoApprove: boolean;
-  autoTranslate?: boolean;
-  autoTranslateLanguage?: string;
+  telyAiLanguage?: string;
 }
 
 export type IAnchorPosition = {
