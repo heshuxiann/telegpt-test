@@ -34,6 +34,9 @@ const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions, t
 
   const [languageMenuOpen, openLanguageMenu, closeLanguageMenu] = useFlag();
   const [tooltipOpen, openTooltip, closeTooltip] = useFlag();
+
+  const inputTranslateTip = localStorage.getItem('input-translate-tip');
+
   const updateRoomInputTranslateConfig = useCallback((options: RoomInputTranslateOptions) => {
     updateRoomInputTranslateOptions(chatId, options);
   }, [chatId]);
@@ -47,18 +50,21 @@ const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions, t
     updateRoomInputTranslateConfig({ ...inputTranslateOptions, autoTranslate: false });
     getActions().showNotification({ message: 'Input translation is turned off' });
   };
+  const handleCloseTooltip = () => {
+    closeTooltip();
+    localStorage.setItem('input-translate-tip', 'true');
+  };
   useEffect(() => {
-    if (!inputTranslateOptions.firstTime) return;
+    if (inputTranslateTip) return;
     openTooltip();
     const timer = setTimeout(() => {
-      closeTooltip();
-      updateRoomInputTranslateConfig({ ...inputTranslateOptions, firstTime: false });
+      handleCloseTooltip();
     }, 5000);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [inputTranslateOptions, closeTooltip, openTooltip, chatId, updateRoomInputTranslateConfig]);
+  }, [closeTooltip, openTooltip, chatId, inputTranslateTip]);
   return (
     <div className="input-ai-actions">
       {
@@ -75,7 +81,7 @@ const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions, t
               className="Button input-ai-actions-button"
               onClick={() => {
                 openLanguageMenu();
-                closeTooltip();
+                handleCloseTooltip();
               }}
             >
               <img src={aiTranslatePath} alt="Chat AI Logo" />
@@ -127,7 +133,7 @@ const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions, t
               <div className="flex flex-col">
                 <span className="text-[14px] text-[#4A5565] dark:text-white">Outgoing messages in</span>
                 <span className="text-[16px] font-semibold text-[var(--color-text)]">
-                  {inputTranslateOptions.firstTime && detectedLanguageName ? detectedLanguageName : inputTranslateOptions?.translateLanguageName ?? 'English'}
+                  {detectedLanguageName ? detectedLanguageName : inputTranslateOptions?.translateLanguageName ?? 'English'}
                 </span>
               </div>
               <div className="flex items-center justify-center ml-auto" onClick={openInputLanguageModal}>
@@ -163,7 +169,6 @@ export default memo(withGlobal<OwnProps>((global, {
     translateLanguage: 'en',
     translateLanguageName: 'English',
     autoTranslate: false,
-    firstTime: true,
   };
   const theme = selectTheme(global);
   return {

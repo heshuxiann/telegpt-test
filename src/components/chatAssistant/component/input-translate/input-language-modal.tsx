@@ -41,10 +41,8 @@ const InputLanguageModal: FC<OwnProps> = ({
   const lang = useOldLang();
   const handleSelect = useLastCallback((langCode: string, translatedName: string) => {
     inputTranslateOptions.translateLanguage = langCode;
-    inputTranslateOptions.firstTime = false;
     inputTranslateOptions.translateLanguageName = translatedName;
     updateRoomInputTranslateOptions(inputTranslateOptions);
-    inputTranslateOptions.firstTime = false;
     updateRoomInputTranslateOptions(inputTranslateOptions);
     closeInputLanguageModal();
   });

@@ -4,7 +4,6 @@ export interface RoomInputTranslateOptions {
   translateLanguage: string;
   translateLanguageName: string;
   autoTranslate: boolean;
-  firstTime: boolean;
 }
 export function updateRoomInputTranslateOptions(chatId: string, options: RoomInputTranslateOptions) {
   let global = getGlobal();

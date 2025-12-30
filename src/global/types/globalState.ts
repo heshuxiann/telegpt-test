@@ -289,7 +289,6 @@ export type GlobalState = {
     translateLanguage: string;
     translateLanguageName: string;
     autoTranslate: boolean;
-    firstTime: boolean;
   }>;
 
   phoneCall?: ApiPhoneCall;
