@@ -133,7 +133,7 @@ const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions, t
               <div className="flex flex-col">
                 <span className="text-[14px] text-[#4A5565] dark:text-white">Outgoing messages in</span>
                 <span className="text-[16px] font-semibold text-[var(--color-text)]">
-                  {detectedLanguageName ? detectedLanguageName : inputTranslateOptions?.translateLanguageName ?? 'English'}
+                  {inputTranslateOptions.translateLanguageName}
                 </span>
               </div>
               <div className="flex items-center justify-center ml-auto" onClick={openInputLanguageModal}>
@@ -166,8 +166,8 @@ export default memo(withGlobal<OwnProps>((global, {
   const translatedNames = new Intl.DisplayNames([language], { type: 'language' });
   const translatedName = detectedLanguage ? translatedNames.of(detectedLanguage) : undefined;
   const inputTranslateOptions = global.roomInputTranslateOptions[chatId] || {
-    translateLanguage: 'en',
-    translateLanguageName: 'English',
+    translateLanguage: chat?.detectedLanguage || 'en',
+    translateLanguageName: translatedName || 'English',
     autoTranslate: false,
   };
   const theme = selectTheme(global);

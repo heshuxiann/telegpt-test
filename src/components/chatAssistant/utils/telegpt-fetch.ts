@@ -60,7 +60,7 @@ export function TelegptFetch(
     version: '1.0.0',
   };
   if (userId) headers['x-auth-key'] = key;
-  if (userName) headers['user-name'] = userName;
+  if (userName) headers['user-name'] = encodeURIComponent(userName);
   let mBody: any = undefined;
   if (method !== 'GET' && params) {
     if (contentType === 'application/json') {
