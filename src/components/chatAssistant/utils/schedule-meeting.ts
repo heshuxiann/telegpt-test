@@ -287,14 +287,14 @@ class ScheduleMeeting {
       this.generateMeetingFlowFinishMessage();
       this.cleanup();
       console.log('已超过五分钟未完成输入，工作流已结束。');
-    }, 1000 * 60);
+    }, 1000 * 60 * 5);
   }
 
   private generateMeetingFlowFinishMessage() {
     const newMessage = {
       chatId: this.chatId,
       timestamp: new Date().getTime(),
-      content: ` ⚠️ Meeting booking session has expired due to inactivity. Please start a new meeting request if you'd like to schedule a meeting.`,
+      content: `⚠️ Meeting booking session has expired due to inactivity. Please start a new meeting request if you'd like to schedule a meeting.`,
       id: uuidv4(),
       createdAt: new Date(),
       role: 'assistant',
