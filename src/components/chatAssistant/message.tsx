@@ -121,7 +121,7 @@ const DefaultMessage = ({ message, isLoading }: {
                   )}
                 >
                   <div
-                    className={cn('w-auto flex flex-col gap-4 bg-[#E8D7FF] text-[var(--color-text)] px-3 py-2 rounded-xl ml-auto dark:bg-[#292929]')}
+                    className={cn('w-auto flex flex-col gap-4 bg-[#E8D7FF] text-[var(--color-text)] px-3 py-2 rounded-xl ml-auto dark:bg-[var(--color-background-own)]')}
                   >
                     <Markdown>{message.content}</Markdown>
                   </div>

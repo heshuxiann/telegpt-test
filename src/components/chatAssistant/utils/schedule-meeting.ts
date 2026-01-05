@@ -2,7 +2,9 @@
 /* eslint-disable no-console */
 
 import React from 'react';
+import type { Message } from 'ai';
 import { DateTime, Interval } from 'luxon';
+import { v4 as uuidv4 } from 'uuid';
 import { getActions, getGlobal, getPromiseActions } from '../../../global';
 
 import type { ApiMessage } from '../../../api/types';
@@ -282,9 +284,29 @@ class ScheduleMeeting {
 
     // 超时自动清理
     this.timeout = setTimeout(() => {
+      this.generateMeetingFlowFinishMessage();
       this.cleanup();
       console.log('已超过五分钟未完成输入，工作流已结束。');
-    }, 1000 * 60 * 5);
+    }, 1000 * 60);
+  }
+
+  private generateMeetingFlowFinishMessage() {
+    const newMessage = {
+      chatId: this.chatId,
+      timestamp: new Date().getTime(),
+      content: ` ⚠️ Meeting booking session has expired due to inactivity. Please start a new meeting request if you'd like to schedule a meeting.`,
+      id: uuidv4(),
+      createdAt: new Date(),
+      role: 'assistant',
+    };
+    const msgs = parseMessage2StoreMessage(this.chatId, [newMessage as Message]);
+    ChataiStores.message?.storeMessages([...msgs]);
+    const global = getGlobal();
+    const currentChat = selectCurrentChat(global);
+    if (this.chatId === currentChat?.id) {
+      eventEmitter.emit(Actions.AddRoomAIMessage, newMessage);
+      getActions().openChatAIWithInfo({ chatId: this.chatId });
+    }
   }
 
   /**

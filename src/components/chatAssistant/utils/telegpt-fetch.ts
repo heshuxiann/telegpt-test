@@ -35,7 +35,7 @@ export function getApihHeaders() {
     version: '1.0.0',
   };
   if (userId) headers['x-auth-key'] = key;
-  if (userName) headers['user-name'] = userName;
+  if (userName) headers['user-name'] = encodeURIComponent(userName);
   return headers;
 }
 

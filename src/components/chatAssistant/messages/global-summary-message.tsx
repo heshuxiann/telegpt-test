@@ -401,8 +401,8 @@ const SummaryInfoContent = ({ summaryInfo }: { summaryInfo: ISummaryInfo }) => {
             </Dropdown>
           </ConfigProvider>
         </div>
-        <p className="text-[22px] font-bold mb-[16px]" data-readable>Chat Summary</p>
-        <div className="flex items-center flex-wrap">
+        <p className="text-[22px] font-bold !mb-[6px]" data-readable>Chat Summary</p>
+        <div className="flex items-center flex-wrap gap-[10px]">
           <p className="flex items-start gap-[8px] flex-nowrap">
             <div className='h-[22px] flex items-center'>
               <img className="w-[16px] h-[16px]" src={CalendarIcon} alt="" />
@@ -412,7 +412,7 @@ const SummaryInfoContent = ({ summaryInfo }: { summaryInfo: ISummaryInfo }) => {
               <span className='leading-[22px] text-[14px]' data-readable data-readable-inline>{formatTimestampRange(summaryInfo?.summaryStartTime, summaryInfo?.summaryEndTime)}</span>
             </div>
           </p>
-          <p className="flex items-center gap-[8px] flex-nowrap">
+          <p className="flex items-center flex-nowrap gap-[8px]">
             <div className='h-[22px] flex items-center'>
                <img className="w-[16px] h-[16px]" src={MessageIcon} alt="" />
             </div>
@@ -506,7 +506,7 @@ const MainSummaryByChatContent = ({
       {summaryInfo && <SummaryInfoContent summaryInfo={summaryInfo} />}
       {summaryTopic.length > 0 && (
         <div>
-          <p className="flex items-center gap-[8px] mb-[16px]">
+          <p className="flex items-center gap-[8px] !mb-[6px]">
             <span className="text-[18px] font-bold" data-readable>Key Topics</span>
             <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
           </p>
@@ -576,7 +576,7 @@ const MainSummaryByChatContent = ({
       <MessageActionsItems
         canCopy
         canVoice
-        canDelete
+        canDelete={false}
         onDelete={deleteMessage}
         message={{ id: messageId } as Message}
       />
