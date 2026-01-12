@@ -92,7 +92,7 @@ const DefaultMessage = ({ message, isLoading }: {
         <div className="flex flex-col gap-4 w-full">
           {message.experimental_attachments && (
             <div className="flex flex-row justify-end gap-2">
-              {message.experimental_attachments.map((attachment) => (
+              {(message.experimental_attachments ?? []).map((attachment) => (
                 <PreviewAttachment
                   key={attachment.url}
                   attachment={attachment}

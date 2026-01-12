@@ -1,4 +1,5 @@
 import React from '@teact';
+
 import { injectComponent } from '../injectComponent';
 import GlobalSummary from './global-summary';
 const GlobalSummaryWrapper = () => {
@@ -11,4 +12,3 @@ const GlobalSummaryWrapper = () => {
 };
 
 export default GlobalSummaryWrapper;
-

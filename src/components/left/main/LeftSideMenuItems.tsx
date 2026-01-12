@@ -5,7 +5,7 @@ import { getActions, withGlobal, getGlobal } from '../../../global';
 
 import type { ApiUser } from '../../../api/types';
 import type { GlobalState } from '../../../global/types';
-import type { AnimationLevel, ThemeKey } from '../../../types';
+import { LeftColumnContent, type AnimationLevel, type ThemeKey } from '../../../types';
 
 import {
   ANIMATION_LEVEL_MAX,
@@ -107,6 +107,7 @@ const LeftSideMenuItems = ({
     openChatWithInfo,
     openCreditsModal,
     openInviteFriendsModal,
+    openLeftColumnContent
   } = getActions();
   const oldLang = useOldLang();
   const lang = useLang();
@@ -235,6 +236,14 @@ const LeftSideMenuItems = ({
     }
   }, []);
 
+  const handleSelectNewGroup = useLastCallback(() => {
+    openLeftColumnContent({ contentKey: LeftColumnContent.NewGroupStep1 });
+  });
+
+  const handleSelectNewChannel = useLastCallback(() => {
+    openLeftColumnContent({ contentKey: LeftColumnContent.NewChannelStep1 });
+  });
+
   useEffect(() => {
     eventEmitter.on(Actions.UpdateSettingAIChatFoldersLoading, updateAIChatFoldersLoading);
     return () => {
@@ -270,12 +279,12 @@ const LeftSideMenuItems = ({
         </div>
       </MenuItem>
       <MenuSeparator />
-      <MenuItem
+      {/* <MenuItem
         customIcon={<img className="icon" src={AIKnowledgeIcon} alt="ai-knowledge" style={buildStyle('width: 24px;height: 24px;max-width: 24px;')} />}
         onClick={onSelectAIKnowledge}
       >
         {oldLang('Quick Replies')}
-      </MenuItem>
+      </MenuItem> */}
       <MenuItem
         customIcon={<img className="icon" src={AITranslateIcon} alt="ai-translate" style={buildStyle('width: 24px;height: 24px;max-width: 24px;')} />}
         onClick={onSelectAITranslate}
@@ -320,6 +329,8 @@ const LeftSideMenuItems = ({
           noAnimation
         />
       </MenuItem>
+      <MenuItem icon="channel" onClick={handleSelectNewChannel}>{lang('NewChannel')}</MenuItem>
+      <MenuItem icon="group" onClick={handleSelectNewGroup}>{lang('NewGroup')}</MenuItem>
       <MenuItem
         icon="saved-messages"
         onClick={handleSelectSaved}

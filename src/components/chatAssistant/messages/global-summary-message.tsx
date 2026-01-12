@@ -232,7 +232,7 @@ const SummaryTopicItem = ({ chatId, topicItem }: {
   return (
     <ErrorBoundary>
       <ul className="list-disc pl-[18px] text-[16px] list-inside">
-        {topicItem.map((summaryItem: any, index) => {
+        {(topicItem || []).map((summaryItem: any, index) => {
           const { content, relevantMessageIds } = summaryItem;
           if (!content) return null;
           return (
@@ -264,7 +264,7 @@ const TopicSummaryItem = ({ topicItems }: {
   return (
     <ErrorBoundary>
       <ul className="list-disc pl-[18px] text-[16px] list-inside">
-        {topicItems.map((summaryItem, index) => {
+        {(topicItems || []).map((summaryItem, index) => {
           const { content, relevantChats } = summaryItem;
           if (!content) return null;
           return (
@@ -414,7 +414,7 @@ const SummaryInfoContent = ({ summaryInfo }: { summaryInfo: ISummaryInfo }) => {
           </p>
           <p className="flex items-center flex-nowrap gap-[8px]">
             <div className='h-[22px] flex items-center'>
-               <img className="w-[16px] h-[16px]" src={MessageIcon} alt="" />
+              <img className="w-[16px] h-[16px]" src={MessageIcon} alt="" />
             </div>
             <div className="flex items-center gap-[4px]">
               <span className="font-bold text-[14px]" data-readable data-readable-inline>Messages:</span>
@@ -429,7 +429,7 @@ const SummaryInfoContent = ({ summaryInfo }: { summaryInfo: ISummaryInfo }) => {
             <img className="w-[16px] h-[16px]" src={UserIcon} alt="" />
             <span className="font-bold text-[14px]">Groups/friends: </span>
             <div className="flex items-center">
-              {summaryInfo.summaryChatIds.slice(0, 10).map((id: string, index: number) => {
+              {((summaryInfo?.summaryChatIds ?? []).slice(0, 10)).map((id: string, index: number) => {
                 return (
                   <ChatAvatar
                     style={{ zIndex: `${String(summaryInfo.summaryChatIds.length - index)}` }}
@@ -511,7 +511,7 @@ const MainSummaryByChatContent = ({
             <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
           </p>
           {
-            summaryTopic.map((item, index) => {
+            (summaryTopic || []).map((item, index) => {
               return (
                 <div key={index}>
                   <div className="flex items-center justify-between gap-[8px]">
@@ -545,7 +545,7 @@ const MainSummaryByChatContent = ({
                     )}
                     {
                       item.customTopics.length > 0 && (
-                        item.customTopics.map((customTopic, index) => {
+                        (item?.customTopics ?? []).map((customTopic, index) => {
                           return (
                             <li key={index}>
                               <span className="text-[16px] font-bold" data-readable>{customTopic.topicName}</span>
@@ -569,7 +569,7 @@ const MainSummaryByChatContent = ({
             <span className="text-[18px] font-bold" data-readable>Actions Items</span>
             <img className="w-[16px] h-[16px]" src={ActionsIcon} alt="" />
           </p>
-          {pendingMatters.map((item) => (<SummaryPenddingItem pendingItem={item} key={item.chatId} />))}
+          {(pendingMatters || []).map((item) => (<SummaryPenddingItem pendingItem={item} key={item.chatId} />))}
         </div>
       )}
       {/* action buttons  */}
@@ -610,14 +610,14 @@ const MainSummaryByTopicContent = ({
             <span className="text-[18px] font-bold" data-readable>Key Topics</span>
             <img className="w-[16px] h-[16px]" src={WriteIcon} alt="" />
           </p>
-          {topics.map((topic, index) => (
+          {(topics || []).map((topic, index) => (
             <div key={index}>
               <div className="flex items-center justify-between gap-[8px]">
                 <div className="flex items-center gap-[8px]">
                   <p className="text-[16px] font-bold" data-readable>{index + 1}.{topic.topicName || 'Untitled Topic'}</p>
                   {/* 关联的群组/好友头像 */}
                   <div className="flex items-center">
-                    {topic.relatedChatIds?.slice(0, 6).map((id) => (
+                    {((topic?.relatedChatIds ?? []).slice(0, 6)).map((id) => (
                       <ChatAvatar size={20} chatId={id} key={`${topic.topicName}-${id}`} tooltip />
                     ))}
                     {topic.relatedChatIds && topic.relatedChatIds.length > 6 ? (
@@ -637,7 +637,7 @@ const MainSummaryByTopicContent = ({
             <span className="text-[18px] font-bold" data-readable>Actions Items</span>
             <img className="w-[16px] h-[16px]" src={ActionsIcon} alt="" />
           </p>
-          {pendingMatters.map((item) => (<SummaryPenddingItem pendingItem={item} key={item.chatId} />))}
+          {(pendingMatters || []).map((item) => (<SummaryPenddingItem pendingItem={item} key={item.chatId} />))}
         </div>
       )}
       <MessageActionsItems
@@ -716,7 +716,7 @@ const SummaryContent = ({
               </div>
             </p>
           </div>
-          {garbageMessage.map((item) => (<SummaryGarbageItem garBageItem={item} key={item.chatId} />))}
+          {(garbageMessage || []).map((item) => (<SummaryGarbageItem garBageItem={item} key={item.chatId} />))}
         </div>
       )}
     </>
