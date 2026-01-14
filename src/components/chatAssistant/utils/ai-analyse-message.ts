@@ -17,7 +17,10 @@ import * as mediaLoader from "../../../util/mediaLoader";
 import { message as showMessage } from "antd";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import { getActions, getGlobal } from "../../../global";
-import { selectChatMessage, selectWebPageFromMessage } from "../../../global/selectors";
+import {
+  selectChatMessage,
+  selectWebPageFromMessage,
+} from "../../../global/selectors";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js";
 
@@ -470,13 +473,16 @@ async function handleAudioToSummaryText({
 }) {
   try {
     // check size
-    if (size && size > 4.5 * 1024 * 1024) {
-      showMessage.info("File size exceeds limit (4.5 MB)");
+    if (
+      (isAuto && size && size > 50 * 1024 * 1024) ||
+      (!isAuto && size && size > 100 * 1024 * 1024)
+    ) {
+      showMessage.info("File too large to summarize");
       newMessage = {
         ...newMessage,
         content: JSON.stringify({
           message,
-          errorMsg: "File size exceeds limit (4.5 MB)",
+          errorMsg: "File too large to summarize",
           isAuto,
           status: "error",
         }),
@@ -582,7 +588,15 @@ export function canSummarize(message: ApiMessage) {
   const isUrl = checkIsUrl(text?.text);
   const hasText = text?.text && text.text.trim() !== "";
 
-  return photo || document || (webPage && !hasText) || voice || audio || isUrl || video;
+  return (
+    photo ||
+    document ||
+    (webPage && !hasText) ||
+    voice ||
+    audio ||
+    isUrl ||
+    video
+  );
 }
 
 export function isHasUrl(text?: string) {
@@ -638,5 +652,5 @@ export function extractUrls(text?: string): string[] {
 }
 
 export function checkIsVideo(mimeType: string) {
-  return ['video/mp4'].indexOf(mimeType) >= 0;
+  return ["video/mp4"].indexOf(mimeType) >= 0;
 }

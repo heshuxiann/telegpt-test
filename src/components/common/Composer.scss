@@ -1,4 +1,4 @@
-@use '../../styles/mixins';
+@use "../../styles/mixins";
 
 .Composer {
   --base-height: 3rem;
@@ -174,7 +174,8 @@
       }
     }
 
-    &.send, &.sendOneTime {
+    &.send,
+    &.sendOneTime {
       .icon-send {
         animation: grow-icon 0.4s ease-out;
       }
@@ -465,7 +466,9 @@
   display: flex;
 
   .input-scroller {
-    --_scroller-right-gap: calc((var(--action-button-size) + var(--action-button-compact-fix) - 0.125rem));
+    --_scroller-right-gap: calc(
+      (var(--action-button-size) + var(--action-button-compact-fix) - 0.125rem)
+    );
 
     margin-right: calc(-1 * var(--_scroller-right-gap));
     padding-right: var(--_scroller-right-gap);
@@ -520,7 +523,10 @@
       transition: 0.25s ease-out width, 0.25s ease-out border-radius;
 
       &.open {
-        width: calc(var(--bot-menu-text-width) + var(--padding-sides) * 2 + var(--icon-gap) + var(--icon-width));
+        width: calc(
+          var(--bot-menu-text-width) + var(--padding-sides) * 2 +
+            var(--icon-gap) + var(--icon-width)
+        );
         border-radius: 1rem;
       }
 
@@ -709,7 +715,10 @@
     overflow: hidden;
 
     height: auto;
-    padding: calc((var(--base-height, 3rem) - var(--composer-text-size, 1rem) * 1.375) / 2) 0.875rem;
+    padding: calc(
+        (var(--base-height, 3rem) - var(--composer-text-size, 1rem) * 1.375) / 2
+      )
+      0.875rem;
     border: none !important;
     border-radius: 0 !important;
 
@@ -812,10 +821,8 @@
     padding: 0 0.3125rem 0.125rem 0.3125rem;
     border-radius: 0.5rem;
 
-    text-shadow:
-      -2px -2px 0 var(--color-background),
-      2px -2px 0 var(--color-background),
-      -2px 2px 0 var(--color-background),
+    text-shadow: -2px -2px 0 var(--color-background),
+      2px -2px 0 var(--color-background), -2px 2px 0 var(--color-background),
       2px 2px 0 var(--color-background);
 
     background-image: url("../../assets/spoiler-dots-black.png");
@@ -847,7 +854,11 @@
   .form-control {
     height: auto;
     margin-bottom: 0;
-    padding: calc((var(--base-height, 3rem) - var(--composer-text-size, 1rem) * 1.3125) / 2) 0;
+    padding: calc(
+        (var(--base-height, 3rem) - var(--composer-text-size, 1rem) * 1.3125) /
+          2
+      )
+      0;
 
     line-height: 1.3125;
     white-space: pre-wrap;
@@ -859,7 +870,9 @@
 
   .forced-placeholder,
   .placeholder-text {
-    top: calc((var(--base-height, 3rem) - var(--composer-text-size, 1rem) * 1.3125) / 2);
+    top: calc(
+      (var(--base-height, 3rem) - var(--composer-text-size, 1rem) * 1.3125) / 2
+    );
 
     @media (max-width: 600px) {
       top: calc((2.875rem - var(--composer-text-size, 1rem) * 1.3125) / 2);
@@ -868,11 +881,12 @@
 
   &:not(:only-child) {
     .form-control {
-      padding-right: 0;
+      padding-right: 0.5rem;
       padding-left: 0;
 
       @media (min-width: 600px) {
         padding-left: 0.5rem;
+        padding-right: 0.5rem;
       }
     }
   }
@@ -937,7 +951,9 @@
 }
 
 #story-input-text .placeholder-text {
-  top: calc((var(--base-height, 3rem) - var(--composer-text-size, 1rem) * 1.3125) / 2);
+  top: calc(
+    (var(--base-height, 3rem) - var(--composer-text-size, 1rem) * 1.3125) / 2
+  );
   left: 0.875rem;
 
   &.is-need-premium {

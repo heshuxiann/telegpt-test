@@ -9,7 +9,8 @@
     transition: none !important;
   }
 
-  > .Button, & > .playback-rate-menu {
+  > .Button,
+  & > .playback-rate-menu {
     flex-shrink: 0;
     margin: 0.125rem;
   }
@@ -235,10 +236,36 @@
     }
   }
 
+  &.min-desktop {
+    .AudioPlayer-content {
+      flex-grow: 1;
+      max-width: none;
+    }
+    position: absolute;
+    left: 0;
+    top: var(--header-height);
+    background: var(--color-background);
+    z-index: 1;
+    width: 100%;
+    box-shadow: 0 2px 2px var(--color-light-shadow);
+    &::before {
+      pointer-events: none;
+      content: "";
+      position: absolute;
+      z-index: -100;
+      top: -2px;
+      right: 0;
+      left: 0;
+      height: 2px;
+      box-shadow: 0 2px 2px var(--color-light-shadow);
+    }
+  }
+
   .playback-rate-menu .bubble {
     min-width: auto;
 
-    .icon-check, .icon-placeholder {
+    .icon-check,
+    .icon-placeholder {
       margin-right: 0.25rem;
       margin-left: 0.25rem;
     }

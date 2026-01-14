@@ -243,7 +243,7 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
         <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)]">
           <div className="font-[600] text-[16px]" data-readable>Key Highlights:</div>
           <div className="flex flex-col mt-2">
-            {Array.isArray(summaryInfo)  && summaryInfo?.map((item: any, index: number) => {
+            {Array.isArray(summaryInfo) && summaryInfo?.map((item: any, index: number) => {
               return (
                 <div className="flex flex-col" key={index}>
                   <div className="flex flex-row items-center flex-wrap">
@@ -281,7 +281,8 @@ const RoomAIMediaMessage: React.FC<IProps> = (props) => {
       {status === "loading" ? (
         <ThinkingMessage />
       ) : status === "error" ? (
-        <NoSummaryContent content={getType() || ""} message={props.message} />
+        // <NoSummaryContent content={getType() || ""} message={props.message} />
+        <SummaryErrorContent message={props.message} content={props.message?.content} />
       ) : (
         renderSummary()
       )}
@@ -347,6 +348,23 @@ const NoSummaryContent = ({ content, message }: { content: string; message: Mess
         appears the search query didn't return any results. Could you please paste
         the text you want summarized? That way, I can give you a clear and
         accurate summary!
+      </span>
+      <MessageActionsItems canCopy canVoice message={message} />
+    </div>
+  );
+};
+const SummaryErrorContent = ({ content, message }: { content: string | undefined; message: Message }) => {
+  let messageContent, errorText;
+  try {
+    messageContent = content ? JSON.parse(content) : {};
+    errorText = messageContent?.errorMsg ?? 'Unknown Error';
+  } catch (e) {
+    messageContent = 'Unknown Error';
+  }
+  return (
+    <div className="rounded-[16px] bg-[var(--color-ai-room-media-bg)] p-3 text-[var(--color-text)]">
+      <span data-readable>
+        {errorText}
       </span>
       <MessageActionsItems canCopy canVoice message={message} />
     </div>

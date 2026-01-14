@@ -217,6 +217,7 @@ const PayPackageModal = ({ modal }: OwnProps) => {
                   </div>
                   <button
                     className={styles.upgradeButton}
+                    disabled={PLAN_ORDER[planType] <= PLAN_ORDER[curSubscriptionInfo.subscriptionType as AllPlanType]}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleUpgrade(planType);

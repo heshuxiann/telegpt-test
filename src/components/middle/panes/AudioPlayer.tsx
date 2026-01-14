@@ -272,7 +272,7 @@ const AudioPlayer: FC<OwnProps & StateProps> = ({
 
   return (
     <div
-      className={buildClassName('AudioPlayer', isFullWidth ? 'full-width-player' : 'mini-player', className)}
+      className={buildClassName('AudioPlayer min-desktop', isFullWidth ? 'full-width-player' : 'mini-player', className)}
       dir={lang.isRtl ? 'rtl' : undefined}
       ref={ref}
     >

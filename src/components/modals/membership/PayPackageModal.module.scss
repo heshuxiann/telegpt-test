@@ -82,7 +82,7 @@
   min-width: 270px;
   max-width: 330px;
   background: var(--color-background);
-  border: 1px solid #F1F2F9;
+  border: 1px solid #f1f2f9;
   border-radius: 24px;
   padding: 12px;
   cursor: pointer;
@@ -195,6 +195,11 @@
 
   &:hover {
     transform: translateY(-1px);
+  }
+  &:disabled {
+    background: var(--color-text-secondary);
+    color: #fff;
+    cursor: not-allowed;
   }
 }
 
