@@ -99,6 +99,7 @@ export type GlobalState = {
   initialUnreadNotifications?: number;
   shouldShowContextMenuHint?: boolean;
   botFreezeAppealId?: string;
+  systemLanguage?: string;
 
   audioPlayer: {
     lastPlaybackRate: number;
@@ -290,6 +291,11 @@ export type GlobalState = {
     translateLanguageName: string;
     autoTranslate: boolean;
   }>;
+
+  translateTip: {
+    headerTipClosed?: boolean;
+    inputTipClosedChats: Record<string, boolean>;
+  };
 
   phoneCall?: ApiPhoneCall;
 

@@ -97,6 +97,7 @@ export const INITIAL_SHARED_STATE: SharedState = {
 export const INITIAL_GLOBAL_STATE: GlobalState = {
   cacheVersion: 2,
   isInited: true,
+  systemLanguage: undefined,
   attachMenu: { bots: {} },
   passcode: {},
   twoFaSettings: {},
@@ -202,6 +203,10 @@ export const INITIAL_GLOBAL_STATE: GlobalState = {
   },
 
   roomInputTranslateOptions: {},
+  translateTip: {
+    headerTipClosed: false,
+    inputTipClosedChats: {},
+  },
 
   fileUploads: {
     byMessageKey: {},

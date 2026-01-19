@@ -207,7 +207,8 @@ import ReactionAnimatedEmoji from './reactions/ReactionAnimatedEmoji';
 import './Composer.scss';
 import { checkCredisBalance } from '../../util/paymentErrorHandler';
 import ComposerTranslatededMessage from '../middle/composer/ComposerTranslatededMessage';
-import { RoomInputTranslateOptions } from '../chatAssistant/utils/room-input-translate';
+import { checkShouldShowInputTranslateTip, RoomInputTranslateOptions } from '../chatAssistant/utils/room-input-translate';
+import { emitEventTeact } from '../chatAssistant/hook/useEventBusTeact';
 
 type ComposerType = 'messageList' | 'story';
 
@@ -2181,14 +2182,20 @@ const Composer: FC<OwnProps & StateProps> = ({
             timedPlaceholderDate={timedPlaceholderDate}
             timedPlaceholderLangKey={timedPlaceholderLangKey}
             forcedPlaceholder={inlineBotHelp}
-            canAutoFocus={isReady && isForCurrentMessageList && !hasAttachments && isInMessageList}
+            // canAutoFocus={isReady && isForCurrentMessageList && !hasAttachments && isInMessageList}
+            canAutoFocus={false}
             noFocusInterception={hasAttachments}
             shouldSuppressFocus={isMobile && isSymbolMenuOpen}
             shouldSuppressTextFormatter={isEmojiTooltipOpen || isMentionTooltipOpen || isInlineBotTooltipOpen}
             onUpdate={setHtml}
             onSend={onSend}
             onSuppressedFocus={closeSymbolMenu}
-            onFocus={markInputHasFocus}
+            onFocus={() => {
+              // markInputHasFocus();
+              if (checkShouldShowInputTranslateTip(chatId)) {
+                emitEventTeact('actions:openInputTranslateTip');
+              }
+            }}
             onBlur={unmarkInputHasFocus}
             isNeedPremium={isNeedPremium}
             messageListType={messageListType}

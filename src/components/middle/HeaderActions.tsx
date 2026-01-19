@@ -156,7 +156,7 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
   const lang = useOldLang();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<IAnchorPosition | undefined>(undefined);
-  const { headerTranslateTipOpen, closeHeaderTranslateTip } = useTranslateTip({ chatId });
+  const { closeHeaderTranslateTip, headerTranslateTipOpen } = useTranslateTip({ chatId });
 
   const handleHeaderMenuOpen = useLastCallback(() => {
     setIsMenuOpen(true);

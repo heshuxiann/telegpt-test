@@ -50,6 +50,19 @@ addActionHandler('init', (global, actions, payload): ActionReturnType => {
       console.error(e);
     }
   }
+  const translateTip = localStorage.getItem('translate-tip');
+  if (translateTip) {
+    try {
+      const options = JSON.parse(translateTip);
+      global.translateTip = {
+        headerTipClosed: options.headerTipClosed || false,
+        inputTipClosedChats: options.inputTipClosedChats || {},
+      };
+    } catch (e) {
+    // eslint-disable-next-line no-console
+      console.error(e);
+    }
+  }
 
   global = {
     ...global,

@@ -62,6 +62,20 @@ async function init() {
   await initGlobal();
   getActions().init();
 
+  // 初始化系统语言到全局状态
+  if (window.electron?.getSystemLanguage) {
+    try {
+      const systemLanguage = await window.electron.getSystemLanguage();
+      if (systemLanguage) {
+        const global = getGlobal();
+        global.systemLanguage = systemLanguage;
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to get system language:', error);
+    }
+  }
+
   getActions().updateShouldEnableDebugLog();
   getActions().updateShouldDebugExportedSenders();
 

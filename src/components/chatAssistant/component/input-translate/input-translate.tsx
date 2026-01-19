@@ -9,9 +9,11 @@ import { selectChat, selectLanguageCode, selectTheme } from '../../../../global/
 import buildStyle from '../../../../util/buildStyle';
 import { updateRoomInputTranslateOptions } from '../../utils/room-input-translate';
 import InputLanguageModal from './input-language-modal';
+import InputTranslateOpenTip from './input-translate-open-tip';
 import InputTranslateTip from './input-translate-tip';
 
 import useFlag from '../../../../hooks/useFlag';
+import { useTranslateTip } from '../../../left/main/hooks/useTranslateTip';
 
 import Icon from '../../../common/icons/Icon';
 import Menu from '../../../ui/Menu';
@@ -35,6 +37,7 @@ const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions, t
 
   const [languageMenuOpen, openLanguageMenu, closeLanguageMenu] = useFlag();
   const [tooltipOpen, openTooltip, closeTooltip] = useFlag();
+  const { inputTranslateTipOpen, closeInputTranslateTip } = useTranslateTip({ chatId });
 
   const inputTranslateTip = localStorage.getItem('input-translate-tip');
 
@@ -62,7 +65,7 @@ const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions, t
     };
   }, [closeTooltip, openTooltip, chatId, inputTranslateTip]);
   return (
-    <div className="input-ai-actions">
+    <div className="input-ai-actions relative">
       {
         inputTranslateOptions?.autoTranslate
           ? (
@@ -86,8 +89,13 @@ const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions, t
       }
 
       {tooltipOpen && (
-        <InputTranslateTip />
+        <InputTranslateOpenTip />
       )}
+
+      {inputTranslateTipOpen && (
+        <InputTranslateTip chatId={chatId} onCLose={closeInputTranslateTip} />
+      )}
+
       <Menu
         noCloseOnBackdrop
         isOpen={languageMenuOpen}

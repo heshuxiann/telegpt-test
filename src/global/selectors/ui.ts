@@ -12,6 +12,10 @@ import { selectSharedSettings } from './sharedState';
 import { selectIsStatisticsShown } from './statistics';
 import { selectTabState } from './tabs';
 
+export function selectSystemLanguage<T extends GlobalState>(global: T) {
+  return global.systemLanguage;
+}
+
 export function selectIsMediaViewerOpen<T extends GlobalState>(
   global: T,
   ...[tabId = getCurrentTabId()]: TabArgs<T>
