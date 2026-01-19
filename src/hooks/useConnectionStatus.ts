@@ -2,11 +2,13 @@ import type { GlobalState } from '../global/types';
 import type { OldLangFn } from './useOldLang';
 
 import useBrowserOnline from './window/useBrowserOnline';
+import useFlag from './useFlag';
 
 export enum ConnectionStatus {
   waitingForNetwork,
   syncing,
   online,
+  offline,
 }
 
 type ConnectionStatusPosition =
@@ -24,13 +26,19 @@ export default function useConnectionStatus(
   isDisabled?: boolean,
 ) {
   let status: ConnectionStatus;
+  const [connectionStatusOpen, openConnectionStatus, closeConnectionStatus] = useFlag();
   const isBrowserOnline = useBrowserOnline();
-  if (!isBrowserOnline || connectionState === 'connectionStateConnecting') {
+  if (!isBrowserOnline) {
+    status = ConnectionStatus.offline;
+    openConnectionStatus();
+  } else if (connectionState === 'connectionStateConnecting') {
     status = ConnectionStatus.waitingForNetwork;
+    openConnectionStatus();
   } else if (isSyncing) {
     status = ConnectionStatus.syncing;
   } else {
     status = ConnectionStatus.online;
+    closeConnectionStatus();
   }
 
   let position: ConnectionStatusPosition;
@@ -45,7 +53,7 @@ export default function useConnectionStatus(
   }
 
   let text: string | undefined;
-  if (status === ConnectionStatus.waitingForNetwork) {
+  if (status === ConnectionStatus.waitingForNetwork || status === ConnectionStatus.offline) {
     text = lang('WaitingForNetwork');
   } else if (status === ConnectionStatus.syncing) {
     text = lang('Updating');
@@ -59,5 +67,8 @@ export default function useConnectionStatus(
     connectionStatus: status,
     connectionStatusPosition: position,
     connectionStatusText: text,
+    connectionStatusOpen,
+    openConnectionStatus,
+    closeConnectionStatus,
   };
 }

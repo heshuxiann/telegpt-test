@@ -2,8 +2,7 @@ import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
 import { memo } from '../../lib/teact/teact';
 
-import type { ConnectionStatus } from '../../hooks/useConnectionStatus';
-
+import { ConnectionStatus } from '../../hooks/useConnectionStatus';
 import useOldLang from '../../hooks/useOldLang';
 
 import Icon from '../common/icons/Icon';
@@ -28,12 +27,22 @@ const ConnectionStatusOverlay: FC<OwnProps> = ({
 
   return (
     <div id="ConnectionStatusOverlay" dir={lang.isRtl ? 'rtl' : undefined} onClick={onClick}>
-      <Spinner color="black" />
-      <div className="state-text">
-        <Transition activeKey={connectionStatus} name="slideFade">
-          {connectionStatusText}
-        </Transition>
-      </div>
+      {connectionStatus !== ConnectionStatus.offline && (
+        <Spinner color="black" />
+      )}
+      {connectionStatus === ConnectionStatus.offline ? (
+        <div className="state-text offline">
+          <Transition activeKey={connectionStatus} name="slideFade">
+            Network unavailable. Please Check your network.
+          </Transition>
+        </div>
+      ) : (
+        <div className="state-text">
+          <Transition activeKey={connectionStatus} name="slideFade">
+            {connectionStatusText}
+          </Transition>
+        </div>
+      )}
       <Button
         round
         size="tiny"

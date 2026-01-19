@@ -14,8 +14,10 @@ export const PRODUCTION_HOSTNAME = 'web.telegram.org';
 // Telegpt相关配置
 export const PRODUCTION_URL = 'https://aquaverse.github.io/telegpt-web-app/';
 export const WEB_VERSION_BASE = 'https://web.telegram.org/'; // Used to redirect to other versions
+// export const SERVER_API_URL = 'http://localhost:7091';
 // export const SERVER_API_URL = 'http://localhost:3000';
 export const SERVER_API_URL = 'https://telegpt-phi.vercel.app';
+// export const SERVER_API_URL = 'https://api.telegpt.org';
 export const BASE_URL = process.env.BASE_URL;
 export const ACCOUNT_QUERY = 'account';
 export const GOOGLE_APP_CLIENT_ID = process.env.GOOGLE_APP_CLIENT_ID;

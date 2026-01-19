@@ -1027,6 +1027,7 @@ export interface LangPair {
   'Unarchive': undefined;
   'Archive': undefined;
   'WaitingForNetwork': undefined;
+  'Offline': undefined;
   'ScheduleSendWhenOnline': undefined;
   'VoipIncoming': undefined;
   'LiveLocationUpdatedJustNow': undefined;

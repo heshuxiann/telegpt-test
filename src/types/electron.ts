@@ -17,6 +17,7 @@ export enum ElectronAction {
   SET_IS_TRAY_ICON_ENABLED = 'set-is-tray-icon-enabled',
   GET_IS_TRAY_ICON_ENABLED = 'get-is-tray-icon-enabled',
   RESTORE_LOCAL_STORAGE = 'restore-local-storage',
+  GET_SYSTEM_LANGUAGE = 'get-system-language',
 }
 
 export type WindowButtonsPosition = 'standard' | 'lowered';
@@ -37,6 +38,7 @@ export interface ElectronApi {
   setIsTrayIconEnabled: (value: boolean) => Promise<void>;
   getIsTrayIconEnabled: () => Promise<boolean>;
   restoreLocalStorage: () => Promise<void>;
+  getSystemLanguage: () => Promise<string>;
   googleLogin: () => Promise<any>;
 
   on: (eventName: ElectronEvent, callback: any) => VoidFunction;

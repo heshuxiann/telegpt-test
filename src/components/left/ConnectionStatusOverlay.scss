@@ -42,14 +42,19 @@
 
   > .state-text {
     flex: 1;
-
+    overflow: hidden;
     margin-inline-start: 1.875rem;
     padding-bottom: 0.0625rem;
 
     font-size: 0.9375rem;
     font-weight: var(--font-weight-medium);
     color: var(--color-text-lighter);
-    white-space: nowrap;
+    white-space: wrap;
+    &.offline {
+      margin-inline-start: unset;
+      line-height: 18px;
+      font-size: 14px;
+    }
   }
 
   .Transition {

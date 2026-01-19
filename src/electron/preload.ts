@@ -22,6 +22,7 @@ const electronApi: ElectronApi = {
   setIsTrayIconEnabled: (value: boolean) => ipcRenderer.invoke(ElectronAction.SET_IS_TRAY_ICON_ENABLED, value),
   getIsTrayIconEnabled: () => ipcRenderer.invoke(ElectronAction.GET_IS_TRAY_ICON_ENABLED),
   restoreLocalStorage: () => ipcRenderer.invoke(ElectronAction.RESTORE_LOCAL_STORAGE),
+  getSystemLanguage: () => ipcRenderer.invoke(ElectronAction.GET_SYSTEM_LANGUAGE),
   googleLogin: () => {
     return ipcRenderer.invoke('google-login');
   },

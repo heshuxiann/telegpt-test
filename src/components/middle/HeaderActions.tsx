@@ -50,6 +50,8 @@ import HeaderMenuContainer from './HeaderMenuContainer.async';
 import InviteButton from '../chatAssistant/component/InviteButton.teact';
 import AITranslateIcon from '../chatAssistant/assets/input/translate-input.png';
 import AITranslateActiveIcon from '../chatAssistant/assets/ai-translate.png';
+import HeaderTranslateTip from './HeaderTranslateTip';
+import { useTranslateTip } from '../left/main/hooks/useTranslateTip';
 
 interface OwnProps {
   chatId: string;
@@ -154,6 +156,7 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
   const lang = useOldLang();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<IAnchorPosition | undefined>(undefined);
+  const { headerTranslateTipOpen, closeHeaderTranslateTip } = useTranslateTip({ chatId });
 
   const handleHeaderMenuOpen = useLastCallback(() => {
     setIsMenuOpen(true);
@@ -306,21 +309,24 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
 
   const MoreMenuButton: FC<{ onTrigger: () => void; isOpen?: boolean }> = useMemo(() => {
     return ({ onTrigger, isOpen }) => (
-      <Button
-        round={!Boolean(translationKey)}
-        ripple={isRightColumnShown}
-        color="translucent"
-        size={translationKey ? "tiny" : "smaller"}
-        className={isOpen ? 'active' : ''}
-        onClick={onTrigger}
-        ariaLabel={lang('TranslateMessage')}
-      >
-        {/* <Icon name="language" /> */}
-        <img src={Boolean(translationKey) ? AITranslateActiveIcon : AITranslateIcon} className='w-[24px] h-[24px]' />
-        {Boolean(translationKey) ? <span className='text-14px font-semibold'>{translationKey}</span> : ""}
-      </Button>
+      <div className='relative'>
+        <Button
+          round={!Boolean(translationKey)}
+          ripple={isRightColumnShown}
+          color="translucent"
+          size={translationKey ? "tiny" : "smaller"}
+          className={`overflow-visible ${isOpen ? 'active' : ''}`}
+          onClick={onTrigger}
+          ariaLabel={lang('TranslateMessage')}
+        >
+          {/* <Icon name="language" /> */}
+          <img src={Boolean(translationKey) ? AITranslateActiveIcon : AITranslateIcon} className='w-[24px] h-[24px]' />
+          {Boolean(translationKey) ? <span className='text-14px font-semibold'>{translationKey}</span> : ""}
+        </Button>
+        {headerTranslateTipOpen && <HeaderTranslateTip chatId={chatId} onClose={closeHeaderTranslateTip} />}
+      </div>
     );
-  }, [isRightColumnShown, translationKey, lang]);
+  }, [isRightColumnShown, translationKey, lang, headerTranslateTipOpen, chatId, closeHeaderTranslateTip]);
 
   return (
     <div className="HeaderActions">

@@ -1198,6 +1198,7 @@
 "Unarchive" = "Unarchive";
 "Archive" = "Archive";
 "WaitingForNetwork" = "Waiting for network...";
+"Offline" = "Network unavailable. Please Check your network.";
 "ScheduleSendWhenOnline" = "Send When Online";
 "VoipIncoming" = "Incoming call";
 "FileSizeB" = "{count} B";

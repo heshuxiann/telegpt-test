@@ -144,7 +144,9 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
       : undefined;
   }, [searchDate]);
 
-  const { connectionStatus, connectionStatusText, connectionStatusPosition } = useConnectionStatus(
+  const { connectionStatus, connectionStatusText, connectionStatusPosition, connectionStatusOpen,
+    openConnectionStatus,
+    closeConnectionStatus, } = useConnectionStatus(
     oldLang,
     connectionState,
     isSyncing || isFetchingDifference,
@@ -361,7 +363,8 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
           </Button>
         )}
         <ShowTransition
-          isOpen={connectionStatusPosition === 'overlay'}
+          // isOpen={connectionStatusPosition === 'overlay'}
+          isOpen={connectionStatusOpen}
           isCustom
           className="connection-state-wrapper"
         >

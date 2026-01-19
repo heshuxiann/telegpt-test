@@ -230,6 +230,7 @@ export function setupElectronActionHandlers() {
   ipcMain.handle(ElectronAction.GET_IS_TRAY_ICON_ENABLED, () => tray.isEnabled);
 
   ipcMain.handle(ElectronAction.RESTORE_LOCAL_STORAGE, () => restoreLocalStorage());
+  ipcMain.handle(ElectronAction.GET_SYSTEM_LANGUAGE, () => app.getLocale());
 }
 
 export function setupCloseHandlers() {

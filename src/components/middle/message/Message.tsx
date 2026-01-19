@@ -1999,8 +1999,10 @@ export default memo(withGlobal<OwnProps>(
     const requestedTranslationLanguage = selectRequestedMessageTranslationLanguage(global, chatId, message.id);
     const requestedChatTranslationLanguage = selectRequestedChatTranslationLanguage(global, chatId);
 
-    const areTranslationsEnabled = IS_TRANSLATION_SUPPORTED && global.settings.byKey.canTranslate
-      && !requestedChatTranslationLanguage; // Stop separate language detection if chat translation is requested
+    // Stop separate language detection if chat translation is requested
+    // const areTranslationsEnabled = IS_TRANSLATION_SUPPORTED && global.settings.byKey.canTranslate
+    //   && !requestedChatTranslationLanguage;
+    const areTranslationsEnabled = IS_TRANSLATION_SUPPORTED && !requestedChatTranslationLanguage;
 
     const isConnected = global.connectionState === 'connectionStateReady';
 
