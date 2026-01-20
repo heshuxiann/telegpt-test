@@ -27,6 +27,7 @@ import { intersection } from "lodash";
 import eventEmitter, { Actions } from "../lib/EventEmitter";
 import { AIChatFolderStep } from "./ai-chatfolders-tip";
 import { chatAIChatFolders } from "../utils/chat-api";
+import { getChatType } from "../../../api/gramjs/gramjsBuilders";
 
 export interface AIChatFolder {
   id?: string;
@@ -102,9 +103,9 @@ export function groupAiChatFoldersRes(list: AIChatFolder[]) {
           // 过滤Bot和群聊
           const global = getGlobal();
           const chatType = selectChatType(global, i?.chatId?.toString());
-          if(chatType === "users"){
+          if (chatType === "users") {
             return i?.chatId;
-          }else{
+          } else {
             return null;
           }
         } else {
@@ -122,7 +123,7 @@ export function groupAiChatFoldersRes(list: AIChatFolder[]) {
 
 export async function batchAiChatFolders(
   chatMessages: { [key: string]: ApiMessage[] },
-  batchSize: number
+  batchSize: number,
 ) {
   const chatKeys = Object.keys(chatMessages);
   let res: AIChatFolder[] = [];
@@ -131,6 +132,7 @@ export async function batchAiChatFolders(
     const chatMsgs = batchKeys.map((chatId) => {
       return {
         chatId,
+        chatType: getChatType(chatId),
         messages: chatMessages[chatId]
           .map((message) => message.content.text?.text ?? "")
           .filter((item) => item !== null),
@@ -166,7 +168,7 @@ export async function deleteAiChatFolders() {
         // 删除AI分类, Unread分类, Preset分类, AI分类
         console.log(
           AICHATFOLDERS_LOG + "delete: " + folderInfoDb?.id,
-          new Date()
+          new Date(),
         );
         await deleteChatFolder?.({ id: Number(folderInfoDb?.id) });
         await sleep(3000);
@@ -193,7 +195,7 @@ export async function deleteAiChatFoldersFromUser() {
         // 删除AI分类, Unread分类, Preset分类, AI分类
         console.log(
           AICHATFOLDERS_LOG + "delete: " + folderInfoDb?.id,
-          new Date()
+          new Date(),
         );
         await deleteChatFolder?.({ id: Number(folderInfoDb?.id) });
         await sleep(3000);
@@ -241,7 +243,7 @@ export async function sortChatFolder() {
 export function filterAIFolder(ids: number[] | undefined) {
   return ids?.filter(
     (id) =>
-      id !== AI_FOLDER_ID && id !== PRESET_FOLDER_ID && id !== UNREAD_FOLDER_ID
+      id !== AI_FOLDER_ID && id !== PRESET_FOLDER_ID && id !== UNREAD_FOLDER_ID,
   );
 }
 
@@ -267,7 +269,7 @@ export function updateAiChatFoldersToGlobal(nextAiChatFolders: AIChatFolder[]) {
   const aiAllTags = getAITags();
   const activeAITag = intersection(
     aiAllTags,
-    global?.chatFolders?.aiChatFolders?.activeAITag ?? []
+    global?.chatFolders?.aiChatFolders?.activeAITag ?? [],
   );
   ChataiStores.general?.set(GLOBAL_AI_TAG, activeAITag);
 

@@ -64,6 +64,26 @@ export function getEntityTypeById(peerId: string) {
   return 'chat';
 }
 
+export function getChatType(chatOrUserId: string): 'Private' | 'Group' | 'Channel' | 'Bot' {
+  const type = getEntityTypeById(chatOrUserId);
+
+  if (type === 'channel') {
+    return 'Channel';
+  }
+
+  if (type === 'chat') {
+    return 'Group';
+  }
+
+  // type === 'user'
+  const user = localDb.users[chatOrUserId];
+  if (user && 'bot' in user && user.bot) {
+    return 'Bot';
+  }
+
+  return 'Private';
+}
+
 export function buildPeer(chatOrUserId: string): GramJs.TypePeer {
   const type = getEntityTypeById(chatOrUserId);
 

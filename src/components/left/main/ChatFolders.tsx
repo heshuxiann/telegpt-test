@@ -504,10 +504,11 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
     const activeFolder = Object.values(chatFoldersById)
       .find(({ id }) => id === folderTabs![activeChatFolder].id);
     const isFolder = activeFolder && !isInAllChatsFolder;
+    const folderType = getFolderType();
 
     return (
       <ChatList
-        folderType={isFolder ? 'folder' : 'all'}
+        folderType={isFolder ? 'folder' : folderType}
         folderId={isFolder ? activeFolder.id : undefined}
         isActive={isActive}
         isForumPanelOpen={isForumPanelOpen}
