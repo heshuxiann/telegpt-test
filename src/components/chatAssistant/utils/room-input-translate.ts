@@ -91,3 +91,9 @@ export function updateInputTranslateTipStatus(chatId: string, status: boolean) {
   setGlobal(global);
   localStorage.setItem('translate-tip', JSON.stringify(newTranslateTipData));
 }
+
+export function toggleAutoTranslation(autoTranslate: boolean) {
+  const global = getGlobal();
+  global.chatAutoTranslate = autoTranslate;
+  setGlobal(global);
+}

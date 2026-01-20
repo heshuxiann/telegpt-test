@@ -292,6 +292,8 @@ export type GlobalState = {
     autoTranslate: boolean;
   }>;
 
+  chatAutoTranslate: boolean;
+
   translateTip: {
     headerTipClosed?: boolean;
     inputTipClosedChats: Record<string, boolean>;

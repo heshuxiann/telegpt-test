@@ -13,6 +13,7 @@ import {
   selectTabState,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { toggleAutoTranslation } from '../chatAssistant/utils/room-input-translate';
 import renderText from '../common/helpers/renderText';
 
 import useLastCallback from '../../hooks/useLastCallback';
@@ -66,6 +67,7 @@ const ChatLanguageModal: FC<OwnProps & StateProps> = ({
     } else {
       setSettingOption({ translationLanguage: langCode });
       requestChatTranslation({ chatId, toLanguageCode: langCode });
+      toggleAutoTranslation(true);
     }
 
     closeChatLanguageModal();

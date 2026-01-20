@@ -52,6 +52,7 @@ import AITranslateIcon from '../chatAssistant/assets/input/translate-input.png';
 import AITranslateActiveIcon from '../chatAssistant/assets/ai-translate.png';
 import HeaderTranslateTip from './HeaderTranslateTip';
 import { useTranslateTip } from '../left/main/hooks/useTranslateTip';
+import { toggleAutoTranslation } from '../chatAssistant/utils/room-input-translate';
 
 interface OwnProps {
   chatId: string;
@@ -196,10 +197,12 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
   const handleTranslateClick = useLastCallback(() => {
     if (isTranslating) {
       requestChatTranslation({ chatId, toLanguageCode: undefined });
+       toggleAutoTranslation(false);
       return;
     }
 
     requestChatTranslation({ chatId, toLanguageCode: translationLanguage });
+    toggleAutoTranslation(true);
   });
 
   const handleJoinRequestsClick = useLastCallback(() => {

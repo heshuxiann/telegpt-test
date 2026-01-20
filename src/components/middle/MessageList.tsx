@@ -142,7 +142,9 @@ type StateProps = {
   monoforumChannelId?: string;
   canTranslate?: boolean;
   translationLanguage?: string;
+  detectedLanguage?: string;
   shouldAutoTranslate?: boolean;
+  chatAutoTranslate?: boolean;
 };
 
 enum Content {
@@ -220,7 +222,9 @@ const MessageList: FC<OwnProps & StateProps> = ({
   isAppConfigLoaded,
   canTranslate,
   translationLanguage,
+  detectedLanguage,
   shouldAutoTranslate,
+  chatAutoTranslate,
   onIntersectPinnedMessage,
   onScrollDownToggle,
   onNotchToggle,
@@ -292,16 +296,10 @@ const MessageList: FC<OwnProps & StateProps> = ({
 
   // Enable auto translation for the chat if it's available
   useEffect(() => {
-    if (!shouldAutoTranslate || !canTranslate) return;
+    if (!chatAutoTranslate || !canTranslate || !detectedLanguage) return;
+    if (detectedLanguage === translationLanguage) return;
     requestChatTranslation({ chatId, toLanguageCode: translationLanguage });
-  }, [shouldAutoTranslate, canTranslate, translationLanguage, chatId]);
-
-  // useEffect(() => {
-  //   if (!autoTranslate) return;
-  //   messageIds?.forEach((messageId) => {
-  //     requestMessageTranslation({ chatId, id: messageId, toLanguageCode: autoTranslateLanguage });
-  //   });
-  // }, [autoTranslate, autoTranslateLanguage, chatId, messageIds]);
+  }, [chatAutoTranslate, canTranslate, translationLanguage, chatId, detectedLanguage]);
 
   useNativeCopySelectedMessages(copyMessagesByIds);
 
@@ -827,6 +825,7 @@ export default memo(withGlobal<OwnProps>(
     if (!chat) {
       return { currentUserId };
     }
+    const detectedLanguage = chat.detectedLanguage;
 
     const messageIds = selectCurrentMessageIds(global, chatId, threadId, type);
     const messagesById = type === 'scheduled'
@@ -872,6 +871,7 @@ export default memo(withGlobal<OwnProps>(
     const canTranslate = selectCanTranslateChat(global, chatId) && !chatFullInfo?.isTranslationDisabled;
     const shouldAutoTranslate = chat?.hasAutoTranslation;
     const translationLanguage = selectTranslationLanguage(global);
+    const chatAutoTranslate = global.chatAutoTranslate;
 
     return {
       areAdsEnabled,
@@ -913,7 +913,9 @@ export default memo(withGlobal<OwnProps>(
       monoforumChannelId,
       canTranslate,
       translationLanguage,
+      detectedLanguage,
       shouldAutoTranslate,
+      chatAutoTranslate,
     };
   },
 )(MessageList));

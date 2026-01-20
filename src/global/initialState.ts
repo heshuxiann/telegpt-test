@@ -207,6 +207,7 @@ export const INITIAL_GLOBAL_STATE: GlobalState = {
     headerTipClosed: false,
     inputTipClosedChats: {},
   },
+  chatAutoTranslate: false,
 
   fileUploads: {
     byMessageKey: {},
