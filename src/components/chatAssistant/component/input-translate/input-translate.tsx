@@ -46,12 +46,14 @@ const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions, t
   const handleAutoTranslateChange = (e: ChangeEvent<HTMLInputElement>) => {
     updateRoomInputTranslateConfig({ ...inputTranslateOptions, autoTranslate: e.currentTarget.checked });
   };
-  const handleCloseTooltip = () => {
+  const handleCloseTooltip = (showTurnoffTip: boolean) => {
     closeInputTranslateTip();
-    openTooltip();
-    setTimeout(() => {
-      closeTooltip();
-    }, 5000);
+    if (showTurnoffTip) {
+      openTooltip();
+      setTimeout(() => {
+        closeTooltip();
+      }, 5000);
+    }
   };
   return (
     <div className="input-ai-actions relative">

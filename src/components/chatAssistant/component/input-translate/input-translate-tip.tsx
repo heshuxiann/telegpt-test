@@ -12,7 +12,7 @@ import './input-translate-tip.scss';
 
 interface OwnProps {
   chatId: string;
-  onCLose: () => void;
+  onCLose: (showTurnoffTip: boolean) => void;
 }
 
 interface StateProps {
@@ -23,12 +23,12 @@ interface StateProps {
 const InputTranslateTip = ({ chatId, inputTranslateOptions, translatedName, detectedLanguage, onCLose }: StateProps & OwnProps) => {
   const handleOpenInputTranslation = useLastCallback(() => {
     updateRoomInputTranslateOptions(chatId, { ...inputTranslateOptions, autoTranslate: true, translateLanguage: detectedLanguage!, translateLanguageName: translatedName! });
-    onCLose();
+    onCLose(true);
   });
   const handleClose = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    onCLose();
+    onCLose(false);
   };
   const handleStopPropagation = (e: React.MouseEvent) => {
     e.preventDefault();

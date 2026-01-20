@@ -5,7 +5,7 @@ import './input-translate-tip.scss';
 const InputTranslateOpenTip = () => {
   return (
     <div className="input-translate-open-tip">
-      <span>Sending messages in another language? Turn on real-time translation.</span>
+      <span>Real-time input translation is on. Tap Turn off anytime.</span>
       <div className="input-translate-tip-arrow" />
     </div>
   );

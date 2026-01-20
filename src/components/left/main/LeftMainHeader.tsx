@@ -31,7 +31,7 @@ import AIMenuIcon from '../../chatAssistant/assets/ai-menu.png';
 import { UPDATE_DEFER_KEY } from '../../chatAssistant/utils/firebase_analytics';
 
 import useAppLayout from '../../../hooks/useAppLayout';
-import useConnectionStatus from '../../../hooks/useConnectionStatus';
+import useConnectionStatus, { ConnectionStatus } from '../../../hooks/useConnectionStatus';
 import useElectronDrag from '../../../hooks/useElectronDrag';
 import useFlag from '../../../hooks/useFlag';
 import { useHotkeys } from '../../../hooks/useHotkeys';
@@ -134,6 +134,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
   const { isMobile } = useAppLayout();
 
   const [isBotMenuOpen, markBotMenuOpen, unmarkBotMenuOpen] = useFlag();
+    const [connectionStatusOpen, openConnectionStatus, closeConnectionStatus] = useFlag();
 
   const areContactsVisible = content === LeftColumnContent.Contacts;
   const hasMenu = content === LeftColumnContent.ChatList;
@@ -144,9 +145,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
       : undefined;
   }, [searchDate]);
 
-  const { connectionStatus, connectionStatusText, connectionStatusPosition, connectionStatusOpen,
-    openConnectionStatus,
-    closeConnectionStatus, } = useConnectionStatus(
+  const { connectionStatus, connectionStatusText, connectionStatusPosition} = useConnectionStatus(
     oldLang,
     connectionState,
     isSyncing || isFetchingDifference,
@@ -154,6 +153,14 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
     isConnectionStatusMinimized,
     !areChatsLoaded,
   );
+
+  useEffect(() => {
+    if(connectionStatus === ConnectionStatus.offline || connectionStatus === ConnectionStatus.waitingForNetwork || connectionStatus === ConnectionStatus.syncing){
+      openConnectionStatus();
+    }else if(connectionStatus === ConnectionStatus.online){
+      closeConnectionStatus();
+    }
+  }, [connectionStatus]);
 
   const handleLockScreenHotkey = useLastCallback((e: KeyboardEvent) => {
     e.preventDefault();
@@ -218,6 +225,7 @@ const LeftMainHeader: FC<OwnProps & StateProps> = ({
 
   const toggleConnectionStatus = useLastCallback(() => {
     setSharedSettingOption({ isConnectionStatusMinimized: !isConnectionStatusMinimized });
+    closeConnectionStatus();
   });
 
   const handleLockScreen = useLastCallback(() => {

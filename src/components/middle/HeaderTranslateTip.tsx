@@ -4,6 +4,7 @@ import { getActions, withGlobal } from '../../global';
 import type { GlobalState } from '../../global/types';
 
 import { selectChat, selectLanguageCode, selectRequestedChatTranslationLanguage } from '../../global/selectors';
+import { toggleAutoTranslation } from '../chatAssistant/utils/room-input-translate';
 
 import useLastCallback from '../../hooks/useLastCallback';
 import { useTranslateTip } from '../left/main/hooks/useTranslateTip';
@@ -39,6 +40,7 @@ const HeaderTranslateTip = ({ global, chatId, isTranslating, detectedLanguage, o
     if (systemLanguage) {
       setSettingOption({ translationLanguage: systemLanguage });
       requestChatTranslation({ chatId, toLanguageCode: systemLanguage });
+      toggleAutoTranslation(true);
     }
     onClose();
   });
