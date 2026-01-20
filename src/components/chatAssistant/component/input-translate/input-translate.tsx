@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import React, { memo, useCallback, useEffect } from '../../../../lib/teact/teact';
+import React, { memo, useCallback } from '../../../../lib/teact/teact';
 import { withGlobal } from '../../../../global';
 
 import type { ThemeKey } from '../../../../types';
@@ -39,31 +39,20 @@ const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions, t
   const [tooltipOpen, openTooltip, closeTooltip] = useFlag();
   const { inputTranslateTipOpen, closeInputTranslateTip } = useTranslateTip({ chatId });
 
-  const inputTranslateTip = localStorage.getItem('input-translate-tip');
-
   const updateRoomInputTranslateConfig = useCallback((options: RoomInputTranslateOptions) => {
     updateRoomInputTranslateOptions(chatId, options);
   }, [chatId]);
 
-  const handleCloseTooltip = () => {
-    closeTooltip();
-    localStorage.setItem('input-translate-tip', 'true');
-  };
-
   const handleAutoTranslateChange = (e: ChangeEvent<HTMLInputElement>) => {
     updateRoomInputTranslateConfig({ ...inputTranslateOptions, autoTranslate: e.currentTarget.checked });
   };
-  useEffect(() => {
-    if (inputTranslateTip) return;
+  const handleCloseTooltip = () => {
+    closeInputTranslateTip();
     openTooltip();
-    const timer = setTimeout(() => {
-      handleCloseTooltip();
+    setTimeout(() => {
+      closeTooltip();
     }, 5000);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [closeTooltip, openTooltip, chatId, inputTranslateTip]);
+  };
   return (
     <div className="input-ai-actions relative">
       {
@@ -80,7 +69,6 @@ const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions, t
               className="Button input-ai-actions-button"
               onClick={() => {
                 openLanguageMenu();
-                handleCloseTooltip();
               }}
             >
               <img src={aiTranslatePath} alt="Chat AI Logo" />
@@ -93,7 +81,7 @@ const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions, t
       )}
 
       {inputTranslateTipOpen && (
-        <InputTranslateTip chatId={chatId} onCLose={closeInputTranslateTip} />
+        <InputTranslateTip chatId={chatId} onCLose={handleCloseTooltip} />
       )}
 
       <Menu
