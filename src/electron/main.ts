@@ -14,12 +14,12 @@ import { createWindow, setupCloseHandlers, setupElectronActionHandlers } from '.
 initProxy();
 
 initDeeplink();
-import electronDragClick from 'electron-drag-click';
+// import electronDragClick from 'electron-drag-click';
 
 initDeeplink();
-if (IS_MAC_OS) {
-  electronDragClick();
-}
+// if (IS_MAC_OS) {
+//   electronDragClick();
+// }
 
 contextMenu({
   showLearnSpelling: false,

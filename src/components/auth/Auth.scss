@@ -109,13 +109,18 @@
   body.is-electron.is-macos & {
     -webkit-app-region: drag;
 
-    .input-group {
+    .input-group,
+    .auth-form {
       -webkit-app-region: no-drag;
     }
   }
 }
 
 #auth-phone-number-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
   .form {
     min-height: 26.25rem;
   }

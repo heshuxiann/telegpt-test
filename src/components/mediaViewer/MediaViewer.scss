@@ -84,14 +84,15 @@
 
     body.is-electron.is-macos & {
       -webkit-app-region: drag;
+      .MediaViewerActions,
+      .SenderInfo,
+      .Button {
+        -webkit-app-region: no-drag;
+      }
     }
 
     body.is-electron.is-macos #Main:not(.is-fullscreen) & {
       padding-left: 5rem;
-    }
-
-    body.is-electron.is-macos & {
-      -webkit-app-region: drag;
     }
 
     body.is-electron.is-macos #Main:not(.is-fullscreen) & {
@@ -233,7 +234,9 @@
 
   border-radius: 0;
 
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 
   &.rounded-corners {
     border-radius: var(--border-radius-messages);
@@ -241,7 +244,10 @@
 
   &.circle {
     border-radius: 50%;
-    transition: transform 0.2s ease, opacity 0.2s ease, border-radius 0.2s ease;
+    transition:
+      transform 0.2s ease,
+      opacity 0.2s ease,
+      border-radius 0.2s ease;
   }
 
   img,

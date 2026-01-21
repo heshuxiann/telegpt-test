@@ -88,6 +88,13 @@
     .SearchInput {
       -webkit-app-region: no-drag;
     }
+    .Button {
+      -webkit-app-region: no-drag;
+    }
+    .DropdownMenu,
+    .MenuItem {
+      -webkit-app-region: no-drag;
+    }
   }
 
   body.is-electron.is-macos #Main:not(.is-fullscreen) & {
