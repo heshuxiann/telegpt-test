@@ -103,26 +103,57 @@ export const InfiniteScroll = forwardRef<InfiniteScrollRef, InfiniteScrollProps>
     const end = endRef.current;
 
     if (container && end) {
+      let scrollTimeout: NodeJS.Timeout | undefined;
+      let isScrolling = false;
+
       const observer = new MutationObserver((mutations) => {
+        // 如果正在滚动，跳过
+        if (isScrolling) return;
+
         const isOnlyButtonChanged = mutations.every((mutation) => (mutation.target as HTMLElement).closest('.message-actions') !== null);
         if (isOnlyButtonChanged) return;
-        if (autoScrollToBottom) {
-          end.scrollIntoView({ behavior: 'instant', block: 'end' });
-        } else {
-          // anchorRef.current.scrollIntoView({ behavior: 'instant', block: 'start' });
-          restoreScrollPosition();
+
+        // 只处理子节点变化，避免属性变化导致的循环
+        const hasChildListChange = mutations.some((mutation) => mutation.type === 'childList');
+        if (!hasChildListChange) return;
+
+        // 清除之前的定时器
+        if (scrollTimeout) {
+          clearTimeout(scrollTimeout);
         }
+
+        // 防抖处理
+        scrollTimeout = setTimeout(() => {
+          isScrolling = true;
+
+          requestAnimationFrame(() => {
+            if (autoScrollToBottom) {
+              end.scrollIntoView({ behavior: 'instant', block: 'end' });
+            } else {
+              restoreScrollPosition();
+            }
+
+            // 滚动完成后重置标志
+            setTimeout(() => {
+              isScrolling = false;
+            }, 100);
+          });
+        }, 50);
       });
 
+      // 减少监听范围，只监听子节点变化
       observer.observe(container, {
         childList: true,
-        subtree: true,
-        attributes: false,
-        characterData: false,
+        subtree: false, // 不监听深层子树
+        attributes: false, // 不监听属性变化
+        characterData: false, // 不监听文本变化
       });
 
       return () => {
         observer.disconnect();
+        if (scrollTimeout) {
+          clearTimeout(scrollTimeout);
+        }
       };
     }
     return undefined;

@@ -14,6 +14,7 @@ import { Actions } from '../lib/EventEmitter';
 import buildClassName from '../../../util/buildClassName';
 import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { useEventListener } from '../hook/useEventBus';
+import { usePerformanceMonitor } from '../hook/usePerformanceMonitor';
 import { Messages } from '../messages';
 import { MultiInput } from '../multi-input';
 import { RightPanel } from '../rightPanel/right-panel';
@@ -39,8 +40,10 @@ import styles from './global-summary.module.scss';
 import SerenaPath from '../assets/serena.png';
 
 const GlobalSummary = () => {
+  // 性能监控
+  usePerformanceMonitor('ChatAssistant/GlobalSummary', { logThreshold: 30 });
+
   const { isOpen } = useDrawerStore();
-  const apiHeaders = useRef(getApihHeaders());
   const [notificationMessage, setNotificationMessage] = useState<Message | null>(null);
   const [summaryMessages, setSummaryMessages] = useState<Message[]>([]);
   const [viewMessages, setViewMessages] = useState<Message[]>([]);
@@ -71,6 +74,9 @@ const GlobalSummary = () => {
     },
   });
 
+  // 使用 ref 跟踪上一次的消息长度，避免不必要的滚动
+  const prevMessagesLengthRef = useRef(0);
+
   useEffect(() => {
     const sorted = orderBy(
       uniqBy(
@@ -81,13 +87,17 @@ const GlobalSummary = () => {
       ['asc'],
     );
     setViewMessages(sorted);
-  }, [messages, summaryMessages]);
 
-  useEffect(() => {
-    if (!isScrollLock) {
-      scrollToBottom();
+    // 只在消息数量增加时触发滚动，避免排序导致的重复滚动
+    const currentLength = sorted.length;
+    if (currentLength > prevMessagesLengthRef.current && !isScrollLock) {
+      // 使用 requestAnimationFrame 优化性能
+      requestAnimationFrame(() => {
+        scrollToBottom();
+      });
     }
-  }, [isScrollLock, viewMessages, scrollToBottom]);
+    prevMessagesLengthRef.current = currentLength;
+  }, [messages, summaryMessages, isScrollLock, scrollToBottom]);
 
   const handleLoadMore = useCallback(() => {
     scrollLocked();
@@ -157,7 +167,7 @@ const GlobalSummary = () => {
       id: uuidv4(),
       createdAt: new Date(),
     }, {
-      headers: apiHeaders.current,
+      headers: getApihHeaders(),
     });
   };
 

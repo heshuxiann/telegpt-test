@@ -6,7 +6,7 @@ import useSWR from 'swr';
 type ScrollFlag = ScrollBehavior | false;
 
 export function useScrollToBottom() {
-  const containerRef = useRef<HTMLDivElement>(undefined);
+  const containerRef = useRef<HTMLDivElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   const { data: isScrollLock = false, mutate: setIsScrollLock } = useSWR(
@@ -35,7 +35,6 @@ export function useScrollToBottom() {
   }, [setScrollBehavior, scrollBehavior, isScrollLock]);
 
   const scrollToBottom = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-shadow
     (scrollBehavior: ScrollBehavior = 'smooth') => {
       setIsScrollLock(false);
       setScrollBehavior(scrollBehavior);

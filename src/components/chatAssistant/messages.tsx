@@ -1,6 +1,6 @@
 /* eslint-disable no-null/no-null */
 import React, {
-  memo, useRef,
+  memo, useRef, useEffect,
 } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { Message } from 'ai';
@@ -12,6 +12,7 @@ import { cn } from './utils/util';
 import { PreviewMessage, ThinkingMessage } from './message';
 import RoomStorage from './room-storage';
 import { GLOBAL_SUMMARY_CHATID } from './variables';
+import { usePerformanceMonitor } from './hook/usePerformanceMonitor';
 
 import './messages.scss';
 
@@ -35,6 +36,9 @@ function PureMessages({
   deleteMessage,
   loadMore,
 }: MessagesProps) {
+  // 性能监控
+  usePerformanceMonitor('ChatAssistant/Messages', { logThreshold: 30 });
+
   const upLoadRef = useRef(false);
   const anchorRef = useRef<HTMLDivElement | null>(null);
   const {
@@ -47,9 +51,14 @@ function PureMessages({
     chatId,
     status,
   });
-  if (isAtBottom) {
-    RoomStorage.updateRoomAIData(GLOBAL_SUMMARY_CHATID, 'unreadCount', 0);
-  }
+
+  // 将副作用移到 useEffect 中
+  useEffect(() => {
+    if (isAtBottom) {
+      RoomStorage.updateRoomAIData(GLOBAL_SUMMARY_CHATID, 'unreadCount', 0);
+    }
+  }, [isAtBottom]);
+
   const isAuxiliary = (message: Message) => {
     return message?.annotations?.some((item) => item && typeof item === 'object' && 'isAuxiliary' in item && item.isAuxiliary === true) ?? false;
   };

@@ -1,6 +1,5 @@
 /* eslint-disable no-null/no-null */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable new-cap */
+
 import {
   useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
@@ -13,7 +12,7 @@ import parseHtmlAsFormattedText from '../../../../util/parseHtmlAsFormattedText'
 import { sapling } from '../../utils/grammar';
 
 export interface CorrectionItem {
-  description:string;
+  description: string;
   end: number;
   error_type: string;
   general_error_type: string;
@@ -21,7 +20,7 @@ export interface CorrectionItem {
   replacement: string;
   sentence: string;
   sentence_start: number;
-  original_text:string;
+  original_text: string;
   start: number;
 }
 
@@ -78,10 +77,10 @@ function pruneInvalidRanges(text: string, corrections: CorrectionItem[]) {
 }
 
 function updateErrorOffsetsWithInvalidateInner(
-  oldText:string,
-  newText:string,
-  corrections:CorrectionItem[],
-):CorrectionItem[] {
+  oldText: string,
+  newText: string,
+  corrections: CorrectionItem[],
+): CorrectionItem[] {
   const diffs = dmp.diff_main(oldText, newText);
   dmp.diff_cleanupSemantic(diffs);
 
