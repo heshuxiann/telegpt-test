@@ -26,6 +26,7 @@ import {
   loadStoredSession,
   storeSession,
 } from '../../../util/sessions';
+import { disconnectTelGPTWebSocket } from '../../../util/telegptWebSocket';
 import { forceWebsync } from '../../../util/websync';
 import {
   callApi, callApiLocal, initApi, setShouldEnableDebugLog,
@@ -181,6 +182,9 @@ addActionHandler('saveSession', (global, actions, payload): ActionReturnType => 
 addActionHandler('signOut', async (global, actions, payload): Promise<void> => {
   if ('hangUp' in actions) actions.hangUp({ tabId: getCurrentTabId() });
   if ('leaveGroupCall' in actions) actions.leaveGroupCall({ tabId: getCurrentTabId() });
+
+  // 断开TelGPT WebSocket连接
+  disconnectTelGPTWebSocket();
 
   try {
     resetInitialLocationHash();

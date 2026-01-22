@@ -16,13 +16,15 @@ export const PRODUCTION_URL = 'https://aquaverse.github.io/telegpt-web-app/';
 export const WEB_VERSION_BASE = 'https://web.telegram.org/'; // Used to redirect to other versions
 // export const SERVER_API_URL = 'http://localhost:7091';
 // export const SERVER_API_URL = 'http://localhost:3000';
-export const SERVER_API_URL = 'https://telegpt-phi.vercel.app';
-// export const SERVER_API_URL = 'https://api.telegpt.org';
+// export const SERVER_API_URL = 'https://telegpt-phi.vercel.app';
+export const SERVER_API_URL = 'https://api.telegpt.org';
 export const BASE_URL = process.env.BASE_URL;
 export const ACCOUNT_QUERY = 'account';
 export const GOOGLE_APP_CLIENT_ID = process.env.GOOGLE_APP_CLIENT_ID;
 export const GOOGLE_APP_CLIENT_SECRET = process.env.GOOGLE_APP_CLIENT_SECRET;
 export const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+// export const TELEGPT_WS = 'wss://localhost:3000';
+export const TELEGPT_WS = 'wss://api.telegpt.org';
 
 export const IS_MOCKED_CLIENT = process.env.APP_MOCKED_CLIENT === '1';
 export const IS_TEST = process.env.APP_ENV === 'test';
@@ -192,7 +194,7 @@ export const GENERAL_REFETCH_INTERVAL = 60 * 60 * 1000; // 1h
 export const EDITABLE_INPUT_ID = 'editable-message-text';
 export const EDITABLE_INPUT_MODAL_ID = 'editable-message-text-modal';
 export const EDITABLE_STORY_INPUT_ID = 'editable-story-input-text';
-// eslint-disable-next-line @stylistic/max-len
+
 export const EDITABLE_INPUT_CSS_SELECTOR = `.messages-layout .Transition_slide-active #${EDITABLE_INPUT_ID}, .messages-layout .Transition > .Transition_slide-to #${EDITABLE_INPUT_ID}`;
 export const EDITABLE_INPUT_MODAL_CSS_SELECTOR = `#${EDITABLE_INPUT_MODAL_ID}`;
 export const EDITABLE_STORY_INPUT_CSS_SELECTOR = `#${EDITABLE_STORY_INPUT_ID}`;
@@ -342,7 +344,6 @@ export const SUPPORTED_TRANSLATION_LANGUAGES = [
   'cy', 'xh', 'yi', 'yo', 'zu',
 ];
 
-// eslint-disable-next-line @stylistic/max-len
 export const RE_LINK_TEMPLATE = '((ftp|https?):\\/\\/)?((www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z][-a-zA-Z0-9]{1,62})\\b([-a-zA-Z0-9()@:%_+.,~#?&/=]*)';
 export const RE_MENTION_TEMPLATE = '(@[\\w\\d_-]+)';
 export const RE_TG_LINK = /^tg:(\/\/)?/i;
@@ -360,7 +361,6 @@ export const LANG_PACK = 'weba';
 
 export const NSFW_RESTRICTION_REASON = 'sensitive';
 
-// eslint-disable-next-line @stylistic/max-len
 export const COUNTRIES_WITH_12H_TIME_FORMAT = new Set(['AU', 'BD', 'CA', 'CO', 'EG', 'HN', 'IE', 'IN', 'JO', 'MX', 'MY', 'NI', 'NZ', 'PH', 'PK', 'SA', 'SV', 'US']);
 
 export const API_CHAT_TYPES = ['bots', 'channels', 'chats', 'users', 'groups'] as const;

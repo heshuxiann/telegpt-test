@@ -22,6 +22,7 @@ import { initLocalization } from './util/localization';
 import { MULTITAB_STORAGE_KEY } from './util/multiaccount';
 import { checkAndAssignPermanentWebVersion } from './util/permanentWebVersion';
 import { onBeforeUnload } from './util/schedulers';
+import { disconnectTelGPTWebSocket } from './util/telegptWebSocket';
 import updateWebmanifest from './util/updateWebmanifest';
 
 import App from './components/App';
@@ -128,4 +129,5 @@ onBeforeUnload(() => {
   const actions = getActions();
   actions.leaveGroupCall?.({ isPageUnload: true });
   actions.hangUp?.({ isPageUnload: true });
+  disconnectTelGPTWebSocket();
 });

@@ -4,7 +4,7 @@ import { Popover } from 'antd';
 import { getActions } from '../../../global';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
-import { checkCredisBalance } from '../../../util/paymentErrorHandler';
+import { checkCredisBalance } from '../../../util/subscriptionHandler';
 import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import {
   createNewFeatureReminderMessage, generateRoomActionItems, scheduleGoogleMeeting, summaryRoomMessage,

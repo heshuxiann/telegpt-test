@@ -15,7 +15,7 @@ import { ChataiStores } from '../../chatAssistant/store';
 import useLastCallback from '../../../hooks/useLastCallback';
 
 import './UserPortrait.scss';
-import { checkCredisBalance } from '../../../util/paymentErrorHandler';
+import { checkCredisBalance } from '../../../util/subscriptionHandler';
 
 type StateProps = {
   user?: ApiUser;

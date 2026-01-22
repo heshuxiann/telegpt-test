@@ -205,7 +205,7 @@ import PaymentMessageConfirmDialog from './PaymentMessageConfirmDialog';
 import ReactionAnimatedEmoji from './reactions/ReactionAnimatedEmoji';
 
 import './Composer.scss';
-import { checkCredisBalance } from '../../util/paymentErrorHandler';
+import { checkCredisBalance } from '../../util/subscriptionHandler';
 import ComposerTranslatededMessage from '../middle/composer/ComposerTranslatededMessage';
 import { checkShouldShowInputTranslateTip, RoomInputTranslateOptions } from '../chatAssistant/utils/room-input-translate';
 import { emitEventTeact } from '../chatAssistant/hook/useEventBusTeact';

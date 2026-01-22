@@ -18,7 +18,7 @@ import {
   selectRequestedMessageTranslationLanguage,
 } from '../../../global/selectors';
 import { isUserId } from '../../../util/entities/ids';
-import { checkCredisBalance } from '../../../util/paymentErrorHandler';
+import { checkCredisBalance } from '../../../util/subscriptionHandler';
 import {
   audioSummary, canSummarize,
   checkIsUrl, documentSummary, photoSummary, videoSummary, voiceToAudioSummary, webPageSummary,

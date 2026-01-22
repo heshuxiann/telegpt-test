@@ -17,6 +17,8 @@ import { oldSetLanguage } from '../../../util/oldLangProvider';
 import { clearWebTokenAuth } from '../../../util/routing';
 import { setServerTimeOffset } from '../../../util/serverTime';
 import { updateSessionUserId } from '../../../util/sessions';
+import { updateUserSubscriptionInfo } from '../../../util/subscriptionHandler';
+import { initTelGPTWebSocket } from '../../../util/telegptWebSocket';
 import { forceWebsync } from '../../../util/websync';
 import { setChataiStoreBuilderCurrentUserId } from '../../../components/chatAssistant/store/stores';
 import { isChatChannel, isChatSuperGroup } from '../../helpers';
@@ -297,4 +299,59 @@ function onUpdateCurrentUser<T extends GlobalState>(global: T, update: ApiUpdate
   setGlobal(global);
 
   updateSessionUserId(currentUser.id);
+
+  // 初始化TelGPT WebSocket连接
+  let deviceId = localStorage.getItem('telegpt-device-id');
+  if (!deviceId) {
+    deviceId = `device-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    localStorage.setItem('telegpt-device-id', deviceId);
+  }
+
+  initTelGPTWebSocket({
+    userId: currentUser.id,
+    deviceId,
+    onMessage: (message) => {
+      // eslint-disable-next-line no-console
+      console.log('[TelGPT] Received message:', message);
+      if (message.type === 'subscription-success' || message.type === 'credit-update') {
+        const { subscriptionType, creditBalance, subscriptionExpiresAt, createdAt, isExpirated } = message.data;
+        // 更新用户的会员信息
+        updateUserSubscriptionInfo({
+          subscriptionType,
+          creditBalance,
+          subscriptionExpiresAt,
+          createdAt,
+          isExpirated,
+        });
+      }
+    },
+    onConnect: () => {
+      // eslint-disable-next-line no-console
+      console.log('[TelGPT] WebSocket connected');
+      let global = getGlobal();
+      global = {
+        ...global,
+        telgptWebSocket: {
+          isConnected: true,
+        },
+      };
+      setGlobal(global);
+    },
+    onDisconnect: () => {
+      // eslint-disable-next-line no-console
+      console.log('[TelGPT] WebSocket disconnected');
+      let global = getGlobal();
+      global = {
+        ...global,
+        telgptWebSocket: {
+          isConnected: false,
+        },
+      };
+      setGlobal(global);
+    },
+    onError: (error) => {
+      // eslint-disable-next-line no-console
+      console.error('[TelGPT] WebSocket error:', error);
+    },
+  });
 }

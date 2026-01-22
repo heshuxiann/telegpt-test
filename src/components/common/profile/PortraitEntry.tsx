@@ -8,7 +8,7 @@ import type { ApiUser } from '../../../api/types';
 import type { UserPortraitInfo } from '../../chatAssistant/store/user-portrait-store';
 
 import buildClassName from '../../../util/buildClassName';
-import { checkCredisBalance } from '../../../util/paymentErrorHandler';
+import { checkCredisBalance } from '../../../util/subscriptionHandler';
 import { ChataiStores } from '../../chatAssistant/store';
 
 import useLastCallback from '../../../hooks/useLastCallback';

@@ -101,6 +101,10 @@ export type GlobalState = {
   botFreezeAppealId?: string;
   systemLanguage?: string;
 
+  telgptWebSocket?: {
+    isConnected: boolean;
+  };
+
   audioPlayer: {
     lastPlaybackRate: number;
     isLastPlaybackRateActive?: boolean;

@@ -11,7 +11,7 @@ import {
 import { IS_ELECTRON, IS_OPEN_IN_NEW_TAB_SUPPORTED } from '../util/browser/windowEnvironment';
 import { isUserId } from '../util/entities/ids';
 import { compact } from '../util/iteratees';
-import { checkCredisBalance } from '../util/paymentErrorHandler';
+import { checkCredisBalance } from '../util/subscriptionHandler';
 import useLang from './useLang';
 
 const useChatContextActions = ({

@@ -7,7 +7,7 @@ import type { Signal } from '../../../../util/signals';
 
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import parseHtmlAsFormattedText from '../../../../util/parseHtmlAsFormattedText';
-import { checkCredisBalance } from '../../../../util/paymentErrorHandler';
+import { checkCredisBalance } from '../../../../util/subscriptionHandler';
 import { injectComponent } from '../../injectComponent';
 
 import useFlag from '../../../../hooks/useFlag';
