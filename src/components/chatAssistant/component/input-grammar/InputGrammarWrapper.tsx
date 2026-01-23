@@ -1,12 +1,4 @@
-/* eslint-disable teactn/no-unused-prop-types */
-/* eslint-disable react/no-unused-prop-types */
-/* eslint-disable @typescript-eslint/no-use-before-define */
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable no-null/no-null */
-import React, {
-  useEffect,
-  useRef,
-} from '../../../../lib/teact/teact';
+import React from '../../../../lib/teact/teact';
 
 import type { InputGrammerProps } from './InputGrammar';
 

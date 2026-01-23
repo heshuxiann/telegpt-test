@@ -12,7 +12,7 @@ import { type GrammarlyCheckItem } from '../../utils/grammarly';
 import { useGrammarChecker } from './useGrammarChecker';
 
 import InputErrorTooltip from './InputErrorTooltip';
-import HighlightedText from './tabs/HighlightedText';
+import HighlightedTextReact from './tabs/HighlightedTextReact';
 
 import './InputGrammar.scss';
 
@@ -177,7 +177,7 @@ const ErrorsReview = ({
         </div>
         <div className="flex-1 overflow-auto">
           {currentError ? (
-            <HighlightedText text={currentSentence} errors={currentError} />
+            <HighlightedTextReact text={currentSentence} errors={currentError} />
           ) : undefined}
         </div>
       </div>
