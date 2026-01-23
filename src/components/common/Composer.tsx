@@ -2415,7 +2415,7 @@ const Composer: FC<OwnProps & StateProps> = ({
           !isReady && 'not-ready',
           activeVoiceRecording && 'recording',
         )}
-        disabled={areVoiceMessagesNotAllowed || areAutoTranslate}
+        disabled={areVoiceMessagesNotAllowed || (areAutoTranslate && hasText)}
         allowDisabledClick
         noFastClick
         ariaLabel={oldLang(sendButtonAriaLabel)}

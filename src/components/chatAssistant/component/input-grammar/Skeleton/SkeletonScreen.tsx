@@ -1,4 +1,4 @@
-import React from 'react';
+import React from '@teact';
 
 import './SkeletonScreen.scss';
 

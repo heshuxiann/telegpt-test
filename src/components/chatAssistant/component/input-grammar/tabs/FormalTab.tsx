@@ -1,8 +1,6 @@
 /* eslint-disable react-hooks-static-deps/exhaustive-deps */
 /* eslint-disable max-len */
-import React, { useCallback, useEffect } from 'react';
-import { Button } from 'antd';
-
+import React, { useCallback, useEffect, useState } from '@teact';
 import type { GrammarlyCheckItem } from '../../../utils/grammarly';
 import type { GrammarTabProps } from '../GrammarTool';
 
@@ -13,8 +11,8 @@ import HighlightedText from './HighlightedText';
 
 const FormalTab = (props:GrammarTabProps) => {
   const { text, setHtml, onClose } = props;
-  const [loading, setLoading] = React.useState(true);
-  const [grammarlyResult, setGrammarlyResult] = React.useState<GrammarlyCheckItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [grammarlyResult, setGrammarlyResult] = useState<GrammarlyCheckItem[]>([]);
   function handleImprove() {
     grammarlyFormal(text).then((result) => {
       if (result.data.errors) {
@@ -33,7 +31,7 @@ const FormalTab = (props:GrammarTabProps) => {
 
   useEffect(() => {
     handleImprove();
-  }, []);
+  }, [text]);
 
   const handleAccept = useCallback(() => {
     if (grammarlyResult) {
@@ -48,9 +46,9 @@ const FormalTab = (props:GrammarTabProps) => {
       {loading ? (<SkeletonScreen />) : (
         <>
           <HighlightedText text={text} errors={grammarlyResult} />
-          <Button color="default" variant="outlined" onClick={handleAccept}>
+          <button color="default" className='border-[#D9D9D9] border-[1px] px-[8px] py-[4px] rounded-[6px]' onClick={handleAccept}>
             Accept
-          </Button>
+          </button>
         </>
       )}
     </div>
