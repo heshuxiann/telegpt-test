@@ -1760,7 +1760,7 @@ const Composer: FC<OwnProps & StateProps> = ({
         onForward?.();
         break;
       case MainButtonState.Send:
-        if (areAutoTranslate) return;
+        if (areAutoTranslate && hasText) return;
         handleSendWithConfirmation();
         break;
       case MainButtonState.Record: {
