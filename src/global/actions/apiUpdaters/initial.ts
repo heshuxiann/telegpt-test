@@ -29,6 +29,7 @@ import { updateUser, updateUserFullInfo } from '../../reducers';
 import { updateTabState } from '../../reducers/tabs';
 import { selectTabState } from '../../selectors';
 import { selectSharedSettings } from '../../selectors/sharedState';
+import { getDeviceId } from '../../../components/chatAssistant/utils/util';
 
 addActionHandler('apiUpdate', (global, actions, update): ActionReturnType => {
   switch (update['@type']) {
@@ -301,11 +302,7 @@ function onUpdateCurrentUser<T extends GlobalState>(global: T, update: ApiUpdate
   updateSessionUserId(currentUser.id);
 
   // 初始化TelGPT WebSocket连接
-  let deviceId = localStorage.getItem('telegpt-device-id');
-  if (!deviceId) {
-    deviceId = `device-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-    localStorage.setItem('telegpt-device-id', deviceId);
-  }
+  const deviceId = getDeviceId();
 
   initTelGPTWebSocket({
     userId: currentUser.id,

@@ -10,6 +10,7 @@ import { MAIN_THREAD_ID } from '../../api/types';
 import { ManagementScreens } from '../../types';
 
 import { requestMeasure, requestNextMutation } from '../../lib/fasterdom/fasterdom';
+import TeleGptLogo from '../chatAssistant/assets/serena.png';
 import {
   getHasAdminRight,
   getIsSavedDialog,
@@ -31,6 +32,7 @@ import {
   selectIsUserBlocked,
   selectLanguageCode,
   selectRequestedChatTranslationLanguage,
+  selectTabState,
   selectTranslationLanguage,
   selectUserFullInfo,
 } from '../../global/selectors';
@@ -53,6 +55,7 @@ import AITranslateActiveIcon from '../chatAssistant/assets/ai-translate.png';
 import HeaderTranslateTip from './HeaderTranslateTip';
 import { useTranslateTip } from '../left/main/hooks/useTranslateTip';
 import { toggleAutoTranslation } from '../chatAssistant/utils/room-input-translate';
+import { getCurrentTabId } from '../../util/establishMultitabRole';
 
 interface OwnProps {
   chatId: string;
@@ -94,6 +97,7 @@ interface StateProps {
   detectedChatLanguage?: string;
   doNotTranslate: string[];
   isAccountFrozen?: boolean;
+  isChatAIShown?: boolean;
 }
 
 // Chrome breaks layout when focusing input during transition
@@ -135,6 +139,7 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
   doNotTranslate,
   onTopicSearch,
   isAccountFrozen,
+  isChatAIShown
 }) => {
   const {
     joinChannel,
@@ -151,6 +156,7 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     setSettingOption,
     unblockUser,
     setViewForumAsMessages,
+    openChatAIWithInfo,
     // openFrozenAccountModal,
   } = getActions();
   const menuButtonRef = useRef<HTMLButtonElement>();
@@ -163,6 +169,10 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     setIsMenuOpen(true);
     const rect = menuButtonRef.current!.getBoundingClientRect();
     setMenuAnchor({ x: rect.right, y: rect.bottom });
+  });
+
+  const handleOpenChatAi = useLastCallback(() => {
+    openChatAIWithInfo({ chatId });
   });
 
   const handleHeaderMenuClose = useLastCallback(() => {
@@ -197,7 +207,7 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
   const handleTranslateClick = useLastCallback(() => {
     if (isTranslating) {
       requestChatTranslation({ chatId, toLanguageCode: undefined });
-       toggleAutoTranslation(false);
+      toggleAutoTranslation(false);
       return;
     }
 
@@ -456,6 +466,18 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
       >
         <Icon name="more" />
       </Button>
+      {!isChatAIShown && (
+        <Button
+          className='flex items-center gap-[10px] !bg-[#F7F7F7] w-[125px]'
+          size="tiny"
+          ariaLabel="Ask TelyAI"
+          color="translucent"
+          onClick={handleOpenChatAi}
+        >
+          <img src={TeleGptLogo} className='w-[24px] h-[24px]' />
+          <span className='text-[14px] text-[var(--color-text)] normal-case'>Ask TelyAI</span>
+        </Button>
+      )}
       {menuAnchor && (
         <HeaderMenuContainer
           chatId={chatId}
@@ -585,6 +607,7 @@ export default memo(withGlobal<OwnProps>(
       canUnblock,
       isAccountFrozen,
       channelMonoforumId,
+      isChatAIShown: selectTabState(global).isChatAIShown,
     };
   },
 )(HeaderActions));

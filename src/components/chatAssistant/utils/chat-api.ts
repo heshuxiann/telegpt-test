@@ -4,6 +4,7 @@ import { getGlobal } from '../../../global';
 import { SERVER_API_URL } from '../../../config';
 import { getUserFullName } from '../../../global/helpers';
 import { selectUser } from '../../../global/selectors';
+import { getDeviceId } from './util';
 import { telegptSettings } from '../api/user-settings';
 import { TelegptFetch } from './telegpt-fetch';
 export const getCurrentUserInfo = () => {
@@ -22,6 +23,23 @@ interface ChatProps {
   onResponse: (message: string) => void;
   onFinish?: () => void;
 }
+
+export const chatWithGpt = (data: {
+  langCode: string;
+  text: string;
+}): Promise<{ text: string }> => {
+  const { userId, userName } = getCurrentUserInfo();
+  const deviceId = getDeviceId();
+  return new Promise((resolve, reject) => {
+    TelegptFetch('/chat', 'POST', JSON.stringify(data))
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
 export const chatAIGenerate = (props: ChatProps) => {
   const { userId, userName } = getCurrentUserInfo();
   fetch(`${SERVER_API_URL}/generate`, {

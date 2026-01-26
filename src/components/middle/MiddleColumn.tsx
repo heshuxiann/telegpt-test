@@ -66,7 +66,6 @@ import {
 import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
-import RoomAIEntryWrapper from '../chatAssistant/room-ai/room-ai-entry-wrapper';
 import { createMeetingMentionMessage } from '../chatAssistant/room-ai/room-ai-utils';
 import { ChataiStores } from '../chatAssistant/store';
 import { parseMessage2StoreMessage } from '../chatAssistant/store/messages-store';
@@ -793,7 +792,6 @@ function MiddleColumn({
                   {IS_TRANSLATION_SUPPORTED && <ChatLanguageModal isOpen={isChatLanguageModalOpen} />}
                 </div >
               </Transition >
-              <RoomAIEntryWrapper chatId={chatId} />
               <FloatingActionButtons
                 withScrollDown={renderingIsScrollDownShown}
                 canPost={renderingCanPost}
