@@ -232,7 +232,7 @@ const PurePreviewMessage = ({
       case AIMessageType.UserPortrait:
         return <RoomAIUserPortraitMessage userId={message?.content} />;
       case AIMessageType.UpgradeTip:
-        return <UpgradeTipMessage />;
+        return <UpgradeTipMessage message={message} deleteMessage={deleteMessage} />;
       case AIMessageType.Default:
       default:
         return <DefaultMessage message={message} isLoading={isLoading} />;

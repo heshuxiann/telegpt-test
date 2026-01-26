@@ -7,7 +7,7 @@ import useLastCallback from '../../../hooks/useLastCallback';
 
 export function useGlobalSummaryBadge() {
   const [unreadCount, setUnreadCount] = useState(0);
-  const updateUnreadCount = useLastCallback((param:{ chatId:string; count:number }) => {
+  const updateUnreadCount = useLastCallback((param: { chatId: string; count: number }) => {
     if (param.chatId === GLOBAL_SUMMARY_CHATID) {
       setUnreadCount(param.count);
     }

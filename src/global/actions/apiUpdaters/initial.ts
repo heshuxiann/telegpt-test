@@ -31,6 +31,8 @@ import { selectTabState } from '../../selectors';
 import { selectSharedSettings } from '../../selectors/sharedState';
 import { getDeviceId } from '../../../components/chatAssistant/utils/util';
 
+import eventEmitter, { Actions } from '../../../components/chatAssistant/lib/EventEmitter';
+
 addActionHandler('apiUpdate', (global, actions, update): ActionReturnType => {
   switch (update['@type']) {
     case 'updateApiReady':
@@ -312,14 +314,18 @@ function onUpdateCurrentUser<T extends GlobalState>(global: T, update: ApiUpdate
       console.log('[TelGPT] Received message:', message);
       if (message.type === 'subscription-success' || message.type === 'credit-update') {
         const { subscriptionType, creditBalance, subscriptionExpiresAt, createdAt, isExpirated } = message.data;
-        // 更新用户的会员信息
-        updateUserSubscriptionInfo({
+        const payload = {
           subscriptionType,
           creditBalance,
           subscriptionExpiresAt,
           createdAt,
           isExpirated,
-        });
+        };
+        // 更新用户的会员信息
+        updateUserSubscriptionInfo(payload);
+        if (message.type === 'subscription-success') {
+          eventEmitter.emit(Actions.UpgradeSuccess, payload);
+        }
       }
     },
     onConnect: () => {

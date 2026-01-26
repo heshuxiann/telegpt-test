@@ -1,18 +1,18 @@
 /* eslint-disable no-null/no-null */
 import React, {
-  memo, useRef, useEffect,
-} from 'react';
+  memo, useEffect,
+  useRef } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { Message } from 'ai';
 import equal from 'fast-deep-equal';
 import { motion } from 'framer-motion';
 
 import { useMessages } from './hook/use-messages';
+import { usePerformanceMonitor } from './hook/usePerformanceMonitor';
 import { cn } from './utils/util';
 import { PreviewMessage, ThinkingMessage } from './message';
 import RoomStorage from './room-storage';
 import { GLOBAL_SUMMARY_CHATID } from './variables';
-import { usePerformanceMonitor } from './hook/usePerformanceMonitor';
 
 import './messages.scss';
 

@@ -28,6 +28,8 @@ export enum Actions {
   UpdateSettingAIChatFoldersLoading = 'UpdateSettingAIChatFoldersLoading',
   // firebase update
   UpdateFirebaseConfig = 'UpdateFirebaseConfig',
+  // upgrade sucess
+  UpgradeSuccess = 'UpgradeSuccess',
 }
 class EventEmitter {
   private static instance: EventEmitter;
