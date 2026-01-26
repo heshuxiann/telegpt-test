@@ -1,11 +1,25 @@
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
+import type { Message } from 'ai';
 import { getActions } from '../../../global';
+
+import eventEmitter, { Actions } from '../lib/EventEmitter';
 
 import Icon from '../component/Icon';
 
 import './upgrade-tip-message.scss';
-const UpgradeTipMessage = () => {
+const UpgradeTipMessage = ({ message, deleteMessage }: { message: Message; deleteMessage: (id: string) => void }) => {
   const { openPayPackageModal } = getActions();
+  const handleUpgradeSuccess = useCallback((payload: any) => {
+    if (payload.creditBalance > 0) {
+      deleteMessage(message.id);
+    }
+  }, [deleteMessage, message.id]);
+  useEffect(() => {
+    eventEmitter.on(Actions.UpgradeSuccess, handleUpgradeSuccess);
+    return () => {
+      eventEmitter.off(Actions.UpgradeSuccess, handleUpgradeSuccess);
+    };
+  }, [handleUpgradeSuccess]);
   return (
     <div className="upgrade-tip-message">
       <div className="bg-[var(--color-background)] flex items-center justify-between gap-[8px] relative rounded-[10px] p-[20px]">
