@@ -87,7 +87,7 @@ const InputTranslate = ({ chatId, detectedLanguageName, inputTranslateOptions, t
       )}
 
       <Menu
-        noCloseOnBackdrop
+        noCloseOnBackdrop={false}
         isOpen={languageMenuOpen}
         onClose={closeLanguageMenu}
         className="input-language-menu"
