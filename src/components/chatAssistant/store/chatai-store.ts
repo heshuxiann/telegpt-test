@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
-// eslint-disable-next-line @stylistic/max-len
+
 export type StoreName = 'message' | 'contact' | 'user' | 'general' | 'knowledge' | 'summaryTemplate' | 'urgentTopic' | 'summary' | 'folder' | 'aIChatFolders' | 'userPortrait' | 'userPortraitMessage' | 'tgMessage';
 
 type IndexConfig = [indexName: string, keyPath: string | string[]];
@@ -43,7 +43,14 @@ class ChataiStoreManager {
 
   initDB(): Promise<IDBDatabase> {
     return new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open(this.DB_NAME, this.VERSION);
+      let request;
+      try {
+        request = indexedDB.open(this.DB_NAME, this.VERSION);
+      } catch (error) {
+        console.error('Error opening database:', error);
+        reject(error);
+      }
+      if (!request) return;
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;

@@ -14,7 +14,6 @@ import {
   useEffect,
   useRef,
 } from 'react';
-import type { UseChatHelpers } from '@ai-sdk/react';
 import type {
   Message,
 } from 'ai';
@@ -23,6 +22,7 @@ import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
 import { sanitizeUIMessages } from '../../../lib/utils';
+import type { ChatStatus } from '../agent/useAgentChat';
 import { AITextarea } from '../component/AITextarea';
 import { Button } from '../component/button';
 import { StopIcon } from '../icons';
@@ -34,7 +34,7 @@ function PureMultimodalInput({
   handleInputSubmit,
   className,
 }: {
-  status: UseChatHelpers['status'];
+  status: ChatStatus;
   stop: () => void;
   setMessages: Dispatch<SetStateAction<Array<Message>>>;
   handleInputSubmit: (inputValue:string)=>void;
@@ -133,7 +133,7 @@ function PureMultimodalInput({
       />
 
       <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row items-center justify-end">
-        {status === 'submitted' ? (
+        {status === 'streaming' ? (
           <StopButton stop={stop} setMessages={setMessages} />
         ) : (
           <SendButton

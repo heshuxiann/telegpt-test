@@ -7,12 +7,14 @@ import type {
   ApiUpdateSession,
 } from '../../../api/types';
 import type { LangCode } from '../../../types';
+import type { McpToolCallMessage, McpToolResponseMessage } from '../../../util/mcpToolHandler';
 import type { RequiredGlobalActions } from '../../index';
 import type { ActionReturnType, GlobalState } from '../../types';
 
 import { getCurrentTabId } from '../../../util/establishMultitabRole';
 import { getShippingError, shouldClosePaymentModal } from '../../../util/getReadableErrorText';
 import { unique } from '../../../util/iteratees';
+import { handleMcpToolCall, handleMcpToolResponse } from '../../../util/mcpToolHandler';
 import { oldSetLanguage } from '../../../util/oldLangProvider';
 import { clearWebTokenAuth } from '../../../util/routing';
 import { setServerTimeOffset } from '../../../util/serverTime';
@@ -21,6 +23,7 @@ import { updateUserSubscriptionInfo } from '../../../util/subscriptionHandler';
 import { initTelGPTWebSocket } from '../../../util/telegptWebSocket';
 import { forceWebsync } from '../../../util/websync';
 import { setChataiStoreBuilderCurrentUserId } from '../../../components/chatAssistant/store/stores';
+import { getDeviceId } from '../../../components/chatAssistant/utils/util';
 import { isChatChannel, isChatSuperGroup } from '../../helpers';
 import {
   addActionHandler, getGlobal, setGlobal,
@@ -29,7 +32,6 @@ import { updateUser, updateUserFullInfo } from '../../reducers';
 import { updateTabState } from '../../reducers/tabs';
 import { selectTabState } from '../../selectors';
 import { selectSharedSettings } from '../../selectors/sharedState';
-import { getDeviceId } from '../../../components/chatAssistant/utils/util';
 
 import eventEmitter, { Actions } from '../../../components/chatAssistant/lib/EventEmitter';
 
@@ -312,8 +314,12 @@ function onUpdateCurrentUser<T extends GlobalState>(global: T, update: ApiUpdate
     onMessage: (message) => {
       // eslint-disable-next-line no-console
       console.log('[TelGPT] Received message:', message);
+
+      // 处理订阅和积分更新消息
       if (message.type === 'subscription-success' || message.type === 'credit-update') {
-        const { subscriptionType, creditBalance, subscriptionExpiresAt, createdAt, isExpirated } = message.data;
+        const {
+          subscriptionType, creditBalance, subscriptionExpiresAt, createdAt, isExpirated,
+        } = message.data;
         const payload = {
           subscriptionType,
           creditBalance,
@@ -326,6 +332,23 @@ function onUpdateCurrentUser<T extends GlobalState>(global: T, update: ApiUpdate
         if (message.type === 'subscription-success') {
           eventEmitter.emit(Actions.UpgradeSuccess, payload);
         }
+      }
+
+      // 处理 MCP 工具调用请求
+      if (message.type === 'mcp-tool-call') {
+        handleMcpToolCall(message as McpToolCallMessage).then((response) => {
+          // 这里可以通过 WebSocket 发送响应回服务端
+          // eslint-disable-next-line no-console
+          console.log('[MCP] Sending tool response:', response);
+        }).catch((error) => {
+          // eslint-disable-next-line no-console
+          console.error('[MCP] Tool call failed:', error);
+        });
+      }
+
+      // 处理 MCP 工具响应
+      if (message.type === 'mcp-tool-response') {
+        handleMcpToolResponse(message as McpToolResponseMessage);
       }
     },
     onConnect: () => {

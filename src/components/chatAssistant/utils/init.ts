@@ -1,4 +1,4 @@
-import './firebase_analytics';
+// import './firebase_analytics';
 
 import { aiChatFoldersTask } from '../ai-task/ai-chatfolders-task';
 import { globalSummaryTask } from '../ai-task/global-summary-task';

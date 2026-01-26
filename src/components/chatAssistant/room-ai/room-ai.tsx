@@ -5,22 +5,19 @@ import {
   useCallback, useEffect, useRef, useState,
 } from 'react';
 import type { Message } from '@ai-sdk/react';
-import { useChat } from '@ai-sdk/react';
 import type { UIMessage } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { getActions } from '../../../global';
 
-import { SERVER_API_URL } from '../../../config';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
 import buildClassName from '../../../util/buildClassName';
+import { useAgentChat } from '../agent/useAgentChat';
 import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { Messages } from '../messages';
 import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
-import { getCurrentUserInfo } from '../utils/chat-api';
-import { getApihHeaders } from '../utils/telegpt-fetch';
 import RoomActions from './room-actions';
 // import RoomAIDescription from './room-ai-des';
 import { RoomAIInput } from './room-ai-input';
@@ -28,6 +25,9 @@ import {
   createGoogleLoginMessage, createGoogleMeetingMessage,
   createRoomDescriptionMessage, createUpgradeTipMessage,
 } from './room-ai-utils';
+
+import PhaseIndicator from './PhaseIndicator';
+import ToolCallCard from './ToolCallCard';
 
 import './room-ai.scss';
 import styles from './room-ai.module.scss';
@@ -38,7 +38,6 @@ interface StateProps {
 const RoomAIInner = (props: StateProps) => {
   const { showNotification } = getActions();
   const { chatId } = props;
-  const { userId, userName } = getCurrentUserInfo();
   const [pageInfo, setPageInfo] = useState<{
     lastTime: number | undefined;
     hasMore: boolean;
@@ -48,12 +47,20 @@ const RoomAIInner = (props: StateProps) => {
   const {
     scrollToBottom, scrollLocked, isScrollLock,
   } = useScrollToBottom();
+
   const {
-    messages, setMessages, append, stop, status,
-  } = useChat({
-    api: `${SERVER_API_URL}/chat?userId=${userId}&userName=${userName}&platform=web`,
-    id: chatId,
-    sendExtraMessageFields: true,
+    messages,
+    setMessages,
+    append,
+    stop,
+    status,
+    currentPhase,
+    toolCalls,
+  } = useAgentChat({
+    chatId,
+    showThinking: false,
+    showToolCalls: true,
+    detailedCitations: true,
     onError: (error) => {
       try {
         const data = JSON.parse(error.message);
@@ -62,9 +69,14 @@ const RoomAIInner = (props: StateProps) => {
           setMessages((prev) => [...prev, upgradeTip]);
         }
       } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error('error.message is not JSON:', error.message);
+        showNotification({
+          message: error.message || 'An error occurred',
+        });
       }
+    },
+    onFinish: (result) => {
+      // eslint-disable-next-line no-console
+      console.log('[RoomAI] Finished:', result);
     },
   });
 
@@ -210,12 +222,7 @@ const RoomAIInner = (props: StateProps) => {
       id: uuidv4(),
       createdAt: new Date(),
     };
-    // setMessages((messages) => {
-    //   return [...messages, newMessage];
-    // });
-    append(newMessage, {
-      headers: getApihHeaders(),
-    });
+    append(newMessage);
   }, [append, scrollToBottom]);
 
   useEffect(() => {
@@ -255,6 +262,23 @@ const RoomAIInner = (props: StateProps) => {
         hasMore={pageInfo.hasMore}
         chatId={chatId!}
       />
+
+      {/* 阶段指示器 */}
+      {currentPhase && status === 'streaming' && (
+        <div className={styles.phaseIndicatorContainer}>
+          <PhaseIndicator phase={currentPhase} />
+        </div>
+      )}
+
+      {/* 工具调用卡片 */}
+      {toolCalls.length > 0 && (
+        <div className={styles.toolCallsContainer}>
+          {toolCalls.map((tool, index) => (
+            <ToolCallCard key={`${tool.toolName}_${index}`} tool={tool} />
+          ))}
+        </div>
+      )}
+
       <div>
         <RoomActions setIsLoading={(status) => setIsLoading(status)} insertMessage={insertMessage} chatId={chatId} />
         <form className="flex mx-auto px-[12px] pb-4  gap-2 w-full">
