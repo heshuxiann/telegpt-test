@@ -18,6 +18,7 @@ import { getCurrentUserInfo } from '../utils/chat-api';
 import { getApihHeaders } from '../utils/telegpt-fetch';
 import { AgentPhase } from './stream-events';
 import { AgentStreamParser } from './stream-parser';
+import { getDeviceId } from './utils';
 
 export type ChatStatus = 'ready' | 'streaming' | 'error';
 
@@ -107,11 +108,7 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
     const { userId } = getCurrentUserInfo();
 
     // 获取 deviceId（从 localStorage 或生成新的）
-    let deviceId = localStorage.getItem('deviceId');
-    if (!deviceId) {
-      deviceId = `web_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      localStorage.setItem('deviceId', deviceId);
-    }
+    let deviceId = getDeviceId();
 
     try {
       // 创建流式解析器
@@ -144,6 +141,7 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
               },
             ]);
           }
+          // TODO: 引入封装的相关工具
         },
 
         onToolEnd: (tool: ToolEndEvent['data']) => {

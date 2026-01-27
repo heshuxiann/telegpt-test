@@ -1,9 +1,12 @@
 import { TELEGPT_WS } from '../config';
 
 export type TelGPTMessage = {
-  type: string;
+  type?: string;
   data?: any;
   timestamp?: number;
+  action?: string;
+  params?:any;
+  requestId?: string;
 };
 
 export type TelGPTWSOptions = {

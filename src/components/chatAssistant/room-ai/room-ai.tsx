@@ -87,7 +87,7 @@ const RoomAIInner = (props: StateProps) => {
   }, [isScrollLock, messages, scrollToBottom]);
 
   useEffect(() => {
-    CHATAI_IDB_STORE.get('google-token').then((token) => {
+    CHATAI_IDB_STORE.get('google-token').then((token:string) => {
       if (token) {
         tokenRef.current = token as string;
       }

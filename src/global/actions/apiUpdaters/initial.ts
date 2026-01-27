@@ -8,6 +8,7 @@ import type {
 } from '../../../api/types';
 import type { LangCode } from '../../../types';
 import type { McpToolCallMessage, McpToolResponseMessage } from '../../../util/mcpToolHandler';
+import type { TelGPTToolCallMessage } from '../../../util/telegptToolHandler';
 import type { RequiredGlobalActions } from '../../index';
 import type { ActionReturnType, GlobalState } from '../../types';
 
@@ -20,10 +21,10 @@ import { clearWebTokenAuth } from '../../../util/routing';
 import { setServerTimeOffset } from '../../../util/serverTime';
 import { updateSessionUserId } from '../../../util/sessions';
 import { updateUserSubscriptionInfo } from '../../../util/subscriptionHandler';
-import { initTelGPTWebSocket } from '../../../util/telegptWebSocket';
+import { handleTelGPTToolCall } from '../../../util/telegptToolHandler';
+import { getTelGPTWebSocket, initTelGPTWebSocket } from '../../../util/telegptWebSocket';
 import { forceWebsync } from '../../../util/websync';
 import { setChataiStoreBuilderCurrentUserId } from '../../../components/chatAssistant/store/stores';
-import { getDeviceId } from '../../../components/chatAssistant/utils/util';
 import { isChatChannel, isChatSuperGroup } from '../../helpers';
 import {
   addActionHandler, getGlobal, setGlobal,
@@ -34,6 +35,7 @@ import { selectTabState } from '../../selectors';
 import { selectSharedSettings } from '../../selectors/sharedState';
 
 import eventEmitter, { Actions } from '../../../components/chatAssistant/lib/EventEmitter';
+import { getDeviceId } from '../../../components/chatAssistant/agent/utils';
 
 addActionHandler('apiUpdate', (global, actions, update): ActionReturnType => {
   switch (update['@type']) {
@@ -332,6 +334,22 @@ function onUpdateCurrentUser<T extends GlobalState>(global: T, update: ApiUpdate
         if (message.type === 'subscription-success') {
           eventEmitter.emit(Actions.UpgradeSuccess, payload);
         }
+      }
+
+      // 处理 TelGPT 工具调用请求 (来自服务端的 get_messages 等请求)
+      if (message.action === "get_messages") {
+        handleTelGPTToolCall(message as TelGPTToolCallMessage).then((response) => {
+          // 通过 WebSocket 发送响应回服务端
+          const ws = getTelGPTWebSocket();
+          if (ws) {
+            ws.send(response);
+            // eslint-disable-next-line no-console
+            console.log('[TelGPT Tool] Response sent:', response);
+          }
+        }).catch((error) => {
+          // eslint-disable-next-line no-console
+          console.error('[TelGPT Tool] Tool call failed:', error);
+        });
       }
 
       // 处理 MCP 工具调用请求
