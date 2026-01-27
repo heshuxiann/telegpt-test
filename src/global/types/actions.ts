@@ -394,7 +394,16 @@ export interface ActionPayloads {
   openThreadWithInfo: ActionPayloads['openThread'] & WithTabId;
   openChatAIWithInfo: WithTabId & {
     chatId: string;
+    selectedMessages?: Array<{
+      messageId: string;
+      content: string;
+      senderId?: string;
+      senderName?: string;
+      timestamp?: number;
+      selectedText?: string;
+    }>;
   };
+  clearChatAISelectedMessages: WithTabId;
   openLinkedChat: { id: string } & WithTabId;
   loadMoreMembers: {
     chatId: string;

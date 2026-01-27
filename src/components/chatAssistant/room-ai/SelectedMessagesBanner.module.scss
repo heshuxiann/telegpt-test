@@ -1,0 +1,48 @@
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #EDF9F1;
+  border-radius: 4px;
+  border-left: 3px solid #4BA673;
+  gap: 0.75rem;
+  padding: 6px;
+  height: 42px;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.messagePreview {
+  font-size: 14px;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.senderName {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+}
+
+.text {
+  color: var(--color-text);
+}
+
+.closeButton {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

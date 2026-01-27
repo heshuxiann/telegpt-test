@@ -1,25 +1,30 @@
 import React from '@teact';
 import type { FC } from '../../lib/teact/teact';
 import { memo, useEffect, useState } from '../../lib/teact/teact';
-import { getActions, withGlobal } from '../../global';
+import { getActions, getGlobal, withGlobal } from '../../global';
 
 import type { ApiChat } from '../../api/types';
 import type { MessageListType } from '../../types';
 import type { IconName } from '../../types/icons';
 
+import { getUserFullName } from '../../global/helpers/users';
 import {
   selectCanDeleteSelectedMessages,
   selectCanDownloadSelectedMessages,
   selectCanForwardMessages,
-  selectCanReportSelectedMessages, selectCurrentChat,
+  selectCanReportSelectedMessages, selectChatMessages,
+  selectCurrentChat,
   selectCurrentMessageList, selectHasProtectedMessage,
   selectHasSvg,
   selectSelectedMessagesCount,
   selectTabState,
 } from '../../global/selectors';
 import { selectSharedSettings } from '../../global/selectors/sharedState';
+import { selectUser } from '../../global/selectors/users';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
+import { checkCredisBalance } from '../../util/subscriptionHandler';
+import SerenaPath from '../chatAssistant/assets/serena.png';
 
 import useFlag from '../../hooks/useFlag';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -33,6 +38,7 @@ import Checkbox from '../ui/Checkbox';
 import ConfirmDialog from '../ui/ConfirmDialog';
 
 import './MessageSelectToolbar.scss';
+import { TeleAiIcon } from '../chatAssistant/utils/icons';
 
 export type OwnProps = {
   isActive?: boolean;
@@ -81,6 +87,9 @@ const MessageSelectToolbar: FC<OwnProps & StateProps> = ({
     reportMessages,
     openDeleteMessageModal,
     setSharedSettingOption,
+    openPayPackageModal,
+    openChatAIWithInfo,
+
   } = getActions();
   const lang = useOldLang();
 
@@ -157,6 +166,44 @@ const MessageSelectToolbar: FC<OwnProps & StateProps> = ({
     exitMessageSelectMode();
   });
 
+  const handleAskAi = useLastCallback(() => {
+    if (!selectedMessageIds || !chat) return;
+    if (!checkCredisBalance()) {
+      openPayPackageModal();
+      return;
+    }
+
+    // 获取全局状态
+    const global = getGlobal();
+
+    // 获取选中的消息完整数据
+    const messagesById = selectChatMessages(global, chat.id);
+    if (!messagesById) return;
+
+    // 构建选中消息数组，只保留文本消息
+    const selectedMessages = selectedMessageIds
+      .map((messageId) => messagesById[messageId])
+      .filter((message) => message && message.content.text?.text) // 过滤非文本消息
+      .map((message) => {
+        // 获取发送者名称
+        const sender = message.senderId ? selectUser(global, message.senderId) : undefined;
+        const senderName = sender ? getUserFullName(sender) : 'Unknown';
+
+        return {
+          messageId: String(message.id),
+          content: message.content.text!.text,
+          senderId: message.senderId || message.chatId,
+          senderName,
+          timestamp: message.date * 1000, // 转换为毫秒
+        };
+      });
+
+    openChatAIWithInfo({
+      chatId: chat.id,
+      selectedMessages,
+    });
+  });
+
   const className = buildClassName(
     'MessageSelectToolbar',
     canPost && 'with-composer',
@@ -202,6 +249,16 @@ const MessageSelectToolbar: FC<OwnProps & StateProps> = ({
 
           {Boolean(selectedMessagesCount) && (
             <div className="MessageSelectToolbar-actions">
+              <div
+                role="button"
+                tabIndex={0}
+                className="div-button item"
+                onClick={handleAskAi}
+                title="Ask TelyAI"
+                aria-label="Ask TelyAI"
+              >
+                <img className="w-[24px] h-[24px]" src={SerenaPath} alt="" />
+              </div>
               {messageListType !== 'scheduled' && canForwardMessages && (
                 renderButton(
                   'forward', lang('Chat.ForwardActionHeader'), openForwardMenuForSelectedMessages,

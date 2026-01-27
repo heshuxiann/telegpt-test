@@ -1,5 +1,4 @@
 import React from '@teact';
-import cx from 'classnames';
 import type { FC } from '../../../lib/teact/teact';
 import { memo, useState } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
@@ -16,6 +15,7 @@ import {
   selectMessageTranslations,
   selectRequestedChatTranslationLanguage,
   selectRequestedMessageTranslationLanguage,
+  selectUser,
 } from '../../../global/selectors';
 import { isUserId } from '../../../util/entities/ids';
 import { checkCredisBalance } from '../../../util/subscriptionHandler';
@@ -37,8 +37,9 @@ import useLastCallback from '../../../hooks/useLastCallback';
 import './message-gpt-menu.scss';
 
 import SerenaPath from '../assets/serena.png';
+import Button from '../../ui/Button';
 
-const menuItemClass = 'w-[20px] h-[20px] text-[16px] cursor-pointer flex items-center justify-center';
+const menuItemClass = '!w-[20px] !h-[20px] text-[16px] cursor-pointer flex items-center justify-center !p-0 !text-[var(--color-text)]';
 
 type StateProps = {
   message: ApiMessage;
@@ -48,16 +49,17 @@ type StateProps = {
   canTranslate: boolean | undefined;
   canShowOriginal: boolean | undefined;
   subscriptionType: string;
+  senderName?: string;
 };
- type OwnProps = {
-   message: ApiMessage;
-   messageListType: MessageListType;
-   detectedLanguage?: string;
-   position: 'top' | 'bottom';
- };
+type OwnProps = {
+  message: ApiMessage;
+  messageListType: MessageListType;
+  detectedLanguage?: string;
+  position: 'top' | 'bottom';
+};
 
 const MessageGptMenu: FC<OwnProps & StateProps> = ({
-  message, position, canScheduleMeeting, canAISummarize, canSmartReply, canTranslate, canShowOriginal, subscriptionType,
+  message, position, canScheduleMeeting, canAISummarize, canSmartReply, canTranslate, canShowOriginal, subscriptionType, senderName,
 }) => {
   const canSerenaAI = canScheduleMeeting || canAISummarize || canSmartReply || canTranslate;
   const [isSchedulingMeeting, setIsSchedulingMeeting] = useState(false);
@@ -147,6 +149,27 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
     }
   });
 
+  const handleAskAi = useLastCallback(() => {
+    if (!checkCredisBalance()) {
+      openPayPackageModal();
+      return;
+    }
+
+    // 构建选中消息数组
+    const selectedMessages = [{
+      messageId: String(message.id),
+      content: message.content.text?.text || '',
+      senderId: message.senderId || message.chatId,
+      senderName: senderName || 'Unknown',
+      timestamp: message.date * 1000, // 转换为毫秒
+    }];
+
+    openChatAIWithInfo({
+      chatId: message.chatId,
+      selectedMessages,
+    });
+  });
+
   const handleTranslate = useLastCallback(() => {
     if (!checkCredisBalance()) {
       openPayPackageModal();
@@ -170,35 +193,35 @@ const MessageGptMenu: FC<OwnProps & StateProps> = ({
   }
 
   return (
-    <div className={cx('message-gpt-menu z-100', position === 'top' ? 'top-[-32px]' : 'bottom-[-32px]')}>
+    <div className={`message-gpt-menu z-100 ${position === 'top' ? 'top-[-32px]' : 'bottom-[-32px]'}`}>
       <div className="message-gpt-menu-inner">
-        <div className={cx('!cursor-auto', menuItemClass)}>
+        <Button color="translucent" size="tiny" ariaLabel="Ask TelyAI" className={menuItemClass} onClick={handleAskAi} >
           <img className="w-[20px] h-[20px] mt-[-4px]" src={SerenaPath} alt="" />
-        </div>
+        </Button>
         {canTranslate && (
-          <div className={menuItemClass} onClick={handleTranslate} title="Translate">
+          <Button color="translucent" size="tiny" ariaLabel="Translate" className={menuItemClass} onClick={handleTranslate}>
             <AITranslateIcon size={16} />
-          </div>
+          </Button>
         )}
         {canShowOriginal && (
-          <div className={menuItemClass} onClick={handleShowOriginal} title="Show original">
+          <Button color="translucent" size="tiny" ariaLabel="Show original" className={menuItemClass} onClick={handleShowOriginal}>
             <AITranslateIcon size={16} />
-          </div>
+          </Button>
         )}
         {canScheduleMeeting && (
-          <div className={menuItemClass} onClick={handleScheduleMeeting} title="Schedule meeting">
+          <Button color="translucent" size="tiny" ariaLabel="Schedule meeting" className={menuItemClass} onClick={handleScheduleMeeting}>
             <MeetingIcon size={16} />
-          </div>
+          </Button>
         )}
         {canAISummarize && (
-          <div className={menuItemClass} onClick={handleSummarize} title="Summarize">
+          <Button color="translucent" size="tiny" ariaLabel="Summarize" className={menuItemClass} onClick={handleSummarize}>
             <SummarizeIcon size={16} />
-          </div>
+          </Button>
         )}
         {canSmartReply && (
-          <div className={menuItemClass} onClick={handleSmartReply} title="Smart Reply">
+          <Button color="translucent" size="tiny" ariaLabel="Smart Reply" className={menuItemClass} onClick={handleSmartReply}>
             <AIReplyIcon size={16} />
-          </div>
+          </Button>
         )}
       </div>
     </div>
@@ -227,6 +250,13 @@ export default memo(withGlobal<OwnProps>((global, { message, messageListType, de
   const isChatTranslated = selectRequestedChatTranslationLanguage(global, message.chatId);
   const canTranslate = !hasTranslation && selectCanTranslateMessage(global, message, detectedLanguage);
   const canShowOriginal = hasTranslation && !isChatTranslated;
+
+  // 获取发送者名称
+  const sender = message.senderId ? selectUser(global, message.senderId) : undefined;
+  const senderName = sender
+    ? `${sender.firstName || ''} ${sender.lastName || ''}`.trim()
+    : undefined;
+
   return {
     message,
     canScheduleMeeting: !isOwn && hasTextContent,
@@ -235,5 +265,6 @@ export default memo(withGlobal<OwnProps>((global, { message, messageListType, de
     canTranslate,
     canShowOriginal,
     subscriptionType,
+    senderName,
   };
 })(MessageGptMenu));

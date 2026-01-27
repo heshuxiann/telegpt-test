@@ -7,7 +7,7 @@ export interface AgentExecuteParams {
     content: string;
   }>;
   creditCode: number; // 计费代码 (必需)
-  contextData?: {
+  contextData: {
     // 上下文数据 (可选)
     chatId?: string; // 当前聊天ID
     selectedMessages?: Array<{
@@ -22,7 +22,7 @@ export interface AgentExecuteParams {
   };
   maxIterations?: number; // 最大迭代次数 (默认: 10)
   streaming?: boolean; // 是否流式响应 (默认: true)
-  options?: {
+  options: {
     // Agent 选项配置
     showThinking?: boolean; // 是否显示思考过程 (默认: false)
     showToolCalls?: boolean; // 是否显示工具调用 (默认: true)

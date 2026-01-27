@@ -4,14 +4,17 @@
  * 替代 @ai-sdk/react 的 useChat，使用自定义的 Agent 流式 API
  */
 
-import {
-  useCallback, useEffect, useRef, useState,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Message } from '@ai-sdk/react';
 
 import type {
-  CitationEvent, DoneEvent, ErrorEvent, ToolEndEvent, ToolStartEvent,
+  CitationEvent,
+  DoneEvent,
+  ErrorEvent,
+  ToolEndEvent,
+  ToolStartEvent,
 } from './stream-events';
+import type { AgentExecuteParams } from './types';
 
 import { SERVER_API_URL } from '../../../config';
 import { getCurrentUserInfo } from '../utils/chat-api';
@@ -24,11 +27,27 @@ export type ChatStatus = 'ready' | 'streaming' | 'error';
 
 export interface UseAgentChatOptions {
   chatId?: string;
+  selectedMessages?: AgentExecuteParams['contextData']['selectedMessages'];
+  maxIterations?: number;
   onError?: (error: Error) => void;
-  onFinish?: (result: { fullText: string; citations: CitationEvent['data'][] }) => void;
+  onFinish?: (result: {
+    fullText: string;
+    citations: CitationEvent['data'][];
+  }) => void;
   showThinking?: boolean;
   showToolCalls?: boolean;
   detailedCitations?: boolean;
+}
+
+interface ChatParams {
+  userId: string;
+  deviceId: string;
+  messages: AgentExecuteParams['messages'];
+  chatId: string;
+  selectedMessages: AgentExecuteParams['contextData']['selectedMessages'];
+  maxIterations: number;
+  streaming: boolean;
+  options: AgentExecuteParams['options'];
 }
 
 export interface UseAgentChatReturn {
@@ -55,6 +74,8 @@ export interface ToolCallState {
 export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
   const {
     chatId,
+    selectedMessages,
+    maxIterations = 10,
     onError,
     onFinish,
     showThinking = false,
@@ -89,210 +110,232 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
   /**
    * 发送消息到 Agent API
    */
-  const sendMessage = useCallback(async (messagesToSend: Message[]) => {
-    if (!chatId) {
-      const error = new Error('chatId is required');
-      onError?.(error);
-      return;
-    }
+  const sendMessage = useCallback(
+    async (messagesToSend: Message[]) => {
+      if (!chatId) {
+        const error = new Error('chatId is required');
+        onError?.(error);
+        return;
+      }
 
-    // 重置状态
-    currentAssistantMessageRef.current = '';
-    citationsRef.current = [];
-    setToolCalls([]);
-    setStatus('streaming');
+      // 重置状态
+      currentAssistantMessageRef.current = '';
+      citationsRef.current = [];
+      setToolCalls([]);
+      setStatus('streaming');
 
-    // 创建新的 AbortController
-    abortControllerRef.current = new AbortController();
+      // 创建新的 AbortController
+      abortControllerRef.current = new AbortController();
 
-    const { userId } = getCurrentUserInfo();
+      const { userId } = getCurrentUserInfo();
 
-    // 获取 deviceId（从 localStorage 或生成新的）
-    let deviceId = getDeviceId();
+      // 获取 deviceId（从 localStorage 或生成新的）
+      const deviceId = getDeviceId();
 
-    try {
-      // 创建流式解析器
-      const parser = new AgentStreamParser({
-        onPhaseChange: (phase) => {
-          setCurrentPhase(phase);
-        },
+      try {
+        // 创建流式解析器
+        const parser = new AgentStreamParser({
+          onPhaseChange: (phase) => {
+            setCurrentPhase(phase);
+          },
 
-        onPhaseMessage: (message) => {
-          // eslint-disable-next-line no-console
-          console.log('[Agent] Phase:', message);
-        },
-
-        onThinking: (content) => {
-          if (showThinking) {
+          onPhaseMessage: (message) => {
             // eslint-disable-next-line no-console
-            console.log('[Agent] Thinking:', content);
-          }
-        },
+            console.log('[Agent] Phase:', message);
+          },
 
-        onToolStart: (tool: ToolStartEvent['data']) => {
-          if (showToolCalls) {
-            setToolCalls((prev) => [
-              ...prev,
-              {
-                toolName: tool.toolName,
-                toolDescription: tool.toolDescription,
-                params: tool.params,
-                status: 'pending',
-              },
-            ]);
-          }
-          // TODO: 引入封装的相关工具
-        },
+          onThinking: (content) => {
+            if (showThinking) {
+              // eslint-disable-next-line no-console
+              console.log('[Agent] Thinking:', content);
+            }
+          },
 
-        onToolEnd: (tool: ToolEndEvent['data']) => {
-          if (showToolCalls) {
-            setToolCalls((prev) => {
-              const index = prev.findIndex((t) => t.toolName === tool.toolName && t.status === 'pending');
-              if (index === -1) return prev;
-
-              const newToolCalls = [...prev];
-              newToolCalls[index] = {
-                ...newToolCalls[index],
-                status: tool.success ? 'success' : 'failed',
-                summary: tool.summary,
-                error: tool.error,
-              };
-              return newToolCalls;
-            });
-          }
-        },
-
-        onText: (chunk, fullText) => {
-          currentAssistantMessageRef.current = fullText;
-
-          // 更新消息列表中的最后一条助手消息
-          setMessages((prev) => {
-            const lastMessage = prev[prev.length - 1];
-            if (lastMessage && lastMessage.role === 'assistant') {
-              return [
-                ...prev.slice(0, -1),
+          onToolStart: (tool: ToolStartEvent['data']) => {
+            if (showToolCalls) {
+              setToolCalls((prev) => [
+                ...prev,
                 {
-                  ...lastMessage,
+                  toolName: tool.toolName,
+                  toolDescription: tool.toolDescription,
+                  params: tool.params,
+                  status: 'pending',
+                },
+              ]);
+            }
+            // TODO: 引入封装的相关工具
+          },
+
+          onToolEnd: (tool: ToolEndEvent['data']) => {
+            if (showToolCalls) {
+              setToolCalls((prev) => {
+                const index = prev.findIndex(
+                  (t) => t.toolName === tool.toolName && t.status === 'pending',
+                );
+                if (index === -1) return prev;
+
+                const newToolCalls = [...prev];
+                newToolCalls[index] = {
+                  ...newToolCalls[index],
+                  status: tool.success ? 'success' : 'failed',
+                  summary: tool.summary,
+                  error: tool.error,
+                };
+                return newToolCalls;
+              });
+            }
+          },
+
+          onText: (chunk, fullText) => {
+            currentAssistantMessageRef.current = fullText;
+
+            // 更新消息列表中的最后一条助手消息
+            setMessages((prev) => {
+              const lastMessage = prev[prev.length - 1];
+              if (lastMessage && lastMessage.role === 'assistant') {
+                return [
+                  ...prev.slice(0, -1),
+                  {
+                    ...lastMessage,
+                    content: fullText,
+                  },
+                ];
+              }
+              // 如果没有助手消息，创建新的
+              return [
+                ...prev,
+                {
+                  id: `assistant_${Date.now()}`,
+                  role: 'assistant',
                   content: fullText,
+                  createdAt: new Date(),
                 },
               ];
+            });
+          },
+
+          onCitation: (citation: CitationEvent['data']) => {
+            if (detailedCitations) {
+              citationsRef.current.push(citation);
+              // eslint-disable-next-line no-console
+              console.log('[Agent] Citation:', citation);
+              // TODO: 在 UI 中显示引用
             }
-            // 如果没有助手消息，创建新的
-            return [
-              ...prev,
-              {
-                id: `assistant_${Date.now()}`,
-                role: 'assistant',
-                content: fullText,
-                createdAt: new Date(),
-              },
-            ];
-          });
-        },
+          },
 
-        onCitation: (citation: CitationEvent['data']) => {
-          if (detailedCitations) {
-            citationsRef.current.push(citation);
+          onStructured: (data) => {
             // eslint-disable-next-line no-console
-            console.log('[Agent] Citation:', citation);
-            // TODO: 在 UI 中显示引用
-          }
-        },
+            console.log('[Agent] Structured data:', data);
+          },
 
-        onStructured: (data) => {
+          onDone: (doneData: DoneEvent['data'], result) => {
+            setStatus('ready');
+            setCurrentPhase(AgentPhase.COMPLETED);
+            onFinish?.(result);
+          },
+
+          onError: (error: ErrorEvent['data']) => {
+            setStatus('error');
+            setCurrentPhase(AgentPhase.ERROR);
+            onError?.(new Error(error.message));
+          },
+        });
+
+        parserRef.current = parser;
+
+        // 构建请求体 - 符合 AgentExecuteParams 类型
+        const requestBody: ChatParams = {
+          userId: userId!,
+          deviceId,
+          messages: messagesToSend.map((msg) => ({
+            role: msg.role as 'user' | 'assistant' | 'system',
+            content: msg.content,
+          })),
+          chatId,
+          selectedMessages,
+          maxIterations,
+          streaming: true,
+          options: {
+            showThinking,
+            showToolCalls,
+            detailedCitations,
+          },
+        };
+
+        // 发送请求
+        const response = await fetch(`${SERVER_API_URL}/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'user-id': userId!,
+            'device-id': deviceId,
+            ...getApihHeaders(),
+          },
+          body: JSON.stringify(requestBody),
+          signal: abortControllerRef.current.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        if (!response.body) {
+          throw new Error('Response body is empty');
+        }
+
+        // 读取流式响应
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          parser.handleChunk(chunk);
+        }
+
+        // 处理剩余缓冲区
+        parser.flush();
+      } catch (error: any) {
+        if (error.name === 'AbortError') {
           // eslint-disable-next-line no-console
-          console.log('[Agent] Structured data:', data);
-        },
-
-        onDone: (doneData: DoneEvent['data'], result) => {
+          console.log('[Agent] Request aborted');
           setStatus('ready');
-          setCurrentPhase(AgentPhase.COMPLETED);
-          onFinish?.(result);
-        },
-
-        onError: (error: ErrorEvent['data']) => {
+        } else {
+          // eslint-disable-next-line no-console
+          console.error('[Agent] Error:', error);
           setStatus('error');
-          setCurrentPhase(AgentPhase.ERROR);
-          onError?.(new Error(error.message));
-        },
-      });
-
-      parserRef.current = parser;
-
-      // 构建请求体
-      const requestBody = {
-        chatId,
-        messages: messagesToSend.map((msg) => ({
-          role: msg.role,
-          content: msg.content,
-        })),
-        options: {
-          showThinking,
-          showToolCalls,
-          detailedCitations,
-        },
-      };
-
-      // 发送请求
-      const response = await fetch(`${SERVER_API_URL}/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'user-id': userId!,
-          'device-id': deviceId,
-          ...getApihHeaders(),
-        },
-        body: JSON.stringify(requestBody),
-        signal: abortControllerRef.current.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          onError?.(error);
+        }
+      } finally {
+        abortControllerRef.current = null;
+        parserRef.current = null;
       }
-
-      if (!response.body) {
-        throw new Error('Response body is empty');
-      }
-
-      // 读取流式响应
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        parser.handleChunk(chunk);
-      }
-
-      // 处理剩余缓冲区
-      parser.flush();
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
-        // eslint-disable-next-line no-console
-        console.log('[Agent] Request aborted');
-        setStatus('ready');
-      } else {
-        // eslint-disable-next-line no-console
-        console.error('[Agent] Error:', error);
-        setStatus('error');
-        onError?.(error);
-      }
-    } finally {
-      abortControllerRef.current = null;
-      parserRef.current = null;
-    }
-  }, [chatId, showThinking, showToolCalls, detailedCitations, onError, onFinish]);
+    },
+    [
+      chatId,
+      selectedMessages,
+      maxIterations,
+      showThinking,
+      showToolCalls,
+      detailedCitations,
+      onError,
+      onFinish,
+    ],
+  );
 
   /**
    * 添加新消息并发送
    */
-  const append = useCallback(async (message: Message) => {
-    const newMessages = [...messages, message];
-    setMessages(newMessages);
-    await sendMessage(newMessages);
-  }, [messages, sendMessage]);
+  const append = useCallback(
+    async (message: Message) => {
+      const newMessages = [...messages, message];
+      setMessages(newMessages);
+      await sendMessage(newMessages);
+    },
+    [messages, sendMessage],
+  );
 
   /**
    * 重新发送最后一条用户消息
@@ -301,7 +344,14 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
     if (messages.length === 0) return;
 
     // 找到最后一条用户消息
-    const lastUserMessageIndex = messages.findLastIndex((msg) => msg.role === 'user');
+    let lastUserMessageIndex = -1;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') {
+        lastUserMessageIndex = i;
+        break;
+      }
+    }
+
     if (lastUserMessageIndex === -1) return;
 
     // 重新发送从开始到最后一条用户消息的所有消息

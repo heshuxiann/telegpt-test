@@ -113,6 +113,7 @@ addActionHandler('openChatWithInfo', (global, actions, payload): ActionReturnTyp
     ...selectTabState(global, tabId),
     isChatInfoShown: true,
     isChatAIShown: false,
+    chatAISelectedMessages: undefined,
     nextProfileTab: profileTab,
     forceScrollProfileTab,
   }, tabId);
@@ -129,6 +130,7 @@ addActionHandler('openThreadWithInfo', (global, actions, payload): ActionReturnT
     ...selectTabState(global, tabId),
     isChatInfoShown: true,
     isChatAIShown: false,
+    chatAISelectedMessages: undefined,
   }, tabId);
   global = { ...global, lastIsChatInfoShown: true };
   setGlobal(global);
@@ -137,15 +139,25 @@ addActionHandler('openThreadWithInfo', (global, actions, payload): ActionReturnT
 });
 
 addActionHandler('openChatAIWithInfo', (global, actions, payload): ActionReturnType => {
-  const { tabId = getCurrentTabId() } = payload;
+  const { tabId = getCurrentTabId(), selectedMessages } = payload;
 
   global = updateTabState(global, {
     ...selectTabState(global, tabId),
     isChatAIShown: true,
     isUserPortraitShown: false,
     isChatInfoShown: false,
+    chatAISelectedMessages: selectedMessages,
   }, tabId);
   global = { ...global, lastIsChatInfoShown: true };
+  setGlobal(global);
+});
+
+addActionHandler('clearChatAISelectedMessages', (global, actions, payload): ActionReturnType => {
+  const { tabId = getCurrentTabId() } = payload;
+
+  global = updateTabState(global, {
+    chatAISelectedMessages: undefined,
+  }, tabId);
   setGlobal(global);
 });
 

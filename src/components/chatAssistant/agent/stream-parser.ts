@@ -1,21 +1,22 @@
+/* eslint-disable no-null/no-null */
 /**
  * Agent 流式响应解析器
  * 处理服务端返回的事件流，按照 AGENT_STREAM_FORMAT.md 规范解析事件
  */
 
 import type {
-  BaseEvent,
-  PhaseChangeEvent,
-  ThinkingEvent,
-  ToolStartEvent,
-  ToolEndEvent,
-  TextEvent,
+  AgentPhase, BaseEvent,
   CitationEvent,
-  StructuredEvent,
   DoneEvent,
   ErrorEvent,
-} from './stream-events';
-import { EventType, AgentPhase } from './stream-events';
+  PhaseChangeEvent,
+  StructuredEvent,
+  TextEvent,
+  ThinkingEvent,
+  ToolEndEvent,
+  ToolStartEvent } from './stream-events';
+
+import { EventType } from './stream-events';
 
 export type EventCallback = (event: BaseEvent) => void;
 export type PhaseChangeCallback = (phase: AgentPhase) => void;
@@ -58,7 +59,7 @@ export class AgentStreamParser {
    */
   public on<K extends keyof StreamParserCallbacks>(
     eventName: K,
-    callback: StreamParserCallbacks[K]
+    callback: StreamParserCallbacks[K],
   ) {
     this.callbacks[eventName] = callback;
   }
@@ -85,7 +86,13 @@ export class AgentStreamParser {
     if (!trimmed) return;
 
     try {
-      const event: BaseEvent = JSON.parse(trimmed);
+      // 处理 SSE 格式：移除 "data: " 前缀
+      let jsonStr = trimmed;
+      if (jsonStr.startsWith('data: ')) {
+        jsonStr = jsonStr.slice(6); // 移除 "data: " 前缀（6个字符）
+      }
+
+      const event: BaseEvent = JSON.parse(jsonStr);
 
       // 更新当前阶段
       if (event.phase !== this.currentPhase) {

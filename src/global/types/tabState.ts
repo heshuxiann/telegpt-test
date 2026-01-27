@@ -104,6 +104,14 @@ export type TabState = {
   canInstall?: boolean;
   isChatInfoShown: boolean;
   isChatAIShown?: boolean;
+  chatAISelectedMessages?: Array<{
+    messageId: string;
+    content: string;
+    senderId?: string;
+    senderName?: string;
+    timestamp?: number;
+    selectedText?: string;
+  }>;
   isUserPortraitShown?: boolean;
   userPortraitUserId?: string;
   isStatisticsShown?: boolean;

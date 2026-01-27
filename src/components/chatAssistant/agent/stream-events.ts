@@ -7,25 +7,25 @@
 // ==================== 阶段定义 ====================
 
 export enum AgentPhase {
-  THINKING = 'thinking',           // 思考阶段：分析问题，决定工具调用
-  TOOL_CALLING = 'tool_calling',   // 工具调用阶段：执行工具获取数据
-  GENERATING = 'generating',       // 生成阶段：生成回答内容
-  COMPLETED = 'completed',         // 完成阶段：所有处理完成
-  ERROR = 'error',                 // 错误阶段：发生错误
+  THINKING = 'thinking', // 思考阶段：分析问题，决定工具调用
+  TOOL_CALLING = 'tool_calling', // 工具调用阶段：执行工具获取数据
+  GENERATING = 'generating', // 生成阶段：生成回答内容
+  COMPLETED = 'completed', // 完成阶段：所有处理完成
+  ERROR = 'error', // 错误阶段：发生错误
 }
 
 // ==================== 事件类型定义 ====================
 
 export enum EventType {
-  PHASE_CHANGE = 'phase_change',   // 阶段变更
-  THINKING = 'thinking',           // 思考过程（可选）
-  TOOL_START = 'tool_start',       // 工具调用开始
-  TOOL_END = 'tool_end',           // 工具调用结束
-  TEXT = 'text',                   // 文本内容
-  CITATION = 'citation',           // 引用信息
-  STRUCTURED = 'structured',       // 结构化数据
-  DONE = 'done',                   // 完成
-  ERROR = 'error',                 // 错误
+  PHASE_CHANGE = 'phase_change', // 阶段变更
+  THINKING = 'thinking', // 思考过程（可选）
+  TOOL_START = 'tool_start', // 工具调用开始
+  TOOL_END = 'tool_end', // 工具调用结束
+  TEXT = 'text', // 文本内容
+  CITATION = 'citation', // 引用信息
+  STRUCTURED = 'structured', // 结构化数据
+  DONE = 'done', // 完成
+  ERROR = 'error', // 错误
 }
 
 // ==================== 事件数据类型 ====================
@@ -129,9 +129,9 @@ export interface ErrorEvent extends BaseEvent {
 // ==================== 配置选项 ====================
 
 export interface AgentStreamOptions {
-  showThinking?: boolean;       // 是否显示思考过程（默认false）
-  showToolCalls?: boolean;      // 是否显示工具调用（默认true）
-  detailedCitations?: boolean;  // 是否返回详细的引用信息（默认true）
+  showThinking?: boolean; // 是否显示思考过程（默认false）
+  showToolCalls?: boolean; // 是否显示工具调用（默认true）
+  detailedCitations?: boolean; // 是否返回详细的引用信息（默认true）
 }
 
 // ==================== 辅助函数 ====================
@@ -142,7 +142,7 @@ export interface AgentStreamOptions {
 export function createEvent(
   type: EventType,
   phase: AgentPhase,
-  data: any
+  data: any,
 ): BaseEvent {
   return { type, phase, data };
 }
@@ -159,7 +159,7 @@ export function serializeEvent(event: BaseEvent): string {
  */
 export function createPhaseChangeEvent(
   phase: AgentPhase,
-  message: string
+  message: string,
 ): PhaseChangeEvent {
   return {
     type: EventType.PHASE_CHANGE,
@@ -174,7 +174,7 @@ export function createPhaseChangeEvent(
 export function createToolStartEvent(
   toolName: string,
   toolDescription: string,
-  params?: Record<string, any>
+  params?: Record<string, any>,
 ): ToolStartEvent {
   return {
     type: EventType.TOOL_START,
@@ -190,7 +190,7 @@ export function createToolEndEvent(
   toolName: string,
   success: boolean,
   summary: string,
-  error?: string
+  error?: string,
 ): ToolEndEvent {
   return {
     type: EventType.TOOL_END,
@@ -220,7 +220,7 @@ export function createCitationEvent(
   senderName: string,
   timestamp: number,
   chatId: string,
-  senderId?: string
+  senderId?: string,
 ): CitationEvent {
   return {
     type: EventType.CITATION,
@@ -242,7 +242,7 @@ export function createCitationEvent(
  */
 export function createDoneEvent(
   finishReason: string,
-  stats?: Record<string, any>
+  stats?: Record<string, any>,
 ): DoneEvent {
   return {
     type: EventType.DONE,
@@ -257,7 +257,7 @@ export function createDoneEvent(
 export function createErrorEvent(
   code: string,
   message: string,
-  recoverable: boolean = false
+  recoverable: boolean = false,
 ): ErrorEvent {
   return {
     type: EventType.ERROR,

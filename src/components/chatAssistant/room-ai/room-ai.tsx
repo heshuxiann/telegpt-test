@@ -28,16 +28,26 @@ import {
 
 import PhaseIndicator from './PhaseIndicator';
 import ToolCallCard from './ToolCallCard';
+import SelectedMessagesBanner from './SelectedMessagesBanner';
 
 import './room-ai.scss';
 import styles from './room-ai.module.scss';
 
 interface StateProps {
   chatId: string | undefined;
+  selectedMessages?: Array<{
+    messageId: string;
+    content: string;
+    senderId?: string;
+    senderName?: string;
+    timestamp?: number;
+    selectedText?: string;
+  }>;
 }
+
 const RoomAIInner = (props: StateProps) => {
   const { showNotification } = getActions();
-  const { chatId } = props;
+  const { chatId, selectedMessages } = props;
   const [pageInfo, setPageInfo] = useState<{
     lastTime: number | undefined;
     hasMore: boolean;
@@ -58,6 +68,7 @@ const RoomAIInner = (props: StateProps) => {
     toolCalls,
   } = useAgentChat({
     chatId,
+    selectedMessages,
     showThinking: false,
     showToolCalls: true,
     detailedCitations: true,
@@ -87,7 +98,7 @@ const RoomAIInner = (props: StateProps) => {
   }, [isScrollLock, messages, scrollToBottom]);
 
   useEffect(() => {
-    CHATAI_IDB_STORE.get('google-token').then((token:string) => {
+    CHATAI_IDB_STORE.get('google-token').then((token: string) => {
       if (token) {
         tokenRef.current = token as string;
       }
@@ -279,16 +290,22 @@ const RoomAIInner = (props: StateProps) => {
         </div>
       )}
 
-      <div>
+      <div className='px-[16px] pb-4'>
         <RoomActions setIsLoading={(status) => setIsLoading(status)} insertMessage={insertMessage} chatId={chatId} />
-        <form className="flex mx-auto px-[12px] pb-4  gap-2 w-full">
-          <RoomAIInput
-            status={status}
-            stop={stop}
-            setMessages={setMessages}
-            handleInputSubmit={handleInputSubmit}
-          />
-        </form>
+        <div className="flex flex-col gap-2 w-full rounded-[20px] border border-[#E5E5E5] bg-white dark:bg-black px-[14px] py-[10px]">
+          <div>
+            {/* 渲染选中的消息文本片段 */}
+            {selectedMessages && selectedMessages.length > 0 && (
+              <SelectedMessagesBanner selectedMessages={selectedMessages} />
+            )}
+            <RoomAIInput
+              status={status}
+              stop={stop}
+              setMessages={setMessages}
+              handleInputSubmit={handleInputSubmit}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -296,6 +313,7 @@ const RoomAIInner = (props: StateProps) => {
 
 const RoomAI = memo(RoomAIInner, (prevProps, nextProps) => {
   if (prevProps.chatId !== nextProps.chatId) return false;
+  if (prevProps.selectedMessages !== nextProps.selectedMessages) return false;
   return true;
 });
 
