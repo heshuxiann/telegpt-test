@@ -8,7 +8,7 @@ export const createIntroduceMeetingMessage = (): Message => {
     content: '',
     id: uuidv4(),
     createdAt: new Date(),
-    role: 'system',
+    role: 'teleai-system',
     type: AIMessageType.MeetingIntroduce,
   };
 };
@@ -18,7 +18,7 @@ export const createIntroduceSummaryMessage = (): Message => {
     content: '',
     id: uuidv4(),
     createdAt: new Date(),
-    role: 'system',
+    role: 'teleai-system',
     type: AIMessageType.SummaryIntroduce,
   };
 };
@@ -28,7 +28,7 @@ export const createIntroduceTranslationMessage = (): Message => {
     content: '',
     id: uuidv4(),
     createdAt: new Date(),
-    role: 'system',
+    role: 'teleai-system',
     type: AIMessageType.TranslationIntroduce,
   };
 };
@@ -38,7 +38,7 @@ export const createIntroduceActionsMessage = (): Message => {
     content: '',
     id: uuidv4(),
     createdAt: new Date(),
-    role: 'system',
+    role: 'teleai-system',
     type: AIMessageType.ActionsIntroduce,
   };
 };
@@ -49,7 +49,7 @@ export const createGlobalIntroduceMessage = (): Message => {
     content: '',
     id: uuidv4(),
     createdAt: new Date(),
-    role: 'system',
+    role: 'teleai-system',
     type: AIMessageType.GlobalIntroduce,
   };
 };

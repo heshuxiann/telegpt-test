@@ -179,7 +179,7 @@ class RoomStorage {
             content: JSON.stringify(content),
             id: uuidv4(),
             createdAt: new Date(),
-            role: 'system',
+            role: 'teleai-system',
             type: AIMessageType.RoomSummary,
           };
           ChataiStores.message?.storeMessage(newMessage);

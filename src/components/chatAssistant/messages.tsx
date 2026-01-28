@@ -141,9 +141,9 @@ function PureMessages({
               <div className="px-3 py-2 text-sm text-[var(--color-text-secondary)] flex flex-col gap-1">
                 {/* 当前阶段指示器 - 行内文本形式 */}
                 {Boolean(currentPhase) && (
-                  <div className="flex items-center gap-2 animate-pulse">
+                  <div className="flex items-center gap-2">
                     <span className="inline-block w-1 h-1 rounded-full animate-ping" />
-                    <span className="opacity-70">{getPhaseText(currentPhase)}</span>
+                    <span className="opacity-70 animate-pulse">{getPhaseText(currentPhase)}</span>
                   </div>
                 )}
 

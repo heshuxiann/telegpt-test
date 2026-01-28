@@ -15,7 +15,7 @@ import { getAuthState, isTokenValid } from '../utils/google-auth';
 
 export const createRoomDescriptionMessage = (chatId: string): Message => {
   return {
-    role: 'system',
+    role: 'teleai-system',
     id: uuidv4(),
     createdAt: new Date(),
     content: chatId,
@@ -25,7 +25,7 @@ export const createRoomDescriptionMessage = (chatId: string): Message => {
 
 export const createGoogleLoginMessage = (): Message => {
   return {
-    role: 'system',
+    role: 'teleai-system',
     id: uuidv4(),
     createdAt: new Date(),
     content: 'Please login first',
@@ -35,7 +35,7 @@ export const createGoogleLoginMessage = (): Message => {
 
 export const createGoogleMeetingMessage = (): Message => {
   return {
-    role: 'system',
+    role: 'teleai-system',
     id: uuidv4(),
     createdAt: new Date(),
     content: '',
@@ -45,7 +45,7 @@ export const createGoogleMeetingMessage = (): Message => {
 
 export const createUpgradeTipMessage = (): Message => {
   return {
-    role: 'system',
+    role: 'teleai-system',
     id: uuidv4(),
     createdAt: new Date(),
     content: '',
@@ -113,7 +113,7 @@ export const summaryRoomMessage = async (
         content: JSON.stringify(content),
         id: uuidv4(),
         createdAt: new Date(),
-        role: 'system',
+        role: 'teleai-system',
         type: AIMessageType.RoomSummary,
       };
       insertMessage(newMessage);
@@ -185,7 +185,7 @@ export const generateRoomActionItems = async (
         content: JSON.stringify(content),
         id: uuidv4(),
         createdAt: new Date(),
-        role: 'system',
+        role: 'teleai-system',
         type: AIMessageType.RoomActions,
       };
       insertMessage(newMessage);
@@ -211,7 +211,7 @@ export const createMeetingTimeConfirmMessage = ({
   timeZone: string;
 }): Message => {
   return {
-    role: 'system',
+    role: 'teleai-system',
     id: uuidv4(),
     createdAt: new Date(),
     content: JSON.stringify({
@@ -228,7 +228,7 @@ export const createMeetingMentionMessage = (data: {
   messageText: string | undefined;
 }): Message => {
   return {
-    role: 'system',
+    role: 'teleai-system',
     id: uuidv4(),
     createdAt: new Date(),
     content: JSON.stringify({
@@ -246,7 +246,7 @@ export const createMeetingInformationSuggestMessage = (data: {
   suggestType: MeetingInformationSuggestType;
 }): Message => {
   return {
-    role: 'system',
+    role: 'teleai-system',
     id: uuidv4(),
     createdAt: new Date(),
     content: JSON.stringify({
@@ -270,7 +270,7 @@ export const createUserPortraitMessage = (name: string): Message => {
     }
   });
   return {
-    role: 'system',
+    role: 'teleai-system',
     id: uuidv4(),
     createdAt: new Date(),
     content: userId ?? '',
@@ -280,7 +280,7 @@ export const createUserPortraitMessage = (name: string): Message => {
 
 export const createNewFeatureReminderMessage = (tip = 'Comming soon!'): Message => {
   return {
-    role: 'system',
+    role: 'teleai-system',
     id: uuidv4(),
     createdAt: new Date(),
     content: tip,

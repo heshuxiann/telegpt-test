@@ -30,7 +30,7 @@ export interface Message {
   createdAt?: Date;
   content: string;
   timestamp?: number;
-  role: "system" | "user" | "assistant" | "data";
+  role: "system" | "user" | "assistant" | "data" | "teleai-system";
   type: AIMessageType;
 }
 

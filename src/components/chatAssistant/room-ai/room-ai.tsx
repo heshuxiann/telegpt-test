@@ -19,11 +19,12 @@ import { Messages } from '../messages';
 import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
+import IntroMessageManager from '../utils/intro-message-manager';
 import RoomActions from './room-actions';
 import { RoomAIInput } from './room-ai-input';
 import {
   createGoogleLoginMessage, createGoogleMeetingMessage,
-  createRoomDescriptionMessage, createUpgradeTipMessage,
+  createUpgradeTipMessage,
 } from './room-ai-utils';
 
 import SelectedMessagesBanner from './SelectedMessagesBanner';
@@ -56,6 +57,18 @@ const RoomAIInner = (props: StateProps) => {
     scrollToBottom, scrollLocked, isScrollLock,
   } = useScrollToBottom();
 
+  // 存储单条或多条消息的辅助函数
+  const storeMessagesToDB = useCallback((messagesToStore: Message | Message[]) => {
+    if (!chatId) return;
+
+    const messagesArray = Array.isArray(messagesToStore) ? messagesToStore : [messagesToStore];
+    const storeMsgs = parseMessage2StoreMessage(chatId, messagesArray);
+
+    storeMsgs.forEach((msg) => {
+      ChataiStores.message?.storeMessage(msg);
+    });
+  }, [chatId]);
+
   const {
     messages,
     setMessages,
@@ -76,6 +89,7 @@ const RoomAIInner = (props: StateProps) => {
         if (data.code === 102 || data.code === 103) {
           const upgradeTip = createUpgradeTipMessage();
           setMessages((prev) => [...prev, upgradeTip]);
+          storeMessagesToDB(upgradeTip);
         }
       } catch (e) {
         showNotification({
@@ -86,6 +100,15 @@ const RoomAIInner = (props: StateProps) => {
     onFinish: (result) => {
       // eslint-disable-next-line no-console
       console.log('[RoomAI] Finished:', result);
+      // AI 回复完成后，存储最后一条 assistant 消息
+      // 使用 setMessages 获取最新的 messages
+      setMessages((prev) => {
+        const lastMessage = prev[prev.length - 1];
+        if (lastMessage && lastMessage.role === 'assistant') {
+          storeMessagesToDB(lastMessage);
+        }
+        return prev;
+      });
     },
   });
 
@@ -109,11 +132,13 @@ const RoomAIInner = (props: StateProps) => {
       if (index !== -1) {
         const newMessages = [...prev];
         newMessages[index] = message;
+        storeMessagesToDB(message);
         return newMessages;
       }
+      storeMessagesToDB(message);
       return [...prev, message];
     });
-  }, [setMessages]);
+  }, [setMessages, storeMessagesToDB]);
 
   useEffect(() => {
     eventEmitter.on(Actions.AddRoomAIMessage, handleAddSummaryMessage);
@@ -130,22 +155,36 @@ const RoomAIInner = (props: StateProps) => {
   useEffect(() => {
     if (chatId) {
       initDate();
+
+      // 检查是否需要创建 IntroMessage
+      const introMessage = IntroMessageManager.getIntroMessage(chatId);
+      if (introMessage) {
+        // 第一次访问该房间，创建并存储 IntroMessage
+        storeMessagesToDB(introMessage);
+      }
+
+      // 从 store 加载历史消息
       ChataiStores.message?.getMessages(chatId, undefined, 10)?.then((res) => {
         if (res.messages.length > 0) {
+          // Store 中有历史消息，直接加载
           const localChatAiMessages = parseStoreMessage2Message(res.messages);
           setMessages(localChatAiMessages);
-        } else {
-          const roomDescription = createRoomDescriptionMessage(chatId);
-          setMessages([roomDescription]);
+        } else if (introMessage) {
+          // Store 中没有消息，但刚创建了 introMessage
+          setMessages([introMessage]);
         }
         setPageInfo({
           lastTime: res.lastTime,
           hasMore: res.hasMore,
         });
+        // 初次加载完成后立即滚动到底部
+        requestAnimationFrame(() => {
+          scrollToBottom('instant');
+        });
       });
       RoomStorage.updateRoomAIData(chatId, 'unreadCount', 0);
     }
-  }, [chatId, initDate, setMessages]);
+  }, [chatId, initDate, setMessages, storeMessagesToDB, scrollToBottom]);
 
   const handleLoadMore = useCallback(() => {
     scrollLocked();
@@ -168,7 +207,8 @@ const RoomAIInner = (props: StateProps) => {
 
   const insertMessage = useCallback((message: Message) => {
     setMessages((prev) => [...prev, message]);
-  }, [setMessages]);
+    storeMessagesToDB(message);
+  }, [setMessages, storeMessagesToDB]);
 
   const handleCreateCalendarSuccess = useCallback((payload: any) => {
     const { message, response } = payload;
@@ -180,7 +220,8 @@ const RoomAIInner = (props: StateProps) => {
         ChataiStores.message?.delMessage(message?.id);
         const newMessage = messages.filter((item) => item.id !== message?.id);
         setMessages(newMessage);
-        insertMessage(createGoogleLoginMessage());
+        const loginMessage = createGoogleLoginMessage();
+        insertMessage(loginMessage);
       }
     } else {
       ChataiStores.message?.delMessage(message?.id);
@@ -194,7 +235,7 @@ const RoomAIInner = (props: StateProps) => {
           type: AIMessageType.Default,
         }, {
           id: uuidv4(),
-          role: 'system' as const,
+          role: 'teleai-system' as const,
           content: JSON.stringify({
             chatId,
             eventData: response,
@@ -205,8 +246,10 @@ const RoomAIInner = (props: StateProps) => {
       ];
       const mergeMesssage = [...newMessage, ...appendMessage];
       setMessages(mergeMesssage);
+      // 存储新增的消息
+      storeMessagesToDB(appendMessage);
     }
-  }, [chatId, insertMessage, messages, setMessages]);
+  }, [chatId, insertMessage, messages, setMessages, storeMessagesToDB]);
 
   const updateToken = useCallback((payload: { message: Message; token: string }) => {
     const { message, token } = payload;
@@ -229,9 +272,12 @@ const RoomAIInner = (props: StateProps) => {
       id: uuidv4(),
       createdAt: new Date(),
       type: AIMessageType.Default,
+      timestamp: Date.now(),
     };
     append(newMessage);
-  }, [append, scrollToBottom]);
+    // 存储用户消息
+    storeMessagesToDB(newMessage);
+  }, [append, scrollToBottom, storeMessagesToDB]);
 
   useEffect(() => {
     eventEmitter.on(Actions.CreateCalendarSuccess, handleCreateCalendarSuccess);
@@ -245,13 +291,6 @@ const RoomAIInner = (props: StateProps) => {
       eventEmitter.off(Actions.AskRoomAI, handleInputSubmit);
     };
   }, [handleCreateCalendarSuccess, handleGoogleAuthSuccess, handleInputSubmit, updateToken]);
-
-  useEffect(() => {
-    if ((status === 'ready' || status === 'error') && chatId) {
-      const msgs = parseMessage2StoreMessage(chatId, messages);
-      ChataiStores.message?.storeMessages([...msgs]);
-    }
-  }, [messages, status, chatId]);
 
   const deleteMessage = useCallback((messageId: string) => {
     ChataiStores.message?.delMessage(messageId).then(() => {

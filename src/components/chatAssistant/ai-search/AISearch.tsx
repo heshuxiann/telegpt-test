@@ -61,7 +61,7 @@ export const AISearch = () => {
         setMessages((prev) => [...localChatAiMessages, ...prev]);
       } else {
         const suggestionMessage: Message = {
-          role: 'system',
+          role: 'teleai-system',
           id: generateUniqueId(),
           createdAt: new Date(),
           content: '',

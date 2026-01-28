@@ -21,9 +21,9 @@ import { MultiInput } from '../multi-input';
 import { RightPanel } from '../rightPanel/right-panel';
 import { createUpgradeTipMessage } from '../room-ai/room-ai-utils';
 import { ChataiStores } from '../store';
+import IntroMessageManager from '../utils/intro-message-manager';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
 import SummaryHeaderActions from './summary-header-actions';
-import { createGlobalIntroduceMessage } from './summary-utils';
 import UrgentNotification from './urgent-notification';
 
 import ErrorBoundary from '../ErrorBoundary';
@@ -49,6 +49,15 @@ const GlobalSummary = () => {
   const {
     scrollToBottom, scrollLocked, isScrollLock,
   } = useScrollToBottom();
+
+  // 存储单条或多条消息的辅助函数
+  const storeMessagesToDB = useCallback((messagesToStore: Message | Message[]) => {
+    const messagesArray = Array.isArray(messagesToStore) ? messagesToStore : [messagesToStore];
+    messagesArray.forEach((msg) => {
+      ChataiStores.summary?.storeMessage(msg);
+    });
+  }, []);
+
   const {
     messages, setMessages, append, stop, status, currentPhase,
   } = useAgentChat({
@@ -59,11 +68,24 @@ const GlobalSummary = () => {
         if (data.code === 102 || data.code === 103) {
           const upgradeTip = createUpgradeTipMessage();
           setMessages((prev) => [...prev, upgradeTip]);
+          storeMessagesToDB(upgradeTip);
         }
       } catch (e) {
         // eslint-disable-next-line no-console
         console.error('error.message is not JSON:', error.message);
       }
+    },
+    onFinish: (result) => {
+      // eslint-disable-next-line no-console
+      console.log('[GlobalSummary] Finished:', result);
+      // AI 回复完成后，存储最后一条 assistant 消息
+      setMessages((prev) => {
+        const lastMessage = prev[prev.length - 1];
+        if (lastMessage && lastMessage.role === 'assistant') {
+          storeMessagesToDB(lastMessage);
+        }
+        return prev;
+      });
     },
   });
 
@@ -109,31 +131,45 @@ const GlobalSummary = () => {
     });
   }, [pageInfo?.lastTime, scrollLocked, setSummaryMessages]);
 
-  const handleAddSummaryMessage = (message: Message) => {
+  const handleAddSummaryMessage = useCallback((message: Message) => {
     setSummaryMessages((prev) => [...prev, message]);
-  };
+    storeMessagesToDB(message);
+  }, [storeMessagesToDB]);
 
-  const handleAddUrgentMessage = (message: Message) => {
+  const handleAddUrgentMessage = useCallback((message: Message) => {
     setSummaryMessages((prev) => [...prev, message]);
     setNotificationMessage(message);
-  };
+    storeMessagesToDB(message);
+  }, [storeMessagesToDB]);
 
-  const getSummaryHistory = () => {
+  const getSummaryHistory = useCallback(() => {
+    // 检查是否需要创建 IntroMessage
+    const introMessage = IntroMessageManager.getIntroMessage(GLOBAL_SUMMARY_CHATID);
+    if (introMessage) {
+      // 第一次访问全局总结，创建并存储 IntroMessage
+      storeMessagesToDB(introMessage);
+    }
+
+    // 从 store 加载历史消息
     ChataiStores.summary?.getMessages(undefined, 30)?.then((res) => {
       if (res.messages.length > 0) {
+        // Store 中有历史消息，直接加载
         const localChatAiMessages = res?.messages ?? [];
-        setSummaryMessages((prev) => [...localChatAiMessages, ...prev]);
-      } else {
-        const globalIntroduce = createGlobalIntroduceMessage();
-        setSummaryMessages([globalIntroduce]);
-        ChataiStores.summary?.storeMessages([globalIntroduce]);
+        setSummaryMessages(localChatAiMessages);
+      } else if (introMessage) {
+        // Store 中没有消息，但刚创建了 introMessage
+        setSummaryMessages([introMessage]);
       }
       setPageInfo({
         lastTime: res.lastTime,
         hasMore: res.hasMore,
       });
+      // 初次加载完成后立即滚动到底部
+      requestAnimationFrame(() => {
+        scrollToBottom('instant');
+      });
     });
-  };
+  }, [storeMessagesToDB, scrollToBottom]);
 
   // useEffect(() => {
   //   const lastFocusTime = RoomStorage.getRoomLastFocusTime(GLOBAL_SUMMARY_CHATID);
@@ -147,21 +183,24 @@ const GlobalSummary = () => {
   const deleteMessage = useCallback((messageId: string) => {
     scrollLocked();
     ChataiStores.summary?.delMessage(messageId).then(() => {
-      // setSummaryMessages((prev) => prev.filter((message) => message.id !== messageId));
       setViewMessages((prev) => prev.filter((message) => message.id !== messageId));
     });
   }, [scrollLocked]);
 
-  const handleInputSubmit = (value: string) => {
+  const handleInputSubmit = useCallback((value: string) => {
     scrollToBottom();
-    append({
+    const newMessage: Message = {
       role: 'user',
       content: value,
       id: generateUniqueId(),
       createdAt: new Date(),
       type: AIMessageType.Default,
-    });
-  };
+      timestamp: Date.now(),
+    };
+    append(newMessage);
+    // 存储用户消息
+    storeMessagesToDB(newMessage);
+  }, [append, scrollToBottom, storeMessagesToDB]);
 
   useEventListener(Actions.AskGlobalAI, handleInputSubmit);
   useEventListener(Actions.AddUrgentMessage, handleAddUrgentMessage);
@@ -170,13 +209,7 @@ const GlobalSummary = () => {
 
   useEffect(() => {
     getSummaryHistory();
-  }, []);
-
-  useEffect(() => {
-    if (status === 'ready' || status === 'error') {
-      ChataiStores.summary?.storeMessages(messages);
-    }
-  }, [messages, status]);
+  }, [getSummaryHistory]);
 
   const className = buildClassName(
     styles.globaSummaryBg,

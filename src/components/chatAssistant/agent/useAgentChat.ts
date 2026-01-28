@@ -92,6 +92,12 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
   const parserRef = useRef<AgentStreamParser | null>(null);
   const currentAssistantMessageRef = useRef<string>('');
   const citationsRef = useRef<CitationEvent['data'][]>([]);
+  const messagesRef = useRef<Message[]>(messages);
+
+  // 同步 messagesRef 和 messages 状态
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   const isStreaming = status === 'streaming';
 
@@ -210,6 +216,7 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
                   content: fullText,
                   createdAt: new Date(),
                   type: AIMessageType.Default,
+                  timestamp: Date.now(),
                 },
               ];
             });
@@ -244,11 +251,16 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
 
         parserRef.current = parser;
 
+        // 过滤掉 teleai-system 消息，并限制最多 20 条
+        const filteredMessages = messagesToSend
+          .filter((msg) => msg.role !== 'teleai-system')
+          .slice(-20); // 取最后 20 条
+
         // 构建请求体 - 符合 AgentExecuteParams 类型
         const requestBody: ChatParams = {
           userId: userId!,
           deviceId,
-          messages: messagesToSend.map((msg) => ({
+          messages: filteredMessages.map((msg) => ({
             role: msg.role as 'user' | 'assistant' | 'system',
             content: msg.content,
           })),
@@ -331,23 +343,26 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
    */
   const append = useCallback(
     async (message: Message) => {
-      const newMessages = [...messages, message];
+      // 使用 ref 获取最新的 messages，避免闭包陷阱
+      const newMessages = [...messagesRef.current, message];
       setMessages(newMessages);
       await sendMessage(newMessages);
     },
-    [messages, sendMessage],
+    [sendMessage],
   );
 
   /**
    * 重新发送最后一条用户消息
    */
   const reload = useCallback(async () => {
-    if (messages.length === 0) return;
+    // 使用 ref 获取最新的 messages
+    const currentMessages = messagesRef.current;
+    if (currentMessages.length === 0) return;
 
     // 找到最后一条用户消息
     let lastUserMessageIndex = -1;
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].role === 'user') {
+    for (let i = currentMessages.length - 1; i >= 0; i--) {
+      if (currentMessages[i].role === 'user') {
         lastUserMessageIndex = i;
         break;
       }
@@ -356,10 +371,10 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
     if (lastUserMessageIndex === -1) return;
 
     // 重新发送从开始到最后一条用户消息的所有消息
-    const messagesToSend = messages.slice(0, lastUserMessageIndex + 1);
+    const messagesToSend = currentMessages.slice(0, lastUserMessageIndex + 1);
     setMessages(messagesToSend);
     await sendMessage(messagesToSend);
-  }, [messages, sendMessage]);
+  }, [sendMessage]);
 
   // 清理
   useEffect(() => {
