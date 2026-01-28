@@ -1,13 +1,11 @@
 /* eslint-disable no-null/no-null */
 /* eslint-disable no-console */
-import type { Message } from 'ai';
-
+import type { Message } from '../messages/types';
 import type { StoreName } from './chatai-store';
 import type ChataiDB from './chatai-store';
 
 export interface StoreMessage extends Message {
   chatId: string;
-  timestamp: number;
 }
 class MessageStore {
   private storeName: StoreName = 'message';

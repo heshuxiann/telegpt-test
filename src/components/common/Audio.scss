@@ -260,6 +260,7 @@
   .waveform {
     touch-action: none;
     cursor: var(--custom-cursor, pointer);
+
     display: flex;
     align-items: flex-end;
 

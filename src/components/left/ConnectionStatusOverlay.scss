@@ -41,8 +41,9 @@
   }
 
   > .state-text {
-    flex: 1;
     overflow: hidden;
+    flex: 1;
+
     margin-inline-start: 1.875rem;
     padding-bottom: 0.0625rem;
 
@@ -52,8 +53,8 @@
     white-space: wrap;
     &.offline {
       margin-inline-start: unset;
-      line-height: 18px;
       font-size: 14px;
+      line-height: 18px;
     }
   }
 

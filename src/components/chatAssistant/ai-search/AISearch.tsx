@@ -3,20 +3,20 @@ import React from 'react';
 import {
   useCallback, useEffect, useState,
 } from 'react';
-import { useChat } from '@ai-sdk/react';
-import type { Message, UIMessage } from 'ai';
-import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
+
+import type { Message } from '../messages/types';
+import { AIMessageType } from '../messages/types';
 
 import { SERVER_API_URL } from '../../../config';
 import { selectChat, selectUser } from '../../../global/selectors';
+import generateUniqueId from '../../../util/generateUniqueId';
+import { useAgentChat } from '../agent/useAgentChat';
 import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { Messages } from '../messages';
 import { createUpgradeTipMessage } from '../room-ai/room-ai-utils';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
-import { getCurrentUserInfo } from '../utils/chat-api';
-import { getApihHeaders } from '../utils/telegpt-fetch';
 import { messageEmbeddingStore } from '../vector-store';
 
 import { AISearchInput } from './AISearchInput';
@@ -25,7 +25,6 @@ const GLOBAL_SEARCH_CHATID = '777889';
 
 export const AISearch = () => {
   const global = getGlobal();
-  const { userId, userName } = getCurrentUserInfo();
 
   const [pageInfo, setPageInfo] = useState<{ lastTime: number | undefined; hasMore: boolean }>({ lastTime: undefined, hasMore: true });
   const {
@@ -33,10 +32,8 @@ export const AISearch = () => {
   } = useScrollToBottom();
   const {
     messages, setMessages, append, status, stop,
-  } = useChat({
-    id: GLOBAL_SEARCH_CHATID,
-    api: `${SERVER_API_URL}/chat?userId=${userId}&userName=${userName}&platform=web`,
-    sendExtraMessageFields: true,
+  } = useAgentChat({
+    chatId: GLOBAL_SEARCH_CHATID,
     onError: (error) => {
       try {
         const data = JSON.parse(error.message);
@@ -64,13 +61,11 @@ export const AISearch = () => {
         setMessages((prev) => [...localChatAiMessages, ...prev]);
       } else {
         const suggestionMessage: Message = {
-          role: 'assistant',
-          id: uuidv4(),
+          role: 'system',
+          id: generateUniqueId(),
           createdAt: new Date(),
           content: '',
-          annotations: [{
-            type: 'ai-search-sugesstion',
-          }],
+          type: AIMessageType.AISearchSugesstion,
         };
         setMessages([suggestionMessage]);
       }
@@ -141,24 +136,21 @@ export const AISearch = () => {
       }
     }
     if (searchResult) {
-      const message: UIMessage = {
-        id: uuidv4(),
+      const message: Message = {
+        id: generateUniqueId(),
         role: 'assistant',
         content: searchResult,
         createdAt: new Date(),
-        parts: [],
-        annotations: [{
-          type: 'group-search',
-        }],
+        type: AIMessageType.GroupSearch,
       };
       setMessages((prev) => [...prev, message]);
     } else {
-      const message: UIMessage = {
-        id: uuidv4(),
+      const message: Message = {
+        id: generateUniqueId(),
         role: 'assistant',
         content: 'No relevant group was found',
         createdAt: new Date(),
-        parts: [],
+        type: AIMessageType.Default,
       };
       setMessages((prev) => [...prev, message]);
     }
@@ -190,24 +182,21 @@ export const AISearch = () => {
       }
     }
     if (searchResult) {
-      const message: UIMessage = {
-        id: uuidv4(),
+      const message: Message = {
+        id: generateUniqueId(),
         role: 'assistant',
         content: searchResult,
         createdAt: new Date(),
-        parts: [],
-        annotations: [{
-          type: 'user-search',
-        }],
+        type: AIMessageType.UserSearch,
       };
       setMessages((prev) => [...prev, message]);
     } else {
-      const message: UIMessage = {
-        id: uuidv4(),
+      const message: Message = {
+        id: generateUniqueId(),
         role: 'assistant',
         content: 'No relevant users was found',
         createdAt: new Date(),
-        parts: [],
+        type: AIMessageType.Default,
       };
       setMessages((prev) => [...prev, message]);
     }
@@ -245,12 +234,9 @@ export const AISearch = () => {
           # 消息内容
           ${JSON.stringify(messageList)}
         `,
-        id: Math.random().toString(),
-        annotations: [{
-          isAuxiliary: true,
-        }],
-      }, {
-        headers: getApihHeaders(),
+        id: generateUniqueId(),
+        createdAt: new Date(),
+        type: AIMessageType.Default,
       });
       scrollToBottom();
     }
@@ -264,7 +250,7 @@ export const AISearch = () => {
       },
       body: JSON.stringify({
         messages: [{
-          id: uuidv4(),
+          id: generateUniqueId(),
           content: inputValue,
           role: 'user',
         }],
@@ -292,8 +278,9 @@ export const AISearch = () => {
       return [...messages, {
         role: 'user',
         content: query,
-        id: Math.random().toString(),
+        id: generateUniqueId(),
         createdAt: new Date(),
+        type: AIMessageType.Default,
       }];
     });
     toolsHitCheck(query);

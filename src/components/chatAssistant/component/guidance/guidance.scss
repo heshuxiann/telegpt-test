@@ -26,6 +26,7 @@
   }
   .guidance-carousel {
     overflow: hidden;
+
     aspect-ratio: 1056/542;
     width: 75vw;
     max-width: 73rem;
@@ -63,10 +64,11 @@
     font-size: 24px;
     font-weight: 600;
     line-height: 48px;
-    text-align: center;
     color: black;
+    text-align: center;
 
-    background: linear-gradient(#fff, #fff) padding-box,
+    background:
+ linear-gradient(#fff, #fff) padding-box,
       linear-gradient(
           145.18deg,
           #ffaa32 5.25%,

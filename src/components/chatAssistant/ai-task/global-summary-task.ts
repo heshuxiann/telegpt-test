@@ -3,7 +3,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { getActions, getGlobal } from '../../../global';
 
-import type { SummaryStoreMessage } from '../store/summary-store';
 import { type ApiMessage, MAIN_THREAD_ID } from '../../../api/types/messages';
 import { LoadMoreDirection } from '../../../types';
 
@@ -25,6 +24,7 @@ import {
 import { globalSummary } from '../utils/chat-api';
 import { fetchChatMessageByDeadline, loadTextMessages } from '../utils/fetch-messages';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
+import { AIMessageType, Message } from '../messages/types';
 
 function getSummaryInfo({
   startTime,
@@ -145,15 +145,13 @@ class GlobalSummaryTask {
         summaryInfo,
         customTopics,
       };
-      const newMessage: SummaryStoreMessage = {
+      const newMessage: Message = {
         timestamp: new Date().getTime(),
         content: JSON.stringify(content),
         id: uuidv4(),
         createdAt: new Date(),
         role: 'assistant',
-        annotations: [{
-          type: 'global-summary',
-        }],
+        type: AIMessageType.GlobalSummary,
       };
       ChataiStores.summary?.storeMessage(newMessage);
       ChataiStores.general?.set(GLOBAL_SUMMARY_LAST_TIME, summaryInfo.summaryEndTime);

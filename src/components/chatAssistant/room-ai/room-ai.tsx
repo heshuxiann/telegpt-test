@@ -4,10 +4,11 @@ import {
   memo,
   useCallback, useEffect, useRef, useState,
 } from 'react';
-import type { Message } from '@ai-sdk/react';
-import type { UIMessage } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { getActions } from '../../../global';
+
+import type { Message } from '../messages/types';
+import { AIMessageType } from '../messages/types';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { CHATAI_IDB_STORE } from '../../../util/browser/idb';
@@ -27,8 +28,8 @@ import {
 } from './room-ai-utils';
 
 import PhaseIndicator from './PhaseIndicator';
-import ToolCallCard from './ToolCallCard';
 import SelectedMessagesBanner from './SelectedMessagesBanner';
+import ToolCallCard from './ToolCallCard';
 
 import './room-ai.scss';
 import styles from './room-ai.module.scss';
@@ -100,7 +101,7 @@ const RoomAIInner = (props: StateProps) => {
   useEffect(() => {
     CHATAI_IDB_STORE.get('google-token').then((token: string) => {
       if (token) {
-        tokenRef.current = token as string;
+        tokenRef.current = token;
       }
     });
   }, []);
@@ -187,28 +188,26 @@ const RoomAIInner = (props: StateProps) => {
     } else {
       ChataiStores.message?.delMessage(message?.id);
       const newMessage = messages.filter((item) => item.id !== message?.id);
-      const appendMessage = [
+      const appendMessage: Message[] = [
         {
           id: uuidv4(),
-          role: 'assistant',
+          role: 'assistant' as const,
           content: 'I\'ll send the meeting invitation shortly. Please check your inbox in the next few minutes.',
           createdAt: new Date(),
-          parts: [],
+          type: AIMessageType.Default,
         }, {
           id: uuidv4(),
-          role: 'assistant',
+          role: 'system' as const,
           content: JSON.stringify({
             chatId,
             eventData: response,
           }),
           createdAt: new Date(),
-          annotations: [{
-            type: 'google-event-detail',
-          }],
+          type: AIMessageType.GoogleEventDetail,
         },
       ];
       const mergeMesssage = [...newMessage, ...appendMessage];
-      setMessages(mergeMesssage as UIMessage[]);
+      setMessages(mergeMesssage);
     }
   }, [chatId, insertMessage, messages, setMessages]);
 
@@ -232,6 +231,7 @@ const RoomAIInner = (props: StateProps) => {
       content: value,
       id: uuidv4(),
       createdAt: new Date(),
+      type: AIMessageType.Default,
     };
     append(newMessage);
   }, [append, scrollToBottom]);
@@ -290,7 +290,7 @@ const RoomAIInner = (props: StateProps) => {
         </div>
       )}
 
-      <div className='px-[16px] pb-4'>
+      <div className="px-[16px] pb-4">
         <RoomActions setIsLoading={(status) => setIsLoading(status)} insertMessage={insertMessage} chatId={chatId} />
         <div className="flex flex-col gap-2 w-full rounded-[20px] border border-[#E5E5E5] bg-white dark:bg-black px-[14px] py-[10px]">
           <div>

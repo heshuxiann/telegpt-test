@@ -4,14 +4,15 @@ import {
   memo,
   useCallback, useEffect, useState,
 } from 'react';
-import { useChat } from '@ai-sdk/react';
-import type { Message } from 'ai';
 import { orderBy, uniqBy } from 'lodash';
-import { v4 as uuidv4 } from 'uuid';
 
-import { SERVER_API_URL } from '../../../config';
+import type { Message } from '../messages/types';
+import { AIMessageType } from '../messages/types';
+
 import { Actions } from '../lib/EventEmitter';
 import buildClassName from '../../../util/buildClassName';
+import generateUniqueId from '../../../util/generateUniqueId';
+import { useAgentChat } from '../agent/useAgentChat';
 import { useScrollToBottom } from '../hook/use-scroll-to-bottom';
 import { useEventListener } from '../hook/useEventBus';
 import { usePerformanceMonitor } from '../hook/usePerformanceMonitor';
@@ -20,12 +21,6 @@ import { MultiInput } from '../multi-input';
 import { RightPanel } from '../rightPanel/right-panel';
 import { createUpgradeTipMessage } from '../room-ai/room-ai-utils';
 import { ChataiStores } from '../store';
-import {
-  parseMessage2SummaryStoreMessage,
-  parseSummaryStoreMessage2Message,
-  type SummaryStoreMessage,
-} from '../store/summary-store';
-import { getApihHeaders } from '../utils/telegpt-fetch';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
 import SummaryHeaderActions from './summary-header-actions';
 import { createGlobalIntroduceMessage } from './summary-utils';
@@ -56,10 +51,8 @@ const GlobalSummary = () => {
   } = useScrollToBottom();
   const {
     messages, setMessages, append, stop, status,
-  } = useChat({
-    api: `${SERVER_API_URL}/chat`,
-    id: GLOBAL_SUMMARY_CHATID,
-    sendExtraMessageFields: true,
+  } = useAgentChat({
+    chatId: GLOBAL_SUMMARY_CHATID,
     onError: (error) => {
       try {
         const data = JSON.parse(error.message);
@@ -104,7 +97,7 @@ const GlobalSummary = () => {
     return new Promise<void>((resolve) => {
       ChataiStores.summary?.getMessages(pageInfo?.lastTime, 10)?.then((res) => {
         if (res.messages) {
-          const localChatAiMessages = parseSummaryStoreMessage2Message(res.messages);
+          const localChatAiMessages = res?.messages ?? [];
           setSummaryMessages((prev) => [...localChatAiMessages, ...prev]);
         }
         setPageInfo({
@@ -116,11 +109,11 @@ const GlobalSummary = () => {
     });
   }, [pageInfo?.lastTime, scrollLocked, setSummaryMessages]);
 
-  const handleAddSummaryMessage = (message: SummaryStoreMessage) => {
+  const handleAddSummaryMessage = (message: Message) => {
     setSummaryMessages((prev) => [...prev, message]);
   };
 
-  const handleAddUrgentMessage = (message: SummaryStoreMessage) => {
+  const handleAddUrgentMessage = (message: Message) => {
     setSummaryMessages((prev) => [...prev, message]);
     setNotificationMessage(message);
   };
@@ -128,7 +121,7 @@ const GlobalSummary = () => {
   const getSummaryHistory = () => {
     ChataiStores.summary?.getMessages(undefined, 30)?.then((res) => {
       if (res.messages.length > 0) {
-        const localChatAiMessages = parseSummaryStoreMessage2Message(res.messages);
+        const localChatAiMessages = res?.messages ?? [];
         setSummaryMessages((prev) => [...localChatAiMessages, ...prev]);
       } else {
         const globalIntroduce = createGlobalIntroduceMessage();
@@ -164,10 +157,9 @@ const GlobalSummary = () => {
     append({
       role: 'user',
       content: value,
-      id: uuidv4(),
+      id: generateUniqueId(),
       createdAt: new Date(),
-    }, {
-      headers: getApihHeaders(),
+      type: AIMessageType.Default,
     });
   };
 
@@ -182,8 +174,7 @@ const GlobalSummary = () => {
 
   useEffect(() => {
     if (status === 'ready' || status === 'error') {
-      const msgs = parseMessage2SummaryStoreMessage(messages);
-      ChataiStores.summary?.storeMessages(msgs);
+      ChataiStores.summary?.storeMessages(messages);
     }
   }, [messages, status]);
 

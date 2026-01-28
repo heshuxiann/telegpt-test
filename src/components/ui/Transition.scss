@@ -133,18 +133,14 @@
     > .Transition_slide-from {
       transform-origin: left;
       transform: translateX(0);
-
       opacity: 1;
-
       animation: fade-out-opacity var(--slide-transition), slide-fade-out-move var(--slide-transition);
     }
 
     > .Transition_slide-to {
       transform-origin: left;
       transform: translateX(1.5rem);
-
       opacity: 0;
-
       animation: fade-in-opacity var(--slide-transition), slide-fade-in-move var(--slide-transition);
     }
   }
@@ -329,7 +325,6 @@
     > .Transition_slide-from {
       transform-origin: center;
       transform: scale(1);
-
       opacity: 1;
       animation: push-out 0.25s ease-in-out;
 

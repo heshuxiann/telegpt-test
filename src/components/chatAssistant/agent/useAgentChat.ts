@@ -1,12 +1,11 @@
 /* eslint-disable no-null/no-null */
 /**
  * useAgentChat Hook
- * 替代 @ai-sdk/react 的 useChat，使用自定义的 Agent 流式 API
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Message } from '@ai-sdk/react';
 
+import type { Message } from '../messages/types';
 import type {
   CitationEvent,
   DoneEvent,
@@ -15,6 +14,7 @@ import type {
   ToolStartEvent,
 } from './stream-events';
 import type { AgentExecuteParams } from './types';
+import { AIMessageType } from '../messages/types';
 
 import { SERVER_API_URL } from '../../../config';
 import { getCurrentUserInfo } from '../utils/chat-api';
@@ -209,6 +209,7 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
                   role: 'assistant',
                   content: fullText,
                   createdAt: new Date(),
+                  type: AIMessageType.Default,
                 },
               ];
             });

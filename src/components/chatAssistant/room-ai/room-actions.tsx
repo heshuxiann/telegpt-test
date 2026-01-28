@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
-import type { Message } from 'ai';
 import { Popover } from 'antd';
 import { getActions } from '../../../global';
+
+import type { Message } from '../messages/types';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { checkCredisBalance } from '../../../util/subscriptionHandler';

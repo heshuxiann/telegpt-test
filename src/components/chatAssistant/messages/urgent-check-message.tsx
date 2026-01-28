@@ -1,6 +1,6 @@
 /* eslint-disable no-null/no-null */
 import React, { useCallback, useEffect, useState } from 'react';
-import type { Message } from 'ai';
+import type { Message } from './types';
 import { Popover } from 'antd';
 import { getActions } from '../../../global';
 

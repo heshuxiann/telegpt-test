@@ -9,13 +9,13 @@ import {
   useEffect,
   useRef,
 } from 'react';
-import type { UseChatHelpers } from '@ai-sdk/react';
-import type {
-  Message,
-} from 'ai';
 import cx from 'classnames';
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
+
+import type {
+  ChatStatus,
+  Message } from '../messages/types';
 
 import { sanitizeUIMessages } from '../../../lib/utils';
 import { AITextarea } from '../component/AITextarea';
@@ -29,7 +29,7 @@ function PureMultimodalInput({
   handleSearch,
   className,
 }: {
-  status: UseChatHelpers['status'];
+  status: ChatStatus;
   stop: () => void;
   setMessages: Dispatch<SetStateAction<Array<Message>>>;
   handleSearch: (inputValue: string) => void;

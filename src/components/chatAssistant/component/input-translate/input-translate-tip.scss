@@ -1,8 +1,8 @@
 .input-translate-open-tip {
   position: absolute;
   top: -12px;
-  transform: translateY(-100%);
   right: -18px;
+  transform: translateY(-100%);
 
   width: 297px;
   max-width: 80vw;
@@ -30,7 +30,8 @@
       height: 8px;
 
       background: #369cff;
-      clip-path: path(
+      clip-path:
+ path(
         "M 0 8 A 4 4 0 0 0 2.82842712474619 6.82842712474619 L 6.585786437626905 3.0710678118654755 A 2 2 0 0 1 9.414213562373096 3.0710678118654755 L 13.17157287525381 6.82842712474619 A 4 4 0 0 0 16 8 Z"
       );
     }
@@ -57,8 +58,8 @@
 .input-translate-tip {
   position: absolute;
   top: -12px;
-  transform: translateY(-100%);
   right: -18px;
+  transform: translateY(-100%);
 
   width: 297px;
   max-width: 80vw;
@@ -67,9 +68,10 @@
 
   font-size: 14px;
   color: #ffffff;
-  text-transform: none;
-  background-color: #369cff;
   text-align: left;
+  text-transform: none;
+
+  background-color: #369cff;
 
   transition: opacity 0.2s ease-in-out;
   &-arrow {
@@ -87,7 +89,8 @@
       height: 8px;
 
       background: #369cff;
-      clip-path: path(
+      clip-path:
+ path(
         "M 0 8 A 4 4 0 0 0 2.82842712474619 6.82842712474619 L 6.585786437626905 3.0710678118654755 A 2 2 0 0 1 9.414213562373096 3.0710678118654755 L 13.17157287525381 6.82842712474619 A 4 4 0 0 0 16 8 Z"
       );
     }

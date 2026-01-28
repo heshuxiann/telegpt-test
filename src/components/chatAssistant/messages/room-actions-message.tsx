@@ -3,7 +3,7 @@
 /* eslint-disable no-console */
 import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import type { Message } from 'ai';
+import type { Message } from './types';
 import { getGlobal } from '../../../global';
 
 import { selectChat, selectUser } from '../../../global/selectors';

@@ -7,40 +7,40 @@
 }
 
 .guidanceSummaryBg {
+  background-image: url("../../assets/guidance/guidance-summary-light.png");
+  background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  background-repeat: no-repeat;
-  background-image: url("../../assets/guidance/guidance-summary-light.png");
   :global(html.theme-dark) & {
     background-image: url("../../assets/guidance/guidance-summary-dark.png");
   }
 }
 
 .guidanceTranslationBg {
+  background-image: url("../../assets/guidance/guidance-translation-light.png");
+  background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  background-repeat: no-repeat;
-  background-image: url("../../assets/guidance/guidance-translation-light.png");
   :global(html.theme-dark) & {
     background-image: url("../../assets/guidance/guidance-translation-dark.png");
   }
 }
 
 .guidanceMeetingBg {
+  background-image: url("../../assets/guidance/guidance-meeting-light.png");
+  background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  background-repeat: no-repeat;
-  background-image: url("../../assets/guidance/guidance-meeting-light.png");
   :global(html.theme-dark) & {
     background-image: url("../../assets/guidance/guidance-meeting-dark.png");
   }
 }
 
 .guidanceActionsBg {
+  background-image: url("../../assets/guidance/guidance-actions-light.png");
+  background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  background-repeat: no-repeat;
-  background-image: url("../../assets/guidance/guidance-actions-light.png");
   :global(html.theme-dark) & {
     background-image: url("../../assets/guidance/guidance-actions-dark.png");
   }

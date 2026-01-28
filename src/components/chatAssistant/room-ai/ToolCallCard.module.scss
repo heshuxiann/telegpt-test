@@ -1,9 +1,11 @@
 .root {
-  padding: 0.75rem;
   margin: 0.5rem 0;
-  border-radius: 0.5rem;
-  background: var(--color-background-secondary);
+  padding: 0.75rem;
   border: 1px solid var(--color-borders);
+  border-radius: 0.5rem;
+
+  background: var(--color-background-secondary);
+
   transition: all 0.2s ease;
 
   &.pending {
@@ -23,8 +25,8 @@
 
 .header {
   display: flex;
-  align-items: center;
   gap: 0.5rem;
+  align-items: center;
   font-weight: var(--font-weight-medium);
 }
 
@@ -44,10 +46,12 @@
 .params {
   margin-top: 0.5rem;
   padding: 0.5rem;
-  background: var(--color-background);
   border-radius: 0.25rem;
+
   font-size: 0.875rem;
   color: var(--color-text-secondary);
+
+  background: var(--color-background);
 }
 
 .param {
@@ -67,17 +71,21 @@
 .summary {
   margin-top: 0.5rem;
   padding: 0.5rem;
-  background: var(--color-background);
   border-radius: 0.25rem;
+
   font-size: 0.875rem;
   color: var(--color-text);
+
+  background: var(--color-background);
 }
 
 .error {
   margin-top: 0.5rem;
   padding: 0.5rem;
-  background: var(--color-error-shade);
   border-radius: 0.25rem;
+
   font-size: 0.875rem;
   color: var(--color-error);
+
+  background: var(--color-error-shade);
 }

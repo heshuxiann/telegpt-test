@@ -2,7 +2,7 @@
 /* eslint-disable no-console */
 
 import React from 'react';
-import type { Message } from 'ai';
+import type { Message } from '../messages/types';
 import { DateTime, Interval } from 'luxon';
 import { v4 as uuidv4 } from 'uuid';
 import { getActions, getGlobal, getPromiseActions } from '../../../global';

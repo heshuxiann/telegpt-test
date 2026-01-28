@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
 
 import type { ApiMessage } from '../../../api/types/messages';
-import type { SummaryStoreMessage } from '../store/summary-store';
 
 import { ALL_FOLDER_ID } from '../../../config';
 import eventEmitter, { Actions } from '../lib/EventEmitter';
@@ -14,6 +13,7 @@ import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
 import { urgentMessageCheck, urgentVoiceCall } from '../utils/chat-api';
 import { GLOBAL_SUMMARY_CHATID } from '../variables';
+import { AIMessageType, Message } from '../messages/types';
 
 class UrgentCheckTask {
   private static instance: UrgentCheckTask | undefined;
@@ -73,17 +73,13 @@ class UrgentCheckTask {
       console.log('urgent check response', res);
       const matchs = res?.data || [];
       if (matchs.length > 0) {
-        const newMessage: SummaryStoreMessage = {
+        const newMessage: Message = {
           timestamp: new Date().getTime(),
           content: JSON.stringify(matchs),
           id: uuidv4(),
           createdAt: new Date(),
           role: 'assistant',
-          annotations: [
-            {
-              type: 'urgent-message-check',
-            },
-          ],
+          type:AIMessageType.UrgentCheck,
         };
         ChataiStores.summary?.storeMessage(newMessage);
         eventEmitter.emit(Actions.AddUrgentMessage, newMessage);

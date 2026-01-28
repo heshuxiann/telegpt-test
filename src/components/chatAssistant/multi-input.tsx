@@ -9,13 +9,13 @@ import {
   useEffect,
   useRef,
 } from 'react';
-import type { UseChatHelpers } from '@ai-sdk/react';
-import type {
-  Message,
-} from 'ai';
 import cx from 'classnames';
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
+
+import type {
+  ChatStatus,
+  Message } from './messages/types';
 
 import { sanitizeUIMessages } from '../../lib/utils';
 import { AITextarea } from './component/AITextarea';
@@ -29,7 +29,7 @@ function PureMultimodalInput({
   handleInputSubmit,
   className,
 }: {
-  status: UseChatHelpers['status'];
+  status: ChatStatus;
   stop: () => void;
   setMessages: Dispatch<SetStateAction<Array<Message>>>;
   handleInputSubmit: (inputValue: string) => void;
@@ -105,7 +105,7 @@ function PureMultimodalInput({
         value={inputValue}
         onChange={handleInput}
         className={cx(
-          'h-[45px] overflow-y-auto border-[#7D40FF] resize-none rounded-2xl !text-base pb-10 focus-visible:!ring-0 !ring-offset-0 dark:border-[#2F2F2F]',
+          'h-[45px] overflow-y-auto border-[#7D40FF] px-3 py-2 resize-none rounded-2xl !text-base pb-10 focus-visible:!ring-0 !ring-offset-0 dark:border-[#2F2F2F]',
           className,
         )}
         rows={2}

@@ -1,6 +1,5 @@
 import type { ApiMessage } from '../../../api/types';
 
-// eslint-disable-next-line import/no-cycle
 import {
   audioSummary, checkIsUrl, documentSummary, photoSummary, replyToMention, videoSummary, voiceToAudioSummary, webPageSummary,
 } from '../utils/ai-analyse-message';

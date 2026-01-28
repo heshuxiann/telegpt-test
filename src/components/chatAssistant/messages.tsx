@@ -1,11 +1,12 @@
 /* eslint-disable no-null/no-null */
 import React, {
   memo, useEffect,
-  useRef } from 'react';
-import type { UseChatHelpers } from '@ai-sdk/react';
-import type { Message } from 'ai';
+  useRef
+} from 'react';
 import equal from 'fast-deep-equal';
 import { motion } from 'framer-motion';
+
+import type { ChatStatus, Message } from './messages/types';
 
 import { useMessages } from './hook/use-messages';
 import { usePerformanceMonitor } from './hook/usePerformanceMonitor';
@@ -20,7 +21,7 @@ interface MessagesProps {
   chatId: string;
   className?: string;
   isLoading?: boolean;
-  status: UseChatHelpers['status'];
+  status: ChatStatus;
   messages: Array<Message>;
   hasMore?: boolean;
   deleteMessage?: (messageId: string) => void;
@@ -59,9 +60,6 @@ function PureMessages({
     }
   }, [isAtBottom]);
 
-  const isAuxiliary = (message: Message) => {
-    return message?.annotations?.some((item) => item && typeof item === 'object' && 'isAuxiliary' in item && item.isAuxiliary === true) ?? false;
-  };
   const handleScroll = () => {
     const container = messagesContainerRef.current;
     if (!container || upLoadRef.current) return;
@@ -89,18 +87,14 @@ function PureMessages({
       className={cn('ai-message-container custom-scroll flex flex-col min-w-0 gap-[10px] h-full overflow-y-auto relative pt-4 overflow-x-hidden select-text', className)}
     >
       {(messages || []).map((message, index) => {
-        if (!isAuxiliary(message)) {
-          return (
-            <PreviewMessage
-              message={message}
-              deleteMessage={deleteMessage}
-              key={message.id}
-              isLoading={status === 'streaming' && messages.length - 1 === index}
-            />
-          );
-        } else {
-          return null;
-        }
+        return (
+          <PreviewMessage
+            message={message}
+            deleteMessage={deleteMessage}
+            key={message.id}
+            isLoading={status === 'streaming' && messages.length - 1 === index}
+          />
+        );
       })}
 
       {

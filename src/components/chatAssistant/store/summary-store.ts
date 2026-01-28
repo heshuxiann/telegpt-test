@@ -1,13 +1,10 @@
 /* eslint-disable no-null/no-null */
 /* eslint-disable no-console */
-import type { Message } from 'ai';
+import type { Message } from '../messages/types';
 
 import type { StoreName } from './chatai-store';
 import type ChataiDB from './chatai-store';
 
-export interface SummaryStoreMessage extends Message {
-  timestamp: number;
-}
 class SummaryStore {
   private storeName: StoreName = 'summary';
 
@@ -20,7 +17,7 @@ class SummaryStore {
     this.chataiStoreManager = dbManager;
   }
 
-  async storeMessage(message: SummaryStoreMessage): Promise<void> {
+  async storeMessage(message: Message): Promise<void> {
     let db: IDBDatabase;
     try {
       db = await this.chataiStoreManager.getDB();
@@ -46,7 +43,7 @@ class SummaryStore {
     };
   }
 
-  async storeMessages(messages: SummaryStoreMessage[]): Promise<void> {
+  async storeMessages(messages: Message[]): Promise<void> {
     let db: IDBDatabase;
     try {
       db = await this.chataiStoreManager.getDB();
@@ -128,7 +125,7 @@ class SummaryStore {
     });
   }
 
-  async getAllMessages(): Promise<SummaryStoreMessage[]> {
+  async getAllMessages(): Promise<Message[]> {
     let db: IDBDatabase;
     try {
       db = await this.chataiStoreManager.getDB();
@@ -168,26 +165,6 @@ class SummaryStore {
       request.onerror = () => reject(new Error('Failed to delete record'));
     });
   }
-}
-
-export function parseMessage2SummaryStoreMessage(
-  messages: Message[],
-): SummaryStoreMessage[] {
-  const copyedMessages = JSON.parse(JSON.stringify(messages));
-  copyedMessages.forEach((message: Message) => {
-    (message as SummaryStoreMessage).timestamp = new Date(
-      message.createdAt as Date,
-    ).getTime();
-  });
-  return copyedMessages as SummaryStoreMessage[];
-}
-
-export function parseSummaryStoreMessage2Message(messages: SummaryStoreMessage[]): Message[] {
-  const copyedMessages = JSON.parse(JSON.stringify(messages));
-  copyedMessages.forEach((message: SummaryStoreMessage) => {
-    delete (message as any).timestamp;
-  });
-  return copyedMessages as Message[];
 }
 
 export default SummaryStore;

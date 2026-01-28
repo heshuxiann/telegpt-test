@@ -1,7 +1,7 @@
 /* eslint-disable */
 import React, { useEffect, useState } from "react";
 import { getActions, getGlobal } from "../../../global";
-import { Message } from "ai";
+import type { Message } from "./types";
 import { selectCurrentChat } from "../../../global/selectors";
 import { ApiDraft } from "../../../api/types";
 import { ChataiStores } from "../store";

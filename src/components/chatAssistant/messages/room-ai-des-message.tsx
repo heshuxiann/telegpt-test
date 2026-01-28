@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 /* eslint-disable @stylistic/jsx-quotes */
 import React from 'react';
-import type { Message } from '@ai-sdk/react';
+import type { Message } from './types';
 import { getGlobal } from '../../../global';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';

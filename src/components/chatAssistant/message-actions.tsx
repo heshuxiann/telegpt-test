@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Message } from 'ai';
+import type { Message } from './messages/types';
 import copy from 'copy-to-clipboard';
 import { getActions } from '../../global';
 

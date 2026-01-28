@@ -466,7 +466,8 @@
   display: flex;
 
   .input-scroller {
-    --_scroller-right-gap: calc(
+    --_scroller-right-gap:
+ calc(
       (var(--action-button-size) + var(--action-button-compact-fix) - 0.125rem)
     );
 
@@ -523,7 +524,8 @@
       transition: 0.25s ease-out width, 0.25s ease-out border-radius;
 
       &.open {
-        width: calc(
+        width:
+ calc(
           var(--bot-menu-text-width) + var(--padding-sides) * 2 +
             var(--icon-gap) + var(--icon-width)
         );
@@ -715,7 +717,8 @@
     overflow: hidden;
 
     height: auto;
-    padding: calc(
+    padding:
+ calc(
         (var(--base-height, 3rem) - var(--composer-text-size, 1rem) * 1.375) / 2
       )
       0.875rem;
@@ -821,8 +824,10 @@
     padding: 0 0.3125rem 0.125rem 0.3125rem;
     border-radius: 0.5rem;
 
-    text-shadow: -2px -2px 0 var(--color-background),
-      2px -2px 0 var(--color-background), -2px 2px 0 var(--color-background),
+    text-shadow:
+ -2px -2px 0 var(--color-background),
+      2px -2px 0 var(--color-background),
+ -2px 2px 0 var(--color-background),
       2px 2px 0 var(--color-background);
 
     background-image: url("../../assets/spoiler-dots-black.png");
@@ -854,7 +859,8 @@
   .form-control {
     height: auto;
     margin-bottom: 0;
-    padding: calc(
+    padding:
+ calc(
         (var(--base-height, 3rem) - var(--composer-text-size, 1rem) * 1.3125) /
           2
       )
@@ -870,7 +876,8 @@
 
   .forced-placeholder,
   .placeholder-text {
-    top: calc(
+    top:
+ calc(
       (var(--base-height, 3rem) - var(--composer-text-size, 1rem) * 1.3125) / 2
     );
 
@@ -885,8 +892,8 @@
       padding-left: 0;
 
       @media (min-width: 600px) {
-        padding-left: 0.5rem;
         padding-right: 0.5rem;
+        padding-left: 0.5rem;
       }
     }
   }
@@ -951,7 +958,8 @@
 }
 
 #story-input-text .placeholder-text {
-  top: calc(
+  top:
+ calc(
     (var(--base-height, 3rem) - var(--composer-text-size, 1rem) * 1.3125) / 2
   );
   left: 0.875rem;

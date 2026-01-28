@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import type { Message } from 'ai';
+import type { Message } from './types';
 import {
   Button, ConfigProvider, DatePicker, Input,
   Select,

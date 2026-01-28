@@ -20,6 +20,7 @@
     text-transform: none;
 
     background: var(--pattern-color);
+
     transition: background-color 150ms, color 150ms, backdrop-filter 150ms, filter 150ms;
 
     &:hover,

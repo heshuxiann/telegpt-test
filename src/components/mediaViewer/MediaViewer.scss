@@ -73,8 +73,10 @@
 
     display: flex;
     grid-area: 1 / 1 / 2 / -2;
+
     min-width: 0;
     padding: 0.5rem max(1.25rem, env(safe-area-inset-left));
+
     background: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0) 100%);
 
     & > .Transition {

@@ -1,42 +1,56 @@
 .invite-button {
+  cursor: pointer;
+
   position: relative;
+
+  overflow: hidden;
   display: flex;
-  justify-content: center;
-  align-items: center;
   gap: 2px;
+  align-items: center;
+  justify-content: center;
+
   width: 78px;
   height: 32px;
   border-radius: 16px;
-  background: linear-gradient(90deg, #eeedff 37%, #e1fcff 100%);
-  overflow: hidden;
+
   color: #000;
-  cursor: pointer;
+
+  background: linear-gradient(90deg, #eeedff 37%, #e1fcff 100%);
 }
+
 html.theme-dark .invite-button {
-  background: linear-gradient(
+  color: #fff;
+  background:
+ linear-gradient(
     90deg,
     rgba(59, 56, 108, 1) 30%,
     rgba(23, 76, 82, 1) 100%
   );
-  color: #fff;
 }
+
 .invite-button::before {
   content: "";
+
   position: absolute;
   top: 0;
   left: -50%; /* 从左边外面开始 */
+  transform: skewX(-25deg);
+
   width: 50%;
   height: 100%;
-  filter: blur(6px);
-  background: linear-gradient(
+
+  background:
+ linear-gradient(
     120deg,
     rgba(255, 255, 255, 0) 0%,
     rgba(255, 255, 255, 0.8) 50%,
     rgba(255, 255, 255, 0) 100%
   );
-  transform: skewX(-25deg);
+  filter: blur(6px);
+
   animation: shine 6s infinite ease-in-out;
 }
+
 @keyframes shine {
   0% {
     left: -150px;

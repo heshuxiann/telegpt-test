@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import React, { useEffect, useState } from 'react';
-import type { Message } from 'ai';
+import type { Message } from './types';
 
 import { formatTime } from '../../../util/dates/dateFormat';
 import useOldLang from '../hook/useOldLang';

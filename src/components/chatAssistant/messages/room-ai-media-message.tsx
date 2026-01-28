@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React from "react";
-import { Message } from "ai";
+import type { Message } from "./types";
 import { SVGProps } from "react";
 import { ThinkingMessage } from "../message";
 import buildClassName from "../../../util/buildClassName";

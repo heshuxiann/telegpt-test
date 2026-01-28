@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 /* eslint-disable react/no-unescaped-entities */
 import React, { useState } from 'react';
-import type { Message } from 'ai';
+import type { Message } from './types';
 import { getActions, getGlobal } from '../../../global';
 
 import { getUserFullName } from '../../../global/helpers';

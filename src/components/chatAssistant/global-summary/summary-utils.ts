@@ -1,65 +1,55 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import type { SummaryStoreMessage } from '../store/summary-store';
+import { AIMessageType, Message } from '../messages/types';
 
-export const createIntroduceMeetingMessage = (): SummaryStoreMessage => {
+export const createIntroduceMeetingMessage = (): Message => {
   return {
     timestamp: new Date().getTime(),
     content: '',
     id: uuidv4(),
     createdAt: new Date(),
-    role: 'assistant',
-    annotations: [{
-      type: 'global-meeting-introduce',
-    }],
+    role: 'system',
+    type: AIMessageType.MeetingIntroduce,
   };
 };
-export const createIntroduceSummaryMessage = (): SummaryStoreMessage => {
+export const createIntroduceSummaryMessage = (): Message => {
   return {
     timestamp: new Date().getTime(),
     content: '',
     id: uuidv4(),
     createdAt: new Date(),
-    role: 'assistant',
-    annotations: [{
-      type: 'global-summary-introduce',
-    }],
+    role: 'system',
+    type: AIMessageType.SummaryIntroduce,
   };
 };
-export const createIntroduceTranslationMessage = (): SummaryStoreMessage => {
+export const createIntroduceTranslationMessage = (): Message => {
   return {
     timestamp: new Date().getTime(),
     content: '',
     id: uuidv4(),
     createdAt: new Date(),
-    role: 'assistant',
-    annotations: [{
-      type: 'global-translation-introduce',
-    }],
+    role: 'system',
+    type: AIMessageType.TranslationIntroduce,
   };
 };
-export const createIntroduceActionsMessage = (): SummaryStoreMessage => {
+export const createIntroduceActionsMessage = (): Message => {
   return {
     timestamp: new Date().getTime(),
     content: '',
     id: uuidv4(),
     createdAt: new Date(),
-    role: 'assistant',
-    annotations: [{
-      type: 'global-actions-introduce',
-    }],
+    role: 'system',
+    type: AIMessageType.ActionsIntroduce,
   };
 };
 
-export const createGlobalIntroduceMessage = (): SummaryStoreMessage => {
+export const createGlobalIntroduceMessage = (): Message => {
   return {
     timestamp: new Date().getTime(),
     content: '',
     id: uuidv4(),
     createdAt: new Date(),
-    role: 'assistant',
-    annotations: [{
-      type: 'global-introduce',
-    }],
+    role: 'system',
+    type: AIMessageType.GlobalIntroduce,
   };
 };

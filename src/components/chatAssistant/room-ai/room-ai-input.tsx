@@ -1,9 +1,4 @@
 /* eslint-disable no-null/no-null */
-/* eslint-disable consistent-return */
-/* eslint-disable @typescript-eslint/no-use-before-define */
-/* eslint-disable max-len */
-/* eslint-disable react/jsx-no-bind */
-/* eslint-disable no-console */
 
 import React, { useState } from 'react';
 import {
@@ -14,15 +9,14 @@ import {
   useEffect,
   useRef,
 } from 'react';
-import type {
-  Message,
-} from 'ai';
+import type { Message } from '../messages/types';
 import cx from 'classnames';
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
-import { sanitizeUIMessages } from '../../../lib/utils';
 import type { ChatStatus } from '../agent/useAgentChat';
+
+import { sanitizeUIMessages } from '../../../lib/utils';
 import { AITextarea } from '../component/AITextarea';
 import { Button } from '../component/button';
 import { StopIcon } from '../icons';
@@ -37,7 +31,7 @@ function PureMultimodalInput({
   status: ChatStatus;
   stop: () => void;
   setMessages: Dispatch<SetStateAction<Array<Message>>>;
-  handleInputSubmit: (inputValue:string)=>void;
+  handleInputSubmit: (inputValue: string) => void;
   className?: string;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -73,14 +67,10 @@ function PureMultimodalInput({
   useEffect(() => {
     if (textareaRef.current) {
       const domValue = textareaRef.current.value;
-      // Prefer DOM value over localStorage to handle hydration
       const finalValue = domValue || localStorageInput || '';
-      // setInput(finalValue);
       setInputValue(finalValue);
       adjustHeight();
     }
-    // Only run once after hydration
-    // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks-static-deps/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -114,7 +104,7 @@ function PureMultimodalInput({
         value={inputValue}
         onChange={handleInput}
         className={cx(
-          'h-[90px] overflow-y-auto rounded-[20px] resize-none !text-base !p-0 focus-visible:!ring-0 !ring-offset-0 dark:border-[#2F2F2F] border-none',
+          'h-[90px] overflow-y-auto resize-none !text-base !p-0 focus-visible:!ring-0 !ring-offset-0 dark:border-[#2F2F2F] border-none',
           className,
         )}
         rows={2}

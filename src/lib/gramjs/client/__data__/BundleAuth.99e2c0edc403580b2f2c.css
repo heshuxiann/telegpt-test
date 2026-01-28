@@ -1,14 +1,25 @@
-#monkey { position: relative;
+#monkey {
+ position: relative;
 
- display: block;
+  display: block;
 
- width: 7.5rem; height: 7.5rem; margin-right: auto; margin-bottom: 1.75rem; margin-left: auto; }
+  width: 7.5rem;
+ height: 7.5rem;
+ margin-right: auto;
+ margin-bottom: 1.75rem;
+ margin-left: auto;
+ }
 
 #monkey.big { width: 10rem; height: 10rem; }
 
-#monkey .AnimatedSticker { position: absolute; top: 0; left: 0;
+#monkey .AnimatedSticker {
+ position: absolute;
+ top: 0;
+ left: 0;
 
- width: 100%; height: 100%; }
+  width: 100%;
+ height: 100%;
+ }
 
 #monkey .AnimatedSticker.hidden { display: none; }
 

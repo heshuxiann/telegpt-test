@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable max-len */
 import React, { useCallback, useEffect, useState } from 'react';
-import type { Message } from 'ai';
+import type { Message } from './types';
 import { ConfigProvider, Dropdown, Popover, theme } from 'antd';
 import { getActions, getGlobal } from '../../../global';
 

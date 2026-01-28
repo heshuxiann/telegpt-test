@@ -237,27 +237,32 @@
   }
 
   &.min-desktop {
-    .AudioPlayer-content {
-      flex-grow: 1;
-      max-width: none;
-    }
     position: absolute;
-    left: 0;
-    top: var(--header-height);
-    background: var(--color-background);
     z-index: 1;
+    top: var(--header-height);
+    left: 0;
+
     width: 100%;
+
+    background: var(--color-background);
     box-shadow: 0 2px 2px var(--color-light-shadow);
     &::before {
       pointer-events: none;
       content: "";
+
       position: absolute;
       z-index: -100;
       top: -2px;
       right: 0;
       left: 0;
+
       height: 2px;
+
       box-shadow: 0 2px 2px var(--color-light-shadow);
+    }
+    .AudioPlayer-content {
+      flex-grow: 1;
+      max-width: none;
     }
   }
 

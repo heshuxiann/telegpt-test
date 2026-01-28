@@ -3,7 +3,6 @@ import { withGlobal } from '../../../global';
 
 import { selectTabState } from '../../../global/selectors';
 import { getCurrentTabId } from '../../../util/establishMultitabRole';
-
 import { injectComponent } from '../injectComponent';
 import RoomAI from './room-ai';
 

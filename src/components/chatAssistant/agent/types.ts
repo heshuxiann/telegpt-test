@@ -3,7 +3,7 @@ export interface AgentExecuteParams {
   deviceId: string; // 设备ID (必需，标识请求来源设备)
   messages: Array<{
     // 对话历史 (必需)
-    role: 'user' | 'assistant' | 'system';
+    role: "user" | "assistant" | "system";
     content: string;
   }>;
   creditCode: number; // 计费代码 (必需)

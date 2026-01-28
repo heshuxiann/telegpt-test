@@ -1,7 +1,7 @@
-import { useCallback } from 'react';
-import { getActions } from '../../../global';
-import React from 'react';
 import type { FC } from 'react';
+import { useCallback } from 'react';
+import React from 'react';
+import { getActions } from '../../../global';
 
 import buildClassName from '../../../util/buildClassName';
 
@@ -24,7 +24,6 @@ const SelectedMessagesBanner: FC<OwnProps> = ({ selectedMessages }) => {
     clearChatAISelectedMessages({});
   }, [clearChatAISelectedMessages]);
 
-
   if (!selectedMessages || selectedMessages.length === 0) {
     return null;
   }
@@ -43,7 +42,11 @@ const SelectedMessagesBanner: FC<OwnProps> = ({ selectedMessages }) => {
         </div>
         <div className={styles.messagePreview}>
           {message.senderName && (
-            <span className={styles.senderName}>{message.senderName}: </span>
+            <span className={styles.senderName}>
+              {message.senderName}
+              :
+              {' '}
+            </span>
           )}
           <span className={styles.text}>{truncatedContent}</span>
         </div>

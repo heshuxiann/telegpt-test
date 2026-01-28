@@ -1,13 +1,13 @@
 // @ts-nocheck
 import React from 'react';
 import { memo, useMemo } from 'react';
-import type { Message } from 'ai';
 import { Popover } from 'antd';
 import cx from 'classnames';
 import copy from 'copy-to-clipboard';
-import equal from 'fast-deep-equal';
 import { AnimatePresence, motion } from 'framer-motion';
 import { getActions } from '../../global';
+
+import type { Message } from './messages/types';
 
 import { cn } from '../../lib/utils';
 // import AISearchSugesstionsMessage from './messages/ai-search-sugesstion-message';
@@ -38,7 +38,6 @@ import { UserSearchMessage } from './messages/user-search-message';
 import { CopyIcon, LoadingIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
-import { MessageReasoning } from './message-reasoning';
 import { PreviewAttachment } from './preview-attachment';
 
 import ErrorBoundary from './ErrorBoundary';
@@ -90,26 +89,7 @@ const DefaultMessage = ({ message, isLoading }: {
     >
       <div className="flex gap-4 w-full group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl">
         <div className="flex flex-col gap-4 w-full">
-          {message.experimental_attachments && (
-            <div className="flex flex-row justify-end gap-2">
-              {(message.experimental_attachments ?? []).map((attachment) => (
-                <PreviewAttachment
-                  key={attachment.url}
-                  attachment={attachment}
-                />
-              ))}
-            </div>
-          )}
-
-          {message.reasoning && (
-            <MessageReasoning
-              isLoading={isLoading}
-              reasoning={message.reasoning}
-            />
-          )}
-
-          {(message.content || message.reasoning) && (
-
+          {message.content && (
             <div className="flex flex-row gap-2 items-start w-full">
               {message.role === 'user' ? (
                 <Popover
@@ -157,17 +137,10 @@ const PurePreviewMessage = ({
   isLoading: boolean;
   deleteMessage?: (messageId: string) => void;
 }) => {
-  const messageType: AIMessageType | undefined = useMemo(() => {
-    const matched = message?.annotations?.find(
-      (item) => item
-        && typeof item === 'object'
-        && 'type' in item
-        && Object.values(AIMessageType).includes(item.type as AIMessageType),
-    );
-
-    const type = matched?.type as AIMessageType || AIMessageType.Default;
-    return type;
-  }, [message]);
+  const messageType: AIMessageType = useMemo(() => {
+    // 使用自定义 Message 类型的 type 字段
+    return message.type || AIMessageType.Default;
+  }, [message.type]);
 
   const renderMessageComponent = () => {
     switch (messageType) {
@@ -250,14 +223,8 @@ export const PreviewMessage = memo(
   PurePreviewMessage,
   (prevProps, nextProps) => {
     if (prevProps.isLoading !== nextProps.isLoading) return false;
-    if (prevProps.message.reasoning !== nextProps.message.reasoning) return false;
     if (prevProps.message.content !== nextProps.message.content) return false;
-    if (
-      !equal(
-        prevProps.message.toolInvocations,
-        nextProps.message.toolInvocations,
-      )
-    ) return false;
+    if (prevProps.message.type !== nextProps.message.type) return false;
     return true;
   },
 );

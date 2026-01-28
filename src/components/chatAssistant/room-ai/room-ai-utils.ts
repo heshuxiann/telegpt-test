@@ -1,11 +1,12 @@
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
-import type { Message } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { getGlobal } from '../../../global';
 
+import type { Message } from '../messages/types';
 import type { MeetingInformationSuggestType } from '../utils/schedule-meeting';
 import { MAIN_THREAD_ID } from '../../../api/types';
+import { AIMessageType } from '../messages/types';
 
 import { selectChat, selectChatLastMessageId, selectUser } from '../../../global/selectors';
 import { getActionItems, summaryMessage } from '../utils/chat-api';
@@ -14,36 +15,41 @@ import { getAuthState, isTokenValid } from '../utils/google-auth';
 
 export const createRoomDescriptionMessage = (chatId: string): Message => {
   return {
-    role: 'assistant',
+    role: 'system',
     id: uuidv4(),
     createdAt: new Date(),
     content: chatId,
-    annotations: [{
-      type: 'room-ai-description',
-    }],
+    type: AIMessageType.RoomAIDescription,
   };
 };
+
 export const createGoogleLoginMessage = (): Message => {
   return {
-    role: 'assistant',
+    role: 'system',
     id: uuidv4(),
     createdAt: new Date(),
     content: 'Please login first',
-    annotations: [{
-      type: 'google-auth',
-    }],
+    type: AIMessageType.GoogleAuth,
   };
 };
 
 export const createGoogleMeetingMessage = (): Message => {
   return {
-    role: 'assistant',
+    role: 'system',
     id: uuidv4(),
     createdAt: new Date(),
     content: '',
-    annotations: [{
-      type: 'google-event-insert',
-    }],
+    type: AIMessageType.GoogleEventInsert,
+  };
+};
+
+export const createUpgradeTipMessage = (): Message => {
+  return {
+    role: 'system',
+    id: uuidv4(),
+    createdAt: new Date(),
+    content: '',
+    type: AIMessageType.UpgradeTip,
   };
 };
 
@@ -78,14 +84,15 @@ export const summaryRoomMessage = async (
     const formateMessages = formateMessage2Summary(messages);
     if (!formateMessages.length) {
       callback?.();
-      const newMessage = {
+      const newMessage: Message = {
         timestamp: new Date().getTime(),
         content: 'No significant topics or valid data detected. We will continue monitoring.',
         id: uuidv4(),
         createdAt: new Date(),
         role: 'assistant',
+        type: AIMessageType.Default,
       };
-      insertMessage(newMessage as Message);
+      insertMessage(newMessage);
       return;
     }
     const summaryInfo = {
@@ -101,29 +108,28 @@ export const summaryRoomMessage = async (
         ...res.data,
         summaryInfo,
       };
-      const newMessage = {
+      const newMessage: Message = {
         timestamp: new Date().getTime(),
         content: JSON.stringify(content),
         id: uuidv4(),
         createdAt: new Date(),
-        role: 'assistant',
-        annotations: [{
-          type: 'room-summary',
-        }],
+        role: 'system',
+        type: AIMessageType.RoomSummary,
       };
-      insertMessage(newMessage as Message);
+      insertMessage(newMessage);
       callback?.();
     }).catch((err) => {
       console.log(err);
       callback?.();
-      const newMessage = {
+      const newMessage: Message = {
         timestamp: new Date().getTime(),
         content: 'Summarization failed. Try again later.',
         id: uuidv4(),
         createdAt: new Date(),
         role: 'assistant',
+        type: AIMessageType.Default,
       };
-      insertMessage(newMessage as Message);
+      insertMessage(newMessage);
     });
   }
 };
@@ -174,17 +180,15 @@ export const generateRoomActionItems = async (
         ...res.data,
         summaryInfo,
       };
-      const newMessage = {
+      const newMessage: Message = {
         timestamp: new Date().getTime(),
         content: JSON.stringify(content),
         id: uuidv4(),
         createdAt: new Date(),
-        role: 'assistant',
-        annotations: [{
-          type: 'room-actions',
-        }],
+        role: 'system',
+        type: AIMessageType.RoomActions,
       };
-      insertMessage(newMessage as Message);
+      insertMessage(newMessage);
       callback?.();
     }).catch((err) => {
       console.log(err);
@@ -207,15 +211,13 @@ export const createMeetingTimeConfirmMessage = ({
   timeZone: string;
 }): Message => {
   return {
-    role: 'assistant',
+    role: 'system',
     id: uuidv4(),
     createdAt: new Date(),
     content: JSON.stringify({
       chatId, startTime, duration, email, timeZone, isConfirmed: false,
     }),
-    annotations: [{
-      type: 'google-meet-time-confirm',
-    }],
+    type: AIMessageType.GoogleMeetTimeConfirm,
   };
 };
 
@@ -226,16 +228,14 @@ export const createMeetingMentionMessage = (data: {
   messageText: string | undefined;
 }): Message => {
   return {
-    role: 'assistant',
+    role: 'system',
     id: uuidv4(),
     createdAt: new Date(),
     content: JSON.stringify({
       ...data,
       isConfirmed: false,
     }),
-    annotations: [{
-      type: 'google-meet-mention',
-    }],
+    type: AIMessageType.GoogleMeetMention,
   };
 };
 
@@ -246,7 +246,7 @@ export const createMeetingInformationSuggestMessage = (data: {
   suggestType: MeetingInformationSuggestType;
 }): Message => {
   return {
-    role: 'assistant',
+    role: 'system',
     id: uuidv4(),
     createdAt: new Date(),
     content: JSON.stringify({
@@ -254,9 +254,7 @@ export const createMeetingInformationSuggestMessage = (data: {
       emailConfirmed: false,
       calendlyConfirmed: false,
     }),
-    annotations: [{
-      type: 'google-meet-information-suggest',
-    }],
+    type: AIMessageType.GoogleMeetInformationSuggest,
   };
 };
 
@@ -272,36 +270,20 @@ export const createUserPortraitMessage = (name: string): Message => {
     }
   });
   return {
-    role: 'assistant',
+    role: 'system',
     id: uuidv4(),
     createdAt: new Date(),
     content: userId ?? '',
-    annotations: [{
-      type: 'user-portrait',
-    }],
+    type: AIMessageType.UserPortrait,
   };
 };
 
 export const createNewFeatureReminderMessage = (tip = 'Comming soon!'): Message => {
   return {
-    role: 'assistant',
+    role: 'system',
     id: uuidv4(),
     createdAt: new Date(),
     content: tip,
-    annotations: [{
-      type: 'new-feature-reminder',
-    }],
-  };
-};
-
-export const createUpgradeTipMessage = (): Message => {
-  return {
-    role: 'assistant',
-    id: uuidv4(),
-    createdAt: new Date(),
-    content: 'Upgrade to Room AI Pro to unlock more features.',
-    annotations: [{
-      type: 'upgrade-tip',
-    }],
+    type: AIMessageType.Default, // 没有对应的类型，使用 Default
   };
 };

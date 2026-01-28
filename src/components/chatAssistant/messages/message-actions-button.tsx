@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import type { Message } from 'ai';
+import type { Message } from './types';
 import { getActions } from '../../../global';
 
 import { useSpeechPlayer } from '../hook/useSpeechPlayer';

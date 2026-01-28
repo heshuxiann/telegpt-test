@@ -118,8 +118,8 @@
 
 #auth-phone-number-form {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   height: 100%;
   .form {
     min-height: 26.25rem;
@@ -137,7 +137,6 @@
 
 .auth-number-edit {
   cursor: var(--custom-cursor, pointer);
-
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
 import React, { useEffect, useState } from 'react';
-import type { Message } from 'ai';
+import type { Message } from './types';
 import { getGlobal } from '../../../global';
 
 import { getUserFullName } from '../../../global/helpers';

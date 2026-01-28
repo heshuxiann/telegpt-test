@@ -3,6 +3,7 @@ import { getGlobal } from '../../../global';
 
 import type { StoreMessage } from '../store/messages-store';
 import { MAIN_THREAD_ID } from '../../../api/types';
+import { AIMessageType } from '../messages/types';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';
 import { selectChat, selectChatLastMessageId } from '../../../global/selectors';
@@ -172,18 +173,16 @@ class RoomStorage {
             ...res.data,
             summaryInfo,
           };
-          const newMessage = {
+          const newMessage: StoreMessage = {
             chatId,
             timestamp: new Date().getTime(),
             content: JSON.stringify(content),
             id: uuidv4(),
             createdAt: new Date(),
-            role: 'assistant',
-            annotations: [{
-              type: 'room-summary',
-            }],
+            role: 'system',
+            type: AIMessageType.RoomSummary,
           };
-          ChataiStores.message?.storeMessage(newMessage as StoreMessage);
+          ChataiStores.message?.storeMessage(newMessage);
           eventEmitter.emit(Actions.AddRoomAIMessage, newMessage);
           this.increaseUnreadCount(chatId);
           this.updateRoomAIData(chatId, 'summaryState', false);

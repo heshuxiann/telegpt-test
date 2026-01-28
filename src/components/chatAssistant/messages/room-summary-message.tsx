@@ -5,7 +5,7 @@
 import React, {
   useCallback, useEffect, useRef, useState,
 } from 'react';
-import type { Message } from 'ai';
+import type { Message } from './types';
 import { toBlob } from 'html-to-image';
 import { getGlobal } from '../../../global';
 

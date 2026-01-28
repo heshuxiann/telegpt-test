@@ -21,6 +21,7 @@ import {
   selectChatMessage,
   selectWebPageFromMessage,
 } from "../../../global/selectors";
+import { AIMessageType } from "../messages/types";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js";
 
@@ -28,7 +29,7 @@ const mammoth = require("mammoth");
 
 export async function replyToMention(
   message: ApiMessage,
-  isAuto: boolean = false
+  isAuto: boolean = false,
 ) {
   if (!message.isMentioned || !message.content?.text?.text) return;
 
@@ -38,7 +39,7 @@ export async function replyToMention(
     id: uuidv4(),
     createdAt: new Date(),
     role: "assistant",
-    annotations: [{ type: "room-ai-reply-mention" }],
+    type: AIMessageType.AIReplyMention,
     content: JSON.stringify({
       messageId: message.id,
       content: message.content.text?.text,
@@ -77,7 +78,7 @@ export async function replyToMention(
 
 export async function photoSummary(
   message: ApiMessage,
-  isAuto: boolean = false
+  isAuto: boolean = false,
 ) {
   const photo = message.content?.photo;
   if (!photo) return;
@@ -91,7 +92,7 @@ export async function photoSummary(
     id: uuidv4(),
     createdAt: new Date(),
     role: "assistant",
-    annotations: [{ type: "room-ai-media-summary" }],
+    type: AIMessageType.AIMediaSummary,
     content: JSON.stringify({ message, isAuto, status: "loading" }),
   };
   await sendMessageToAIRoom(newMessage);
@@ -107,7 +108,7 @@ export async function photoSummary(
 
 export async function webPageSummary(
   message: ApiMessage,
-  isAuto: boolean = false
+  isAuto: boolean = false,
 ) {
   // const webPage = message.content?.webPage;
   const global = getGlobal();
@@ -121,7 +122,7 @@ export async function webPageSummary(
     id: uuidv4(),
     createdAt: new Date(),
     role: "assistant",
-    annotations: [{ type: "room-ai-media-summary" }],
+    type: AIMessageType.AIMediaSummary,
     content: JSON.stringify({ message, isAuto, status: "loading" }),
   };
   await sendMessageToAIRoom(newMessage);
@@ -155,7 +156,7 @@ export async function webPageSummary(
 
 export async function documentSummary(
   message: ApiMessage,
-  isAuto: boolean = false
+  isAuto: boolean = false,
 ) {
   const document = message.content?.document;
   if (!document) return;
@@ -170,7 +171,7 @@ export async function documentSummary(
     id: uuidv4(),
     createdAt: new Date(),
     role: "assistant",
-    annotations: [{ type: "room-ai-media-summary" }],
+    type: AIMessageType.AIMediaSummary,
     content: JSON.stringify({ message, isAuto, status: "loading" }),
   };
   await sendMessageToAIRoom(newMessage);
@@ -266,7 +267,7 @@ export async function documentSummary(
 
 export async function voiceSummary(
   message: ApiMessage,
-  isAuto: boolean = false
+  isAuto: boolean = false,
 ) {
   const voice = message.content?.voice;
   if (!voice) return;
@@ -277,7 +278,7 @@ export async function voiceSummary(
     id: uuidv4(),
     createdAt: new Date(),
     role: "assistant",
-    annotations: [{ type: "room-ai-media-summary" }],
+    type: AIMessageType.AIMediaSummary,
     content: JSON.stringify({ message, isAuto, status: "loading" }),
   };
   await sendMessageToAIRoom(newMessage);
@@ -301,7 +302,7 @@ export async function voiceSummary(
     const currentMessage = selectChatMessage(
       newGlobal,
       message.chatId,
-      message.id
+      message.id,
     );
     if (currentMessage?.isTranscriptionError) {
       sendErrorMessage(newMessage, message, isAuto);
@@ -346,7 +347,7 @@ export async function voiceSummary(
 
 export async function voiceToAudioSummary(
   message: ApiMessage,
-  isAuto: boolean = false
+  isAuto: boolean = false,
 ) {
   const voice = message.content?.voice;
   if (!voice) return;
@@ -367,7 +368,7 @@ export async function voiceToAudioSummary(
     id: uuidv4(),
     createdAt: new Date(),
     role: "assistant",
-    annotations: [{ type: "room-ai-media-summary" }],
+    type: AIMessageType.AIMediaSummary,
     content: JSON.stringify({ message, isAuto, status: "loading" }),
   };
   await sendMessageToAIRoom(newMessage);
@@ -385,7 +386,7 @@ export async function voiceToAudioSummary(
 
 export async function audioSummary(
   message: ApiMessage,
-  isAuto: boolean = false
+  isAuto: boolean = false,
 ) {
   const audio = message.content?.audio;
   if (!audio) return;
@@ -398,7 +399,7 @@ export async function audioSummary(
     id: uuidv4(),
     createdAt: new Date(),
     role: "assistant",
-    annotations: [{ type: "room-ai-media-summary" }],
+    type: AIMessageType.AIMediaSummary,
     content: JSON.stringify({ message, isAuto, status: "loading" }),
   };
   await sendMessageToAIRoom(newMessage);
@@ -416,7 +417,7 @@ export async function audioSummary(
 
 export async function videoSummary(
   message: ApiMessage,
-  isAuto: boolean = false
+  isAuto: boolean = false,
 ) {
   const video = message.content?.video;
   if (!video) return;
@@ -429,7 +430,7 @@ export async function videoSummary(
     id: uuidv4(),
     createdAt: new Date(),
     role: "assistant",
-    annotations: [{ type: "room-ai-media-summary" }],
+    type: AIMessageType.AIMediaSummary,
     content: JSON.stringify({ message, isAuto, status: "loading" }),
   };
   await sendMessageToAIRoom(newMessage);
@@ -620,7 +621,7 @@ export function checkIsImage(mimeType: string) {
 async function sendErrorMessage(
   newMessage: StoreMessage,
   message: ApiMessage,
-  isAuto: boolean
+  isAuto: boolean,
 ) {
   newMessage = {
     ...newMessage,
@@ -639,7 +640,7 @@ export function getAutoTransLang() {
 
   return (
     new Intl.DisplayNames([telyAiLanguage], { type: "language" }).of(
-      telyAiLanguage
+      telyAiLanguage,
     ) || "en"
   );
 }

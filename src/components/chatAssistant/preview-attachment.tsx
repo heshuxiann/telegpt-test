@@ -1,6 +1,6 @@
 
 import React from 'react';
-import type { Attachment } from 'ai';
+import type { Attachment } from './messages/types';
 
 import { LoaderIcon } from './icons';
 

@@ -235,9 +235,7 @@
     .typing-status {
       unicode-bidi: plaintext;
       flex-grow: 1;
-
       padding-right: 0.25rem;
-
       color: var(--color-text-secondary);
 
       &[dir="ltr"] {

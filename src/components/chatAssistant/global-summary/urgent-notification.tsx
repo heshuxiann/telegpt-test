@@ -4,7 +4,7 @@
 /* eslint-disable max-len */
 import type { CSSProperties } from 'react';
 import React, { useEffect } from 'react';
-import type { Message } from 'ai';
+import type { Message } from '../messages/types';
 import { notification } from 'antd';
 
 import DangerIcon from '../assets/danger.png';

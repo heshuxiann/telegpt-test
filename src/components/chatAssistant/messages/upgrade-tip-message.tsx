@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import type { Message } from 'ai';
+import type { Message } from './types';
 import { getActions } from '../../../global';
 
 import eventEmitter, { Actions } from '../lib/EventEmitter';

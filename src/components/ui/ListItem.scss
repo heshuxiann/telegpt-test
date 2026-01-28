@@ -331,7 +331,6 @@
       .status,
       .typing-status {
         display: inline-block;
-
         font-size: 0.875rem;
         line-height: 1.25rem;
         color: var(--color-text-secondary);
@@ -434,9 +433,7 @@
   .multiline-item {
     overflow: hidden;
     flex-grow: 1;
-
     padding: 0.4375rem 0 0.5625rem 0;
-
     white-space: initial;
 
     .word-break {

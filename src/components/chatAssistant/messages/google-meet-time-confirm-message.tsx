@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Message } from '@ai-sdk/react';
+import type { Message } from './types';
 import cx from 'classnames';
 import { getActions } from '../../../global';
 

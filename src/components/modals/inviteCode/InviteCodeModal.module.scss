@@ -5,8 +5,8 @@
   }
 }
 
-.modal{
-  :global(.modal-backdrop){
+.modal {
+  :global(.modal-backdrop) {
     background-color: rgba(0, 0, 0, 0.5);
   }
 }
@@ -14,7 +14,6 @@
 .container {
   text-align: center;
 }
-
 
 .header {
   position: absolute;
@@ -61,12 +60,15 @@
 
 .input {
   width: 100%;
+  margin-bottom: 0;
   border-radius: 0.5rem;
+
   font-size: 1rem;
   color: var(--color-text);
+
   background: var(--color-background);
+
   transition: border-color 0.2s ease;
-  margin-bottom: 0;
 
   &:focus {
     border-color: var(--color-primary);
@@ -80,10 +82,10 @@
 }
 
 .error {
-  font-size: 0.875rem;
-  color: var(--color-error);
   height: 2rem;
+  font-size: 0.875rem;
   line-height: 2rem;
+  color: var(--color-error);
 }
 
 .footer {

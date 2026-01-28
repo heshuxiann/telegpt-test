@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 import React, { useState } from 'react';
-import type { Message } from 'ai';
+import type { Message } from './types';
 import cx from 'classnames';
 import { getGlobal } from '../../../global';
 

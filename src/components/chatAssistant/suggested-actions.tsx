@@ -4,7 +4,7 @@
 /* eslint-disable react/jsx-no-bind */
 // @ts-nocheck
 import React, { memo } from 'react';
-import type { ChatRequestOptions, CreateMessage, Message } from 'ai';
+import type { ChatRequestOptions, CreateMessage, Message } from './messages/types';
 import { motion } from 'framer-motion';
 
 import { Button } from './ui/button';
