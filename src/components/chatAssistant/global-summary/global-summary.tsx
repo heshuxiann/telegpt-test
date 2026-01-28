@@ -50,7 +50,7 @@ const GlobalSummary = () => {
     scrollToBottom, scrollLocked, isScrollLock,
   } = useScrollToBottom();
   const {
-    messages, setMessages, append, stop, status,
+    messages, setMessages, append, stop, status, currentPhase,
   } = useAgentChat({
     chatId: GLOBAL_SUMMARY_CHATID,
     onError: (error) => {
@@ -201,6 +201,7 @@ const GlobalSummary = () => {
               className="px-[15%] flex-1"
               status={status}
               messages={viewMessages}
+              currentPhase={currentPhase}
               deleteMessage={deleteMessage}
               loadMore={handleLoadMore}
               hasMore={pageInfo.hasMore}

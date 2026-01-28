@@ -20,16 +20,13 @@ import RoomStorage from '../room-storage';
 import { ChataiStores } from '../store';
 import { parseMessage2StoreMessage, parseStoreMessage2Message } from '../store/messages-store';
 import RoomActions from './room-actions';
-// import RoomAIDescription from './room-ai-des';
 import { RoomAIInput } from './room-ai-input';
 import {
   createGoogleLoginMessage, createGoogleMeetingMessage,
   createRoomDescriptionMessage, createUpgradeTipMessage,
 } from './room-ai-utils';
 
-import PhaseIndicator from './PhaseIndicator';
 import SelectedMessagesBanner from './SelectedMessagesBanner';
-import ToolCallCard from './ToolCallCard';
 
 import './room-ai.scss';
 import styles from './room-ai.module.scss';
@@ -268,27 +265,13 @@ const RoomAIInner = (props: StateProps) => {
         isLoading={isLoading}
         status={status}
         messages={messages}
+        currentPhase={currentPhase}
+        toolCalls={toolCalls}
         deleteMessage={deleteMessage}
         loadMore={handleLoadMore}
         hasMore={pageInfo.hasMore}
         chatId={chatId!}
       />
-
-      {/* 阶段指示器 */}
-      {currentPhase && status === 'streaming' && (
-        <div className={styles.phaseIndicatorContainer}>
-          <PhaseIndicator phase={currentPhase} />
-        </div>
-      )}
-
-      {/* 工具调用卡片 */}
-      {toolCalls.length > 0 && (
-        <div className={styles.toolCallsContainer}>
-          {toolCalls.map((tool, index) => (
-            <ToolCallCard key={`${tool.toolName}_${index}`} tool={tool} />
-          ))}
-        </div>
-      )}
 
       <div className="px-[16px] pb-4">
         <RoomActions setIsLoading={(status) => setIsLoading(status)} insertMessage={insertMessage} chatId={chatId} />

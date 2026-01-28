@@ -31,7 +31,7 @@ export const AISearch = () => {
     scrollToBottom, scrollLocked, isScrollLock,
   } = useScrollToBottom();
   const {
-    messages, setMessages, append, status, stop,
+    messages, setMessages, append, status, stop, currentPhase,
   } = useAgentChat({
     chatId: GLOBAL_SEARCH_CHATID,
     onError: (error) => {
@@ -292,6 +292,7 @@ export const AISearch = () => {
         className="chat-ai-output-wrapper flex-1"
         status={status}
         messages={messages}
+        currentPhase={currentPhase}
         loadMore={handleLoadMore}
         hasMore={pageInfo.hasMore}
         chatId={GLOBAL_SEARCH_CHATID}

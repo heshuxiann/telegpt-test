@@ -17,7 +17,7 @@ import UsersStore from './user-store';
 import { ChataiStores } from '.';
 
 let currentUserId!: string;
-const dbVersion = 20;
+const dbVersion = 22; // 升级版本以清空旧的 Message 和 Summary 数据
 export function setChataiStoreBuilderCurrentUserId(_currentUserId: string) {
   if (_currentUserId && (!currentUserId || currentUserId !== _currentUserId)) {
     initChataiStores(_currentUserId);

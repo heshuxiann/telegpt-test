@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable no-null/no-null */
-// eslint-disable-next-line @stylistic/max-len
+
 export type StoreName = 'message' | 'contact' | 'user' | 'general' | 'knowledge' | 'summaryTemplate' | 'urgentTopic' | 'summary' | 'folder' | 'aIChatFolders' | 'userPortrait' | 'userPortraitMessage' | 'tgMessage';
 
 type IndexConfig = [indexName: string, keyPath: string | string[]];
@@ -47,17 +47,26 @@ class ChataiStoreManager {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
+        const oldVersion = event.oldVersion;
+
+        // 版本 21: 清空 message 和 summary 表以适配新的 Message 类型
+        if (oldVersion < 22) {
+          console.log('[ChataiDB] Upgrading to v22: Clearing message and summary stores for new Message type');
+
+          // 删除并重新创建 message store
+          if (db.objectStoreNames.contains('message')) {
+            db.deleteObjectStore('message');
+            console.log('[ChataiDB] Deleted old message store');
+          }
+
+          // 删除并重新创建 summary store
+          if (db.objectStoreNames.contains('summary')) {
+            db.deleteObjectStore('summary');
+            console.log('[ChataiDB] Deleted old summary store');
+          }
+        }
+
         // 遍历 STORE_CONFIG，确保所有表都被创建
-        // if (db.objectStoreNames.contains('message')) {
-        //   db.deleteObjectStore('message');
-        //   // eslint-disable-next-line no-console
-        //   console.log('messages 对象存储已删除');
-        // }
-        // if (db.objectStoreNames.contains('urgentTopic')) {
-        //   db.deleteObjectStore('urgentTopic');
-        //   // eslint-disable-next-line no-console
-        //   console.log('urgentTopic 对象存储已删除');
-        // }
         Object.entries(this.STORE_CONFIG).forEach(([storeName, config]) => {
           if (!db.objectStoreNames.contains(storeName)) {
             const store = db.createObjectStore(storeName,
@@ -68,6 +77,8 @@ class ChataiStoreManager {
                 store.createIndex(indexName, keyPath, { unique: false });
               });
             }
+
+            console.log(`[ChataiDB] Created store: ${storeName}`);
           }
         });
       };

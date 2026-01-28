@@ -122,7 +122,7 @@ function PureMultimodalInput({
         }}
       />
 
-      <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row items-center justify-end">
+      <div className="absolute bottom-0 right-0  w-fit flex flex-row items-center justify-end">
         {status === 'streaming' ? (
           <StopButton stop={stop} setMessages={setMessages} />
         ) : (
@@ -181,7 +181,6 @@ function PureSendButton({
       }}
       disabled={input.length === 0}
     >
-      {/* <ArrowUpIcon size={14} /> */}
       <i className="icon icon-send text-[#B27AFF] text-[24px]" />
     </Button>
   );
