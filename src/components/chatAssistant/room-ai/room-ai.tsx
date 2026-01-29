@@ -277,7 +277,7 @@ const RoomAIInner = (props: StateProps) => {
     append(newMessage);
     // 存储用户消息
     storeMessagesToDB(newMessage);
-  }, [append, scrollToBottom, storeMessagesToDB]);
+  }, [append, scrollToBottom, storeMessagesToDB,chatId]);
 
   useEffect(() => {
     eventEmitter.on(Actions.CreateCalendarSuccess, handleCreateCalendarSuccess);

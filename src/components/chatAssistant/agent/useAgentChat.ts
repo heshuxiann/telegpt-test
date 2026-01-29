@@ -93,11 +93,25 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
   const currentAssistantMessageRef = useRef<string>('');
   const citationsRef = useRef<CitationEvent['data'][]>([]);
   const messagesRef = useRef<Message[]>(messages);
+  const chatIdRef = useRef<string | undefined>(chatId);
 
   // 同步 messagesRef 和 messages 状态
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
+
+  // 同步 chatIdRef 和 chatId
+  useEffect(() => {
+    chatIdRef.current = chatId;
+  }, [chatId]);
+
+  // 当 chatId 变化时，重置消息状态
+  useEffect(() => {
+    setMessages([]);
+    setStatus('ready');
+    setCurrentPhase(null);
+    setToolCalls([]);
+  }, [chatId]);
 
   const isStreaming = status === 'streaming';
 
@@ -118,7 +132,10 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
    */
   const sendMessage = useCallback(
     async (messagesToSend: Message[]) => {
-      if (!chatId) {
+      // 使用 ref 获取最新的 chatId，避免闭包陷阱
+      const currentChatId = chatIdRef.current;
+
+      if (!currentChatId) {
         const error = new Error('chatId is required');
         onError?.(error);
         return;
@@ -264,7 +281,7 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
             role: msg.role as 'user' | 'assistant' | 'system',
             content: msg.content,
           })),
-          chatId,
+          chatId: currentChatId,
           selectedMessages,
           maxIterations,
           streaming: true,
@@ -327,7 +344,6 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
       }
     },
     [
-      chatId,
       selectedMessages,
       maxIterations,
       showThinking,
