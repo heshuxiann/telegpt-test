@@ -50,7 +50,7 @@ class ChataiStoreManager {
         const oldVersion = event.oldVersion;
 
         // 版本 21: 清空 message 和 summary 表以适配新的 Message 类型
-        if (oldVersion < 22) {
+        if (oldVersion < 23) {
           console.log('[ChataiDB] Upgrading to v22: Clearing message and summary stores for new Message type');
 
           // 删除并重新创建 message store

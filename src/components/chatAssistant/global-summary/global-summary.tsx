@@ -143,33 +143,32 @@ const GlobalSummary = () => {
   }, [storeMessagesToDB]);
 
   const getSummaryHistory = useCallback(() => {
-    // 检查是否需要创建 IntroMessage
-    const introMessage = IntroMessageManager.getIntroMessage(GLOBAL_SUMMARY_CHATID);
-    if (introMessage) {
-      // 第一次访问全局总结，创建并存储 IntroMessage
-      storeMessagesToDB(introMessage);
-    }
-
-    // 从 store 加载历史消息
-    ChataiStores.summary?.getMessages(undefined, 30)?.then((res) => {
-      if (res.messages.length > 0) {
-        // Store 中有历史消息，直接加载
-        const localChatAiMessages = res?.messages ?? [];
-        setSummaryMessages(localChatAiMessages);
-      } else if (introMessage) {
-        // Store 中没有消息，但刚创建了 introMessage
-        setSummaryMessages([introMessage]);
+    // 先检查是否存在 IntroMessage
+    const introMessageId = 'intro-message-global-summary';
+    ChataiStores.summary?.getMessage(introMessageId).then(async (existingIntro) => {
+      if (!existingIntro) {
+        // 数据库中不存在 IntroMessage，创建并存储
+        const introMessage = IntroMessageManager.getIntroMessage(GLOBAL_SUMMARY_CHATID);
+        ChataiStores.summary?.storeMessage(introMessage);
       }
-      setPageInfo({
-        lastTime: res.lastTime,
-        hasMore: res.hasMore,
-      });
+
+      // 然后加载历史消息
+      const res = await ChataiStores.summary?.getMessages(undefined, 30);
+      if (res && res.messages) {
+        const localChatAiMessages = res.messages ?? [];
+        setSummaryMessages(localChatAiMessages);
+        setPageInfo({
+          lastTime: res.lastTime,
+          hasMore: res.hasMore,
+        });
+      }
+
       // 初次加载完成后立即滚动到底部
       requestAnimationFrame(() => {
         scrollToBottom('instant');
       });
     });
-  }, [storeMessagesToDB, scrollToBottom]);
+  }, [scrollToBottom]);
 
   // useEffect(() => {
   //   const lastFocusTime = RoomStorage.getRoomLastFocusTime(GLOBAL_SUMMARY_CHATID);

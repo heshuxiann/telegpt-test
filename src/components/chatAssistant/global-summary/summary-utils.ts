@@ -47,7 +47,7 @@ export const createGlobalIntroduceMessage = (): Message => {
   return {
     timestamp: new Date().getTime(),
     content: '',
-    id: uuidv4(),
+    id: 'intro-message-global-summary', // 使用固定的特殊 ID
     createdAt: new Date(),
     role: 'teleai-system',
     type: AIMessageType.GlobalIntroduce,

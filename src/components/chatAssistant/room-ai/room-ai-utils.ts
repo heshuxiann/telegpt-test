@@ -16,7 +16,7 @@ import { getAuthState, isTokenValid } from '../utils/google-auth';
 export const createRoomDescriptionMessage = (chatId: string): Message => {
   return {
     role: 'teleai-system',
-    id: uuidv4(),
+    id: `intro-message-${chatId}`, // 使用固定的特殊 ID
     createdAt: new Date(),
     content: chatId,
     type: AIMessageType.RoomAIDescription,

@@ -145,6 +145,26 @@ class SummaryStore {
     });
   }
 
+  async getMessage(id: string): Promise<Message | undefined> {
+    let db: IDBDatabase;
+    try {
+      db = await this.chataiStoreManager.getDB();
+    } catch (error) {
+      console.error('Error getting message:', error);
+      return Promise.reject(error);
+    }
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(this.storeName, 'readonly');
+      const store = tx.objectStore(this.storeName);
+      const request = store.get(id);
+
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+      request.onerror = () => reject(new Error('Failed to get message'));
+    });
+  }
+
   async delMessage(id: string): Promise<void> {
     let db: IDBDatabase;
     try {

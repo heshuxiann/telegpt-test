@@ -156,35 +156,38 @@ const RoomAIInner = (props: StateProps) => {
     if (chatId) {
       initDate();
 
-      // 检查是否需要创建 IntroMessage
-      const introMessage = IntroMessageManager.getIntroMessage(chatId);
-      if (introMessage) {
-        // 第一次访问该房间，创建并存储 IntroMessage
-        storeMessagesToDB(introMessage);
-      }
+      // 先检查是否存在 IntroMessage
+      const introMessageId = `intro-message-${chatId}`;
+      ChataiStores.message?.getMessage(introMessageId).then(async (existingIntro) => {
+        if (!existingIntro) {
+          // 数据库中不存在 IntroMessage，创建并存储
+          const introMessage = IntroMessageManager.getIntroMessage(chatId);
+          const storeMsgs = parseMessage2StoreMessage(chatId, [introMessage]);
+          storeMsgs.forEach((msg) => {
+            ChataiStores.message?.storeMessage(msg);
+          });
+        }
 
-      // 从 store 加载历史消息
-      ChataiStores.message?.getMessages(chatId, undefined, 10)?.then((res) => {
-        if (res.messages.length > 0) {
-          // Store 中有历史消息，直接加载
+        // 然后加载历史消息
+        const res = await ChataiStores.message?.getMessages(chatId, undefined, 10);
+        if (res && res.messages) {
           const localChatAiMessages = parseStoreMessage2Message(res.messages);
           setMessages(localChatAiMessages);
-        } else if (introMessage) {
-          // Store 中没有消息，但刚创建了 introMessage
-          setMessages([introMessage]);
+          setPageInfo({
+            lastTime: res.lastTime,
+            hasMore: res.hasMore,
+          });
         }
-        setPageInfo({
-          lastTime: res.lastTime,
-          hasMore: res.hasMore,
-        });
+
         // 初次加载完成后立即滚动到底部
         requestAnimationFrame(() => {
           scrollToBottom('instant');
         });
       });
+
       RoomStorage.updateRoomAIData(chatId, 'unreadCount', 0);
     }
-  }, [chatId, initDate, setMessages, storeMessagesToDB, scrollToBottom]);
+  }, [chatId, initDate, setMessages, scrollToBottom]);
 
   const handleLoadMore = useCallback(() => {
     scrollLocked();
@@ -277,7 +280,7 @@ const RoomAIInner = (props: StateProps) => {
     append(newMessage);
     // 存储用户消息
     storeMessagesToDB(newMessage);
-  }, [append, scrollToBottom, storeMessagesToDB,chatId]);
+  }, [append, scrollToBottom, storeMessagesToDB]);
 
   useEffect(() => {
     eventEmitter.on(Actions.CreateCalendarSuccess, handleCreateCalendarSuccess);

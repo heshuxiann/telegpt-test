@@ -105,14 +105,6 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
     chatIdRef.current = chatId;
   }, [chatId]);
 
-  // 当 chatId 变化时，重置消息状态
-  useEffect(() => {
-    setMessages([]);
-    setStatus('ready');
-    setCurrentPhase(null);
-    setToolCalls([]);
-  }, [chatId]);
-
   const isStreaming = status === 'streaming';
 
   /**
