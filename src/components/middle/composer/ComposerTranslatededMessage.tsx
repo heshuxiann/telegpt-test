@@ -22,6 +22,7 @@ import Icon from '../../common/icons/Icon';
 import Button from '../../ui/Button';
 
 import './ComposerTranslatededMessage.scss';
+import { checkCredisBalance } from '../../../util/subscriptionHandler';
 interface OwnProps {
   chatId: string;
   getHtml: Signal<string>;
@@ -40,7 +41,7 @@ const ComposerTranslatededMessage = ({ chatId, currentUserId, currentUser, getHt
   const lastHtmlRef = useRef<string>('');
   const [isTranslate, setIsTranslate] = useState(false);
   const inputRef = useRef<HTMLDivElement>();
-  const { showNotification } = getActions();
+  const { showNotification, openCreditLimitModal } = getActions();
   useEffect(() => {
     const html = getHtml();
 
@@ -57,6 +58,13 @@ const ComposerTranslatededMessage = ({ chatId, currentUserId, currentUser, getHt
       try {
         const { text } = parseHtmlAsFormattedText(html);
         if (!text?.trim()) return;
+        if (!checkCredisBalance()) {
+          openCreditLimitModal({
+            title: 'Translation failed',
+            message: "You've reached your credit limit. Please upgrade your plan.",
+          });
+          return;
+        }
 
         setIsTranslate(true);
 

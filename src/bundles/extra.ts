@@ -30,7 +30,8 @@ export { default as ChatInviteModal } from '../components/modals/chatInvite/Chat
 export { default as CreditsModal } from '../components/modals/credits/CreditsModal';
 export { default as InviteFriendsModal } from '../components/modals/inviteFriends/InviteFriendsModal';
 export { default as InviteCodeModal } from '../components/modals/inviteCode/InviteCodeModal';
-export { default as PayPackageModal } from '../components/modals/membership/PayPackageModal';
+export { default as PayPackageModal } from '../components/modals/subscribtion/PayPackageModal';
+export { default as CreditLimitModal } from '../components/modals/subscribtion/CreditLimitModal';
 
 export { default as AboutAdsModal } from '../components/modals/aboutAds/AboutAdsModal';
 export { default as AboutMonetizationModal } from '../components/common/AboutMonetizationModal';

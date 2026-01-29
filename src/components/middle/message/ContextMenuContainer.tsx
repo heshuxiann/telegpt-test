@@ -93,6 +93,7 @@ import useShowTransition from '../../../hooks/useShowTransition';
 import PinMessageModal from '../../common/PinMessageModal.async';
 import ConfirmDialog from '../../ui/ConfirmDialog';
 import MessageContextMenu from './MessageContextMenu';
+import { checkCredisBalance } from '../../../util/subscriptionHandler';
 
 export type OwnProps = {
   isOpen: boolean;
@@ -281,6 +282,9 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
     loadReactors,
     setForwardCopyForward,
     setForwardNoAuthors,
+    openPayPackageModal,
+    openChatAIWithInfo,
+    openCreditLimitModal,
   } = getActions();
 
   const oldLang = useOldLang();
@@ -423,6 +427,30 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
   const closePinModal = useLastCallback(() => {
     setIsPinModalOpen(false);
     onClose();
+  });
+
+  const handleAskAi = useLastCallback(() => {
+    if (!checkCredisBalance()) {
+      openPayPackageModal();
+      return;
+    }
+
+    const quoteText = selectionQuoteOffset !== UNQUOTABLE_OFFSET && selectionRange
+      ? getSelectionAsFormattedText(selectionRange) : undefined;
+
+    // 构建选中消息数组
+    const selectedMessages = [{
+      messageId: String(message.id),
+      content: quoteText ? quoteText.text : message.content.text?.text || '',
+      senderId: message.senderId || message.chatId,
+      senderName: userFullName || 'Unknown',
+      timestamp: message.date * 1000, // 转换为毫秒
+    }];
+
+    openChatAIWithInfo({
+      chatId: message.chatId,
+      selectedMessages,
+    });
   });
 
   const handleReply = useLastCallback(() => {
@@ -655,6 +683,14 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
   });
 
   const handleTranslate = useLastCallback(() => {
+    if (!checkCredisBalance()) {
+      closeMenu();
+      openCreditLimitModal({
+        title: 'Translation failed',
+        message: "You've reached your credit limit. Please upgrade your plan.",
+      });
+      return;
+    }
     requestMessageTranslation({
       chatId: message.chatId,
       id: message.id,
@@ -715,6 +751,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         reactionsLimit={reactionsLimit}
         anchor={anchor}
         targetHref={targetHref}
+        canAskAi={Boolean(message.content.text?.text)}
         canShowReactionsCount={canShowReactionsCount}
         canShowReactionList={canShowReactionList}
         canSendNow={canSendNow}
@@ -755,6 +792,7 @@ const ContextMenuContainer: FC<OwnProps & StateProps> = ({
         webPage={webPage}
         story={story}
         onOpenThread={handleOpenThread}
+        onAskAi={handleAskAi}
         onReply={handleReply}
         // onSmartReply={handleSmartReply}
         // onScheduleMeet={handleScheduleMeeting}

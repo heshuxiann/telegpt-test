@@ -14,16 +14,24 @@ export const PRODUCTION_HOSTNAME = 'web.telegram.org';
 // Telegpt相关配置
 export const PRODUCTION_URL = 'https://aquaverse.github.io/telegpt-web-app/';
 export const WEB_VERSION_BASE = 'https://web.telegram.org/'; // Used to redirect to other versions
-export const SERVER_API_URL = 'http://localhost:3000';
 // export const SERVER_API_URL = 'https://telegpt-phi.vercel.app';
+// 本地
+// export const SERVER_API_URL = 'http://localhost:3000';
+// 生产环境
 // export const SERVER_API_URL = 'https://api.telegpt.org';
+// 测试环境
+export const SERVER_API_URL = 'https://api-test.telegpt.org';
 export const BASE_URL = process.env.BASE_URL;
 export const ACCOUNT_QUERY = 'account';
 export const GOOGLE_APP_CLIENT_ID = process.env.GOOGLE_APP_CLIENT_ID;
 export const GOOGLE_APP_CLIENT_SECRET = process.env.GOOGLE_APP_CLIENT_SECRET;
 export const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
-export const TELEGPT_WS = 'ws://localhost:3000';
+// 本地
+// export const TELEGPT_WS = 'ws://localhost:3000';
+// 生产环境
 // export const TELEGPT_WS = 'wss://api.telegpt.org';
+// 测试环境
+export const TELEGPT_WS = 'wss://api-test.telegpt.org';
 
 export const IS_MOCKED_CLIENT = process.env.APP_MOCKED_CLIENT === '1';
 export const IS_TEST = process.env.APP_ENV === 'test';

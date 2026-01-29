@@ -971,3 +971,22 @@ addActionHandler('openPayPackageModal', (global, actions, payload): ActionReturn
     payPackageModal: { isOpen: true },
   }, tabId);
 });
+
+addActionHandler('closeCreditLimitModal', (global, actions, payload): ActionReturnType => {
+  const { tabId = getCurrentTabId() } = payload || {};
+
+  return updateTabState(global, {
+    creditLimitModal: undefined,
+  }, tabId);
+});
+
+addActionHandler('openCreditLimitModal', (global, actions, payload): ActionReturnType => {
+  const { title, message, tabId = getCurrentTabId() } = payload || {};
+  return updateTabState(global, {
+    creditLimitModal: {
+      isOpen: true,
+      title,
+      message,
+    },
+  }, tabId);
+});

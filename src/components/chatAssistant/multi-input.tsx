@@ -59,6 +59,7 @@ function PureMultimodalInput({
   );
 
   const [inputValue, setInputValue] = useState('');
+  const [isComposing, setIsComposing] = useState(false);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -110,7 +111,14 @@ function PureMultimodalInput({
         )}
         rows={2}
         // autoFocus
+        onCompositionStart={() => setIsComposing(true)}
+        onCompositionEnd={() => setIsComposing(false)}
         onKeyDown={(event) => {
+          // 如果正在使用输入法，不处理回车键
+          if (isComposing || event.nativeEvent.isComposing) {
+            return;
+          }
+
           if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
 

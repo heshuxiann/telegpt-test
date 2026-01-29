@@ -56,6 +56,7 @@ import HeaderTranslateTip from './HeaderTranslateTip';
 import { useTranslateTip } from '../left/main/hooks/useTranslateTip';
 import { toggleAutoTranslation } from '../chatAssistant/utils/room-input-translate';
 import { getCurrentTabId } from '../../util/establishMultitabRole';
+import { checkCredisBalance } from '../../util/subscriptionHandler';
 
 interface OwnProps {
   chatId: string;
@@ -158,6 +159,7 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     setViewForumAsMessages,
     openChatAIWithInfo,
     // openFrozenAccountModal,
+    openCreditLimitModal,
   } = getActions();
   const menuButtonRef = useRef<HTMLButtonElement>();
   const lang = useOldLang();
@@ -208,6 +210,13 @@ const HeaderActions: FC<OwnProps & StateProps> = ({
     if (isTranslating) {
       requestChatTranslation({ chatId, toLanguageCode: undefined });
       toggleAutoTranslation(false);
+      return;
+    }
+    if (!checkCredisBalance()) {
+      openCreditLimitModal({
+        title: 'Translation failed',
+        message: "You've reached your credit limit. Please upgrade your plan.",
+      });
       return;
     }
 

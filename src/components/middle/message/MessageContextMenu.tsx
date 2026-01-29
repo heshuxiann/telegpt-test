@@ -3,7 +3,7 @@ import type { FC } from '../../../lib/teact/teact';
 import {
   memo, useEffect, useMemo, useRef,
 } from '../../../lib/teact/teact';
-import { getActions } from '../../../global';
+import { getActions, getGlobal } from '../../../global';
 
 import type {
   ApiAvailableReaction,
@@ -46,6 +46,7 @@ import Skeleton from '../../ui/placeholder/Skeleton';
 import LastEditTimeMenuItem from './LastEditTimeMenuItem';
 import ReactionSelector from './reactions/ReactionSelector';
 import ReadTimeMenuItem from './ReadTimeMenuItem';
+import SerenaPath from '../../chatAssistant/assets/serena.png';
 
 import './MessageContextMenu.scss';
 
@@ -66,6 +67,7 @@ type OwnProps = {
   isWithPaidReaction?: boolean;
   reactionsLimit?: number;
   canReschedule?: boolean;
+  canAskAi?: boolean;
   canReply?: boolean;
   canQuote?: boolean;
   repliesThreadInfo?: ApiThreadInfo;
@@ -103,6 +105,7 @@ type OwnProps = {
   isInSavedMessages?: boolean;
   shouldRenderShowWhen?: boolean;
   canLoadReadDate?: boolean;
+  onAskAi?: NoneToVoidFunction;
   onReply?: NoneToVoidFunction;
   onOpenThread?: VoidFunction;
   onEdit?: NoneToVoidFunction;
@@ -164,6 +167,7 @@ const MessageContextMenu: FC<OwnProps> = ({
   canSendNow,
   canReschedule,
   canBuyPremium,
+  canAskAi,
   canReply,
   canQuote,
   canEdit,
@@ -198,6 +202,7 @@ const MessageContextMenu: FC<OwnProps> = ({
   isInSavedMessages,
   shouldRenderShowWhen,
   canLoadReadDate,
+  onAskAi,
   onReply,
   onOpenThread,
   onEdit,
@@ -235,7 +240,7 @@ const MessageContextMenu: FC<OwnProps> = ({
   canGift,
 }) => {
   const {
-    showNotification, openStickerSet, openCustomEmojiSets, loadStickers, openGiftModal,
+    showNotification, openStickerSet, openCustomEmojiSets, loadStickers, openGiftModal, openPayPackageModal, openChatAIWithInfo
   } = getActions();
   const menuRef = useRef<HTMLDivElement>();
   const scrollableRef = useRef<HTMLDivElement>();
@@ -409,6 +414,12 @@ const MessageContextMenu: FC<OwnProps> = ({
         )}
         dir={oldLang.isRtl ? 'rtl' : undefined}
       >
+        {canAskAi && (
+          <MenuItem customIcon={<img className="w-[20px] h-[20px] ml-[0.5rem] mr-[1.25rem]" src={SerenaPath} alt="" />} onClick={onAskAi}>
+            Ask TelyAI
+          </MenuItem>
+        )}
+
         {shouldShowGiftButton
           && (
             <MenuItem icon="gift" onClick={handleGiftClick}>

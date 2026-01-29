@@ -2879,6 +2879,12 @@ export interface ActionPayloads {
   openPayPackageModal: WithTabId | undefined;
   closePayPackageModal: WithTabId | undefined;
 
+  openCreditLimitModal: ({
+    title?: string;
+    message?: string;
+  } & WithTabId) | undefined;
+  closeCreditLimitModal: WithTabId | undefined;
+
   toggleUserEmojiStatusPermission: {
     botId: string;
     isEnabled: boolean;

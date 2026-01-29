@@ -888,6 +888,12 @@ export type TabState = {
     isOpen: boolean;
   };
 
+  creditLimitModal?: {
+    isOpen: boolean;
+    title?: string;
+    message?: string;
+  };
+
   isWaitingForStarGiftUpgrade?: true;
   isWaitingForStarGiftTransfer?: true;
   insertingPeerIdMention?: string;

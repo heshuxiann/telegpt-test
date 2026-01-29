@@ -318,7 +318,7 @@ function onUpdateCurrentUser<T extends GlobalState>(global: T, update: ApiUpdate
       console.log('[TelGPT] Received message:', message);
 
       // 处理订阅和积分更新消息
-      if (message.type === 'subscription-success' || message.type === 'credit-update') {
+      if (message.action === 'subscription-success' || message.action === 'credit-update') {
         const {
           subscriptionType, creditBalance, subscriptionExpiresAt, createdAt, isExpirated,
         } = message.data;
@@ -331,13 +331,11 @@ function onUpdateCurrentUser<T extends GlobalState>(global: T, update: ApiUpdate
         };
         // 更新用户的会员信息
         updateUserSubscriptionInfo(payload);
-        if (message.type === 'subscription-success') {
+        if (message.action === 'subscription-success') {
           eventEmitter.emit(Actions.UpgradeSuccess, payload);
         }
-      }
-
-      // 处理 TelGPT 工具调用请求 (来自服务端的 get_messages 等请求)
-      if (message.action === "get_messages") {
+      } else if (message.action === "get_messages") {
+         // 处理 TelGPT 工具调用请求 (来自服务端的 get_messages 等请求)
         handleTelGPTToolCall(message as TelGPTToolCallMessage).then((response) => {
           // 通过 WebSocket 发送响应回服务端
           const ws = getTelGPTWebSocket();
