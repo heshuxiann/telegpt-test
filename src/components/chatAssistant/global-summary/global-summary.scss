@@ -1,9 +1,0 @@
-.global-summary-inner {
-  transition: width var(--layer-transition);
-}
-
-@media (min-width: 1276px) {
-  .global-summary-inner.right-panel-open {
-    width: calc(100% - var(--right-column-width));
-  }
-}

@@ -1,8 +1,0 @@
-.globaSummaryBg {
-  background-image: url("../assets/ai-bg.png");
-  background-size: cover;
-  :global(html.theme-dark) & {
-    background-color: var(--theme-background-color);
-    background-image: unset;
-  }
-}
